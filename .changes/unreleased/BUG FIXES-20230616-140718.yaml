@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource/schema: Ensured `Default` implementations received request `Path`
+  and have response `Diagnostics` handled'
+time: 2023-06-16T14:07:18.774874-04:00
+custom:
+  Issue: "778"

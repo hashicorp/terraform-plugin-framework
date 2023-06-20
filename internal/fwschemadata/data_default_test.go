@@ -5,6 +5,7 @@ package fwschemadata_test
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -15,9 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
@@ -38,6 +42,148 @@ func TestDataDefault(t *testing.T) {
 		expected      *fwschemadata.Data
 		expectedDiags diag.Diagnostics
 	}{
+		"bool-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Bool{
+								DefaultBoolMethod: func(ctx context.Context, req defaults.BoolRequest, resp *defaults.BoolResponse) {
+									if !req.Path.Equal(path.Root("bool_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("bool_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"bool_attribute": tftypes.Bool,
+						},
+					},
+					map[string]tftypes.Value{
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"bool_attribute": tftypes.Bool,
+				},
+			},
+				map[string]tftypes.Value{
+					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Bool{
+								DefaultBoolMethod: func(ctx context.Context, req defaults.BoolRequest, resp *defaults.BoolResponse) {
+									if !req.Path.Equal(path.Root("bool_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("bool_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"bool_attribute": tftypes.Bool,
+						},
+					},
+					map[string]tftypes.Value{
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+					},
+				),
+			},
+		},
+		"bool-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Bool{
+								DefaultBoolMethod: func(ctx context.Context, req defaults.BoolRequest, resp *defaults.BoolResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"bool_attribute": tftypes.Bool,
+						},
+					},
+					map[string]tftypes.Value{
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"bool_attribute": tftypes.Bool,
+				},
+			},
+				map[string]tftypes.Value{
+					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"bool_attribute": testschema.AttributeWithBoolDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Bool{
+								DefaultBoolMethod: func(ctx context.Context, req defaults.BoolRequest, resp *defaults.BoolResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"bool_attribute": tftypes.Bool,
+						},
+					},
+					map[string]tftypes.Value{
+						"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
 		"bool-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -248,6 +394,148 @@ func TestDataDefault(t *testing.T) {
 						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
 					},
 				),
+			},
+		},
+		"float64-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float64{
+								DefaultFloat64Method: func(ctx context.Context, req defaults.Float64Request, resp *defaults.Float64Response) {
+									if !req.Path.Equal(path.Root("float64_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("float64_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float64_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float64{
+								DefaultFloat64Method: func(ctx context.Context, req defaults.Float64Request, resp *defaults.Float64Response) {
+									if !req.Path.Equal(path.Root("float64_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("float64_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+		},
+		"float64-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float64{
+								DefaultFloat64Method: func(ctx context.Context, req defaults.Float64Request, resp *defaults.Float64Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float64_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float64_attribute": testschema.AttributeWithFloat64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float64{
+								DefaultFloat64Method: func(ctx context.Context, req defaults.Float64Request, resp *defaults.Float64Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
 			},
 		},
 		"float64-attribute-not-null-unmodified-default": {
@@ -462,6 +750,148 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"int64-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int64{
+								DefaultInt64Method: func(ctx context.Context, req defaults.Int64Request, resp *defaults.Int64Response) {
+									if !req.Path.Equal(path.Root("int64_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("int64_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int64_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int64{
+								DefaultInt64Method: func(ctx context.Context, req defaults.Int64Request, resp *defaults.Int64Response) {
+									if !req.Path.Equal(path.Root("int64_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("int64_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+		},
+		"int64-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int64{
+								DefaultInt64Method: func(ctx context.Context, req defaults.Int64Request, resp *defaults.Int64Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int64_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int64_attribute": testschema.AttributeWithInt64DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int64{
+								DefaultInt64Method: func(ctx context.Context, req defaults.Int64Request, resp *defaults.Int64Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int64_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
 		"int64-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -672,6 +1102,152 @@ func TestDataDefault(t *testing.T) {
 						"int64_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
+			},
+		},
+		"list-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.List{
+								DefaultListMethod: func(ctx context.Context, req defaults.ListRequest, resp *defaults.ListResponse) {
+									if !req.Path.Equal(path.Root("list_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("list_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"list_attribute": tftypes.List{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.List{
+								DefaultListMethod: func(ctx context.Context, req defaults.ListRequest, resp *defaults.ListResponse) {
+									if !req.Path.Equal(path.Root("list_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("list_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+		},
+		"list-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.List{
+								DefaultListMethod: func(ctx context.Context, req defaults.ListRequest, resp *defaults.ListResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"list_attribute": tftypes.List{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.List{
+								DefaultListMethod: func(ctx context.Context, req defaults.ListRequest, resp *defaults.ListResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
 			},
 		},
 		"list-attribute-not-null-unmodified-default": {
@@ -993,6 +1569,152 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"map-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Map{
+								DefaultMapMethod: func(ctx context.Context, req defaults.MapRequest, resp *defaults.MapResponse) {
+									if !req.Path.Equal(path.Root("map_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("map_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"map_attribute": tftypes.Map{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Map{
+								DefaultMapMethod: func(ctx context.Context, req defaults.MapRequest, resp *defaults.MapResponse) {
+									if !req.Path.Equal(path.Root("map_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("map_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+		},
+		"map-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Map{
+								DefaultMapMethod: func(ctx context.Context, req defaults.MapRequest, resp *defaults.MapResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"map_attribute": tftypes.Map{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Map{
+								DefaultMapMethod: func(ctx context.Context, req defaults.MapRequest, resp *defaults.MapResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
 		"map-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -1312,6 +2034,148 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"number-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"number_attribute": testschema.AttributeWithNumberDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Number{
+								DefaultNumberMethod: func(ctx context.Context, req defaults.NumberRequest, resp *defaults.NumberResponse) {
+									if !req.Path.Equal(path.Root("number_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("number_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"number_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"number_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"number_attribute": testschema.AttributeWithNumberDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Number{
+								DefaultNumberMethod: func(ctx context.Context, req defaults.NumberRequest, resp *defaults.NumberResponse) {
+									if !req.Path.Equal(path.Root("number_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("number_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"number_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+		},
+		"number-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"number_attribute": testschema.AttributeWithNumberDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Number{
+								DefaultNumberMethod: func(ctx context.Context, req defaults.NumberRequest, resp *defaults.NumberResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"number_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"number_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"number_attribute": testschema.AttributeWithNumberDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Number{
+								DefaultNumberMethod: func(ctx context.Context, req defaults.NumberRequest, resp *defaults.NumberResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"number_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
 		"number-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -1522,6 +2386,160 @@ func TestDataDefault(t *testing.T) {
 						"number_attribute": tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
 					},
 				),
+			},
+		},
+		"object-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional: true,
+							Computed: true,
+							AttributeTypes: map[string]attr.Type{
+								"test_attribute": types.StringType,
+							},
+							Default: testdefaults.Object{
+								DefaultObjectMethod: func(ctx context.Context, req defaults.ObjectRequest, resp *defaults.ObjectResponse) {
+									if !req.Path.Equal(path.Root("object_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("object_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+				},
+			},
+				map[string]tftypes.Value{
+					"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional: true,
+							Computed: true,
+							AttributeTypes: map[string]attr.Type{
+								"test_attribute": types.StringType,
+							},
+							Default: testdefaults.Object{
+								DefaultObjectMethod: func(ctx context.Context, req defaults.ObjectRequest, resp *defaults.ObjectResponse) {
+									if !req.Path.Equal(path.Root("object_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("object_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+					},
+				),
+			},
+		},
+		"object-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional: true,
+							Computed: true,
+							AttributeTypes: map[string]attr.Type{
+								"test_attribute": types.StringType,
+							},
+							Default: testdefaults.Object{
+								DefaultObjectMethod: func(ctx context.Context, req defaults.ObjectRequest, resp *defaults.ObjectResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+				},
+			},
+				map[string]tftypes.Value{
+					"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional: true,
+							Computed: true,
+							AttributeTypes: map[string]attr.Type{
+								"test_attribute": types.StringType,
+							},
+							Default: testdefaults.Object{
+								DefaultObjectMethod: func(ctx context.Context, req defaults.ObjectRequest, resp *defaults.ObjectResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"test_attribute": tftypes.String}}, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
 			},
 		},
 		"object-attribute-not-null-unmodified-default": {
@@ -1851,6 +2869,152 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		"set-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Set{
+								DefaultSetMethod: func(ctx context.Context, req defaults.SetRequest, resp *defaults.SetResponse) {
+									if !req.Path.Equal(path.Root("set_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("set_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"set_attribute": tftypes.Set{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Set{
+								DefaultSetMethod: func(ctx context.Context, req defaults.SetRequest, resp *defaults.SetResponse) {
+									if !req.Path.Equal(path.Root("set_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("set_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+		},
+		"set-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Set{
+								DefaultSetMethod: func(ctx context.Context, req defaults.SetRequest, resp *defaults.SetResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"set_attribute": tftypes.Set{ElementType: tftypes.String},
+				},
+			},
+				map[string]tftypes.Value{
+					"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							Computed:    true,
+							ElementType: types.StringType,
+							Default: testdefaults.Set{
+								DefaultSetMethod: func(ctx context.Context, req defaults.SetRequest, resp *defaults.SetResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{ElementType: tftypes.String},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
 		"set-attribute-not-null-unmodified-default": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -2168,6 +3332,148 @@ func TestDataDefault(t *testing.T) {
 						}),
 					},
 				),
+			},
+		},
+		"string-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string_attribute": testschema.AttributeWithStringDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.String{
+								DefaultStringMethod: func(ctx context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
+									if !req.Path.Equal(path.Root("string_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("string_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string_attribute": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string_attribute": tftypes.String,
+				},
+			},
+				map[string]tftypes.Value{
+					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string_attribute": testschema.AttributeWithStringDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.String{
+								DefaultStringMethod: func(ctx context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
+									if !req.Path.Equal(path.Root("string_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("string_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string_attribute": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+					},
+				),
+			},
+		},
+		"string-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string_attribute": testschema.AttributeWithStringDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.String{
+								DefaultStringMethod: func(ctx context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string_attribute": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string_attribute": tftypes.String,
+				},
+			},
+				map[string]tftypes.Value{
+					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string_attribute": testschema.AttributeWithStringDefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.String{
+								DefaultStringMethod: func(ctx context.Context, req defaults.StringRequest, resp *defaults.StringResponse) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string_attribute": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
 			},
 		},
 		"string-attribute-not-null-unmodified-default": {

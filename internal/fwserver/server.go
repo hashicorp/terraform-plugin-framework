@@ -37,14 +37,9 @@ type Server struct {
 	// fetched from the DataSourceType.GetSchema() method.
 	dataSourceSchemas map[string]fwschema.Schema
 
-	// dataSourceSchemasDiags is the cached Diagnostics obtained while populating
-	// dataSourceSchemas. This is to ensure any warnings or errors are also
-	// returned appropriately when fetching dataSourceSchemas.
-	dataSourceSchemasDiags diag.Diagnostics
-
 	// dataSourceSchemasMutex is a mutex to protect concurrent dataSourceSchemas
 	// access from race conditions.
-	dataSourceSchemasMutex sync.Mutex
+	dataSourceSchemasMutex sync.RWMutex
 
 	// dataSourceFuncs is the cached DataSource functions for RPCs that need to
 	// access data sources. If not found, it will be fetched from the
@@ -97,14 +92,9 @@ type Server struct {
 	// fetched from the ResourceType.GetSchema() method.
 	resourceSchemas map[string]fwschema.Schema
 
-	// resourceSchemasDiags is the cached Diagnostics obtained while populating
-	// resourceSchemas. This is to ensure any warnings or errors are also
-	// returned appropriately when fetching resourceSchemas.
-	resourceSchemasDiags diag.Diagnostics
-
 	// resourceSchemasMutex is a mutex to protect concurrent resourceSchemas
 	// access from race conditions.
-	resourceSchemasMutex sync.Mutex
+	resourceSchemasMutex sync.RWMutex
 
 	// resourceFuncs is the cached Resource functions for RPCs that need to
 	// access resources. If not found, it will be fetched from the
@@ -193,69 +183,90 @@ func (s *Server) DataSourceFuncs(ctx context.Context) (map[string]func() datasou
 	return s.dataSourceFuncs, s.dataSourceTypesDiags
 }
 
-// DataSourceSchema returns the Schema associated with the DataSourceType for
-// the given type name.
+// DataSourceSchema returns the DataSource Schema for the given type name and
+// caches the result for later DataSource operations.
 func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
-	dataSourceSchemas, diags := s.DataSourceSchemas(ctx)
+	s.dataSourceSchemasMutex.RLock()
+	dataSourceSchema, ok := s.dataSourceSchemas[typeName]
+	s.dataSourceSchemasMutex.RUnlock()
 
-	dataSourceSchema, ok := dataSourceSchemas[typeName]
+	if ok {
+		return dataSourceSchema, nil
+	}
 
-	if !ok {
-		diags.AddError(
-			"Data Source Schema Not Found",
-			fmt.Sprintf("No data source type named %q was found in the provider to fetch the schema. ", typeName)+
-				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.",
-		)
+	var diags diag.Diagnostics
 
+	dataSource, dataSourceDiags := s.DataSource(ctx, typeName)
+
+	diags.Append(dataSourceDiags...)
+
+	if diags.HasError() {
 		return nil, diags
 	}
 
-	return dataSourceSchema, diags
-}
+	schemaReq := datasource.SchemaRequest{}
+	schemaResp := datasource.SchemaResponse{}
 
-// DataSourceSchemas returns the map of DataSourceType Schemas. The results are
-// cached on first use.
-func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
-	logging.FrameworkTrace(ctx, "Checking DataSourceSchemas lock")
-	s.dataSourceSchemasMutex.Lock()
-	defer s.dataSourceSchemasMutex.Unlock()
+	logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema method", map[string]interface{}{logging.KeyDataSourceType: typeName})
+	dataSource.Schema(ctx, schemaReq, &schemaResp)
+	logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema method", map[string]interface{}{logging.KeyDataSourceType: typeName})
 
-	if s.dataSourceSchemas != nil {
-		return s.dataSourceSchemas, s.dataSourceSchemasDiags
+	diags.Append(schemaResp.Diagnostics...)
+
+	if diags.HasError() {
+		return schemaResp.Schema, diags
 	}
 
-	s.dataSourceSchemas = map[string]fwschema.Schema{}
+	s.dataSourceSchemasMutex.Lock()
+
+	if s.dataSourceSchemas == nil {
+		s.dataSourceSchemas = make(map[string]fwschema.Schema)
+	}
+
+	s.dataSourceSchemas[typeName] = schemaResp.Schema
+
+	s.dataSourceSchemasMutex.Unlock()
+
+	return schemaResp.Schema, diags
+}
+
+// DataSourceSchemas returns a map of DataSource Schemas for the
+// GetProviderSchema RPC without caching since not all schemas are guaranteed to
+// be necessary for later provider operations. The schema implementations are
+// also validated.
+func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
+	dataSourceSchemas := make(map[string]fwschema.Schema)
 
 	dataSourceFuncs, diags := s.DataSourceFuncs(ctx)
 
-	s.dataSourceSchemasDiags = diags
-
-	for dataSourceTypeName, dataSourceFunc := range dataSourceFuncs {
+	for typeName, dataSourceFunc := range dataSourceFuncs {
 		dataSource := dataSourceFunc()
 
 		schemaReq := datasource.SchemaRequest{}
 		schemaResp := datasource.SchemaResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+		logging.FrameworkDebug(ctx, "Calling provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: typeName})
 		dataSource.Schema(ctx, schemaReq, &schemaResp)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: dataSourceTypeName})
+		logging.FrameworkDebug(ctx, "Called provider defined DataSource Schema", map[string]interface{}{logging.KeyDataSourceType: typeName})
 
-		s.dataSourceSchemasDiags.Append(schemaResp.Diagnostics...)
+		diags.Append(schemaResp.Diagnostics...)
 
-		if s.dataSourceSchemasDiags.HasError() {
-			return s.dataSourceSchemas, s.dataSourceSchemasDiags
+		if schemaResp.Diagnostics.HasError() {
+			continue
 		}
 
-		s.dataSourceSchemasDiags.Append(schemaResp.Schema.ValidateImplementation(ctx)...)
+		validateDiags := schemaResp.Schema.ValidateImplementation(ctx)
 
-		if s.dataSourceSchemasDiags.HasError() {
-			return s.dataSourceSchemas, s.dataSourceSchemasDiags
+		diags.Append(validateDiags...)
+
+		if validateDiags.HasError() {
+			continue
 		}
 
-		s.dataSourceSchemas[dataSourceTypeName] = schemaResp.Schema
+		dataSourceSchemas[typeName] = schemaResp.Schema
 	}
 
-	return s.dataSourceSchemas, s.dataSourceSchemasDiags
+	return dataSourceSchemas, diags
 }
 
 // ProviderSchema returns the Schema associated with the Provider. The Schema
@@ -390,67 +401,88 @@ func (s *Server) ResourceFuncs(ctx context.Context) (map[string]func() resource.
 	return s.resourceFuncs, s.resourceTypesDiags
 }
 
-// ResourceSchema returns the Schema associated with the ResourceType for
-// the given type name.
+// ResourceSchema returns the Resource Schema for the given type name and
+// caches the result for later Resource operations.
 func (s *Server) ResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
-	resourceSchemas, diags := s.ResourceSchemas(ctx)
+	s.resourceSchemasMutex.RLock()
+	resourceSchema, ok := s.resourceSchemas[typeName]
+	s.resourceSchemasMutex.RUnlock()
 
-	resourceSchema, ok := resourceSchemas[typeName]
+	if ok {
+		return resourceSchema, nil
+	}
 
-	if !ok {
-		diags.AddError(
-			"Resource Schema Not Found",
-			fmt.Sprintf("No resource type named %q was found in the provider to fetch the schema. ", typeName)+
-				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.",
-		)
+	var diags diag.Diagnostics
 
+	r, resourceDiags := s.Resource(ctx, typeName)
+
+	diags.Append(resourceDiags...)
+
+	if diags.HasError() {
 		return nil, diags
 	}
 
-	return resourceSchema, diags
-}
+	schemaReq := resource.SchemaRequest{}
+	schemaResp := resource.SchemaResponse{}
 
-// ResourceSchemas returns the map of ResourceType Schemas. The results are
-// cached on first use.
-func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
-	logging.FrameworkTrace(ctx, "Checking ResourceSchemas lock")
-	s.resourceSchemasMutex.Lock()
-	defer s.resourceSchemasMutex.Unlock()
+	logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema method", map[string]interface{}{logging.KeyResourceType: typeName})
+	r.Schema(ctx, schemaReq, &schemaResp)
+	logging.FrameworkDebug(ctx, "Called provider defined Resource Schema method", map[string]interface{}{logging.KeyResourceType: typeName})
 
-	if s.resourceSchemas != nil {
-		return s.resourceSchemas, s.resourceSchemasDiags
+	diags.Append(schemaResp.Diagnostics...)
+
+	if diags.HasError() {
+		return schemaResp.Schema, diags
 	}
 
-	s.resourceSchemas = map[string]fwschema.Schema{}
+	s.resourceSchemasMutex.Lock()
+
+	if s.resourceSchemas == nil {
+		s.resourceSchemas = make(map[string]fwschema.Schema)
+	}
+
+	s.resourceSchemas[typeName] = schemaResp.Schema
+
+	s.resourceSchemasMutex.Unlock()
+
+	return schemaResp.Schema, diags
+}
+
+// ResourceSchemas returns a map of Resource Schemas for the
+// GetProviderSchema RPC without caching since not all schemas are guaranteed to
+// be necessary for later provider operations. The schema implementations are
+// also validated.
+func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
+	resourceSchemas := make(map[string]fwschema.Schema)
 
 	resourceFuncs, diags := s.ResourceFuncs(ctx)
 
-	s.resourceSchemasDiags = diags
-
-	for resourceTypeName, resourceFunc := range resourceFuncs {
-		res := resourceFunc()
+	for typeName, resourceFunc := range resourceFuncs {
+		r := resourceFunc()
 
 		schemaReq := resource.SchemaRequest{}
 		schemaResp := resource.SchemaResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
-		res.Schema(ctx, schemaReq, &schemaResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Schema", map[string]interface{}{logging.KeyResourceType: resourceTypeName})
+		logging.FrameworkDebug(ctx, "Calling provider defined Resource Schema method", map[string]interface{}{logging.KeyResourceType: typeName})
+		r.Schema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkDebug(ctx, "Called provider defined Resource Schema method", map[string]interface{}{logging.KeyResourceType: typeName})
 
-		s.resourceSchemasDiags.Append(schemaResp.Diagnostics...)
+		diags.Append(schemaResp.Diagnostics...)
 
-		if s.resourceSchemasDiags.HasError() {
-			return s.resourceSchemas, s.resourceSchemasDiags
+		if schemaResp.Diagnostics.HasError() {
+			continue
 		}
 
-		s.resourceSchemasDiags.Append(schemaResp.Schema.ValidateImplementation(ctx)...)
+		validateDiags := schemaResp.Schema.ValidateImplementation(ctx)
 
-		if s.resourceSchemasDiags.HasError() {
-			return s.resourceSchemas, s.resourceSchemasDiags
+		diags.Append(validateDiags...)
+
+		if validateDiags.HasError() {
+			continue
 		}
 
-		s.resourceSchemas[resourceTypeName] = schemaResp.Schema
+		resourceSchemas[typeName] = schemaResp.Schema
 	}
 
-	return s.resourceSchemas, s.resourceSchemasDiags
+	return resourceSchemas, diags
 }

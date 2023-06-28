@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'providerserver: Ensured Terraform CLI interrupts (e.g. Ctrl-c) properly cancel
-  the `context.Context` of inflight requests'
-time: 2023-06-16T16:03:05.219555-04:00
-custom:
-  Issue: "782"

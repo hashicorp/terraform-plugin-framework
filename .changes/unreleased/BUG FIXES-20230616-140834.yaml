@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'resource/schema: Prevented panics with `Default` implementations on list, map,
-  and set where no response `Diagnostics` or `PlanValue` was returned'
-time: 2023-06-16T14:08:34.806147-04:00
-custom:
-  Issue: "778"

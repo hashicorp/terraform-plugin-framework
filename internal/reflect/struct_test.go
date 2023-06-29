@@ -28,19 +28,14 @@ func TestNewStruct_errors(t *testing.T) {
 		typ           attr.Type
 		objVal        tftypes.Value
 		targetVal     reflect.Value
+		expectedError error
 		expectedDiags diag.Diagnostics
 	}{
 		"not-an-object": {
-			typ:       types.StringType,
-			objVal:    tftypes.NewValue(tftypes.String, "hello"),
-			targetVal: reflect.ValueOf(struct{}{}),
-			expectedDiags: diag.Diagnostics{
-				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-					Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
-					Val:        tftypes.NewValue(tftypes.String, "hello"),
-					TargetType: reflect.TypeOf(struct{}{}),
-				}),
-			},
+			typ:           types.StringType,
+			objVal:        tftypes.NewValue(tftypes.String, "hello"),
+			targetVal:     reflect.ValueOf(struct{}{}),
+			expectedError: fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
 		},
 		"not-a-struct": {
 			typ: types.ObjectType{
@@ -55,20 +50,8 @@ func TestNewStruct_errors(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.String, "hello"),
 			}),
-			targetVal: reflect.ValueOf(""),
-			expectedDiags: diag.Diagnostics{
-				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-					Err: fmt.Errorf("expected a struct type, got string"),
-					Val: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"a": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"a": tftypes.NewValue(tftypes.String, "hello"),
-					}),
-					TargetType: reflect.TypeOf(""),
-				}),
-			},
+			targetVal:     reflect.ValueOf(""),
+			expectedError: errors.New("expected a struct type, got string"),
 		},
 		"object-missing-fields": {
 			typ:    types.ObjectType{},
@@ -76,15 +59,7 @@ func TestNewStruct_errors(t *testing.T) {
 			targetVal: reflect.ValueOf(struct {
 				A string `tfsdk:"a"`
 			}{}),
-			expectedDiags: diag.Diagnostics{
-				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-					Err: errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
-					Val: tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
-					TargetType: reflect.TypeOf(struct {
-						A string `tfsdk:"a"`
-					}{}),
-				}),
-			},
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
 		},
 		"struct-missing-fields": {
 			typ: types.ObjectType{
@@ -99,20 +74,8 @@ func TestNewStruct_errors(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.String, "hello"),
 			}),
-			targetVal: reflect.ValueOf(struct{}{}),
-			expectedDiags: diag.Diagnostics{
-				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-					Err: errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
-					Val: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"a": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"a": tftypes.NewValue(tftypes.String, "hello"),
-					}),
-					TargetType: reflect.TypeOf(struct{}{}),
-				}),
-			},
+			targetVal:     reflect.ValueOf(struct{}{}),
+			expectedError: errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
 		},
 		"object-and-struct-missing-fields": {
 			typ: types.ObjectType{
@@ -130,21 +93,69 @@ func TestNewStruct_errors(t *testing.T) {
 			targetVal: reflect.ValueOf(struct {
 				A string `tfsdk:"a"`
 			}{}),
-			expectedDiags: diag.Diagnostics{
-				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-					Err: errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
-					TargetType: reflect.TypeOf(struct {
-						A string `tfsdk:"a"`
-					}{}),
-					Val: tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"b": tftypes.String,
-						},
-					}, map[string]tftypes.Value{
-						"b": tftypes.NewValue(tftypes.String, "hello"),
-					}),
-				}),
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
+		},
+		"struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
 			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A                   string `tfsdk:"a"`
+				ExportedAndUntagged string
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New(`: need a struct tag for "tfsdk" on ExportedAndUntagged`)),
+		},
+		"struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"invalidTag"`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New("invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+		},
+		"struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"a"`
+				B string `tfsdk:"a"`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New("a: can't use field name for both A and B")),
 		},
 	}
 
@@ -154,9 +165,17 @@ func TestNewStruct_errors(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			expectedDiags := diag.Diagnostics{
+				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
+					Err:        testCase.expectedError,
+					TargetType: testCase.targetVal.Type(),
+					Val:        testCase.objVal,
+				}),
+			}
+
 			_, diags := refl.Struct(context.Background(), testCase.typ, testCase.objVal, testCase.targetVal, refl.Options{}, path.Empty())
 
-			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+			if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 				for _, d := range diags {
 					t.Logf("%s: %s\n%s\n", d.Severity(), d.Summary(), d.Detail())
 				}

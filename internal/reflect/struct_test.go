@@ -1188,3 +1188,42 @@ func TestFromStruct_errors(t *testing.T) {
 		})
 	}
 }
+
+func TestFromStruct_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	type s struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+	testStruct := s{
+		ExportedAndTagged:   "thisshouldstay",
+		unexported:          "shouldntcopy",
+		unexportedAndTagged: "shouldntcopy",
+		ExportedAndExcluded: "shouldntcopy",
+	}
+
+	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, reflect.ValueOf(testStruct), path.Empty())
+	if diags.HasError() {
+		t.Fatalf("Unexpected error: %v", diags)
+	}
+
+	expectedVal := types.ObjectValueMust(
+		map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+		map[string]attr.Value{
+			"exported_and_tagged": types.StringValue("thisshouldstay"),
+		},
+	)
+
+	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}

@@ -992,6 +992,71 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test                types.String `tfsdk:"test"`
+					ExportedAndUntagged string
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test: need a struct tag for \"tfsdk\" on ExportedAndUntagged",
+				),
+			},
+		},
+		"struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"invalidTag"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+				),
+			},
+		},
+		"struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test  types.String `tfsdk:"test"`
+					Test2 types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.test: can't use field name for both Test and Test2",
+				),
+			},
+		},
 		"list-zero-value": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{

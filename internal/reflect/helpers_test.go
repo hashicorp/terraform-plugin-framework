@@ -96,28 +96,6 @@ func TestCommaSeparatedString(t *testing.T) {
 	}
 }
 
-func TestGetStructTags_success(t *testing.T) {
-	t.Parallel()
-
-	type testStruct struct {
-		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
-		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
-		ExportedAndExcluded string `tfsdk:"-"`
-	}
-
-	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
-	}
-	if len(res) != 1 {
-		t.Errorf("Unexpected result: %v", res)
-	}
-	if res["exported_and_tagged"] != 0 {
-		t.Errorf("Unexpected result: %v", res)
-	}
-}
-
 func TestGetStructTags_untagged(t *testing.T) {
 	t.Parallel()
 	type testStruct struct {

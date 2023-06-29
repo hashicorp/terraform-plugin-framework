@@ -504,6 +504,47 @@ func TestNewStruct_complex(t *testing.T) {
 	}
 }
 
+func TestNewStruct_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	var s struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+	result, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"exported_and_tagged": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"exported_and_tagged": tftypes.NewValue(tftypes.String, "hello"),
+	}), reflect.ValueOf(s), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&s).Elem().Set(result)
+	if s.ExportedAndTagged != "hello" {
+		t.Errorf("Expected s.ExportedAndTagged to be %q, was %q", "hello", s.ExportedAndTagged)
+	}
+
+	if s.unexported != "" {
+		t.Errorf("Expected s.unexported to be empty, was %q", s.unexported)
+	}
+
+	if s.unexportedAndTagged != "" {
+		t.Errorf("Expected s.unexportedAndTagged to be empty, was %q", s.unexportedAndTagged)
+	}
+
+	if s.ExportedAndExcluded != "" {
+		t.Errorf("Expected s.ExportedAndExcluded to be empty, was %q", s.ExportedAndExcluded)
+	}
+}
+
 func TestFromStruct_primitives(t *testing.T) {
 	t.Parallel()
 

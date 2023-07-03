@@ -262,10 +262,12 @@ func (o ObjectValue) Type(ctx context.Context) attr.Type {
 // ToTerraformValue returns the data contained in the attr.Value as
 // a tftypes.Value.
 func (o ObjectValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := map[string]tftypes.Type{}
-	for attr, typ := range o.AttributeTypes(ctx) {
+	attrTypes := make(map[string]tftypes.Type, len(o.attributeTypes))
+
+	for attr, typ := range o.attributeTypes {
 		attrTypes[attr] = typ.TerraformType(ctx)
 	}
+
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch o.state {

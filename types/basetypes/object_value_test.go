@@ -6,6 +6,7 @@ package basetypes
 import (
 	"context"
 	"math/big"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,6 +15,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+func BenchmarkObjectValueToTerraformValue1000(b *testing.B) {
+	benchmarkObjectValueToTerraformValue(b, 1000)
+}
+
+func benchmarkObjectValueToTerraformValue(b *testing.B, attributes int) {
+	attributeTypes := make(map[string]attr.Type, attributes)
+	attributeValues := make(map[string]attr.Value, attributes)
+	ctx := context.Background()
+
+	for i := 0; i < attributes; i++ {
+		attributeName := "testattr" + strconv.Itoa(i)
+		attributeTypes[attributeName] = BoolType{}
+		attributeValues[attributeName] = NewBoolNull()
+	}
+
+	value := NewObjectValueMust(
+		attributeTypes,
+		attributeValues,
+	)
+
+	for n := 0; n < b.N; n++ {
+		_, err := value.ToTerraformValue(ctx)
+
+		if err != nil {
+			b.Fatalf("unexpected ToTerraformValue error: %s", err)
+		}
+	}
+}
 
 func TestNewObjectValue(t *testing.T) {
 	t.Parallel()

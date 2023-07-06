@@ -4,12 +4,9 @@
 package reflect
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 func TestTrueReflectValue(t *testing.T) {
@@ -93,88 +90,6 @@ func TestCommaSeparatedString(t *testing.T) {
 				t.Errorf("Expected %q, got %q", test.expected, got)
 			}
 		})
-	}
-}
-
-func TestGetStructTags_success(t *testing.T) {
-	t.Parallel()
-
-	type testStruct struct {
-		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
-		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
-		ExportedAndExcluded string `tfsdk:"-"`
-	}
-
-	res, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
-	}
-	if len(res) != 1 {
-		t.Errorf("Unexpected result: %v", res)
-	}
-	if res["exported_and_tagged"] != 0 {
-		t.Errorf("Unexpected result: %v", res)
-	}
-}
-
-func TestGetStructTags_untagged(t *testing.T) {
-	t.Parallel()
-	type testStruct struct {
-		ExportedAndUntagged string
-	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
-	expected := `: need a struct tag for "tfsdk" on ExportedAndUntagged`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
-	}
-}
-
-func TestGetStructTags_invalidTag(t *testing.T) {
-	t.Parallel()
-	type testStruct struct {
-		InvalidTag string `tfsdk:"invalidTag"`
-	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
-	expected := `invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
-	}
-}
-
-func TestGetStructTags_duplicateTag(t *testing.T) {
-	t.Parallel()
-	type testStruct struct {
-		Field1 string `tfsdk:"my_field"`
-		Field2 string `tfsdk:"my_field"`
-	}
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct{}), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
-	expected := `my_field: can't use field name for both Field1 and Field2`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
-	}
-}
-
-func TestGetStructTags_notAStruct(t *testing.T) {
-	t.Parallel()
-	var testStruct string
-
-	_, err := getStructTags(context.Background(), reflect.ValueOf(testStruct), path.Empty())
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
-	expected := `: can't get struct tags of string, is not a struct`
-	if err.Error() != expected {
-		t.Errorf("Expected error to be %q, got %q", expected, err.Error())
 	}
 }
 

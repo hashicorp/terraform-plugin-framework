@@ -21,142 +21,167 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestNewStruct_notAnObject(t *testing.T) {
+func TestNewStruct_errors(t *testing.T) {
 	t.Parallel()
 
-	var s struct{}
-	expectedDiags := diag.Diagnostics{
-		diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-			Val:        tftypes.NewValue(tftypes.String, "hello"),
-			TargetType: reflect.TypeOf(s),
-			Err:        fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
-		}),
-	}
-
-	_, diags := refl.Struct(context.Background(), types.StringType, tftypes.NewValue(tftypes.String, "hello"), reflect.ValueOf(s), refl.Options{}, path.Empty())
-
-	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
-		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewStruct_notAStruct(t *testing.T) {
-	t.Parallel()
-
-	val := tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"a": tftypes.String,
+	testCases := map[string]struct {
+		typ           attr.Type
+		objVal        tftypes.Value
+		targetVal     reflect.Value
+		expectedError error
+		expectedDiags diag.Diagnostics
+	}{
+		"not-an-object": {
+			typ:           types.StringType,
+			objVal:        tftypes.NewValue(tftypes.String, "hello"),
+			targetVal:     reflect.ValueOf(struct{}{}),
+			expectedError: fmt.Errorf("cannot reflect %s into a struct, must be an object", tftypes.String),
 		},
-	}, map[string]tftypes.Value{
-		"a": tftypes.NewValue(tftypes.String, "hello"),
-	})
-
-	var s string
-	expectedDiags := diag.Diagnostics{
-		diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-			TargetType: reflect.TypeOf(s),
-			Val:        val,
-			Err:        fmt.Errorf("expected a struct type, got string"),
-		}),
-	}
-
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
+		"not-a-struct": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal:     reflect.ValueOf(""),
+			expectedError: errors.New("expected a struct type, got string"),
 		},
-	}, val, reflect.ValueOf(s), refl.Options{}, path.Empty())
-
-	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
-		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewStruct_objectMissingFields(t *testing.T) {
-	t.Parallel()
-
-	val := tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{},
-	}, map[string]tftypes.Value{})
-
-	var s struct {
-		A string `tfsdk:"a"`
-	}
-	expectedDiags := diag.Diagnostics{
-		diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
-			Val:        val,
-			TargetType: reflect.TypeOf(s),
-		}),
-	}
-
-	_, diags := refl.Struct(context.Background(), types.ObjectType{}, val, reflect.ValueOf(s), refl.Options{}, path.Empty())
-
-	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
-		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewStruct_structMissingProperties(t *testing.T) {
-	t.Parallel()
-
-	val := tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"a": tftypes.String,
+		"object-missing-fields": {
+			typ:    types.ObjectType{},
+			objVal: tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"a"`
+			}{}),
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
 		},
-	}, map[string]tftypes.Value{
-		"a": tftypes.NewValue(tftypes.String, "hello"),
-	})
-
-	var s struct{}
-	expectedDiags := diag.Diagnostics{
-		diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-			Err:        errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
-			Val:        val,
-			TargetType: reflect.TypeOf(s),
-		}),
-	}
-
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
+		"struct-missing-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal:     reflect.ValueOf(struct{}{}),
+			expectedError: errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
 		},
-	}, val, reflect.ValueOf(s), refl.Options{}, path.Empty())
-
-	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
-		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNewStruct_objectMissingFieldsAndStructMissingProperties(t *testing.T) {
-	t.Parallel()
-
-	val := tftypes.NewValue(tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"b": tftypes.String,
+		"object-and-struct-missing-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"b": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"b": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"a"`
+			}{}),
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
 		},
-	}, map[string]tftypes.Value{
-		"b": tftypes.NewValue(tftypes.String, "hello"),
-	})
-
-	var s struct {
-		A string `tfsdk:"a"`
-	}
-	expectedDiags := diag.Diagnostics{
-		diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
-			TargetType: reflect.TypeOf(s),
-			Val:        val,
-			Err:        errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
-		}),
-	}
-
-	_, diags := refl.Struct(context.Background(), types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"a": types.StringType,
+		"struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A                   string `tfsdk:"a"`
+				ExportedAndUntagged string
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New(`: need a struct tag for "tfsdk" on ExportedAndUntagged`)),
 		},
-	}, val, reflect.ValueOf(s), refl.Options{}, path.Empty())
+		"struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"invalidTag"`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New("invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+		},
+		"struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"a"`
+				B string `tfsdk:"a"`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New("a: can't use field name for both A and B")),
+		},
+	}
 
-	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
-		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			expectedDiags := diag.Diagnostics{
+				diag.WithPath(path.Empty(), refl.DiagIntoIncompatibleType{
+					Err:        testCase.expectedError,
+					TargetType: testCase.targetVal.Type(),
+					Val:        testCase.objVal,
+				}),
+			}
+
+			_, diags := refl.Struct(context.Background(), testCase.typ, testCase.objVal, testCase.targetVal, refl.Options{}, path.Empty())
+
+			if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+				for _, d := range diags {
+					t.Logf("%s: %s\n%s\n", d.Severity(), d.Summary(), d.Detail())
+				}
+				t.Errorf("unexpected diagnostics: %s", diff)
+			}
+		})
 	}
 }
 
@@ -495,6 +520,47 @@ func TestNewStruct_complex(t *testing.T) {
 	}
 	if diff := cmp.Diff(s, expected); diff != "" {
 		t.Errorf("Didn't get expected value. Diff (+ is expected, - is result): %s", diff)
+	}
+}
+
+func TestNewStruct_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	var s struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+	result, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"exported_and_tagged": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"exported_and_tagged": tftypes.NewValue(tftypes.String, "hello"),
+	}), reflect.ValueOf(s), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&s).Elem().Set(result)
+	if s.ExportedAndTagged != "hello" {
+		t.Errorf("Expected s.ExportedAndTagged to be %q, was %q", "hello", s.ExportedAndTagged)
+	}
+
+	if s.unexported != "" {
+		t.Errorf("Expected s.unexported to be empty, was %q", s.unexported)
+	}
+
+	if s.unexportedAndTagged != "" {
+		t.Errorf("Expected s.unexportedAndTagged to be empty, was %q", s.unexportedAndTagged)
+	}
+
+	if s.ExportedAndExcluded != "" {
+		t.Errorf("Expected s.ExportedAndExcluded to be empty, was %q", s.ExportedAndExcluded)
 	}
 }
 
@@ -926,6 +992,71 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test                types.String `tfsdk:"test"`
+					ExportedAndUntagged string
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test: need a struct tag for \"tfsdk\" on ExportedAndUntagged",
+				),
+			},
+		},
+		"struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"invalidTag"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+				),
+			},
+		},
+		"struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test  types.String `tfsdk:"test"`
+					Test2 types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.test: can't use field name for both Test and Test2",
+				),
+			},
+		},
 		"list-zero-value": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -1055,5 +1186,44 @@ func TestFromStruct_errors(t *testing.T) {
 				t.Errorf("unexpected diagnostics: %s", diff)
 			}
 		})
+	}
+}
+
+func TestFromStruct_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	type s struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+	testStruct := s{
+		ExportedAndTagged:   "thisshouldstay",
+		unexported:          "shouldntcopy",
+		unexportedAndTagged: "shouldntcopy",
+		ExportedAndExcluded: "shouldntcopy",
+	}
+
+	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, reflect.ValueOf(testStruct), path.Empty())
+	if diags.HasError() {
+		t.Fatalf("Unexpected error: %v", diags)
+	}
+
+	expectedVal := types.ObjectValueMust(
+		map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+		map[string]attr.Value{
+			"exported_and_tagged": types.StringValue("thisshouldstay"),
+		},
+	)
+
+	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 	}
 }

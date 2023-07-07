@@ -18,7 +18,7 @@ terraform-plugin-framework is a module for building [Terraform providers](https:
 
 terraform-plugin-framework has reached **General Availability** phase and follows [semantic versioning](https://semver.org/) for Go and Terraform compatibility promises. We recommend only using tagged releases of this Go module and examining the CHANGELOG when upgrading to a new release. Major version releases contain breaking changes to existing provider code. Minor version releases introduce new functionality. Patch version releases contain bug fixes or documentation updates.
 
-Refer to [Which SDK Should I Use?](https://terraform.io/docs/plugin/which-sdk.html) for more information about benefits over [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk).
+Refer to [Plugin Framework Benefits](https://developer.hashicorp.com/terraform/plugin/framework-benefits) for more information about benefits over [terraform-plugin-sdk](https://github.com/hashicorp/terraform-plugin-sdk).
 
 ## Terraform CLI Compatibility
 

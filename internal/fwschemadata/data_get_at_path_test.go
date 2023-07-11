@@ -34,6 +34,40 @@ func TestDataGetAtPath(t *testing.T) {
 		expected      any
 		expectedDiags diag.Diagnostics
 	}{
+		"invalid-path": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Optional: true,
+							Type:     types.StringType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "test-value"),
+					},
+				),
+			},
+			path:     path.Root("not-test"),
+			target:   new(string),
+			expected: new(string),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("not-test"),
+					"Data Read Error",
+					"An unexpected error was encountered trying to retrieve type information at a given path. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"not-test\") still remains in the path: could not find attribute or block \"not-test\" in schema",
+				),
+			},
+		},
 		"invalid-target": {
 			data: fwschemadata.Data{
 				Schema: testschema.Schema{
@@ -103,6 +137,29 @@ func TestDataGetAtPath(t *testing.T) {
 					},
 				),
 			},
+		},
+		"TerraformValue-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Optional: true,
+							Type:     types.StringType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					},
+					nil,
+				),
+			},
+			path:     path.Root("test"),
+			target:   new(types.String),
+			expected: pointer(types.StringNull()),
 		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{

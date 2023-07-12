@@ -133,47 +133,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = data.TerraformValue
 	}
 
-	// Execute any AttributePlanModifiers.
-	//
-	// This pass is before any Computed-only attributes are marked as unknown
-	// to ensure any plan changes will trigger that behavior. These plan
-	// modifiers are run again after that marking to allow setting values
-	// and preventing extraneous plan differences.
-	//
-	// We only do this if there's a plan to modify; otherwise, it
-	// represents a resource being deleted and there's no point.
-	//
-	// TODO: Enabling this pass will generate the following test error:
-	//
-	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
-	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
-	//
-	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
-	//
-	// To fix this, (Config).GetAttribute() should return nil instead of the error.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
-
-	// Execute any resource-level ModifyPlan method.
-	//
-	// This pass is before any Computed-only attributes are marked as unknown
-	// to ensure any plan changes will trigger that behavior. These plan
-	// modifiers be run again after that marking to allow setting values and
-	// preventing extraneous plan differences.
-	//
-	// TODO: Enabling this pass will generate the following test error:
-	//
-	//     --- FAIL: TestServerPlanResourceChange/two_modifyplan_add_list_elem (0.00s)
-	// serve_test.go:3303: An unexpected error was encountered trying to read an attribute from the configuration. This is always an error in the provider. Please report the following to the provider developer:
-	//
-	// ElementKeyInt(1).AttributeName("name") still remains in the path: step cannot be applied to this value
-	//
-	// To fix this, (Config).GetAttribute() should return nil instead of the error.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/183
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/150
-	// See also: https://github.com/hashicorp/terraform-plugin-framework/pull/167
-
 	// After ensuring there are proposed changes, mark any computed attributes
 	// that are null in the config as unknown in the plan, so providers have
 	// the choice to update them.
@@ -253,7 +212,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = modifiedPlan
 	}
 
-	// Execute any AttributePlanModifiers again. This allows overwriting
+	// Execute any schema-based plan modifiers. This allows overwriting
 	// any unknown values.
 	//
 	// We only do this if there's a plan to modify; otherwise, it
@@ -288,7 +247,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
-	// Execute any resource-level ModifyPlan method again. This allows
+	// Execute any resource-level ModifyPlan method. This allows
 	// overwriting any unknown values.
 	//
 	// We do this regardless of whether the plan is null or not, because we

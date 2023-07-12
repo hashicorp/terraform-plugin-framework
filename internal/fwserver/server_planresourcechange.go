@@ -207,6 +207,14 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				_ = resp.PlannedState.GetAttribute(ctx, p, &plannedState)
 				_ = req.PriorState.GetAttribute(ctx, p, &priorState)
 
+				// Due to ignoring diagnostics, the value may not be populated.
+				// Prevent the panic and show the path as changed.
+				if plannedState == nil {
+					changedPaths.Append(p)
+
+					continue
+				}
+
 				if plannedState.Equal(priorState) {
 					continue
 				}

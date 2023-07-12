@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource: Prevented panic during planning caused by `SetNestedAttribute` with
+  nested attribute `Default` and multiple configured elements'
+time: 2023-07-11T16:17:47.990142-04:00
+custom:
+  Issue: "783"

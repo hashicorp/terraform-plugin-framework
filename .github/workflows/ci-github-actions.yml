@@ -22,5 +22,6 @@ jobs:
   tsccr:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: hashicorp/setup-tsccr-helper@5b224c9a3136c2216f82f99d29657910b096dd00
       - run: tsccr-helper -verify-github-actions-workflows=.

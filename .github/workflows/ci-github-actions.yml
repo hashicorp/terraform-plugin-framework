@@ -19,3 +19,8 @@ jobs:
           go-version-file: 'go.mod'
       - run: go install github.com/rhysd/actionlint/cmd/actionlint@latest
       - run: actionlint
+  tsccr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hashicorp/setup-tsccr-helper@5b224c9a3136c2216f82f99d29657910b096dd00
+      - run: tsccr-helper -verify-github-actions-workflows=.

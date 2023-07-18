@@ -245,7 +245,7 @@ Call one of the following to create a `types.Bool`:
 
 Lists are ordered collections of a single element type.
 
--> Use [List Nested Attributes](/terraform/plugin/framework/schemas#ListNestedAttributes) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
+-> Use [List Nested Attributes](/terraform/plugin/framework/handling-data/attributes#listnestedattribute) for lists of objects that need additional schema information. Use [Set](#set) for unordered collections.
 
 Given an example Terraform configuration that sets a list of string values to the `example_attribute` attribute:
 
@@ -283,7 +283,7 @@ Call one of the following to create a `types.List`:
 
 Maps are mappings of string keys to values of a single element type.
 
--> Use [Map Nested Attributes](/terraform/plugin/framework/schemas#MapNestedAttributes) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
+-> Use [Map Nested Attributes](/terraform/plugin/framework/handling-data/attributes#mapnestedattribute) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -325,7 +325,7 @@ Call one of the following to create a `types.Map`:
 
 Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [Single Nested Attributes](/terraform/plugin/framework/schemas#SingleNestedAttributes) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
+-> Use [Single Nested Attributes](/terraform/plugin/framework/handling-data/attributes#singlenestedattribute) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -371,7 +371,7 @@ Call one of the following to create a `types.Object`:
 
 Set are unordered, unique collections of a single element type.
 
--> Use [Set Nested Attributes](/terraform/plugin/framework/schemas#SetNestedAttributes) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
+-> Use [Set Nested Attributes](/terraform/plugin/framework/handling-data/attributes#setnestedattribute) for sets of objects that need additional schema information. Use [List](#list) for ordered collections.
 
 Given an example Terraform configuration that sets a set of string values to the `example_attribute` attribute:
 

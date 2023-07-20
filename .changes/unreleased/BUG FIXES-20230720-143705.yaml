@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'providerserver: Significantly reduced memory usage for framework data handling
+  operations, especially during the `PlanResourceChange` RPC'
+time: 2023-07-20T14:37:05.213523-04:00
+custom:
+  Issue: "792"

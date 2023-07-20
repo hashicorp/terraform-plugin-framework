@@ -73,9 +73,9 @@ The framework provides a standard set of schema attribute types that are based o
 | `number` | `schema.Float64Attribute` | `types.Float64` | `float64` | 64-bit floating point number |
 | `number` | `schema.Int64Attribute` | `types.Int64` | `int64` | 64-bit integer |
 | `list` | `schema.ListAttribute` | `types.List` | `[]attr.Value` | Ordered collection of single element type |
-| `map` | `schema.MapAttribute` | `types.Map` | `map[string]attr.Value` | Mapping of string keys to single element type |
+| `map` | `schema.MapAttribute` | `types.Map` | `map[string]attr.Value` | Mapping of arbitrary string keys to single element type |
 | `number` | `schema.NumberAttribute` | `types.Number` | `*big.Float` | Large floating point or number |
-| `object` | `schema.ObjectAttribute` | `types.Object` | `map[string]attr.Value` | Structure mapping string attibute keys to any value type |
+| `object` | `schema.ObjectAttribute` | `types.Object` | `map[string]attr.Value` | Structure mapping explicit string attibute keys to any value type |
 | `set` | `schema.SetAttribute` | `types.Set` | `[]attr.Value` | Unordered, unique collection of single element type |
 | `string` | `schema.StringAttribute` | `types.String` | `string` | Collection of UTF-8 encoded characters |
 
@@ -281,9 +281,9 @@ Call one of the following to create a `types.List`:
 
 ### Map
 
-Maps are mappings of string keys to values of a single element type.
+Maps are mappings of arbitrary string keys to values of a single element type.
 
--> Use [Map Nested Attributes](/terraform/plugin/framework/handling-data/attributes#mapnestedattribute) for maps of objects that need additional schema information. Use [Object](#object) for structures of string attribute names to any value.
+-> Use [Map Nested Attributes](/terraform/plugin/framework/handling-data/attributes#mapnestedattribute) for maps of objects that need additional schema information. Use [Object](#object) for structures of explicit string attribute names to any value.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 
@@ -323,9 +323,9 @@ Call one of the following to create a `types.Map`:
 
 ### Object
 
-Objects are mappings of string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
+Objects are mappings of explicit string attribute names to values of any type. Objects must always declare all attribute values, even when those attributes are null or unknown, unless the entire object is null or unknown.
 
--> Use [Single Nested Attributes](/terraform/plugin/framework/handling-data/attributes#singlenestedattribute) for objects that need additional schema information. Use [Map](#map) for mappings of string keys to a single element type.
+-> Use [Single Nested Attributes](/terraform/plugin/framework/handling-data/attributes#singlenestedattribute) for objects that need additional schema information. Use [Map](#map) for mappings of arbitrary string keys to a single element type.
 
 Given an example Terraform configuration that sets a map of string values to the `example_attribute` attribute:
 

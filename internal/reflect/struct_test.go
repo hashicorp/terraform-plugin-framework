@@ -986,8 +986,8 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: basetypes.StringType\n"+
-						"Value type: basetypes.BoolType\n"+
+						"Expected framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n"+
+						"Received framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n"+
 						"Path: test.string",
 				),
 			},
@@ -1076,8 +1076,8 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.ListType[basetypes.StringType]\n"+
-						"Value type: types.ListType[!!! MISSING TYPE !!!]\n"+
+						"Expected framework type from provider logic: types.ListType[basetypes.StringType] / underlying type: tftypes.List[tftypes.String]\n"+
+						"Received framework type from provider logic: types.ListType[!!! MISSING TYPE !!!] / underlying type: tftypes.List[tftypes.DynamicPseudoType]\n"+
 						"Path: test.list",
 				),
 			},
@@ -1101,8 +1101,8 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.MapType[basetypes.StringType]\n"+
-						"Value type: types.MapType[!!! MISSING TYPE !!!]\n"+
+						"Expected framework type from provider logic: types.MapType[basetypes.StringType] / underlying type: tftypes.Map[tftypes.String]\n"+
+						"Received framework type from provider logic: types.MapType[!!! MISSING TYPE !!!] / underlying type: tftypes.Map[tftypes.DynamicPseudoType]\n"+
 						"Path: test.map",
 				),
 			},
@@ -1129,8 +1129,8 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.ObjectType[\"test\":basetypes.StringType]\n"+
-						"Value type: types.ObjectType[]\n"+
+						"Expected framework type from provider logic: types.ObjectType[\"test\":basetypes.StringType] / underlying type: tftypes.Object[\"test\":tftypes.String]\n"+
+						"Received framework type from provider logic: types.ObjectType[] / underlying type: tftypes.Object[]\n"+
 						"Path: test.object",
 				),
 			},
@@ -1154,8 +1154,8 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.SetType[basetypes.StringType]\n"+
-						"Value type: types.SetType[!!! MISSING TYPE !!!]\n"+
+						"Expected framework type from provider logic: types.SetType[basetypes.StringType] / underlying type: tftypes.Set[tftypes.String]\n"+
+						"Received framework type from provider logic: types.SetType[!!! MISSING TYPE !!!] / underlying type: tftypes.Set[tftypes.DynamicPseudoType]\n"+
 						"Path: test.set",
 				),
 			},

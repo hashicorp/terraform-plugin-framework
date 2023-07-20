@@ -1,3 +1,12 @@
+## 1.3.3 (July 20, 2023)
+
+BUG FIXES:
+
+* types/basetypes: Minor reduction of memory allocations for `ObjectValue` type `ToTerraformValue()` method, which decreases provider operation durations at scale ([#775](https://github.com/hashicorp/terraform-plugin-framework/issues/775))
+* resource: Prevented panic during planning caused by `SetNestedAttribute` with nested attribute `Default` and multiple configured elements ([#783](https://github.com/hashicorp/terraform-plugin-framework/issues/783))
+* tfsdk: Prevented `Value Conversion Error` diagnostics when using `Set()` method with base types instead of custom types ([#806](https://github.com/hashicorp/terraform-plugin-framework/issues/806))
+* providerserver: Significantly reduced memory usage for framework data handling operations, especially during the `PlanResourceChange` RPC ([#792](https://github.com/hashicorp/terraform-plugin-framework/issues/792))
+
 ## 1.3.2 (June 28, 2023)
 
 BUG FIXES:

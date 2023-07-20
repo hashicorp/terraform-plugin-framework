@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'tfsdk: Prevented `Value Conversion Error` diagnostics when using `Set()` method
-  with base types instead of custom types'
-time: 2023-07-19T14:24:13.806804-04:00
-custom:
-  Issue: "806"

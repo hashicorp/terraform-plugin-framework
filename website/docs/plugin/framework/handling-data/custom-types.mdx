@@ -15,10 +15,19 @@ Supported behaviors for custom types include:
 
 ## Example Use Cases
 
-- Encoded values, such as JSON or YAML string.
-- Networking values, such as an IPv4 address string.
-- Time values, such as an RFC3339 string.
+- Encoded values, such as an XML or YAML string.
 - Provider-specific values, such as an AWS ARN or AzureRM location string.
+- Networking values, such as a MAC address.
+- Time values, such as an ISO 8601 string.
+
+## Common Custom Types
+The following Go modules contain custom type implementations covering common use cases with validation and semantic equality logic (where appropriate).
+- [`terraform-plugin-framework-jsontypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-jsontypes)
+    - JSON strings (both normalized and exact matching)
+- [`terraform-plugin-framework-nettypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-nettypes)
+    - IPv4/IPv6 addresses and CIDRs
+- [`terraform-plugin-framework-timetypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timetypes)
+    - Timestamps (such as RFC3339)
 
 ## Concepts
 

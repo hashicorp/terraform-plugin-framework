@@ -97,14 +97,52 @@ func TestFloat64ValueEqual(t *testing.T) {
 		expectation bool
 	}
 	tests := map[string]testCase{
-		"known-known-same": {
+		"known-known-53-precison-same": {
 			input:       NewFloat64Value(123),
 			candidate:   NewFloat64Value(123),
 			expectation: true,
 		},
-		"known-known-diff": {
+		"known-known-53-precison-diff": {
 			input:       NewFloat64Value(123),
 			candidate:   NewFloat64Value(456),
+			expectation: false,
+		},
+		"known-known-512-precision-same": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"),
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"),
+			},
+			expectation: true,
+		},
+		"known-known-512-precision-mantissa-diff": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.01"),
+			},
+			expectation: false,
+		},
+		"known-known-precisiondiff-mantissa-same": {
+			input: NewFloat64Value(123),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("123"),
+			},
+			expectation: true,
+		},
+		"known-known-precisiondiff-mantissa-diff": {
+			input: NewFloat64Value(0.1),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.1"),
+			},
 			expectation: false,
 		},
 		"known-unknown": {
@@ -395,3 +433,5 @@ func TestNewFloat64PointerValue(t *testing.T) {
 		})
 	}
 }
+
+// TODO: semantic equality tests for 53 vs. 512 precision

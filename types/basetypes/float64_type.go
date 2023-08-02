@@ -136,26 +136,33 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 
 	var bigF *big.Float
 	err := in.As(&bigF)
-
 	if err != nil {
 		return nil, err
 	}
 
-	f, accuracy := bigF.Float64()
+	// Copy the float retrieved from tftypes.Value to avoid any unexpected pass-by-reference shenanigans
+	copiedBigF := new(big.Float)
+	copiedBigF.Copy(bigF)
+
+	f, accuracy := copiedBigF.Float64()
 
 	// Underflow
 	// Reference: https://pkg.go.dev/math/big#Float.Float64
 	if f == 0 && accuracy != big.Exact {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", copiedBigF)
 	}
 
 	// Overflow
 	// Reference: https://pkg.go.dev/math/big#Float.Float64
 	if math.IsInf(f, 0) {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", copiedBigF)
 	}
 
-	return NewFloat64Value(f), nil
+	// Underlying *big.Float values are not exposed with helper functions, so creating Float64Value via struct literal
+	return Float64Value{
+		state: attr.ValueStateKnown,
+		value: copiedBigF,
+	}, nil
 }
 
 // ValueType returns the Value type.

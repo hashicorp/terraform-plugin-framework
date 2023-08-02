@@ -6,6 +6,7 @@ package basetypes
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -15,6 +16,8 @@ import (
 
 var (
 	_ Float64Valuable = Float64Value{}
+	// TODO: Do we need this? TBD
+	// _ Float64ValuableWithSemanticEquals = Float64Value{}
 )
 
 // Float64Valuable extends attr.Value for float64 value types.
@@ -66,9 +69,10 @@ func NewFloat64Unknown() Float64Value {
 // Setting the deprecated Float64 type Null, Unknown, or Value fields after
 // creating a Float64 with this function has no effect.
 func NewFloat64Value(value float64) Float64Value {
+	// TODO: Should we check math.IsNaN first? It will panic if NaN
 	return Float64Value{
 		state: attr.ValueStateKnown,
-		value: value,
+		value: big.NewFloat(value),
 	}
 }
 
@@ -89,8 +93,29 @@ type Float64Value struct {
 	state attr.ValueState
 
 	// value contains the known value, if not null or unknown.
-	value float64
+	value *big.Float
 }
+
+// TODO: Do we need this? TBD
+// func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Float64Valuable) (bool, diag.Diagnostics) {
+// 	var diags diag.Diagnostics
+
+// 	newValue, ok := newValuable.(Float64Value)
+// 	if !ok {
+// 		diags.AddError(
+// 			"Semantic Equality Check Error",
+// 			"An unexpected value type was received while performing semantic equality checks. "+
+// 				"Please report this to the provider developers.\n\n"+
+// 				"Expected Value Type: "+fmt.Sprintf("%T", f)+"\n"+
+// 				"Got Value Type: "+fmt.Sprintf("%T", newValuable),
+// 		)
+
+// 		return false, diags
+// 	}
+
+// 	// TODO: is this the best way to compare?
+// 	return f.ValueFloat64() == newValue.ValueFloat64(), diags
+// }
 
 // Equal returns true if `other` is a Float64 and has the same value as `f`.
 func (f Float64Value) Equal(other attr.Value) bool {
@@ -108,7 +133,12 @@ func (f Float64Value) Equal(other attr.Value) bool {
 		return true
 	}
 
-	return f.value == o.value
+	// TODO: Is this needed? Make it easier to read if so :)
+	if f.value == nil {
+		return o.value == nil
+	}
+
+	return f.value.Cmp(o.value) == 0
 }
 
 // ToTerraformValue returns the data contained in the Float64 as a tftypes.Value.
@@ -156,13 +186,19 @@ func (f Float64Value) String() string {
 		return attr.NullValueString
 	}
 
-	return fmt.Sprintf("%f", f.value)
+	f64 := f.ValueFloat64()
+	return fmt.Sprintf("%f", f64)
 }
 
 // ValueFloat64 returns the known float64 value. If Float64 is null or unknown, returns
 // 0.0.
 func (f Float64Value) ValueFloat64() float64 {
-	return f.value
+	if f.IsNull() || f.IsUnknown() {
+		return float64(0.0)
+	}
+
+	f64, _ := f.value.Float64()
+	return f64
 }
 
 // ValueFloat64Pointer returns a pointer to the known float64 value, nil for a
@@ -172,7 +208,13 @@ func (f Float64Value) ValueFloat64Pointer() *float64 {
 		return nil
 	}
 
-	return &f.value
+	if f.IsUnknown() {
+		f64 := float64(0.0)
+		return &f64
+	}
+
+	f64, _ := f.value.Float64()
+	return &f64
 }
 
 // ToFloat64Value returns Float64.

@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	_ Float64Valuable = Float64Value{}
-	// TODO: Do we need this? TBD
-	// _ Float64ValuableWithSemanticEquals = Float64Value{}
+	_ Float64Valuable                   = Float64Value{}
+	_ Float64ValuableWithSemanticEquals = Float64Value{}
 )
 
 // Float64Valuable extends attr.Value for float64 value types.
@@ -96,26 +95,26 @@ type Float64Value struct {
 	value *big.Float
 }
 
-// TODO: Do we need this? TBD
-// func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Float64Valuable) (bool, diag.Diagnostics) {
-// 	var diags diag.Diagnostics
+// TODO: docs
+func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Float64Valuable) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
-// 	newValue, ok := newValuable.(Float64Value)
-// 	if !ok {
-// 		diags.AddError(
-// 			"Semantic Equality Check Error",
-// 			"An unexpected value type was received while performing semantic equality checks. "+
-// 				"Please report this to the provider developers.\n\n"+
-// 				"Expected Value Type: "+fmt.Sprintf("%T", f)+"\n"+
-// 				"Got Value Type: "+fmt.Sprintf("%T", newValuable),
-// 		)
+	newValue, ok := newValuable.(Float64Value)
+	if !ok {
+		diags.AddError(
+			"Semantic Equality Check Error",
+			"An unexpected value type was received while performing semantic equality checks. "+
+				"Please report this to the provider developers.\n\n"+
+				"Expected Value Type: "+fmt.Sprintf("%T", f)+"\n"+
+				"Got Value Type: "+fmt.Sprintf("%T", newValuable),
+		)
 
-// 		return false, diags
-// 	}
+		return false, diags
+	}
 
-// 	// TODO: is this the best way to compare?
-// 	return f.ValueFloat64() == newValue.ValueFloat64(), diags
-// }
+	// TODO: is this the best way to compare?
+	return f.ValueFloat64() == newValue.ValueFloat64(), diags
+}
 
 // Equal returns true if `other` is a Float64 and has the same value as `f`.
 func (f Float64Value) Equal(other attr.Value) bool {

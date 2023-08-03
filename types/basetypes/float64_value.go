@@ -63,7 +63,7 @@ func NewFloat64Unknown() Float64Value {
 }
 
 // Float64Value creates a Float64 with a known value. Access the value via the Float64
-// type ValueFloat64 method.
+// type ValueFloat64 method. Passing a value of `NaN` will result in a panic.
 //
 // Setting the deprecated Float64 type Null, Unknown, or Value fields after
 // creating a Float64 with this function has no effect.
@@ -76,6 +76,7 @@ func NewFloat64Value(value float64) Float64Value {
 
 // NewFloat64PointerValue creates a Float64 with a null value if nil or a known
 // value. Access the value via the Float64 type ValueFloat64Pointer method.
+// Passing a value of `NaN` will result in a panic.
 func NewFloat64PointerValue(value *float64) Float64Value {
 	if value == nil {
 		return NewFloat64Null()

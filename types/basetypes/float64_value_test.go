@@ -99,13 +99,13 @@ func TestFloat64ValueEqual(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"known-known-53-precison-same": {
-			input:       NewFloat64Value(123),
-			candidate:   NewFloat64Value(123),
+			input:       NewFloat64Value(123.123),
+			candidate:   NewFloat64Value(123.123),
 			expectation: true,
 		},
 		"known-known-53-precison-diff": {
-			input:       NewFloat64Value(123),
-			candidate:   NewFloat64Value(456),
+			input:       NewFloat64Value(123.123),
+			candidate:   NewFloat64Value(456.456),
 			expectation: false,
 		},
 		"known-known-512-precision-same": {
@@ -468,7 +468,7 @@ func TestFloat64ValueFloat64SemanticEquals(t *testing.T) {
 		"not equal - float differing precision": {
 			currentFloat64: Float64Value{
 				state: attr.ValueStateKnown,
-				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+				value: testMustParseFloat("0.01"),
 			},
 			givenFloat64:  NewFloat64Value(0.02),
 			expectedMatch: false,
@@ -486,12 +486,13 @@ func TestFloat64ValueFloat64SemanticEquals(t *testing.T) {
 		"semantically equal - float differing precision": {
 			currentFloat64: Float64Value{
 				state: attr.ValueStateKnown,
-				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+				value: testMustParseFloat("0.01"),
 			},
 			givenFloat64:  NewFloat64Value(0.01),
 			expectedMatch: true,
 		},
-		"semantically equal - float same precision, different value": {
+		// Only 53 bits of precision are compared, Go built-in float64
+		"semantically equal - float 512 precision, different value not significant": {
 			currentFloat64: Float64Value{
 				state: attr.ValueStateKnown,
 				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),

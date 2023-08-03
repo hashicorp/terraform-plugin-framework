@@ -157,6 +157,22 @@ func TestFloat64ValueEqual(t *testing.T) {
 			},
 			expectation: false,
 		},
+		"knownnil-known": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			candidate:   NewFloat64Value(0.1),
+			expectation: false,
+		},
+		"known-knownnil": {
+			input: NewFloat64Value(0.1),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			expectation: false,
+		},
 		"known-unknown": {
 			input:       NewFloat64Value(123),
 			candidate:   NewFloat64Unknown(),

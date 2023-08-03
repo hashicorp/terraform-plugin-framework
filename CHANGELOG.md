@@ -1,3 +1,9 @@
+## 1.3.4 (August 03, 2023)
+
+BUG FIXES:
+
+* types/basetypes: Prevented Float64Value Terraform data consistency errors for numbers with high precision floating point rounding errors ([#817](https://github.com/hashicorp/terraform-plugin-framework/issues/817))
+
 ## 1.3.3 (July 20, 2023)
 
 BUG FIXES:

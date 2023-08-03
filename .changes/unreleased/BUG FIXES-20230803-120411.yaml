@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'types/basetypes: Prevented Float64Value Terraform data consistency errors for
-  numbers with high precision floating point rounding errors'
-time: 2023-08-03T12:04:11.996955-04:00
-custom:
-  Issue: "817"

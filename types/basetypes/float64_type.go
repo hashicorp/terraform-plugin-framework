@@ -155,7 +155,11 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
 	}
 
-	return NewFloat64Value(f), nil
+	// Underlying *big.Float values are not exposed with helper functions, so creating Float64Value via struct literal
+	return Float64Value{
+		state: attr.ValueStateKnown,
+		value: bigF,
+	}, nil
 }
 
 // ValueType returns the Value type.

@@ -6,6 +6,7 @@ package basetypes
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -14,7 +15,8 @@ import (
 )
 
 var (
-	_ Float64Valuable = Float64Value{}
+	_ Float64Valuable                   = Float64Value{}
+	_ Float64ValuableWithSemanticEquals = Float64Value{}
 )
 
 // Float64Valuable extends attr.Value for float64 value types.
@@ -61,19 +63,20 @@ func NewFloat64Unknown() Float64Value {
 }
 
 // Float64Value creates a Float64 with a known value. Access the value via the Float64
-// type ValueFloat64 method.
+// type ValueFloat64 method. Passing a value of `NaN` will result in a panic.
 //
 // Setting the deprecated Float64 type Null, Unknown, or Value fields after
 // creating a Float64 with this function has no effect.
 func NewFloat64Value(value float64) Float64Value {
 	return Float64Value{
 		state: attr.ValueStateKnown,
-		value: value,
+		value: big.NewFloat(value),
 	}
 }
 
 // NewFloat64PointerValue creates a Float64 with a null value if nil or a known
 // value. Access the value via the Float64 type ValueFloat64Pointer method.
+// Passing a value of `NaN` will result in a panic.
 func NewFloat64PointerValue(value *float64) Float64Value {
 	if value == nil {
 		return NewFloat64Null()
@@ -89,7 +92,29 @@ type Float64Value struct {
 	state attr.ValueState
 
 	// value contains the known value, if not null or unknown.
-	value float64
+	value *big.Float
+}
+
+// Float64SemanticEquals returns true if the given Float64Value is semantically equal to the current Float64Value.
+// The underlying value *big.Float can store more precise float values then the Go built-in float64 type. This only
+// compares the precision of the value that can be represented as the Go built-in float64, which is 53 bits of precision.
+func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Float64Valuable) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	newValue, ok := newValuable.(Float64Value)
+	if !ok {
+		diags.AddError(
+			"Semantic Equality Check Error",
+			"An unexpected value type was received while performing semantic equality checks. "+
+				"Please report this to the provider developers.\n\n"+
+				"Expected Value Type: "+fmt.Sprintf("%T", f)+"\n"+
+				"Got Value Type: "+fmt.Sprintf("%T", newValuable),
+		)
+
+		return false, diags
+	}
+
+	return f.ValueFloat64() == newValue.ValueFloat64(), diags
 }
 
 // Equal returns true if `other` is a Float64 and has the same value as `f`.
@@ -108,7 +133,12 @@ func (f Float64Value) Equal(other attr.Value) bool {
 		return true
 	}
 
-	return f.value == o.value
+	// Not possible to create a known Float64Value with a nil value, but check anyways
+	if f.value == nil || o.value == nil {
+		return f.value == o.value
+	}
+
+	return f.value.Cmp(o.value) == 0
 }
 
 // ToTerraformValue returns the data contained in the Float64 as a tftypes.Value.
@@ -156,13 +186,19 @@ func (f Float64Value) String() string {
 		return attr.NullValueString
 	}
 
-	return fmt.Sprintf("%f", f.value)
+	f64 := f.ValueFloat64()
+	return fmt.Sprintf("%f", f64)
 }
 
 // ValueFloat64 returns the known float64 value. If Float64 is null or unknown, returns
 // 0.0.
 func (f Float64Value) ValueFloat64() float64 {
-	return f.value
+	if f.IsNull() || f.IsUnknown() {
+		return float64(0.0)
+	}
+
+	f64, _ := f.value.Float64()
+	return f64
 }
 
 // ValueFloat64Pointer returns a pointer to the known float64 value, nil for a
@@ -172,7 +208,13 @@ func (f Float64Value) ValueFloat64Pointer() *float64 {
 		return nil
 	}
 
-	return &f.value
+	if f.IsUnknown() {
+		f64 := float64(0.0)
+		return &f64
+	}
+
+	f64, _ := f.value.Float64()
+	return &f64
 }
 
 // ToFloat64Value returns Float64.

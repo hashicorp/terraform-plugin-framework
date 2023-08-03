@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -97,15 +98,91 @@ func TestFloat64ValueEqual(t *testing.T) {
 		expectation bool
 	}
 	tests := map[string]testCase{
-		"known-known-same": {
-			input:       NewFloat64Value(123),
-			candidate:   NewFloat64Value(123),
+		"known-known-53-precison-same": {
+			input:       NewFloat64Value(123.123),
+			candidate:   NewFloat64Value(123.123),
 			expectation: true,
 		},
-		"known-known-diff": {
-			input:       NewFloat64Value(123),
-			candidate:   NewFloat64Value(456),
+		"known-known-53-precison-diff": {
+			input:       NewFloat64Value(123.123),
+			candidate:   NewFloat64Value(456.456),
 			expectation: false,
+		},
+		"known-known-512-precision-same": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			expectation: true,
+		},
+		"known-known-512-precision-diff": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009"),
+			},
+			expectation: false,
+		},
+		"known-known-512-precision-mantissa-diff": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.01"),
+			},
+			expectation: false,
+		},
+		"known-known-precisiondiff-mantissa-same": {
+			input: NewFloat64Value(123),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("123"),
+			},
+			expectation: true,
+		},
+		"known-known-precisiondiff-mantissa-diff": {
+			input: NewFloat64Value(0.1),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.1"),
+			},
+			expectation: false,
+		},
+		"knownnil-known": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			candidate:   NewFloat64Value(0.1),
+			expectation: false,
+		},
+		"known-knownnil": {
+			input: NewFloat64Value(0.1),
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			expectation: false,
+		},
+		"knownnil-knownnil": {
+			input: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			candidate: Float64Value{
+				state: attr.ValueStateKnown,
+				value: nil,
+			},
+			expectation: true,
 		},
 		"known-unknown": {
 			input:       NewFloat64Value(123),
@@ -391,6 +468,82 @@ func TestNewFloat64PointerValue(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat64ValueFloat64SemanticEquals(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		currentFloat64 Float64Value
+		givenFloat64   Float64Value
+		expectedMatch  bool
+		expectedDiags  diag.Diagnostics
+	}{
+		"not equal - whole number": {
+			currentFloat64: NewFloat64Value(1),
+			givenFloat64:   NewFloat64Value(2),
+			expectedMatch:  false,
+		},
+		"not equal - float": {
+			currentFloat64: NewFloat64Value(1.1),
+			givenFloat64:   NewFloat64Value(1.2),
+			expectedMatch:  false,
+		},
+		"not equal - float differing precision": {
+			currentFloat64: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.01"),
+			},
+			givenFloat64:  NewFloat64Value(0.02),
+			expectedMatch: false,
+		},
+		"semantically equal - whole number": {
+			currentFloat64: NewFloat64Value(1),
+			givenFloat64:   NewFloat64Value(1),
+			expectedMatch:  true,
+		},
+		"semantically equal - float": {
+			currentFloat64: NewFloat64Value(1.1),
+			givenFloat64:   NewFloat64Value(1.1),
+			expectedMatch:  true,
+		},
+		"semantically equal - float differing precision": {
+			currentFloat64: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.01"),
+			},
+			givenFloat64:  NewFloat64Value(0.01),
+			expectedMatch: true,
+		},
+		// Only 53 bits of precision are compared, Go built-in float64
+		"semantically equal - float 512 precision, different value not significant": {
+			currentFloat64: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"),
+			},
+			givenFloat64: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009"),
+			},
+			expectedMatch: true,
+		},
+	}
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			match, diags := testCase.currentFloat64.Float64SemanticEquals(context.Background(), testCase.givenFloat64)
+
+			if testCase.expectedMatch != match {
+				t.Errorf("Expected Float64SemanticEquals to return: %t, but got: %t", testCase.expectedMatch, match)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
+				t.Errorf("Unexpected diagnostics (-got, +expected): %s", diff)
 			}
 		})
 	}

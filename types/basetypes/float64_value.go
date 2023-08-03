@@ -134,8 +134,8 @@ func (f Float64Value) Equal(other attr.Value) bool {
 	}
 
 	// Not possible to create a known Float64Value with a nil value, but check anyways
-	if f.value == nil {
-		return o.value == nil
+	if f.value == nil || o.value == nil {
+		return f.value == o.value
 	}
 
 	return f.value.Cmp(o.value) == 0

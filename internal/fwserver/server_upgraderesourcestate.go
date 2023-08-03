@@ -110,9 +110,9 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		}
 		configureResp := resource.ConfigureResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Calling provider defined Resource Configure")
 		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
 
@@ -135,9 +135,9 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 
 	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeState")
 
-	logging.FrameworkDebug(ctx, "Calling provider defined Resource UpgradeState")
+	logging.FrameworkTrace(ctx, "Calling provider defined Resource UpgradeState")
 	resourceStateUpgraders := resourceWithUpgradeState.UpgradeState(ctx)
-	logging.FrameworkDebug(ctx, "Called provider defined Resource UpgradeState")
+	logging.FrameworkTrace(ctx, "Called provider defined Resource UpgradeState")
 
 	// Panic prevention
 	if resourceStateUpgraders == nil {
@@ -194,9 +194,9 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	// by calling the equivalent of SetAttribute(GetAttribute()) and skipping
 	// any errors.
 
-	logging.FrameworkDebug(ctx, "Calling provider defined StateUpgrader")
+	logging.FrameworkTrace(ctx, "Calling provider defined StateUpgrader")
 	resourceStateUpgrader.StateUpgrader(ctx, upgradeResourceStateRequest, &upgradeResourceStateResponse)
-	logging.FrameworkDebug(ctx, "Called provider defined StateUpgrader")
+	logging.FrameworkTrace(ctx, "Called provider defined StateUpgrader")
 
 	resp.Diagnostics.Append(upgradeResourceStateResponse.Diagnostics...)
 

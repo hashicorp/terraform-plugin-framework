@@ -36,9 +36,9 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 	metadataReq := provider.MetadataRequest{}
 	metadataResp := provider.MetadataResponse{}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined Provider Metadata")
+	logging.FrameworkTrace(ctx, "Calling provider defined Provider Metadata")
 	s.Provider.Metadata(ctx, metadataReq, &metadataResp)
-	logging.FrameworkDebug(ctx, "Called provider defined Provider Metadata")
+	logging.FrameworkTrace(ctx, "Called provider defined Provider Metadata")
 
 	s.providerTypeName = metadataResp.TypeName
 

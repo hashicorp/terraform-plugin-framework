@@ -44,9 +44,9 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		}
 		configureResp := datasource.ConfigureResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined DataSource Configure")
+		logging.FrameworkTrace(ctx, "Calling provider defined DataSource Configure")
 		dataSourceWithConfigure.Configure(ctx, configureReq, &configureResp)
-		logging.FrameworkDebug(ctx, "Called provider defined DataSource Configure")
+		logging.FrameworkTrace(ctx, "Called provider defined DataSource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
 
@@ -75,9 +75,9 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined DataSource Read")
+	logging.FrameworkTrace(ctx, "Calling provider defined DataSource Read")
 	req.DataSource.Read(ctx, readReq, &readResp)
-	logging.FrameworkDebug(ctx, "Called provider defined DataSource Read")
+	logging.FrameworkTrace(ctx, "Called provider defined DataSource Read")
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.State = &readResp.State

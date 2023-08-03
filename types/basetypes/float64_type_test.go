@@ -123,11 +123,6 @@ func TestFloat64TypeValueFromTerraform(t *testing.T) {
 			input:       tftypes.NewValue(tftypes.Number, 123.456),
 			expectation: NewFloat64Value(123.456),
 		},
-		// TODO: Add NaN test? Currently panics
-		// "value-nan": {
-		// 	input:       tftypes.NewValue(tftypes.Number, math.NaN()),
-		// 	expectation: NewFloat64Value(???),
-		// },
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 			expectation: NewFloat64Unknown(),

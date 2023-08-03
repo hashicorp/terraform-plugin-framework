@@ -68,7 +68,6 @@ func NewFloat64Unknown() Float64Value {
 // Setting the deprecated Float64 type Null, Unknown, or Value fields after
 // creating a Float64 with this function has no effect.
 func NewFloat64Value(value float64) Float64Value {
-	// TODO: Should we check math.IsNaN first? It will panic if NaN
 	return Float64Value{
 		state: attr.ValueStateKnown,
 		value: big.NewFloat(value),
@@ -95,7 +94,9 @@ type Float64Value struct {
 	value *big.Float
 }
 
-// TODO: docs
+// Float64SemanticEquals returns true if the given Float64Value is semantically equal to the current Float64Value.
+// The underlying value *big.Float can store more precise float values then the Go built-in float64 type. This only
+// compares the precision of the value that can be represented as the Go built-in float64, which is 53 bits of precision.
 func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Float64Valuable) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -112,7 +113,6 @@ func (f Float64Value) Float64SemanticEquals(ctx context.Context, newValuable Flo
 		return false, diags
 	}
 
-	// TODO: is this the best way to compare?
 	return f.ValueFloat64() == newValue.ValueFloat64(), diags
 }
 
@@ -130,11 +130,6 @@ func (f Float64Value) Equal(other attr.Value) bool {
 
 	if f.state != attr.ValueStateKnown {
 		return true
-	}
-
-	// TODO: Is this needed? Make it easier to read if so :)
-	if f.value == nil {
-		return o.value == nil
 	}
 
 	return f.value.Cmp(o.value) == 0

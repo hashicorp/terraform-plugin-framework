@@ -136,6 +136,7 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 
 	var bigF *big.Float
 	err := in.As(&bigF)
+
 	if err != nil {
 		return nil, err
 	}

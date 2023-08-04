@@ -1,0 +1,6 @@
+kind: NOTES
+body: 'internal: Changed provider defined method execution logs from `DEBUG` log level
+  to `TRACE`'
+time: 2023-08-03T17:36:40.939931-04:00
+custom:
+  Issue: "818"

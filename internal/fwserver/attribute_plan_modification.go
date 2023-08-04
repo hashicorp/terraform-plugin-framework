@@ -685,7 +685,7 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Bool",
 			map[string]interface{}{
@@ -695,7 +695,7 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 
 		planModifier.PlanModifyBool(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Bool",
 			map[string]interface{}{
@@ -845,7 +845,7 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Float64",
 			map[string]interface{}{
@@ -855,7 +855,7 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 
 		planModifier.PlanModifyFloat64(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Float64",
 			map[string]interface{}{
@@ -1005,7 +1005,7 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Int64",
 			map[string]interface{}{
@@ -1015,7 +1015,7 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 
 		planModifier.PlanModifyInt64(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Int64",
 			map[string]interface{}{
@@ -1165,7 +1165,7 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.List",
 			map[string]interface{}{
@@ -1175,7 +1175,7 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 
 		planModifier.PlanModifyList(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.List",
 			map[string]interface{}{
@@ -1325,7 +1325,7 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Map",
 			map[string]interface{}{
@@ -1335,7 +1335,7 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 
 		planModifier.PlanModifyMap(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Map",
 			map[string]interface{}{
@@ -1485,7 +1485,7 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Number",
 			map[string]interface{}{
@@ -1495,7 +1495,7 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 
 		planModifier.PlanModifyNumber(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Number",
 			map[string]interface{}{
@@ -1645,7 +1645,7 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Object",
 			map[string]interface{}{
@@ -1655,7 +1655,7 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 
 		planModifier.PlanModifyObject(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Object",
 			map[string]interface{}{
@@ -1805,7 +1805,7 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.Set",
 			map[string]interface{}{
@@ -1815,7 +1815,7 @@ func AttributePlanModifySet(ctx context.Context, attribute fwxschema.AttributeWi
 
 		planModifier.PlanModifySet(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.Set",
 			map[string]interface{}{
@@ -1965,7 +1965,7 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 			Private:   resp.Private,
 		}
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Calling provider defined planmodifier.String",
 			map[string]interface{}{
@@ -1975,7 +1975,7 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 
 		planModifier.PlanModifyString(ctx, planModifyReq, planModifyResp)
 
-		logging.FrameworkDebug(
+		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined planmodifier.String",
 			map[string]interface{}{
@@ -2024,7 +2024,7 @@ func NestedAttributeObjectPlanModify(ctx context.Context, o fwschema.NestedAttri
 				Private:   resp.Private,
 			}
 
-			logging.FrameworkDebug(
+			logging.FrameworkTrace(
 				ctx,
 				"Calling provider defined planmodifier.Object",
 				map[string]interface{}{
@@ -2034,7 +2034,7 @@ func NestedAttributeObjectPlanModify(ctx context.Context, o fwschema.NestedAttri
 
 			objectPlanModifier.PlanModifyObject(ctx, req, planModifyResp)
 
-			logging.FrameworkDebug(
+			logging.FrameworkTrace(
 				ctx,
 				"Called provider defined planmodifier.Object",
 				map[string]interface{}{

@@ -518,12 +518,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 
 	expectedEntries := []map[string]interface{}{
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Metadata",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider Metadata",
 			"@module":  "sdk.framework",
 		},
@@ -533,12 +533,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
@@ -548,12 +548,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Resources",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider Resources",
 			"@module":  "sdk.framework",
 		},
@@ -563,12 +563,12 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider DataSources",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider DataSources",
 			"@module":  "sdk.framework",
 		},

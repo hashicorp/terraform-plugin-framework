@@ -49,9 +49,9 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		}
 		configureResp := resource.ConfigureResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Calling provider defined Resource Configure")
 		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
 
@@ -86,9 +86,9 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		deleteReq.Private = req.PlannedPrivate.Provider
 	}
 
-	logging.FrameworkDebug(ctx, "Calling provider defined Resource Delete")
+	logging.FrameworkTrace(ctx, "Calling provider defined Resource Delete")
 	req.Resource.Delete(ctx, deleteReq, &deleteResp)
-	logging.FrameworkDebug(ctx, "Called provider defined Resource Delete")
+	logging.FrameworkTrace(ctx, "Called provider defined Resource Delete")
 
 	if !deleteResp.Diagnostics.HasError() {
 		logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State is cleared")

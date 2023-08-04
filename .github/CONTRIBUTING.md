@@ -54,6 +54,7 @@ We welcome issues of all kinds including feature requests, bug reports, or docum
 Thank you for contributing!
 
 - **Early validation of idea and implementation plan**: Most code changes in this project, unless trivial typo fixes or cosmetic, should be discussed and approved by maintainers in an issue before an implementation is created. This project is complicated enough that there are often several ways to implement something, each of which has different implications and tradeoffs. Working through an implementation plan with the maintainers before you dive into implementation will help ensure that your efforts may be approved and merged.
+- **Logging**: Refer to the [logging](#logging) section for guidance on choosing the appropriate log level for messages.
 - **Unit and Integration Tests**: It may go without saying, but every new patch should be covered by tests wherever possible (see [Testing](#testing) below).
 - **Go Modules**: We use [Go Modules](https://github.com/golang/go/wiki/Modules) to manage and version all our dependencies. Please make sure that you reflect dependency changes in your pull requests appropriately (e.g. `go get`, `go mod tidy` or other commands). Refer to the [dependency updates](#dependency-updates) section for more information about how this project maintains existing dependencies.
 - **Changelog**: Refer to the [changelog](#changelog) section for more information about how to create changelog entries.
@@ -125,6 +126,17 @@ To run the Go linters locally, install the `golangci-lint` tool, and run:
 ```shell
 golangci-lint run ./...
 ```
+
+## Logging
+
+Code contributions that introduce new log messages should utilize the helper functions in the [`internal/logging`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/logging) package. Here are some examples on when to use each helper:
+
+- [`FrameworkError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/logging#FrameworkError) - Logs at `ERROR` level, can be used to provide additional detail alongside user-facing errors that are returned with [`diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics).
+- [`FrameworkWarn`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/logging#FrameworkWarn) - Logs at `WARN` level, can be used to signal unexpected scenarios that may not result in a user-facing error, but can be used to track down potential provider implementation bugs.
+- [`FrameworkDebug`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/logging#FrameworkDebug) - Logs at `DEBUG` level, can be used to describe internal logic behavior, such as [semantic equality](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/custom-types#semantic-equality) being triggered to preserve a prior value, or a null `Computed` attribute being marked as unknown.
+- [`FrameworkTrace`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/logging#FrameworkTrace) - Logs at `TRACE` level, can be used to describe internal logic execution, such as logging a message before and after a provider-defined method is called. As the name suggests, these messages are used to "trace" where a program is at during execution.
+
+More general guidance about logging can be found in the [Plugin Development documentation.](https://developer.hashicorp.com/terraform/plugin/log/managing)
 
 ## Testing
 

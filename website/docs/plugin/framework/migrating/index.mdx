@@ -36,7 +36,7 @@ As you complete the migration, we recommend that you follow Test Driven Developm
 Take the following steps when you migrate a provider from SDKv2 to the Framework:
 
 - Ensure all [tests](/terraform/plugin/framework/migrating/testing#testing-migration) pass.
-- Consider [finding SDKv2 resource data consistency errors](/terraform/plugin/sdkv2/resources/data-consistency-errors), which might affect migrating them to the Framework. Some errors can be resolved and verified with SDKv2 code before migration, if desired, otherwise resolving these errors must be part of the migration.
+- Consider [finding SDKv2 resource data consistency errors](/terraform/plugin/sdkv2/resources/data-consistency-errors), which might affect migrating to the Framework. Some errors can be resolved and verified with SDKv2 code before migration, if desired, otherwise resolving these errors must be part of the migration.
 - [Serve the provider](/terraform/plugin/framework/migrating/providers#serving-the-provider) via the Framework.
   - Implement [muxing](/terraform/plugin/framework/migrating/mux), if you plan to migrate the provider iteratively.
 - Update the [provider definition](/terraform/plugin/framework/migrating/providers#provider-definition) to use the Framework.

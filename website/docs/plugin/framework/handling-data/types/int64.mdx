@@ -1,0 +1,119 @@
+---
+page_title: 'Plugin Development - Framework: Int64 Type'
+description: >-
+  Learn the int64 value type in the provider development framework.
+---
+
+# Int64 Type
+
+<Tip>
+
+Use [Float64 Type](/terraform/plugin/framework/handling-data/types/int64) for 64-bit floating point numbers. Use [Number Attribute](/terraform/plugin/framework/handling-data/types/number) for arbitrary precision numbers.
+
+</Tip>
+
+Int64 types store a 64-bit integer number.
+
+By default, int64 from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.Int64Type`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Type) and its associated value storage type of [`types.Int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*int64`. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a int64 value to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.Int64Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#Int64Attribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.Int64Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#Int64Attribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.Int64Attribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#Int64Attribute) |
+
+If the int64 value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElemType` field to `types.Int64Type` or the appropriate [custom type](#extending).
+
+If the int64 value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttrTypes` map value to `types.Int64Type` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/int64#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.Int64` in this case.
+
+</Tip>
+
+Access `types.Int64` information via the following methods:
+
+* [`(types.Int64).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Value.IsNull): Returns true if the int64 is null.
+* [`(types.Int64).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Value.IsUnknown): Returns true if the int64 is unknown.
+* [`(types.Int64).ValueInt64() int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Value.ValueInt64): Returns the known int64, or `0` if null or unknown.
+* [`(types.Int64).ValueInt64Pointer() *int64`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#Int64Value.ValueInt64Pointer): Returns a int64 pointer to a known value, `nil` if null, or a pointer to `0` if unknown.
+
+In this example, a int64 value is checked for being null or unknown value first, before accessing its known value:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.Int64 `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+// myInt64 now contains a Go int64 with the known value
+myInt64 := data.ExampleAttribute.ValueInt64()
+```
+
+## Setting Values
+
+Call one of the following to create a `types.Int64` value:
+
+* [`types.Int64Null()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Null): A null int64 value.
+* [`types.Int64Unknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Unknown): An unknown int64 value.
+* [`types.Int64Value(int64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64Value): A known value.
+* [`types.Int64PointerValue(*int64)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Int64PointerValue): A known value.
+
+In this example, a known int64 value is created:
+
+```go
+types.Int64Value(123)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+Numbers can be automatically converted from the following Go types, pointers to these types, or any aliases of these types, such `type MyNumber int`:
+
+* `int`, `int8`, `int16`, `int32`, `int64`
+* `uint`, `uint8`, `uint16`, `uint32`, `uint64`
+* `float32`, `float64`
+* [`*big.Int`](https://pkg.go.dev/math/big#Int), [`*big.Float`](https://pkg.go.dev/math/big#Float)
+
+An error will be returned if the value of the number cannot be stored in the numeric type supplied because of an overflow or other loss of precision.
+
+In this example, a `int64` is directly used to set a int64 attribute value:
+
+```go
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), 123)
+```
+
+In this example, a `types.List` of `types.Int64` is created from a `[]int64`:
+
+```go
+listValue, diags := types.ListValueFrom(ctx, types.Int64Type, []int64{123, 456})
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/custom-types). These can adjust expected provider code usage depending on their implementation.

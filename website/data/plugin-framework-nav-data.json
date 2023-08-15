@@ -131,11 +131,134 @@
       },
       {
         "title": "Attributes",
-        "path": "handling-data/attributes"
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "handling-data/attributes"
+          },
+          {
+            "title": "Bool",
+            "path": "handling-data/attributes/bool"
+          },
+          {
+            "title": "Float64",
+            "path": "handling-data/attributes/float64"
+          },
+          {
+            "title": "Int64",
+            "path": "handling-data/attributes/int64"
+          },
+          {
+            "title": "List",
+            "path": "handling-data/attributes/list"
+          },
+          {
+            "title": "List Nested",
+            "path": "handling-data/attributes/list-nested"
+          },
+          {
+            "title": "Map",
+            "path": "handling-data/attributes/map"
+          },
+          {
+            "title": "Map Nested",
+            "path": "handling-data/attributes/map-nested"
+          },
+          {
+            "title": "Number",
+            "path": "handling-data/attributes/number"
+          },
+          {
+            "title": "Object",
+            "path": "handling-data/attributes/object"
+          },
+          {
+            "title": "Set",
+            "path": "handling-data/attributes/set"
+          },
+          {
+            "title": "Set Nested",
+            "path": "handling-data/attributes/set-nested"
+          },
+          {
+            "title": "Single Nested",
+            "path": "handling-data/attributes/single-nested"
+          },
+          {
+            "title": "String",
+            "path": "handling-data/attributes/string"
+          }
+        ]
       },
       {
         "title": "Blocks",
-        "path": "handling-data/blocks"
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "handling-data/blocks"
+          },
+          {
+            "title": "List Nested",
+            "path": "handling-data/blocks/list-nested"
+          },
+          {
+            "title": "Set Nested",
+            "path": "handling-data/blocks/set-nested"
+          },
+          {
+            "title": "Single Nested",
+            "path": "handling-data/blocks/single-nested"
+          }
+        ]
+      },
+      {
+        "title": "Types",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "handling-data/types"
+          },
+          {
+            "title": "Bool",
+            "path": "handling-data/types/bool"
+          },
+          {
+            "title": "Float64",
+            "path": "handling-data/types/float64"
+          },
+          {
+            "title": "Int64",
+            "path": "handling-data/types/int64"
+          },
+          {
+            "title": "List",
+            "path": "handling-data/types/list"
+          },
+          {
+            "title": "Map",
+            "path": "handling-data/types/map"
+          },
+          {
+            "title": "Number",
+            "path": "handling-data/types/number"
+          },
+          {
+            "title": "Object",
+            "path": "handling-data/types/object"
+          },
+          {
+            "title": "Set",
+            "path": "handling-data/types/set"
+          },
+          {
+            "title": "String",
+            "path": "handling-data/types/string"
+          },
+          {
+            "title": "Custom Types",
+            "path": "handling-data/custom-types"
+          }
+        ]
       },
       {
         "title": "Paths",
@@ -152,14 +275,6 @@
       {
         "title": "Writing Data",
         "path": "handling-data/writing-state"
-      },
-      {
-        "title": "Conversion Rules",
-        "path": "handling-data/conversion-rules"
-      },
-      {
-        "title": "Custom Types",
-        "path": "handling-data/custom-types"
       }
     ]
   },

@@ -1,0 +1,106 @@
+---
+page_title: 'Plugin Development - Framework: Bool Type'
+description: >-
+  Learn the bool value type in the provider development framework.
+---
+
+# Bool Type
+
+Bool types store a boolean true or false value.
+
+By default, strings from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType) and its associated value storage type of [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*bool`. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a bool value to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.BoolAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#BoolAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.BoolAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#BoolAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.BoolAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#BoolAttribute) |
+
+If the bool value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElemType` field to `types.BoolType` or the appropriate [custom type](#extending).
+
+If the bool value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttrTypes` map value to `types.BoolType` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/bool#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.Bool` in this case.
+
+</Tip>
+
+Access `types.Bool` information via the following methods:
+
+* [`(types.Bool).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValue.IsNull): Returns true if the bool is null.
+* [`(types.Bool).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValue.IsUnknown): Returns true if the bool is unknown.
+* [`(types.Bool).ValueBool() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValue.ValueBool): Returns the known bool, or `false` if null or unknown.
+* [`(types.Bool).ValueBoolPointer() *bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#BoolValue.ValueBoolPointer): Returns a bool pointer to a known value, `nil` if null, or a pointer to `false` if unknown.
+
+In this example, a bool value is checked for being null or unknown value first, before accessing its known value:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.Bool `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+// myString now contains a Go bool with the known value
+myString := data.ExampleAttribute.ValueBool()
+```
+
+## Setting Values
+
+Call one of the following to create a `types.Bool` value:
+
+* [`types.BoolNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolNull): A null bool value.
+* [`types.BoolUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolUnknown): An unknown bool value.
+* [`types.BoolValue(bool)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolValue): A known value.
+* [`types.BoolPointerValue(*bool)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolPointerValue): A known value.
+
+In this example, a known bool value is created:
+
+```go
+types.BoolValue(true)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+A Go built-in `bool`, `*bool` (only with typed `nil`, `(*bool)(nil)`), or type alias of `bool` such as `type MyStringType bool` can be used instead.
+
+In this example, a `bool` is directly used to set a bool attribute value:
+
+```go
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), true)
+```
+
+In this example, a `types.List` of `types.Bool` is created from a `[]bool`:
+
+```go
+listValue, diags := types.ListValueFrom(ctx, types.BoolType, []bool{true, false})
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/custom-types). These can adjust expected provider code usage depending on their implementation.

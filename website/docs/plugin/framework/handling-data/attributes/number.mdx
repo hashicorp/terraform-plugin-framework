@@ -1,0 +1,126 @@
+---
+page_title: 'Plugin Development - Framework: Number Attribute'
+description: >-
+  Learn the number attribute type in the provider development framework.
+---
+
+# Number Attribute
+
+<Tip>
+
+Use [Float64 Attribute](/terraform/plugin/framework/handling-data/attributes/float64) for 64-bit floating point numbers. Use [Int64 Attribute](/terraform/plugin/framework/handling-data/attributes/int64) for 64-bit integer numbers.
+
+</Tip>
+
+Number attributes store an arbitrary precision (generally over 64-bit, up to 512-bit) number. Values are represented by a [number type](/terraform/plugin/framework/handling-data/types/number) in the framework.
+
+In this Terraform configuration example, an number attribute named `example_attribute` is set to the value `1.23`:
+
+```terraform
+resource "examplecloud_thing" "example" {
+  example_attribute = 1.23
+}
+```
+
+## Schema Definition
+
+Use one of the following attribute types to directly add a number value to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.NumberAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#NumberAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.NumberAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#NumberAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.NumberAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#NumberAttribute) |
+
+In this example, a resource schema defines a top level required number attribute named `example_attribute`:
+
+```go
+func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "example_attribute": schema.NumberAttribute{
+                Required: true,
+                // ... potentially other fields ...
+            },
+            // ... potentially other attributes ...
+        },
+    }
+}
+```
+
+If the string value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the collection attribute type documentation for additional details.
+
+If the string value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the object attribute type documentation for additional details.
+
+### Configurability
+
+At least one of the `Computed`, `Optional`, or `Required` fields must be defined. This defines how Terraform and the framework should expect data to set, whether the value is from the pracititioner configuration or from the provider logic, such as API response value.
+
+The acceptable behaviors of these configurability options are:
+
+- `Required` only: The value must be practitioner configured to an eventually known value (not null), otherwise the framework will automatically raise an error diagnostic for the missing value.
+- `Optional` only: The value may be practitioner configured to a known value or null.
+- `Optional` and `Computed`: The value may be practitioner configured or the value may be set in provider logic when the practitioner configuration is null.
+- `Computed` only: The value will be set in provider logic and any practitioner configuration causes the framework to automatically raise an error diagnostic for the unexpected configuration value.
+
+### Custom Types
+
+You may want to build your own attribute value and type implementations to allow your provider to combine validation, description, and plan customization behaviors into a reusable bundle. This helps avoid duplication or reimplementation and ensures consistency. These implementations use the `CustomType` field in the attribute type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/custom-types) for further details on creating provider-defined types and values.
+
+### Deprecation
+
+Set the `DeprecationMessage` field to a practitioner-focused message for how to handle the deprecation. The framework will automatically raise a warning diagnostic with this message if the practitioner configuration contains a known value for the attribute. Terraform version 1.2.7 and later will raise a warning diagnostic in certain scenarios if the deprecated attribute value is referenced elsewhere in a practitioner configuration. The framework [deprecations](/terraform/plugin/framework/deprecations) documentation fully describes the recommended practices for deprecating an attribute or resource.
+
+Some practitioner-focused examples of a deprecation message include:
+
+- Configure `other_attribute` instead. This attribute will be removed in the next major version of the provider.
+- Remove this attribute's configuration as it no longer is used and the attribute will be removed in the next major version of the provider.
+
+### Description
+
+The framework provides two description fields, `Description` and `MarkdownDescription`, which various tools use to show additional information about an attribute and its intended purpose. This includes, but is not limited to, [`terraform-plugin-docs`](https://github.com/hashicorp/terraform-plugin-docs) for automated provider documentation generation and [`terraform-ls`](https://github.com/hashicorp/terraform-ls) for Terraform configuration editor integrations.
+
+### Plan Modification
+
+<Highlight>
+
+Only managed resources implement this concept.
+
+</Highlight>
+
+The framework provides two plan modification fields for managed resource attributes, `Default` and `PlanModifiers`, which define resource and attribute value planning behaviors. The resource [default](/terraform/plugin/framework/resources/default) and [plan modification](/terraform/plugin/framework/resources/plan-modification) documentation covers these features more in-depth.
+
+#### Common Use Case Plan Modification
+
+The [`numberdefault`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault) package defines common use case `Default` implementations:
+
+- [`StaticNumber(number)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberdefault#StaticNumber): Define a static number default value for the attribute.
+
+The [`numberplanmodifier`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier) package defines common use case `PlanModifiers` implementations:
+
+- [`RequiresReplace()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier#RequiresReplace): Marks the resource for replacement if the resource is being updated and the plan value does not match the prior state value.
+- [`RequiresReplaceIf()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier#RequiresReplaceIf): Similar to `RequiresReplace()`, but also checks if a given function returns true.
+- [`RequiresReplaceIfConfigured()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier#RequiresReplaceIfConfigured): Similar to `RequiresReplace()`, but also checks if the configuration value is not null.
+- [`UseStateForUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier#UseStateForUnknown): Copies a known prior state value into the planned value. Use this when it is known that an unconfigured value will remain the same after a resource update.
+
+### Sensitive
+
+Set the `Sensitive` field if the attribute value should always be considered [sensitive data](/terraform/language/state/sensitive-data). In Terraform, this will generally mask the value in practitioner output. This setting cannot be conditionally set and does not impact how data is stored in the state.
+
+### Validation
+
+Set the `Validators` field to define [validation](/terraform/plugin/framework/validation#attribute-validation). This validation logic is ran in addition to any validation contained within a [custom type](#custom-types).
+
+#### Common Use Case Validators
+
+HashiCorp provides the additional [`terraform-plugin-framework-validators`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) Go module which contains validation logic for common use cases. The [`numbervalidator`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/numbervalidator) package within that module has number attribute validators such as minimum, maximum, and defining conflicting attributes.
+
+## Accessing Values
+
+The [accessing values](/terraform/plugin/framework/handling-data/accessing-values) documentation covers general methods for reading [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data, which is necessary before accessing an attribute value directly. The [number type](/terraform/plugin/framework/handling-data/types/number#accessing-values) documentation covers methods for interacting with the attribute value itself.
+
+## Setting Values
+
+The [number type](/terraform/plugin/framework/handling-data/types/number#setting-values) documentation covers methods for creating or setting the appropriate value. The [writing data](/terraform/plugin/framework/handing-data/writing-state) documentation covers general methods for writing [schema](/terraform/plugin/framework/handling-data/schemas) (plan and state) data, which is necessary afterwards.

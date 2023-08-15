@@ -1,0 +1,127 @@
+---
+page_title: 'Plugin Development - Framework: Map Type'
+description: >-
+  Learn the map value type in the provider development framework.
+---
+
+# Map Type
+
+Map types store an ordered collection of single element type.
+
+By default, maps from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.MapType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapType) and its associated value storage type of [`types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Map). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as a map. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a map of a single element type to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.MapAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#MapAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.MapAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#MapAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.MapAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#MapAttribute) |
+
+Use one of the following attribute types to directly add a map of a nested attributes to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.MapNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#MapNestedAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.MapNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#MapNestedAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.MapNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetNestedAttribute) |
+
+If the map value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.MapType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+If the map value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value to `types.MapType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/map#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.Map` in this case.
+
+</Tip>
+
+Access `types.Map` information via the following methods:
+
+* [`(types.Map).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.IsNull): Returns `true` if the map is null.
+* [`(types.Map).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.IsUnknown): Returns `true` if the map is unknown. Returns `false` if the number of elements is known, any of which may be unknown.
+* [`(types.Map).Elements() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.Elements): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Map).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.ElementsAs): Converts the known values into the given Go type, if possible. It is recommended to use a map of framework types to account for elements which may be unknown.
+
+In this example, a map of strings value is checked for being null or unknown value first, before accessing its known value elements as a `[]types.String`:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.Map `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+elements := make(map[string]types.String, len(data.ExampleAttribute.Elements()))
+diags := data.ExampleAttribute.ElementsAs(ctx, &elements, false)
+```
+
+## Setting Values
+
+Call one of the following to create a `types.Map` value:
+
+* [`types.MapNull(attr.Type) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapNull): A null list value with the given element type.
+* [`types.MapUnknown(attr.Type) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapUnknown): An unknown list value with the given element type.
+* [`types.MapValue(attr.Type, map[string]attr.Value) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValue): A known value with the given element type and values.
+* [`types.MapValueFrom(context.Context, attr.Type, any) (types.Map, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom): A known value with the given element type and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each element type, such as giving `map[string]*string` for a `types.Map` of `types.String`.
+* [`types.MapValueMust(map[string]attr.Type, map[string]attr.Value) types.Map`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+In this example, a known map value is created from framework types:
+
+```go
+elements := map[string]attr.Value{
+    "key1": types.StringValue("value1"),
+    "key2": types.StringValue("value2"),
+}
+listValue, diags := types.MapValue(types.StringType, elements)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+A Go built-in map of string key type (`map[string]T`) or type alias of a map of string key type such as `type MyMapType map[string]T` can be used instead.
+
+In this example, a `map[string]string` is directly used to set a map attribute value:
+
+```go
+elements := map[string]string{
+    "key1": "value1",
+    "key2": "value2",
+}
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), elements)
+```
+
+In this example, a `types.List` of `types.String` is created from a `[]string`:
+
+```go
+elements := map[string]string{
+    "key1": "value1",
+    "key2": "value2",
+}
+listValue, diags := types.MapValueFrom(ctx, types.StringType, elements)
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/custom-types). These can adjust expected provider code usage depending on their implementation.

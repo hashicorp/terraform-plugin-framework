@@ -1,0 +1,62 @@
+---
+page_title: 'Plugin Development - Framework: Types'
+description: >-
+  Learn the types in the provider development framework. Attributes and blocks
+  in a resource, data source, or provider schema map to specific framework types.
+---
+
+# Types
+
+Types are value storage and access mechanism for resource, data source, or provider [schema](/terraform/plugin/framework/handling-data/schemas) data. Every attribute and block has an associated type, which describes the kind of data. These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*string`. Framework types can be extended by implementing [custom types](/terraform/plugin/framework/handling-data/custom-types) in provider code or shared libraries to provide specific use case functionality.
+
+## Available Types
+
+The framework type system supports the following types:
+
+- [Primitive](#primitive-types): Type that contains a single value, such as a boolean, number, or string.
+- [Collection](#collection-types): Type that contains multiple values of a single element type, such as a list, map, or set.
+- [Object](#object-type): Type that defines a mapping of explicit attribute names to value types.
+
+### Primitive Types
+
+Types that contain a single data value, such as a boolean, number, or string. These are directly associated with their [primitive attribute type](/terraform/plugin/framework/handling-data/attributes#primitive-attribute-types).
+
+| Type | Use Case |
+|----------------|----------|
+| [Bool](/terraform/plugin/framework/handling-data/types/bool) | Boolean true or false |
+| [Float64](/terraform/plugin/framework/handling-data/types/float64) | 64-bit floating point number |
+| [Int64](/terraform/plugin/framework/handling-data/types/int64) | 64-bit integer number |
+| [Number](/terraform/plugin/framework/handling-data/types/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
+| [String](/terraform/plugin/framework/handling-data/types/bool) | Collection of UTF-8 encoded characters |
+
+### Collection Types
+
+Types that contain multiple values of a single element type, such as a list, map, or set.
+
+These types are associated with:
+
+- [Collection attribute types](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types)
+- Collection-based [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types) (list, map, and set of [object type](#object-type))
+- Collection-based [nested block type](/terraform/plugin/framework/handling-data/blocks) (list and set of [object type](#object-type))
+
+| Type | Use Case |
+|----------------|----------|
+| [List](/terraform/plugin/framework/handling-data/types/list) | Ordered collection of single element type |
+| [Map](/terraform/plugin/framework/handling-data/types/map) | Mapping of arbitrary string keys to values of single element type |
+| [Set](/terraform/plugin/framework/handling-data/types/set) | Unordered, unique collection of single element type |
+
+### Object Type
+
+Type that defines a mapping of explicit attribute names to value types.
+
+This type is associated with:
+
+- [Single nested attibute type](/terraform/plugin/framework/handling-data/attributes/single-nested)
+- [Single nested block type](/terraform/plugin/framework/handling-data/blocks/single-nested)
+- Nested object within collection-based [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types) (list, map, and set of [object type](#object-type))
+- Nested object within collection-based [nested block type](/terraform/plugin/framework/handling-data/blocks) (list and set of [object type](#object-type))
+- [Object attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types)
+
+| Type | Use Case |
+|----------------|----------|
+| [Object](/terraform/plugin/framework/handling-data/types/object) | Mapping of explicit attribute names to values |

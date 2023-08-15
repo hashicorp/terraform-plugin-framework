@@ -1,0 +1,121 @@
+---
+page_title: 'Plugin Development - Framework: List Type'
+description: >-
+  Learn the list value type in the provider development framework.
+---
+
+# List Type
+
+List types store an ordered collection of single element type.
+
+By default, lists from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.ListType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListType) and its associated value storage type of [`types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#List). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as a slice. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a list of a single element type to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ListAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListAttribute) |
+
+Use one of the following attribute types to directly add a list of a nested attributes to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute or Block Type |
+|-------------|-------------------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ListNestedAttribute) |
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ListNestedBlock) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListNestedAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListNestedBlock) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedBlock) |
+
+If the list value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.ListType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+If the list value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value to `types.ListType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/list#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.List` in this case.
+
+</Tip>
+
+Access `types.List` information via the following methods:
+
+* [`(types.List).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValue.IsNull): Returns `true` if the list is null.
+* [`(types.List).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValue.IsUnknown): Returns `true` if the list is unknown. Returns `false` if the number of elements is known, any of which may be unknown.
+* [`(types.List).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValue.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
+* [`(types.List).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ListValue.ElementsAs): Converts the known values into the given Go type, if possible. It is recommended to use a slice of framework types to account for elements which may be unknown.
+
+In this example, a list of strings value is checked for being null or unknown value first, before accessing its known value elements as a `[]types.String`:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.List `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+elements := make([]types.String, 0, len(data.ExampleAttribute.Elements()))
+diags := data.ExampleAttribute.ElementsAs(ctx, &elements, false)
+```
+
+## Setting Values
+
+Call one of the following to create a `types.List` value:
+
+* [`types.ListNull(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListNull): A null list value with the given element type.
+* [`types.ListUnknown(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListUnknown): An unknown list value with the given element type.
+* [`types.ListValue(attr.Type, []attr.Value) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValue): A known value with the given element type and values.
+* [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each element type, such as giving `[]*string` for a `types.List` of `types.String`.
+* [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+In this example, a known list value is created from framework types:
+
+```go
+elements := []attr.Value{types.StringValue("one"), types.StringValue("two")}
+listValue, diags := types.ListValue(types.StringType, elements)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+A Go built-in slice type (`[]T`) or type alias of a slice type such as `type MyListType []T` can be used instead.
+
+In this example, a `[]string` is directly used to set a list attribute value:
+
+```go
+elements := []string{"one", "two"}
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), elements)
+```
+
+In this example, a `types.List` of `types.String` is created from a `[]string`:
+
+```go
+elements := []string{"one", "two"}
+listValue, diags := types.ListValueFrom(ctx, types.StringType, elements)
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/custom-types). These can adjust expected provider code usage depending on their implementation.

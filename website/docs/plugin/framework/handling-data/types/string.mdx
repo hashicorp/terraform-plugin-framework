@@ -1,0 +1,120 @@
+---
+page_title: 'Plugin Development - Framework: String Type'
+description: >-
+  Learn the string value type in the provider development framework.
+---
+
+# String Type
+
+String types store a collection of UTF-8 encoded bytes.
+
+By default, strings from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.StringType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringType) and its associated value storage type of [`types.String`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#String). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*string`. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a string value to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#StringAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#StringAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#StringAttribute) |
+
+If the string value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElemType` field to `types.StringType` or the appropriate [custom type](#extending).
+
+If the string value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttrTypes` map value to `types.StringType` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/string#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.String` in this case.
+
+</Tip>
+
+<Note>
+
+The `(types.String).String()` method is reserved for debugging purposes and returns `"<null>"` if the value is null and `"<unknown>"` if the value is unknown. Use `(types.String).ValueString()` or `(types.String).ValueStringPointer()` for accessing a known string value.
+
+</Note>
+
+Access `types.String` information via the following methods:
+
+* [`(types.String).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue.IsNull): Returns true if the string is null.
+* [`(types.String).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue.IsUnknown): Returns true if the string is unknown.
+* [`(types.String).ValueString() string`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue.ValueString): Returns the known string, or an empty string if null or unknown.
+* [`(types.String).ValueStringPointer() *string`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#StringValue.ValueStringPointer): Returns a string pointer to a known value, `nil` if null, or a pointer to an empty string if unknown.
+
+In this example, a string value is checked for being null or unknown value first, before accessing its known value:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.String `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+// myString now contains a Go string with the known value
+myString := data.ExampleAttribute.ValueString()
+```
+
+## Setting Values
+
+Call one of the following to create a `types.String` value:
+
+* [`types.StringNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringNull): A null string value.
+* [`types.StringUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringUnknown): An unknown string value.
+* [`types.StringValue(string)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringValue): A known value.
+* [`types.StringPointerValue(*string)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#StringPointerValue): A known value.
+
+In this example, a known string value is created:
+
+```go
+types.StringValue("example value")
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+A Go built-in `string`, `*string` (only with typed `nil`, `(*string)(nil)`), or type alias of `string` such as `type MyStringType string` can be used instead.
+
+In this example, a `string` is directly used to set a string attribute value:
+
+```go
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), "example value")
+```
+
+In this example, a `types.List` of `types.String` is created from a `[]string`:
+
+```go
+listValue, diags := types.ListValueFrom(ctx, types.StringType, []string{"value one", "value two"})
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/custom-types). These can adjust expected provider code usage depending on their implementation.
+
+### Common Use Case Types
+
+HashiCorp provides additional Go modules which contain custom string type implementations covering common use cases with validation and semantic equality logic:
+
+* [`terraform-plugin-framework-jsontypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-jsontypes): JSON encoded strings, such as exact byte strings and normalized strings
+* [`terraform-plugin-framework-nettypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-nettypes): Networking strings, such as IPv4 addresses, IPv6 addresses, and CIDRs
+* [`terraform-plugin-framework-timetypes`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-timetypes): Timestamp strings, such as RFC3339

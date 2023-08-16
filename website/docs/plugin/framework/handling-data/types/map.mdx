@@ -89,7 +89,7 @@ elements := map[string]attr.Value{
     "key1": types.StringValue("value1"),
     "key2": types.StringValue("value2"),
 }
-listValue, diags := types.MapValue(types.StringType, elements)
+mapValue, diags := types.MapValue(types.StringType, elements)
 ```
 
 Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
@@ -119,7 +119,7 @@ elements := map[string]string{
     "key1": "value1",
     "key2": "value2",
 }
-listValue, diags := types.MapValueFrom(ctx, types.StringType, elements)
+mapValue, diags := types.MapValueFrom(ctx, types.StringType, elements)
 ```
 
 ## Extending

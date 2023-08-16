@@ -113,6 +113,22 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req ModifyAttributeP
 				return
 			}
 
+			planObjectValuable, diags := coerceObjectValuable(ctx, attrPath, planElem)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			typable, diags := coerceObjectTypable(ctx, attrPath, planObjectValuable)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
 			stateObject, diags := listElemObject(ctx, attrPath, stateList, idx, fwschemadata.DataDescriptionState)
 
 			resp.Diagnostics.Append(diags...)
@@ -139,7 +155,26 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req ModifyAttributeP
 
 			NestedBlockObjectPlanModify(ctx, nestedBlockObject, objectReq, objectResp)
 
-			planElements[idx] = objectResp.AttributePlan
+			respValue, diags := coerceObjectValue(ctx, attrPath, objectResp.AttributePlan)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			// A custom value type must be returned in the final response to prevent
+			// later correctness errors.
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/821
+			respValuable, diags := typable.ValueFromObject(ctx, respValue)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			planElements[idx] = respValuable
 			resp.Diagnostics.Append(objectResp.Diagnostics...)
 			resp.Private = objectResp.Private
 			resp.RequiresReplace.Append(objectResp.RequiresReplace...)
@@ -229,6 +264,22 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req ModifyAttributeP
 				return
 			}
 
+			planObjectValuable, diags := coerceObjectValuable(ctx, attrPath, planElem)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			typable, diags := coerceObjectTypable(ctx, attrPath, planObjectValuable)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
 			stateObject, diags := setElemObject(ctx, attrPath, stateSet, idx, fwschemadata.DataDescriptionState)
 
 			resp.Diagnostics.Append(diags...)
@@ -255,7 +306,26 @@ func BlockModifyPlan(ctx context.Context, b fwschema.Block, req ModifyAttributeP
 
 			NestedBlockObjectPlanModify(ctx, nestedBlockObject, objectReq, objectResp)
 
-			planElements[idx] = objectResp.AttributePlan
+			respValue, diags := coerceObjectValue(ctx, attrPath, objectResp.AttributePlan)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			// A custom value type must be returned in the final response to prevent
+			// later correctness errors.
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/821
+			respValuable, diags := typable.ValueFromObject(ctx, respValue)
+
+			resp.Diagnostics.Append(diags...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			planElements[idx] = respValuable
 			resp.Diagnostics.Append(objectResp.Diagnostics...)
 			resp.Private = objectResp.Private
 			resp.RequiresReplace.Append(objectResp.RequiresReplace...)

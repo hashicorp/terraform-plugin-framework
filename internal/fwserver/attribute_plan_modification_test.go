@@ -133,8 +133,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-list-nested-custom-nested-object": {
-			attribute: schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
 					CustomType: testschema.NestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
@@ -142,13 +142,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Attributes: map[string]schema.Attribute{
-						"nested_attr": schema.StringAttribute{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.Attribute{
 							Required: true,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeList,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.ListValueMust(
@@ -241,8 +242,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-list-nested-nested-custom-nested-object": {
-			attribute: schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
 					CustomType: testschema.ListNestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
@@ -258,9 +259,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Attributes: map[string]schema.Attribute{
-						"nested_list_nested_attribute": schema.ListNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_list_nested_attribute": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
 								CustomType: testschema.NestedObjectCustomType{
 									ObjectType: basetypes.ObjectType{
 										AttrTypes: map[string]attr.Type{
@@ -268,17 +269,19 @@ func TestAttributeModifyPlan(t *testing.T) {
 										},
 									},
 								},
-								Attributes: map[string]schema.Attribute{
-									"nested_attr": schema.StringAttribute{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_attr": testschema.Attribute{
 										Required: true,
 									},
 								},
 							},
-							Required: true,
+							Required:    true,
+							NestingMode: fwschema.NestingModeList,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeList,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.ListValueMust(
@@ -1033,15 +1036,16 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-set-nested-custom-nested-object": {
-			attribute: schema.SetNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"nested_attr": schema.StringAttribute{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.Attribute{
 							Required: true,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeSet,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.SetValueMust(
@@ -1134,8 +1138,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-set-nested-nested-custom-nested-object": {
-			attribute: schema.SetNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
 					CustomType: testschema.SetNestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
@@ -1151,9 +1155,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Attributes: map[string]schema.Attribute{
-						"nested_set_nested_attribute": schema.SetNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_set_nested_attribute": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
 								CustomType: testschema.NestedObjectCustomType{
 									ObjectType: basetypes.ObjectType{
 										AttrTypes: map[string]attr.Type{
@@ -1161,17 +1165,19 @@ func TestAttributeModifyPlan(t *testing.T) {
 										},
 									},
 								},
-								Attributes: map[string]schema.Attribute{
-									"nested_attr": schema.StringAttribute{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_attr": testschema.Attribute{
 										Required: true,
 									},
 								},
 							},
-							Required: true,
+							Required:    true,
+							NestingMode: fwschema.NestingModeSet,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeSet,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.SetValueMust(
@@ -2067,8 +2073,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-map-nested-custom-nested-object": {
-			attribute: schema.MapNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
 					CustomType: testschema.NestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
@@ -2076,13 +2082,14 @@ func TestAttributeModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Attributes: map[string]schema.Attribute{
-						"nested_attr": schema.StringAttribute{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.Attribute{
 							Required: true,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeMap,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.MapValueMust(
@@ -2175,8 +2182,8 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-map-nested-nested-custom-nested-object": {
-			attribute: schema.MapNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
+			attribute: testschema.NestedAttribute{
+				NestedObject: testschema.NestedAttributeObject{
 					CustomType: testschema.MapNestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
@@ -2192,9 +2199,9 @@ func TestAttributeModifyPlan(t *testing.T) {
 							},
 						},
 					},
-					Attributes: map[string]schema.Attribute{
-						"nested_map_nested_attribute": schema.MapNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_map_nested_attribute": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
 								CustomType: testschema.NestedObjectCustomType{
 									ObjectType: basetypes.ObjectType{
 										AttrTypes: map[string]attr.Type{
@@ -2202,17 +2209,19 @@ func TestAttributeModifyPlan(t *testing.T) {
 										},
 									},
 								},
-								Attributes: map[string]schema.Attribute{
-									"nested_attr": schema.StringAttribute{
+								Attributes: map[string]fwschema.Attribute{
+									"nested_attr": testschema.Attribute{
 										Required: true,
 									},
 								},
 							},
-							Required: true,
+							Required:    true,
+							NestingMode: fwschema.NestingModeMap,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeMap,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: types.MapValueMust(
@@ -2697,7 +2706,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-single-nested-custom": {
-			attribute: schema.SingleNestedAttribute{
+			attribute: testschema.NestedAttribute{
 				CustomType: testschema.NestedObjectCustomType{
 					ObjectType: basetypes.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -2705,12 +2714,15 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				Attributes: map[string]schema.Attribute{
-					"testing": schema.StringAttribute{
-						Required: true,
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"testing": testschema.Attribute{
+							Required: true,
+						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeSingle,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: testschema.NestedObjectCustomValue{
@@ -2759,7 +2771,7 @@ func TestAttributeModifyPlan(t *testing.T) {
 			},
 		},
 		"attribute-single-nested-nested-custom-nested-object": {
-			attribute: schema.SingleNestedAttribute{
+			attribute: testschema.NestedAttribute{
 				CustomType: testschema.NestedObjectCustomType{
 					ObjectType: basetypes.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -2773,16 +2785,23 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				},
-				Attributes: map[string]schema.Attribute{
-					"nested_single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"testing": schema.StringAttribute{
-								Required: true,
+				NestedObject: testschema.NestedAttributeObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_single_nested_attribute": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"testing": testschema.Attribute{
+										Required: true,
+									},
+								},
 							},
+							Required:    true,
+							NestingMode: fwschema.NestingModeSingle,
 						},
 					},
 				},
-				Required: true,
+				Required:    true,
+				NestingMode: fwschema.NestingModeSingle,
 			},
 			req: ModifyAttributePlanRequest{
 				AttributeConfig: testschema.NestedObjectCustomValue{

@@ -11,12 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ fwschema.NestedAttribute = NestedAttribute{}
 
 type NestedAttribute struct {
 	Computed            bool
+	CustomType          basetypes.ObjectTypable
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string

@@ -89,7 +89,7 @@ func (c ListNestedObjectCustomValue) Type(ctx context.Context) attr.Type {
 	return ListNestedObjectCustomType{
 		basetypes.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"nested_list_nested_attribute": types.ListType{
+				"nested_list_nested": types.ListType{
 					ElemType: NestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{

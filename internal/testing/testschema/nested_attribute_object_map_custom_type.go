@@ -89,7 +89,7 @@ func (c MapNestedObjectCustomValue) Type(ctx context.Context) attr.Type {
 	return MapNestedObjectCustomType{
 		basetypes.ObjectType{
 			AttrTypes: map[string]attr.Type{
-				"nested_map_nested_attribute": types.MapType{
+				"nested_map_nested": types.MapType{
 					ElemType: NestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{

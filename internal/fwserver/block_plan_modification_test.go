@@ -604,13 +604,13 @@ func TestBlockModifyPlan(t *testing.T) {
 				),
 			},
 		},
-		"attribute-list-nested-nested-custom-nested-object": {
+		"block-list-nested-nested-custom-nested-object": {
 			block: testschema.Block{
 				NestedObject: testschema.NestedBlockObject{
 					CustomType: testschema.ListNestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_list_nested_attribute": types.ListType{
+								"nested_list_nested": types.ListType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -623,7 +623,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						},
 					},
 					Blocks: map[string]fwschema.Block{
-						"nested_list_nested_attribute": testschema.Block{
+						"nested_list_nested": testschema.Block{
 							NestedObject: testschema.NestedBlockObject{
 								CustomType: testschema.NestedObjectCustomType{
 									ObjectType: basetypes.ObjectType{
@@ -649,7 +649,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.ListNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_list_nested_attribute": types.ListType{
+								"nested_list_nested": types.ListType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -665,7 +665,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.ListNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_list_nested_attribute": types.ListType{
+									"nested_list_nested": types.ListType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -676,7 +676,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_list_nested_attribute": types.ListValueMust(
+									"nested_list_nested": types.ListValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -707,7 +707,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.ListNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_list_nested_attribute": types.ListType{
+								"nested_list_nested": types.ListType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -723,7 +723,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.ListNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_list_nested_attribute": types.ListType{
+									"nested_list_nested": types.ListType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -734,7 +734,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_list_nested_attribute": types.ListValueMust(
+									"nested_list_nested": types.ListValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -764,7 +764,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.ListNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_list_nested_attribute": types.ListType{
+								"nested_list_nested": types.ListType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -780,7 +780,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.ListNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_list_nested_attribute": types.ListType{
+									"nested_list_nested": types.ListType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -791,7 +791,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_list_nested_attribute": types.ListValueMust(
+									"nested_list_nested": types.ListValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -823,7 +823,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.ListNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_list_nested_attribute": types.ListType{
+								"nested_list_nested": types.ListType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -839,7 +839,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.ListNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_list_nested_attribute": types.ListType{
+									"nested_list_nested": types.ListType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -850,7 +850,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_list_nested_attribute": types.ListValueMust(
+									"nested_list_nested": types.ListValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1374,7 +1374,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					CustomType: testschema.SetNestedObjectCustomType{
 						ObjectType: basetypes.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_set_nested_attribute": types.SetType{
+								"nested_set_nested": types.SetType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -1387,7 +1387,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						},
 					},
 					Blocks: map[string]fwschema.Block{
-						"nested_set_nested_attribute": testschema.Block{
+						"nested_set_nested": testschema.Block{
 							NestedObject: testschema.NestedBlockObject{
 								CustomType: testschema.NestedObjectCustomType{
 									ObjectType: basetypes.ObjectType{
@@ -1413,7 +1413,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.SetNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_set_nested_attribute": types.SetType{
+								"nested_set_nested": types.SetType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -1429,7 +1429,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.SetNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_set_nested_attribute": types.SetType{
+									"nested_set_nested": types.SetType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1440,7 +1440,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_set_nested_attribute": types.SetValueMust(
+									"nested_set_nested": types.SetValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1471,7 +1471,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.SetNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_set_nested_attribute": types.SetType{
+								"nested_set_nested": types.SetType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -1487,7 +1487,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.SetNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_set_nested_attribute": types.SetType{
+									"nested_set_nested": types.SetType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1498,7 +1498,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_set_nested_attribute": types.SetValueMust(
+									"nested_set_nested": types.SetValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1528,7 +1528,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.SetNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_set_nested_attribute": types.SetType{
+								"nested_set_nested": types.SetType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -1544,7 +1544,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.SetNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_set_nested_attribute": types.SetType{
+									"nested_set_nested": types.SetType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1555,7 +1555,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_set_nested_attribute": types.SetValueMust(
+									"nested_set_nested": types.SetValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1587,7 +1587,7 @@ func TestBlockModifyPlan(t *testing.T) {
 					testschema.SetNestedObjectCustomType{
 						ObjectType: types.ObjectType{
 							AttrTypes: map[string]attr.Type{
-								"nested_set_nested_attribute": types.SetType{
+								"nested_set_nested": types.SetType{
 									ElemType: testschema.NestedObjectCustomType{
 										ObjectType: types.ObjectType{
 											AttrTypes: map[string]attr.Type{
@@ -1603,7 +1603,7 @@ func TestBlockModifyPlan(t *testing.T) {
 						testschema.SetNestedObjectCustomValue{
 							ObjectValue: types.ObjectValueMust(
 								map[string]attr.Type{
-									"nested_set_nested_attribute": types.SetType{
+									"nested_set_nested": types.SetType{
 										ElemType: testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -1614,7 +1614,7 @@ func TestBlockModifyPlan(t *testing.T) {
 									},
 								},
 								map[string]attr.Value{
-									"nested_set_nested_attribute": types.SetValueMust(
+									"nested_set_nested": types.SetValueMust(
 										testschema.NestedObjectCustomType{
 											ObjectType: types.ObjectType{
 												AttrTypes: map[string]attr.Type{
@@ -2978,7 +2978,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				CustomType: testschema.NestedObjectCustomType{
 					ObjectType: basetypes.ObjectType{
 						AttrTypes: map[string]attr.Type{
-							"nested_single_nested_attribute": testschema.NestedObjectCustomType{
+							"nested_single_nested_block": testschema.NestedObjectCustomType{
 								ObjectType: basetypes.ObjectType{
 									AttrTypes: map[string]attr.Type{
 										"testing": types.StringType,
@@ -2990,7 +2990,7 @@ func TestBlockModifyPlan(t *testing.T) {
 				},
 				NestedObject: testschema.NestedBlockObject{
 					Blocks: map[string]fwschema.Block{
-						"nested_single_nested_attribute": testschema.Block{
+						"nested_single_nested_block": testschema.Block{
 							NestedObject: testschema.NestedBlockObject{
 								Attributes: map[string]fwschema.Attribute{
 									"testing": testschema.Attribute{
@@ -3008,14 +3008,14 @@ func TestBlockModifyPlan(t *testing.T) {
 				AttributeConfig: testschema.NestedObjectCustomValue{
 					ObjectValue: types.ObjectValueMust(
 						map[string]attr.Type{
-							"nested_single_nested_attribute": types.ObjectType{
+							"nested_single_nested_block": types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"testing": types.StringType,
 								},
 							},
 						},
 						map[string]attr.Value{
-							"nested_single_nested_attribute": types.ObjectValueMust(
+							"nested_single_nested_block": types.ObjectValueMust(
 								map[string]attr.Type{
 									"testing": types.StringType,
 								},
@@ -3030,14 +3030,14 @@ func TestBlockModifyPlan(t *testing.T) {
 				AttributePlan: testschema.NestedObjectCustomValue{
 					ObjectValue: types.ObjectValueMust(
 						map[string]attr.Type{
-							"nested_single_nested_attribute": types.ObjectType{
+							"nested_single_nested_block": types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"testing": types.StringType,
 								},
 							},
 						},
 						map[string]attr.Value{
-							"nested_single_nested_attribute": types.ObjectValueMust(
+							"nested_single_nested_block": types.ObjectValueMust(
 								map[string]attr.Type{
 									"testing": types.StringType,
 								},
@@ -3051,14 +3051,14 @@ func TestBlockModifyPlan(t *testing.T) {
 				AttributeState: testschema.NestedObjectCustomValue{
 					ObjectValue: types.ObjectValueMust(
 						map[string]attr.Type{
-							"nested_single_nested_attribute": types.ObjectType{
+							"nested_single_nested_block": types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"testing": types.StringType,
 								},
 							},
 						},
 						map[string]attr.Value{
-							"nested_single_nested_attribute": types.ObjectValueMust(
+							"nested_single_nested_block": types.ObjectValueMust(
 								map[string]attr.Type{
 									"testing": types.StringType,
 								},
@@ -3074,14 +3074,14 @@ func TestBlockModifyPlan(t *testing.T) {
 				AttributePlan: testschema.NestedObjectCustomValue{
 					ObjectValue: types.ObjectValueMust(
 						map[string]attr.Type{
-							"nested_single_nested_attribute": types.ObjectType{
+							"nested_single_nested_block": types.ObjectType{
 								AttrTypes: map[string]attr.Type{
 									"testing": types.StringType,
 								},
 							},
 						},
 						map[string]attr.Value{
-							"nested_single_nested_attribute": types.ObjectValueMust(
+							"nested_single_nested_block": types.ObjectValueMust(
 								map[string]attr.Type{
 									"testing": types.StringType,
 								},

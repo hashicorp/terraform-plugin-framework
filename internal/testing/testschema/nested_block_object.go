@@ -4,9 +4,10 @@
 package testschema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -15,6 +16,7 @@ var _ fwschema.NestedBlockObject = NestedBlockObject{}
 type NestedBlockObject struct {
 	Attributes map[string]fwschema.Attribute
 	Blocks     map[string]fwschema.Block
+	CustomType basetypes.ObjectTypable
 }
 
 // ApplyTerraform5AttributePathStep performs an AttributeName step on the

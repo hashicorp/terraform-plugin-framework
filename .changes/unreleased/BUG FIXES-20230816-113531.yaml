@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'internal/fwserver: Prevented `Invalid Element Type` diagnostics for nested
-  attributes and blocks implementing `CustomType` field'
-time: 2023-08-16T11:35:31.553124+01:00
-custom:
-  Issue: "823"

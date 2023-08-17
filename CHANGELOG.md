@@ -1,3 +1,13 @@
+## 1.3.5 (August 17, 2023)
+
+NOTES:
+
+* internal: Changed provider defined method execution logs from `DEBUG` log level to `TRACE` ([#818](https://github.com/hashicorp/terraform-plugin-framework/issues/818))
+
+BUG FIXES:
+
+* internal/fwserver: Prevented `Invalid Element Type` diagnostics for nested attributes and blocks implementing `CustomType` field ([#823](https://github.com/hashicorp/terraform-plugin-framework/issues/823))
+
 ## 1.3.4 (August 03, 2023)
 
 BUG FIXES:

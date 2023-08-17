@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -88,17 +87,7 @@ func (c MapNestedObjectCustomValue) Equal(o attr.Value) bool {
 func (c MapNestedObjectCustomValue) Type(ctx context.Context) attr.Type {
 	return MapNestedObjectCustomType{
 		basetypes.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"nested_map_nested": types.MapType{
-					ElemType: NestedObjectCustomType{
-						ObjectType: types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_attr": types.StringType,
-							},
-						},
-					},
-				},
-			},
+			AttrTypes: c.AttributeTypes(ctx),
 		},
 	}
 }

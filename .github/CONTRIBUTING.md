@@ -66,7 +66,7 @@ Dependency management is performed by [dependabot](https://docs.github.com/en/co
 
 ### Changelog
 
-HashiCorp’s open-source projects have always maintained user-friendly, readable `CHANGELOG`s that allow practitioners and developers to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade. This provider uses the [Changie](https://changie.dev/) automation tool for changelog automation.
+HashiCorp’s projects have always maintained user-friendly, readable `CHANGELOG`s that allow practitioners and developers to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade. This provider uses the [Changie](https://changie.dev/) automation tool for changelog automation.
 
 #### Creating Changelog Entries
 

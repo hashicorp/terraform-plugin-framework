@@ -6,7 +6,7 @@ description: >-
 
 # Object Type
 
-Object types store a mapping of explicit attribute names to value types. Objects must declare all attribute values, even when null or unkown, unless the entire object is null or unknown.
+Object types store a mapping of explicit attribute names to value types. Objects must declare all attribute values, even when null or unknown, unless the entire object is null or unknown.
 
 By default, objects from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectType) and its associated value storage type of [`types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as a struct. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
 

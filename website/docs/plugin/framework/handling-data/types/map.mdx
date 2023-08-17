@@ -47,7 +47,7 @@ Access `types.Map` information via the following methods:
 * [`(types.Map).Elements() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.Elements): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
 * [`(types.Map).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#MapValue.ElementsAs): Converts the known values into the given Go type, if possible. It is recommended to use a map of framework types to account for elements which may be unknown.
 
-In this example, a map of strings value is checked for being null or unknown value first, before accessing its known value elements as a `[]types.String`:
+In this example, a map of strings value is checked for being null or unknown value first, before accessing its known value elements as a `map[string]types.String`:
 
 ```go
 // Example data model definition
@@ -112,7 +112,7 @@ elements := map[string]string{
 diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), elements)
 ```
 
-In this example, a `types.List` of `types.String` is created from a `[]string`:
+In this example, a `types.Map` of `types.String` is created from a `map[string]string`:
 
 ```go
 elements := map[string]string{

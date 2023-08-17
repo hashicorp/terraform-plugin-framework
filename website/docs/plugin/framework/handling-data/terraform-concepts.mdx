@@ -96,7 +96,7 @@ right order, and when a provider, resource, or data source relies on a value
 from another provider, resource, or data source that has not been resolved yet,
 it represents that state by using the unknown value. For example:
 
-```tf
+```hcl
 resource "example_foo" "bar" {
   hello = "world"
   demo = true

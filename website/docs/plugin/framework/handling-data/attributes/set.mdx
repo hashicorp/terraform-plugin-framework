@@ -10,7 +10,7 @@ Set attributes store an unique, unordered collection of single element type. Val
 
 In this Terraform configuration example, a set of string attribute named `example_attribute` is set to the unordered values `"one"` and `"two"`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_attribute = ["one", "two"]
 }

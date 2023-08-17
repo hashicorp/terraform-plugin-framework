@@ -10,7 +10,7 @@ Map attributes store a mapping of arbitrary string keys to values of single elem
 
 In this Terraform configuration example, a map of string attribute named `example_attribute` is set to the mapped values of `"key1"` to `"value1"` and `"key2"` to `"value2"`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_attribute = {
     "key1" = "value1"

@@ -16,7 +16,7 @@ Set nested blocks are an unique, unordered collection of structures mapping expl
 
 In this Terraform configuration example, a set nested block named `example_block` is set to an unordered collection of an object value of `attr1` to `"value1"` and `attr2` to `123` and an object value of `attr1` to `"value2"` and `attr2` to `456`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_block {
     attr1 = "value1"

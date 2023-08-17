@@ -10,7 +10,7 @@ List nested attributes store an ordered collection of nested objects. Values are
 
 In this Terraform configuration example, a list nested attribute named `example_attribute` is set to the ordered object values of `attr` to `"one"` and `attr` to `"two"`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_attribute = [
     {

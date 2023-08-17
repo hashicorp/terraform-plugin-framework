@@ -16,7 +16,7 @@ Single nested blocks are a single structure mapping explicit attribute names to 
 
 In this Terraform configuration example, a single nested block named `example_block` is set to the mapped values of `attr1` to `"value1"` and `attr2` to `123`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_block {
     attr1 = "value1"

@@ -16,7 +16,7 @@ Number attributes store an arbitrary precision (generally over 64-bit, up to 512
 
 In this Terraform configuration example, an number attribute named `example_attribute` is set to a value greater than 64 bits:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_attribute = pow(2, 64) + 1
 }

@@ -10,7 +10,7 @@ Set nested attributes store a unique, unordered collection of nested objects. Va
 
 In this Terraform configuration example, a set nested attribute named `example_attribute` is set to the unordered object values of `attr` to `"one"` and `attr` to `"two"`:
 
-```terraform
+```hcl
 resource "examplecloud_thing" "example" {
   example_attribute = [
     {

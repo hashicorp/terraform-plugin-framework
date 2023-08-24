@@ -73,6 +73,7 @@ function. In the Framework, you must implement each of the CRUD lifecycle functi
 `schema.ResourceData`. In the Framework, you get attribute values from the configuration and plan by accessing
 `Config` and `Plan` on `resource.CreateRequest`. You set attribute values in Terraform's state by mutating `State`
 on `resource.CreateResponse`.
+- In SDKv2, certain resource schema definition and data consistency errors are only visible as Terraform warning logs by default. After migration, these errors will always be visible to practitioners and prevent further Terraform operations. The [SDKv2 resource data consistency errors documentation](/terraform/plugin/sdkv2/resources/data-consistency-errors) discusses how to find and potentially resolve these.
 
 ## Example
 

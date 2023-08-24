@@ -1,0 +1,175 @@
+---
+page_title: 'Plugin Development - Framework: List Nested Attribute'
+description: >-
+  Learn the list nested attribute type in the provider development framework.
+---
+
+# List Nested Attribute
+
+List nested attributes store an ordered collection of nested objects. Values are represented by a [list type](/terraform/plugin/framework/handling-data/types/list) in the framework, containing elements of [object type](/terraform/plugin/framework/handling-data/types/object).
+
+In this Terraform configuration example, a list nested attribute named `example_attribute` is set to the ordered object values of `attr` to `"one"` and `attr` to `"two"`:
+
+```hcl
+resource "examplecloud_thing" "example" {
+  example_attribute = [
+    {
+        attr = "one"
+    },
+    {
+        attr = "two"
+    },
+  ]
+}
+```
+
+## Schema Definition
+
+Use one of the following attribute types to directly add a list nested value to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ListNestedAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListNestedAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedAttribute) |
+
+The `NestedObject` field must be defined, which represents the [object value type](/terraform/plugin/framework/handling-data/types/object) of every element of the list.
+
+In this example, a resource schema defines a top level required list nested attribute named `example_attribute` with a required string attribute named `attr`:
+
+```go
+func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "example_attribute": schema.ListNestedAttribute{
+                NestedObject: schema.NestedAttributeOjbect{
+                    Attributes: map[string]schema.Attribute{
+                        "attr": schema.StringAttribute{
+                            Required: true,
+                            // ... potentially other fields ...
+                        },
+                    },
+                },
+                Required: true,
+                // ... potentially other fields ...
+            },
+            // ... potentially other attributes ...
+        },
+    }
+}
+```
+
+Its [value type](/terraform/plugin/framework/handling-data/types) would be represented as a `types.List` of `types.Object` where the `types.Object` is a mapping of `attr` to `types.String`.
+
+A nested attribute type may itself contain further collection or nested attribute types, if necessary.
+
+In this example, a resource schema defines a top level required list nested attribute named `example_attribute` with a required list of strings attribute named `attr1` and an optional single nested attribute named `attr2`:
+
+```go
+func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "example_attribute": schema.ListNestedAttribute{
+                NestedObject: schema.NestedAttributeOjbect{
+                    Attributes: map[string]schema.Attribute{
+                        "attr1": schema.ListAttribute{
+                            ElementType: types.StringType,
+                            Required: true,
+                            // ... potentially other fields ...
+                        },
+                        "attr2": schema.SingleNestedAttribute{
+                            Attributes: map[string]schema.Attribute{ /* ... */ },
+                            Optional: true,
+                            // ... potentially other fields ...
+                        },
+                    },
+                },
+                Required: true,
+                // ... potentially other fields ...
+            },
+            // ... potentially other attributes ...
+        },
+    }
+}
+```
+
+Its [value type](/terraform/plugin/framework/handling-data/types) would be represented as a `types.List` of `types.Object` where the `types.Object` is a mapping of `attr1` to `types.List` of `types.String` and `attr2` to `types.Object`.
+
+### Configurability
+
+<Note>
+
+Only the list nested attribute itself is defined by the `schema.ListNestedAttribute` configurability fields. Nested attributes must define their own configurability fields within each attribute definition.
+
+</Note>
+
+At least one of the `Computed`, `Optional`, or `Required` fields must be set to `true`. This defines how Terraform and the framework should expect data to set, whether the value is from the practitioner configuration or from the provider logic, such as API response value.
+
+The acceptable behaviors of these configurability options are:
+
+- `Required` only: The value must be practitioner configured to an eventually known value (not null), otherwise the framework will automatically raise an error diagnostic for the missing value.
+- `Optional` only: The value may be practitioner configured to a known value or null.
+- `Optional` and `Computed`: The value may be practitioner configured or the value may be set in provider logic when the practitioner configuration is null.
+- `Computed` only: The value will be set in provider logic and any practitioner configuration causes the framework to automatically raise an error diagnostic for the unexpected configuration value.
+
+### Custom Types
+
+You may want to build your own attribute value and type implementations to allow your provider to combine validation, description, and plan customization behaviors into a reusable bundle. This helps avoid duplication or reimplementation and ensures consistency. These implementations use the `CustomType` field in the attribute type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Deprecation
+
+Set the `DeprecationMessage` field to a practitioner-focused message for how to handle the deprecation. The framework will automatically raise a warning diagnostic with this message if the practitioner configuration contains a known value for the attribute. Terraform version 1.2.7 and later will raise a warning diagnostic in certain scenarios if the deprecated attribute value is referenced elsewhere in a practitioner configuration. The framework [deprecations](/terraform/plugin/framework/deprecations) documentation fully describes the recommended practices for deprecating an attribute or resource.
+
+Some practitioner-focused examples of a deprecation message include:
+
+- Configure `other_attribute` instead. This attribute will be removed in the next major version of the provider.
+- Remove this attribute's configuration as it no longer is used and the attribute will be removed in the next major version of the provider.
+
+### Description
+
+The framework provides two description fields, `Description` and `MarkdownDescription`, which various tools use to show additional information about an attribute and its intended purpose. This includes, but is not limited to, [`terraform-plugin-docs`](https://github.com/hashicorp/terraform-plugin-docs) for automated provider documentation generation and [`terraform-ls`](https://github.com/hashicorp/terraform-ls) for Terraform configuration editor integrations.
+
+### Plan Modification
+
+<Highlight>
+
+Only managed resources implement this concept.
+
+</Highlight>
+
+The framework provides two plan modification fields for managed resource attributes, `Default` and `PlanModifiers`, which define resource and attribute value planning behaviors. The resource [default](/terraform/plugin/framework/resources/default) and [plan modification](/terraform/plugin/framework/resources/plan-modification) documentation covers these features more in-depth.
+
+#### Common Use Case Plan Modification
+
+The [`listdefault`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault) package defines common use case `Default` implementations:
+
+- [`StaticValue(types.List)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault#StaticValue): Define a static list default value for the attribute.
+
+The [`listplanmodifier`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier) package defines common use case `PlanModifiers` implementations:
+
+- [`RequiresReplace()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier#RequiresReplace): Marks the resource for replacement if the resource is being updated and the plan value does not match the prior state value.
+- [`RequiresReplaceIf()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier#RequiresReplaceIf): Similar to `RequiresReplace()`, but also checks if a given function returns true.
+- [`RequiresReplaceIfConfigured()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier#RequiresReplaceIfConfigured): Similar to `RequiresReplace()`, but also checks if the configuration value is not null.
+- [`UseStateForUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier#UseStateForUnknown): Copies a known prior state value into the planned value. Use this when it is known that an unconfigured value will remain the same after a resource update.
+
+### Sensitive
+
+Set the `Sensitive` field if the attribute value should always be considered [sensitive data](/terraform/language/state/sensitive-data). In Terraform, this will generally mask the value in practitioner output. This setting cannot be conditionally set and does not impact how data is stored in the state.
+
+### Validation
+
+Set the `Validators` field to define [validation](/terraform/plugin/framework/validation#attribute-validation). This validation logic is ran in addition to any validation contained within a [custom type](#custom-types).
+
+#### Common Use Case Validators
+
+HashiCorp provides the additional [`terraform-plugin-framework-validators`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) Go module which contains validation logic for common use cases. The [`listvalidator`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/listvalidator) package within that module has list attribute validators such as defining conflicting attributes.
+
+## Accessing Values
+
+The [accessing values](/terraform/plugin/framework/handling-data/accessing-values) documentation covers general methods for reading [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data, which is necessary before accessing an attribute value directly. The [list type](/terraform/plugin/framework/handling-data/types/list#accessing-values) documentation covers methods for interacting with the attribute value itself.
+
+## Setting Values
+
+The [list type](/terraform/plugin/framework/handling-data/types/list#setting-values) documentation covers methods for creating or setting the appropriate value. The [writing data](/terraform/plugin/framework/handing-data/writing-state) documentation covers general methods for writing [schema](/terraform/plugin/framework/handling-data/schemas) (plan and state) data, which is necessary afterwards.

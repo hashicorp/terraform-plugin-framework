@@ -1,0 +1,121 @@
+---
+page_title: 'Plugin Development - Framework: Set Type'
+description: >-
+  Learn the set value type in the provider development framework.
+---
+
+# Set Type
+
+Set types store an ordered collection of single element type.
+
+By default, sets from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.SetType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetType) and its associated value storage type of [`types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Set). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as a slice. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+Use one of the following attribute types to directly add a set of a single element type to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.SetAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#SetAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.SetAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SetAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.SetAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetAttribute) |
+
+Use one of the following attribute types to directly add a set of a nested attributes to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute or Block Type |
+|-------------|-------------------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.SetNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#SetNestedAttribute) |
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.SetNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#SetNestedBlock) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.SetNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SetNestedAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.SetNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SetNestedBlock) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.SetNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetNestedAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.SetNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SetNestedBlock) |
+
+If the set value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.SetType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+If the set value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value to `types.SetType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the [attribute documentation](/terraform/plugin/framework/handling-data/attributes/set#accessing-values) to understand how schema-based data gets mapped into accessible values, such as a `types.Set` in this case.
+
+</Tip>
+
+Access `types.Set` information via the following methods:
+
+* [`(types.Set).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue.IsNull): Returns `true` if the set is null.
+* [`(types.Set).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue.IsUnknown): Returns `true` if the set is unknown. Returns `false` if the number of elements is known, any of which may be unknown.
+* [`(types.Set).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Set).ElementsAs(context.Context, any, bool) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#SetValue.ElementsAs): Converts the known values into the given Go type, if possible. It is recommended to use a slice of framework types to account for elements which may be unknown.
+
+In this example, a set of strings value is checked for being null or unknown value first, before accessing its known value elements as a `[]types.String`:
+
+```go
+// Example data model definition
+// type ExampleModel struct {
+//   ExampleAttribute types.Set `tfsdk:"example_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+elements := make([]types.String, 0, len(data.ExampleAttribute.Elements()))
+diags := data.ExampleAttribute.ElementsAs(ctx, &elements, false)
+```
+
+## Setting Values
+
+Call one of the following to create a `types.Set` value:
+
+* [`types.SetNull(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetNull): A null set value with the given element type.
+* [`types.SetUnknown(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetUnknown): An unknown set value with the given element type.
+* [`types.SetValue(attr.Type, []attr.Value) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValue): A known value with the given element type and values.
+* [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each element type, such as giving `[]*string` for a `types.Set` of `types.String`.
+* [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+In this example, a known set value is created from framework types:
+
+```go
+elements := []attr.Value{types.StringValue("one"), types.StringValue("two")}
+setValue, diags := types.SetValue(types.StringType, elements)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+A Go built-in slice type (`[]T`) or type alias of a slice type such as `type MyListType []T` can be used instead.
+
+In this example, a `[]string` is directly used to set a set attribute value:
+
+```go
+elements := []string{"one", "two"}
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), elements)
+```
+
+In this example, a `types.Set` of `types.String` is created from a `[]string`:
+
+```go
+elements := []string{"one", "two"}
+setValue, diags := types.SetValueFrom(ctx, types.StringType, elements)
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/types/custom). These can adjust expected provider code usage depending on their implementation.

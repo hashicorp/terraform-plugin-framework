@@ -293,7 +293,7 @@ Version 6 lets you declare schemas with nested attributes in addition to blocks.
 
 In the following configuration example, a schema uses a list block that is difficult to dynamically configure.
 
-```terraform
+```hcl
 locals {
   calls = toset([
     {call_me: “example1”, maybe: true},
@@ -315,7 +315,7 @@ resource “examplecloud_thing” “example” {
 
 In the following configuration example, a schema uses list nested attributes to simplify the configuration.
 
-```terraform
+```hcl
 locals {
   calls = [
     {call_me: “example1”, maybe: true},

@@ -18,6 +18,7 @@ func ServerCapabilities(ctx context.Context, fw *fwserver.ServerCapabilities) *t
 	}
 
 	return &tfprotov5.ServerCapabilities{
-		PlanDestroy: fw.PlanDestroy,
+		GetProviderSchemaOptional: fw.GetProviderSchemaOptional,
+		PlanDestroy:               fw.PlanDestroy,
 	}
 }

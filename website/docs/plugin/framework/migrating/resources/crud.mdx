@@ -178,27 +178,7 @@ resource "examplecloud_thing" "this" {
 }
 ```
 
-A [warning log](/terraform/plugin/sdkv2/resources/data-consistency-errors#checking-for-warning-logs) will be produced and the resulting state after applying a new resource would look like:
-```json
-{
-  //...
-  "resources": [
-    {
-      "mode": "managed",
-      "type": "examplecloud_thing",
-      "name": "this",
-      "instances": [
-        {
-          "attributes": {
-            // This is invalid! Config has this stored as "value"
-            "word": "VALUE"
-          },
-        }
-      ]
-    }
-  ],
-}
-```
+A [warning log](/terraform/plugin/sdkv2/resources/data-consistency-errors#checking-for-warning-logs) will be produced and the resulting state after applying a new resource will be `VALUE` instead of `value`.
 
 #### Migrating to Plugin Framework
 

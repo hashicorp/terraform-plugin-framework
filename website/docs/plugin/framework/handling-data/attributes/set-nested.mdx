@@ -42,7 +42,7 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             "example_attribute": schema.SetNestedAttribute{
-                NestedObject: schema.NestedAttributeOjbect{
+                NestedObject: schema.NestedAttributeObject{
                     Attributes: map[string]schema.Attribute{
                         "attr": schema.StringAttribute{
                             Required: true,
@@ -70,7 +70,7 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
     resp.Schema = schema.Schema{
         Attributes: map[string]schema.Attribute{
             "example_attribute": schema.SetNestedAttribute{
-                NestedObject: schema.NestedAttributeOjbect{
+                NestedObject: schema.NestedAttributeObject{
                     Attributes: map[string]schema.Attribute{
                         "attr1": schema.ListAttribute{
                             ElementType: types.StringType,

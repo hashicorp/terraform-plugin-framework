@@ -13,31 +13,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-func TestServerCapabilities(t *testing.T) {
+func TestResourceMetadata(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		fw       *fwserver.ServerCapabilities
-		expected *tfprotov5.ServerCapabilities
+		fw       fwserver.ResourceMetadata
+		expected tfprotov5.ResourceMetadata
 	}{
-		"nil": {
-			fw:       nil,
-			expected: nil,
-		},
-		"GetProviderSchemaOptional": {
-			fw: &fwserver.ServerCapabilities{
-				GetProviderSchemaOptional: true,
+		"TypeName": {
+			fw: fwserver.ResourceMetadata{
+				TypeName: "test",
 			},
-			expected: &tfprotov5.ServerCapabilities{
-				GetProviderSchemaOptional: true,
-			},
-		},
-		"PlanDestroy": {
-			fw: &fwserver.ServerCapabilities{
-				PlanDestroy: true,
-			},
-			expected: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+			expected: tfprotov5.ResourceMetadata{
+				TypeName: "test",
 			},
 		},
 	}
@@ -48,7 +36,7 @@ func TestServerCapabilities(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := toproto5.ServerCapabilities(context.Background(), testCase.fw)
+			got := toproto5.ResourceMetadata(context.Background(), testCase.fw)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

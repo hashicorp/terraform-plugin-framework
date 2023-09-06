@@ -107,7 +107,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -171,7 +172,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -209,7 +211,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -245,7 +248,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -285,7 +289,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -363,7 +368,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -427,7 +433,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -465,7 +472,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},

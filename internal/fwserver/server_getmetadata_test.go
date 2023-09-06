@@ -1,0 +1,361 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package fwserver_test
+
+import (
+	"context"
+	"sort"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+)
+
+func TestServerGetMetadata(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		server           *fwserver.Server
+		request          *fwserver.GetMetadataRequest
+		expectedResponse *fwserver.GetMetadataResponse
+	}{
+		"empty-provider": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Resources:   []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"datasources": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source1"
+									},
+								}
+							},
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{
+					{
+						TypeName: "test_data_source1",
+					},
+					{
+						TypeName: "test_data_source2",
+					},
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"datasources-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source"
+									},
+								}
+							},
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = "test_data_source"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Data Source Type Defined",
+						"The test_data_source data source type name was returned for multiple data sources. "+
+							"Data source type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"datasources-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Data Source Type Name Missing",
+						"The *testprovider.DataSource DataSource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"datasources-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
+						return []func() datasource.DataSource{
+							func() datasource.DataSource {
+								return &testprovider.DataSource{
+									MetadataMethod: func(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_data_source"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{
+					{
+						TypeName: "testprovidertype_data_source",
+					},
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"resources": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource1"
+									},
+								}
+							},
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Resources: []fwserver.ResourceMetadata{
+					{
+						TypeName: "test_resource1",
+					},
+					{
+						TypeName: "test_resource2",
+					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"resources-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Resource Type Defined",
+						"The test_resource resource type name was returned for multiple resources. "+
+							"Resource type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"resources-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Resource Type Name Missing",
+						"The *testprovider.Resource Resource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"resources-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Resources: []fwserver.ResourceMetadata{
+					{
+						TypeName: "testprovidertype_resource",
+					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			response := &fwserver.GetMetadataResponse{}
+			testCase.server.GetMetadata(context.Background(), testCase.request, response)
+
+			// Prevent false positives with random map access in testing
+			sort.Slice(response.DataSources, func(i int, j int) bool {
+				return response.DataSources[i].TypeName < response.DataSources[j].TypeName
+			})
+
+			sort.Slice(response.Resources, func(i int, j int) bool {
+				return response.Resources[i].TypeName < response.Resources[j].TypeName
+			})
+
+			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

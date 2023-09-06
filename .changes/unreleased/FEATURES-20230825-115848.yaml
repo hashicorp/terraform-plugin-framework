@@ -1,7 +1,0 @@
-kind: FEATURES
-body: 'providerserver: Upgrade to protocol versions 5.4 and 6.4, which can
-  significantly reduce memory usage with Terraform 1.6 and later when a
-  configuration includes multiple instances of the same provider'
-time: 2023-08-25T11:58:48.820178-04:00
-custom:
-  Issue: "828"

@@ -29,9 +29,7 @@ type GetProviderSchemaResponse struct {
 
 // GetProviderSchema implements the framework server GetProviderSchema RPC.
 func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRequest, resp *GetProviderSchemaResponse) {
-	resp.ServerCapabilities = &ServerCapabilities{
-		PlanDestroy: true,
-	}
+	resp.ServerCapabilities = s.ServerCapabilities()
 
 	metadataReq := provider.MetadataRequest{}
 	metadataResp := provider.MetadataResponse{}

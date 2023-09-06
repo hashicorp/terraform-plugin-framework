@@ -39,7 +39,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:          providerschema.Schema{},
 				ResourceSchemas:   map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -105,7 +106,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -155,7 +157,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -223,7 +226,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -256,7 +260,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -302,7 +307,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -332,7 +338,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -353,7 +360,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -394,7 +402,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -417,7 +426,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				Provider: providerschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -492,7 +502,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -541,7 +552,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				Provider: providerschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -609,7 +621,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -642,7 +655,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -688,7 +702,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},

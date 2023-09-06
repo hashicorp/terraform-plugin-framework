@@ -183,6 +183,22 @@ func (s *Server) DataSourceFuncs(ctx context.Context) (map[string]func() datasou
 	return s.dataSourceFuncs, s.dataSourceTypesDiags
 }
 
+// DataSourceMetadatas returns a slice of DataSourceMetadata for the GetMetadata
+// RPC.
+func (s *Server) DataSourceMetadatas(ctx context.Context) ([]DataSourceMetadata, diag.Diagnostics) {
+	datasourceFuncs, diags := s.DataSourceFuncs(ctx)
+
+	datasourceMetadatas := make([]DataSourceMetadata, 0, len(datasourceFuncs))
+
+	for typeName := range datasourceFuncs {
+		datasourceMetadatas = append(datasourceMetadatas, DataSourceMetadata{
+			TypeName: typeName,
+		})
+	}
+
+	return datasourceMetadatas, diags
+}
+
 // DataSourceSchema returns the DataSource Schema for the given type name and
 // caches the result for later DataSource operations.
 func (s *Server) DataSourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
@@ -399,6 +415,22 @@ func (s *Server) ResourceFuncs(ctx context.Context) (map[string]func() resource.
 	}
 
 	return s.resourceFuncs, s.resourceTypesDiags
+}
+
+// ResourceMetadatas returns a slice of ResourceMetadata for the GetMetadata
+// RPC.
+func (s *Server) ResourceMetadatas(ctx context.Context) ([]ResourceMetadata, diag.Diagnostics) {
+	resourceFuncs, diags := s.ResourceFuncs(ctx)
+
+	resourceMetadatas := make([]ResourceMetadata, 0, len(resourceFuncs))
+
+	for typeName := range resourceFuncs {
+		resourceMetadatas = append(resourceMetadatas, ResourceMetadata{
+			TypeName: typeName,
+		})
+	}
+
+	return resourceMetadatas, diags
 }
 
 // ResourceSchema returns the Resource Schema for the given type name and

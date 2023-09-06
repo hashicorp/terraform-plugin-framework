@@ -127,7 +127,7 @@ func main() {
     }
 
     providers := []func() tfprotov6.ProviderServer{
-        providerserver.NewProtocol6(provider.New()), // Example terraform-plugin-framework provider
+        providerserver.NewProtocol6(provider.New()()), // Example terraform-plugin-framework provider
         func() tfprotov6.ProviderServer {
             return upgradedSdkServer,
         },
@@ -218,7 +218,7 @@ import (
 
 func TestMuxServer(t *testing.T) {
     resource.Test(t, resource.TestCase{
-        ProtoV6ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error) {
+        ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
             "examplecloud": func() (tfprotov6.ProviderServer, error) {
                 ctx := context.Background()
 

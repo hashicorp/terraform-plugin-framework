@@ -48,7 +48,8 @@ In this example, a resource schema defines a top level single nested block named
 ```go
 func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
+        Attributes: map[string]schema.Attribute{}, // ... potentially other attributes ...
+        Blocks: map[string]schema.Block{
             "example_block": schema.SingleNestedBlock{
                 Attributes: map[string]schema.Attribute{
                     "attr1": schema.StringAttribute{
@@ -77,7 +78,7 @@ In this example, a resource schema defines a top level single nested block named
 ```go
 func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{
+        Blocks: map[string]schema.Block{
             "example_block": schema.SingleNestedBlock{
                 Attributes: map[string]schema.Attribute{
                     "attr": schema.ListAttribute{

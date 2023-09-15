@@ -53,7 +53,6 @@ In this example, a resource schema defines a top level set nested block named `e
 ```go
 func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
-        Attributes: map[string]schema.Attribute{}, // ... potentially other attributes ...
         Blocks: map[string]schema.Attribute{
             "example_block": schema.SetNestedBlock{
                 NestedObject: schema.NestedBlockObject{

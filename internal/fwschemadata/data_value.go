@@ -75,8 +75,9 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	// TODO: If ErrInvalidStep, check parent paths for unknown value.
 	//       If found, convert this value to an unknown value.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
-
-	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
+	//
+	// Note the err==nil condition: this avoid passing malformed tfValue to validators.
+	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); err == nil && ok {
 		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
 		logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, schemaPath)...)
@@ -88,7 +89,6 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	}
 
 	attrValue, err := attrType.ValueFromTerraform(ctx, tfValue)
-
 	if err != nil {
 		diags.AddAttributeError(
 			schemaPath,

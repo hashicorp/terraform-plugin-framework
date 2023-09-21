@@ -78,3 +78,34 @@ func (s StringTypeWithValidateWarning) ValueFromTerraform(ctx context.Context, i
 func (t StringTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }
+
+type StringTypeWithCustomValidate struct {
+	StringType
+	CustomValidate func(tftypes.Value, path.Path) diag.Diagnostics
+}
+
+func (t StringTypeWithCustomValidate) Equal(o attr.Type) bool {
+	other, ok := o.(StringTypeWithCustomValidate)
+	if !ok {
+		return false
+	}
+	return t.StringType == other.StringType && any(t.CustomValidate) == any(other.CustomValidate)
+}
+
+func (s StringTypeWithCustomValidate) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	res, err := s.StringType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	newString, ok := res.(String)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", res)
+	}
+	newString.CreatedBy = s
+	return newString, nil
+}
+
+func (t StringTypeWithCustomValidate) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+	return t.CustomValidate(in, path)
+}

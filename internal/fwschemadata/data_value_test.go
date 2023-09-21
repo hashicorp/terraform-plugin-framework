@@ -1774,6 +1774,52 @@ func TestDataValueAtPath(t *testing.T) {
 			expected:      testtypes.String{InternalString: types.StringValue("value"), CreatedBy: testtypes.StringTypeWithValidateWarning{}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
 		},
+		"DoNotValidateUnderUnknownValues": {
+			data: fwschemadata.Data{
+				TerraformValue: (func() tftypes.Value {
+					t := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+						"duration": tftypes.String,
+					}}
+					// [unknown]
+					v := tftypes.NewValue(
+						tftypes.List{ElementType: t},
+						[]tftypes.Value{tftypes.NewValue(t, tftypes.UnknownValue)},
+					)
+					// {assume_role: [unknown]}
+					return tftypes.NewValue(
+						tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+							"assume_role": v.Type(),
+						}},
+						map[string]tftypes.Value{"assume_role": v},
+					)
+				})(),
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"assume_role": testschema.Block{
+							NestingMode: fwschema.BlockNestingModeList,
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"duration": testschema.Attribute{
+										Type: testtypes.StringTypeWithCustomValidate{
+											CustomValidate: func(v tftypes.Value, p path.Path) diag.Diagnostics {
+												if v.Type() == nil {
+													panic("Unexpected malformed value: " + v.String())
+												}
+												return diag.Diagnostics{}
+											},
+										},
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			path:          path.Root("assume_role").AtListIndex(0).AtName("duration"),
+			expected:      testtypes.String{},
+			expectedDiags: diag.Diagnostics{},
+		},
 	}
 
 	for name, tc := range testCases {

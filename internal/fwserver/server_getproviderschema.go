@@ -8,8 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // GetProviderSchemaRequest is the framework server request for the
@@ -30,15 +28,6 @@ type GetProviderSchemaResponse struct {
 // GetProviderSchema implements the framework server GetProviderSchema RPC.
 func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRequest, resp *GetProviderSchemaResponse) {
 	resp.ServerCapabilities = s.ServerCapabilities()
-
-	metadataReq := provider.MetadataRequest{}
-	metadataResp := provider.MetadataResponse{}
-
-	logging.FrameworkTrace(ctx, "Calling provider defined Provider Metadata")
-	s.Provider.Metadata(ctx, metadataReq, &metadataResp)
-	logging.FrameworkTrace(ctx, "Called provider defined Provider Metadata")
-
-	s.providerTypeName = metadataResp.TypeName
 
 	providerSchema, diags := s.ProviderSchema(ctx)
 

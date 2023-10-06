@@ -547,6 +547,11 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		},
 		{
 			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Metadata",
 			"@module":  "sdk.framework",
 		},
@@ -568,6 +573,11 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   "trace",
 			"@message": "Checking DataSourceTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
 			"@module":  "sdk.framework",
 		},
 		{

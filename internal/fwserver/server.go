@@ -87,6 +87,10 @@ type Server struct {
 	// implemented the Metadata method. Access this field with the Provider.ProviderTypeName() method.
 	providerTypeName string
 
+	// providerTypeNameMutex is a mutex to protect concurrent providerTypeName
+	// access from race conditions.
+	providerTypeNameMutex sync.Mutex
+
 	// resourceSchemas is the cached Resource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the ResourceType.GetSchema() method.
@@ -288,6 +292,10 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 
 // ProviderTypeName returns the TypeName associated with the Provider. The TypeName is cached on first use.
 func (s *Server) ProviderTypeName(ctx context.Context) string {
+	logging.FrameworkTrace(ctx, "Checking ProviderTypeName lock")
+	s.providerTypeNameMutex.Lock()
+	defer s.providerTypeNameMutex.Unlock()
+
 	if s.providerTypeName != "" {
 		return s.providerTypeName
 	}

@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'internal/fwserver: Fix `Resource Type Not Found` errors when `GetProviderSchema`
+  is not called'
+time: 2023-10-06T16:33:00.557415-04:00
+custom:
+  Issue: "853"

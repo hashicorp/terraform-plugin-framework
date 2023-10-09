@@ -1,3 +1,9 @@
+## 1.4.1 (October 09, 2023)
+
+BUG FIXES:
+
+* providerserver: Prevented `Data Source Type Not Found` and `Resource Type Not Found` errors with Terraform 1.6 and later ([#853](https://github.com/hashicorp/terraform-plugin-framework/issues/853))
+
 ## 1.4.0 (September 06, 2023)
 
 NOTES:

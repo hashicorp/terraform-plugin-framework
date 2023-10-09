@@ -527,16 +527,6 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 	expectedEntries := []map[string]interface{}{
 		{
 			"@level":   "trace",
-			"@message": "Calling provider defined Provider Metadata",
-			"@module":  "sdk.framework",
-		},
-		{
-			"@level":   "trace",
-			"@message": "Called provider defined Provider Metadata",
-			"@module":  "sdk.framework",
-		},
-		{
-			"@level":   "trace",
 			"@message": "Checking ProviderSchema lock",
 			"@module":  "sdk.framework",
 		},
@@ -557,6 +547,21 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		},
 		{
 			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Resources",
 			"@module":  "sdk.framework",
 		},
@@ -568,6 +573,21 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   "trace",
 			"@message": "Checking DataSourceTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider Metadata",
 			"@module":  "sdk.framework",
 		},
 		{

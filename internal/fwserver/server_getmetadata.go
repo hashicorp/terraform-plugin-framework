@@ -7,8 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // GetMetadataRequest is the framework server request for the
@@ -43,15 +41,6 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.DataSources = []DataSourceMetadata{}
 	resp.Resources = []ResourceMetadata{}
 	resp.ServerCapabilities = s.ServerCapabilities()
-
-	metadataReq := provider.MetadataRequest{}
-	metadataResp := provider.MetadataResponse{}
-
-	logging.FrameworkTrace(ctx, "Calling provider defined Provider Metadata")
-	s.Provider.Metadata(ctx, metadataReq, &metadataResp)
-	logging.FrameworkTrace(ctx, "Called provider defined Provider Metadata")
-
-	s.providerTypeName = metadataResp.TypeName
 
 	datasourceMetadatas, diags := s.DataSourceMetadatas(ctx)
 

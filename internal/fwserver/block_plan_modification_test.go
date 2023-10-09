@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func TestBlockModifyPlan(t *testing.T) {
@@ -495,6 +496,388 @@ func TestBlockModifyPlan(t *testing.T) {
 				Private: testProviderData,
 			},
 		},
+		"block-list-nested-custom-nested-object": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					CustomType: testschema.NestedObjectCustomType{
+						ObjectType: basetypes.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.Attribute{
+							Required: true,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ListValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ListValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+				AttributeState: types.ListValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+			},
+		},
+		"block-list-nested-nested-custom-nested-object": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					CustomType: testschema.ListNestedObjectCustomType{
+						ObjectType: basetypes.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_list_nested": types.ListType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Blocks: map[string]fwschema.Block{
+						"nested_list_nested": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								CustomType: testschema.NestedObjectCustomType{
+									ObjectType: basetypes.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_attr": types.StringType,
+										},
+									},
+								},
+								Attributes: map[string]fwschema.Attribute{
+									"nested_attr": testschema.Attribute{
+										Required: true,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeList,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.ListValueMust(
+					testschema.ListNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_list_nested": types.ListType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.ListNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_list_nested": types.ListType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_list_nested": types.ListValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.ListValueMust(
+					testschema.ListNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_list_nested": types.ListType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.ListNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_list_nested": types.ListType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_list_nested": types.ListValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+				AttributeState: types.ListValueMust(
+					testschema.ListNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_list_nested": types.ListType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.ListNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_list_nested": types.ListType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_list_nested": types.ListValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.ListValueMust(
+					testschema.ListNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_list_nested": types.ListType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.ListNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_list_nested": types.ListType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_list_nested": types.ListValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+			},
+		},
 		"block-list-nested-private": {
 			block: testschema.BlockWithListPlanModifiers{
 				Attributes: map[string]fwschema.Attribute{
@@ -882,6 +1265,381 @@ func TestBlockModifyPlan(t *testing.T) {
 					},
 				),
 				Private: testProviderData,
+			},
+		},
+		"block-set-nested-custom-nested-object": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"nested_attr": testschema.Attribute{
+							Required: true,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeSet,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.SetValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.SetValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+				AttributeState: types.SetValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(
+					testschema.NestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_attr": types.StringType,
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.NestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_attr": types.StringType,
+								},
+								map[string]attr.Value{
+									"nested_attr": types.StringValue("testvalue"),
+								},
+							),
+						},
+					},
+				),
+			},
+		},
+		"block-set-nested-nested-custom-nested-object": {
+			block: testschema.Block{
+				NestedObject: testschema.NestedBlockObject{
+					CustomType: testschema.SetNestedObjectCustomType{
+						ObjectType: basetypes.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_set_nested": types.SetType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Blocks: map[string]fwschema.Block{
+						"nested_set_nested": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								CustomType: testschema.NestedObjectCustomType{
+									ObjectType: basetypes.ObjectType{
+										AttrTypes: map[string]attr.Type{
+											"nested_attr": types.StringType,
+										},
+									},
+								},
+								Attributes: map[string]fwschema.Attribute{
+									"nested_attr": testschema.Attribute{
+										Required: true,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSet,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeSet,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: types.SetValueMust(
+					testschema.SetNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_set_nested": types.SetType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.SetNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_set_nested": types.SetType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_set_nested": types.SetValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+				AttributePath: path.Root("test"),
+				AttributePlan: types.SetValueMust(
+					testschema.SetNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_set_nested": types.SetType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.SetNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_set_nested": types.SetType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_set_nested": types.SetValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+				AttributeState: types.SetValueMust(
+					testschema.SetNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_set_nested": types.SetType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.SetNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_set_nested": types.SetType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_set_nested": types.SetValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: types.SetValueMust(
+					testschema.SetNestedObjectCustomType{
+						ObjectType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"nested_set_nested": types.SetType{
+									ElemType: testschema.NestedObjectCustomType{
+										ObjectType: types.ObjectType{
+											AttrTypes: map[string]attr.Type{
+												"nested_attr": types.StringType,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					[]attr.Value{
+						testschema.SetNestedObjectCustomValue{
+							ObjectValue: types.ObjectValueMust(
+								map[string]attr.Type{
+									"nested_set_nested": types.SetType{
+										ElemType: testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+									},
+								},
+								map[string]attr.Value{
+									"nested_set_nested": types.SetValueMust(
+										testschema.NestedObjectCustomType{
+											ObjectType: types.ObjectType{
+												AttrTypes: map[string]attr.Type{
+													"nested_attr": types.StringType,
+												},
+											},
+										},
+										[]attr.Value{
+											testschema.NestedObjectCustomValue{
+												ObjectValue: types.ObjectValueMust(
+													map[string]attr.Type{
+														"nested_attr": types.StringType,
+													},
+													map[string]attr.Value{
+														"nested_attr": types.StringValue("testvalue"),
+													},
+												),
+											},
+										},
+									),
+								},
+							),
+						},
+					},
+				),
 			},
 		},
 		"block-set-nested-private": {
@@ -2149,6 +2907,191 @@ func TestBlockModifyPlan(t *testing.T) {
 					},
 				),
 				Private: testProviderData,
+			},
+		},
+		"block-single-nested-custom": {
+			block: testschema.Block{
+				CustomType: testschema.NestedObjectCustomType{
+					ObjectType: basetypes.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"testing": types.StringType,
+						},
+					},
+				},
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"testing": testschema.Attribute{
+							Required: true,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeSingle,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"testing": types.StringType,
+						},
+						map[string]attr.Value{
+							"testing": types.StringValue("testvalue"),
+						},
+					),
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"testing": types.StringType,
+						},
+						map[string]attr.Value{
+							"testing": types.StringValue("testvalue"),
+						},
+					),
+				},
+				AttributeState: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"testing": types.StringType,
+						},
+						map[string]attr.Value{
+							"testing": types.StringValue("testvalue"),
+						},
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"testing": types.StringType,
+						},
+						map[string]attr.Value{
+							"testing": types.StringValue("testvalue"),
+						},
+					),
+				},
+			},
+		},
+		"block-single-nested-nested-custom-nested-object": {
+			block: testschema.Block{
+				CustomType: testschema.NestedObjectCustomType{
+					ObjectType: basetypes.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"nested_single_nested_block": testschema.NestedObjectCustomType{
+								ObjectType: basetypes.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"testing": types.StringType,
+									},
+								},
+							},
+						},
+					},
+				},
+				NestedObject: testschema.NestedBlockObject{
+					Blocks: map[string]fwschema.Block{
+						"nested_single_nested_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"testing": testschema.Attribute{
+										Required: true,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeSingle,
+			},
+			req: ModifyAttributePlanRequest{
+				AttributeConfig: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_single_nested_block": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"testing": types.StringType,
+								},
+							},
+						},
+						map[string]attr.Value{
+							"nested_single_nested_block": types.ObjectValueMust(
+								map[string]attr.Type{
+									"testing": types.StringType,
+								},
+								map[string]attr.Value{
+									"testing": types.StringValue("testvalue"),
+								},
+							),
+						},
+					),
+				},
+				AttributePath: path.Root("test"),
+				AttributePlan: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_single_nested_block": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"testing": types.StringType,
+								},
+							},
+						},
+						map[string]attr.Value{
+							"nested_single_nested_block": types.ObjectValueMust(
+								map[string]attr.Type{
+									"testing": types.StringType,
+								},
+								map[string]attr.Value{
+									"testing": types.StringValue("testvalue"),
+								},
+							),
+						},
+					),
+				},
+				AttributeState: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_single_nested_block": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"testing": types.StringType,
+								},
+							},
+						},
+						map[string]attr.Value{
+							"nested_single_nested_block": types.ObjectValueMust(
+								map[string]attr.Type{
+									"testing": types.StringType,
+								},
+								map[string]attr.Value{
+									"testing": types.StringValue("testvalue"),
+								},
+							),
+						},
+					),
+				},
+			},
+			expectedResp: ModifyAttributePlanResponse{
+				AttributePlan: testschema.NestedObjectCustomValue{
+					ObjectValue: types.ObjectValueMust(
+						map[string]attr.Type{
+							"nested_single_nested_block": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"testing": types.StringType,
+								},
+							},
+						},
+						map[string]attr.Value{
+							"nested_single_nested_block": types.ObjectValueMust(
+								map[string]attr.Type{
+									"testing": types.StringType,
+								},
+								map[string]attr.Value{
+									"testing": types.StringValue("testvalue"),
+								},
+							),
+						},
+					),
+				},
 			},
 		},
 		"block-single-nested-private": {

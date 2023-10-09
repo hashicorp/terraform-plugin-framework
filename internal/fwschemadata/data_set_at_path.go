@@ -71,9 +71,9 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 
 	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
 		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
-		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return diags
@@ -189,9 +189,9 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 
 	if attrTypeWithValidate, ok := parentAttrType.(xattr.TypeWithValidate); ok {
 		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkDebug(ctx, "Calling provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
 		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
-		logging.FrameworkDebug(ctx, "Called provider defined Type Validate")
+		logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
 
 		if diags.HasError() {
 			return nil, diags

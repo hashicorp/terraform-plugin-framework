@@ -502,13 +502,28 @@ func TestFromAttributeValue(t *testing.T) {
 				CreatedBy: testtypes.BoolType{},
 			},
 		},
+		"BoolTypable-BoolValue": {
+			typ:      testtypes.BoolTypeWithSemanticEquals{},
+			val:      types.BoolNull(),
+			expected: types.BoolNull(),
+		},
 		"Float64Type-Float64Value": {
 			typ:      types.Float64Type,
 			val:      types.Float64Null(),
 			expected: types.Float64Null(),
 		},
+		"Float64Typable-Float64Value": {
+			typ:      testtypes.Float64TypeWithSemanticEquals{},
+			val:      types.Float64Null(),
+			expected: types.Float64Null(),
+		},
 		"Int64Type-Int64Value": {
 			typ:      types.Int64Type,
+			val:      types.Int64Null(),
+			expected: types.Int64Null(),
+		},
+		"Int64Typable-Int64Value": {
+			typ:      testtypes.Int64TypeWithSemanticEquals{},
 			val:      types.Int64Null(),
 			expected: types.Int64Null(),
 		},
@@ -527,11 +542,18 @@ func TestFromAttributeValue(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.ListType[basetypes.StringType]\n"+
-						"Value type: types.ListType[basetypes.BoolType]\n"+
+						"Expected framework type from provider logic: types.ListType[basetypes.StringType] / underlying type: tftypes.List[tftypes.String]\n"+
+						"Received framework type from provider logic: types.ListType[basetypes.BoolType] / underlying type: tftypes.List[tftypes.Bool]\n"+
 						"Path: test",
 				),
 			},
+		},
+		"ListTypable-ListValue-matching-elements": {
+			typ: testtypes.ListType{
+				ListType: types.ListType{ElemType: types.StringType},
+			},
+			val:      types.ListNull(types.StringType),
+			expected: types.ListNull(types.StringType),
 		},
 		"MapType-MapValue-matching-elements": {
 			typ:      types.MapType{ElemType: types.StringType},
@@ -548,11 +570,18 @@ func TestFromAttributeValue(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.MapType[basetypes.StringType]\n"+
-						"Value type: types.MapType[basetypes.BoolType]\n"+
+						"Expected framework type from provider logic: types.MapType[basetypes.StringType] / underlying type: tftypes.Map[tftypes.String]\n"+
+						"Received framework type from provider logic: types.MapType[basetypes.BoolType] / underlying type: tftypes.Map[tftypes.Bool]\n"+
 						"Path: test",
 				),
 			},
+		},
+		"MapTypable-MapValue-matching-elements": {
+			typ: testtypes.MapType{
+				MapType: types.MapType{ElemType: types.StringType},
+			},
+			val:      types.MapNull(types.StringType),
+			expected: types.MapNull(types.StringType),
 		},
 		"NumberType-NumberValue": {
 			typ:      types.NumberType,
@@ -567,6 +596,11 @@ func TestFromAttributeValue(t *testing.T) {
 			expected: testtypes.Number{
 				CreatedBy: testtypes.NumberType{},
 			},
+		},
+		"NumberTypable-NumberValue": {
+			typ:      testtypes.NumberTypeWithSemanticEquals{},
+			val:      types.NumberNull(),
+			expected: types.NumberNull(),
 		},
 		"ObjectType-ObjectValue-matching-attributes": {
 			typ:      types.ObjectType{AttrTypes: map[string]attr.Type{"test_attr": types.StringType}},
@@ -583,8 +617,8 @@ func TestFromAttributeValue(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.ObjectType[\"test_attr\":basetypes.StringType]\n"+
-						"Value type: types.ObjectType[\"not_test_attr\":basetypes.StringType]\n"+
+						"Expected framework type from provider logic: types.ObjectType[\"test_attr\":basetypes.StringType] / underlying type: tftypes.Object[\"test_attr\":tftypes.String]\n"+
+						"Received framework type from provider logic: types.ObjectType[\"not_test_attr\":basetypes.StringType] / underlying type: tftypes.Object[\"not_test_attr\":tftypes.String]\n"+
 						"Path: test",
 				),
 			},
@@ -599,11 +633,18 @@ func TestFromAttributeValue(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.ObjectType[\"test_attr\":basetypes.StringType]\n"+
-						"Value type: types.ObjectType[\"test_attr\":basetypes.BoolType]\n"+
+						"Expected framework type from provider logic: types.ObjectType[\"test_attr\":basetypes.StringType] / underlying type: tftypes.Object[\"test_attr\":tftypes.String]\n"+
+						"Received framework type from provider logic: types.ObjectType[\"test_attr\":basetypes.BoolType] / underlying type: tftypes.Object[\"test_attr\":tftypes.Bool]\n"+
 						"Path: test",
 				),
 			},
+		},
+		"ObjectTypable-ObjectValue-matching-attributes": {
+			typ: testtypes.ObjectType{
+				ObjectType: types.ObjectType{AttrTypes: map[string]attr.Type{"test_attr": types.StringType}},
+			},
+			val:      types.ObjectNull(map[string]attr.Type{"test_attr": types.StringType}),
+			expected: types.ObjectNull(map[string]attr.Type{"test_attr": types.StringType}),
 		},
 		"SetType-SetValue-matching-elements": {
 			typ:      types.SetType{ElemType: types.StringType},
@@ -620,11 +661,18 @@ func TestFromAttributeValue(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected type: types.SetType[basetypes.StringType]\n"+
-						"Value type: types.SetType[basetypes.BoolType]\n"+
+						"Expected framework type from provider logic: types.SetType[basetypes.StringType] / underlying type: tftypes.Set[tftypes.String]\n"+
+						"Received framework type from provider logic: types.SetType[basetypes.BoolType] / underlying type: tftypes.Set[tftypes.Bool]\n"+
 						"Path: test",
 				),
 			},
+		},
+		"SetTypable-SetValue-matching-elements": {
+			typ: testtypes.SetType{
+				SetType: types.SetType{ElemType: types.StringType},
+			},
+			val:      types.SetNull(types.StringType),
+			expected: types.SetNull(types.StringType),
 		},
 		"StringType-StringValue-null": {
 			typ:      types.StringType,
@@ -649,6 +697,11 @@ func TestFromAttributeValue(t *testing.T) {
 			expected: testtypes.String{
 				CreatedBy: testtypes.StringType{},
 			},
+		},
+		"StringTypable-StringValue": {
+			typ:      testtypes.StringTypeWithSemanticEquals{},
+			val:      types.StringNull(),
+			expected: types.StringNull(),
 		},
 	}
 

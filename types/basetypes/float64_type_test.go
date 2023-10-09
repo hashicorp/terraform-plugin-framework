@@ -136,17 +136,36 @@ func TestFloat64TypeValueFromTerraform(t *testing.T) {
 			expectedErr: "can't unmarshal tftypes.String into *big.Float, expected *big.Float",
 		},
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/647
+		// To ensure underlying *big.Float precision matches, create `expectation` via struct literal
 		"zero-string-float": {
-			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("0.0")),
-			expectation: NewFloat64Value(0.0),
+			input: tftypes.NewValue(tftypes.Number, testMustParseFloat("0.0")),
+			expectation: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.0"),
+			},
 		},
 		"positive-string-float": {
-			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("123.2")),
-			expectation: NewFloat64Value(123.2),
+			input: tftypes.NewValue(tftypes.Number, testMustParseFloat("123.2")),
+			expectation: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("123.2"),
+			},
 		},
 		"negative-string-float": {
-			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("-123.2")),
-			expectation: NewFloat64Value(-123.2),
+			input: tftypes.NewValue(tftypes.Number, testMustParseFloat("-123.2")),
+			expectation: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("-123.2"),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/815
+		// To ensure underlying *big.Float precision matches, create `expectation` via struct literal
+		"retain-string-float-512-precision": {
+			input: tftypes.NewValue(tftypes.Number, testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003")),
+			expectation: Float64Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("0.010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"),
+			},
 		},
 		// Reference: https://pkg.go.dev/math/big#Float.Float64
 		// Reference: https://pkg.go.dev/math#pkg-constants

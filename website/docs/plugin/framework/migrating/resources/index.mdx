@@ -141,6 +141,7 @@ the `resource.Resource` interface, which includes a `Schema` method that returns
 - SDKv2 implements a resource's CRUD operations as functions on the `schema.Resource`. In the Framework, you define a
 type that implements the `resource.Resource` interface. The resource interface contains the functions that define your resource's
 CRUD operations.
+- SDKv2 by default demotes certain resource schema definition and data consistency errors to only be visible as Terraform warning logs. After migration, these errors will always be visible to practitioners and prevent further Terraform operations. The [SDKv2 resource data consistency errors documentation](/terraform/plugin/sdkv2/resources/data-consistency-errors) discusses how to find these errors in SDKv2 resources and potential solutions **prior** to migrating. See the [CRUD - Resolving Data Consistency Errors](/terraform/plugin/framework/migrating/resources/crud#resolving-data-consistency-errors) section for Plugin Framework solutions **during** migration.
 
 ## Example
 

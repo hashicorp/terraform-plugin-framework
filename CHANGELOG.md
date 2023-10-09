@@ -1,3 +1,44 @@
+## 1.4.1 (October 09, 2023)
+
+BUG FIXES:
+
+* providerserver: Prevented `Data Source Type Not Found` and `Resource Type Not Found` errors with Terraform 1.6 and later ([#853](https://github.com/hashicorp/terraform-plugin-framework/issues/853))
+
+## 1.4.0 (September 06, 2023)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.20 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.20 release notes](https://go.dev/doc/go1.20) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#835](https://github.com/hashicorp/terraform-plugin-framework/issues/835))
+
+FEATURES:
+
+* providerserver: Upgrade to protocol versions 5.4 and 6.4, which can significantly reduce memory usage with Terraform 1.6 and later when a configuration includes multiple instances of the same provider ([#828](https://github.com/hashicorp/terraform-plugin-framework/issues/828))
+
+## 1.3.5 (August 17, 2023)
+
+NOTES:
+
+* internal: Changed provider defined method execution logs from `DEBUG` log level to `TRACE` ([#818](https://github.com/hashicorp/terraform-plugin-framework/issues/818))
+
+BUG FIXES:
+
+* internal/fwserver: Prevented `Invalid Element Type` diagnostics for nested attributes and blocks implementing `CustomType` field ([#823](https://github.com/hashicorp/terraform-plugin-framework/issues/823))
+
+## 1.3.4 (August 03, 2023)
+
+BUG FIXES:
+
+* types/basetypes: Prevented Float64Value Terraform data consistency errors for numbers with high precision floating point rounding errors ([#817](https://github.com/hashicorp/terraform-plugin-framework/issues/817))
+
+## 1.3.3 (July 20, 2023)
+
+BUG FIXES:
+
+* types/basetypes: Minor reduction of memory allocations for `ObjectValue` type `ToTerraformValue()` method, which decreases provider operation durations at scale ([#775](https://github.com/hashicorp/terraform-plugin-framework/issues/775))
+* resource: Prevented panic during planning caused by `SetNestedAttribute` with nested attribute `Default` and multiple configured elements ([#783](https://github.com/hashicorp/terraform-plugin-framework/issues/783))
+* tfsdk: Prevented `Value Conversion Error` diagnostics when using `Set()` method with base types instead of custom types ([#806](https://github.com/hashicorp/terraform-plugin-framework/issues/806))
+* providerserver: Significantly reduced memory usage for framework data handling operations, especially during the `PlanResourceChange` RPC ([#792](https://github.com/hashicorp/terraform-plugin-framework/issues/792))
+
 ## 1.3.2 (June 28, 2023)
 
 BUG FIXES:

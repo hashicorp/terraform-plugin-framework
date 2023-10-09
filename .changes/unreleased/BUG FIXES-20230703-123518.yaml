@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'types/basetypes: Minor reduction of memory allocations for `ObjectValue` type
-  `ToTerraformValue()` method, which decreases provider operation durations at scale'
-time: 2023-07-03T12:35:18.484275-04:00
-custom:
-  Issue: "775"

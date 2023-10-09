@@ -24,6 +24,14 @@ func TestServerCapabilities(t *testing.T) {
 			fw:       nil,
 			expected: nil,
 		},
+		"GetProviderSchemaOptional": {
+			fw: &fwserver.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+			},
+			expected: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+			},
+		},
 		"PlanDestroy": {
 			fw: &fwserver.ServerCapabilities{
 				PlanDestroy: true,

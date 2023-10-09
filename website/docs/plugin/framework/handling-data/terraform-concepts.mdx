@@ -6,48 +6,118 @@ description: >-
 
 # Terraform Concepts
 
-Schemas specify the fields that a provider, resource or data source configuration can have.
+This page describes Terraform concepts as they relate to handling data within framework-based provider code. The [What is Terraform](/terraform/intro), [Terraform language](/terraform/language), and [Plugin Development](/terraform/plugin) documentation covers more general concepts behind Terraform's workflow, its configuration, and how it interacts with providers.
 
-The fields defined within the schema are either attributes or blocks.
+## Schemas
 
-Attributes and blocks within Terraform configuration have different syntax, either using, or omitting an equals sign in their definition, respectively.
+Schemas specify the data structure and types of a provider, resource, or data source that is exposed to Terraform. This includes the configuration written by practitioners, any planning data, and the state stored by Terraform which can be referenced in other configuration. Providers, resources, and data sources have their own concept-specific types and available functionality.
 
-Providers, resources and data sources have their own type-specific schema, which use type-specific attributes and blocks.
+Each part of the data within a schema is defined as either an attribute or block. In general, attributes set values and blocks are containers for other attributes and blocks. Each have differing configuration syntax and behaviors.
 
-The following examples use a resource but the same schema attribute and block types are also defined with the schema for providers and data sources. The examples focus on type-related information, the `Optional` field is included just to provide working examples but refer to [Schema](/terraform/plugin/framework/handling-data/schemas) for information about the other fields that can be defined within attributes and blocks.
+Discover more about framework implementations of this concept in the [schema](/terraform/plugin/framework/handling-data/schemas) documentation.
 
-## Attributes
+### Attributes
 
-Attributes are used to set values.
+Attributes set values in a schema, such as a string or list. The [Terraform type system](/terraform/language/expressions/types) documentation provides a general overview of the available kinds of data within Terraform, which is similar with type system concepts available in many programming languages. However, there are subtle differences with values discussed in the [type system](#type-system) section.
 
-| Attribute Type        | Description                                                                     |
-|-----------------------|---------------------------------------------------------------------------------|
-| BoolAttribute         | Boolean values (i.e., true/false)                                               |
-| Float64Attribute      | 64 bit floating point number values                                             |
-| Int64Attribute        | 64 bit integer number values                                                    |
-| NumberAttribute       | Generic number with up to 512 bits of floating point or integer precision       |
-| StringAttribute       | String values                                                                   |
-| ListAttribute         | List with a single element type (e.g., types.StringType)                        |
-| MapAttribute          | Map with a single element type (e.g., types.Int64Type)                          |
-| SetAttribute          | Set with a single element type (e.g., types.BoolType)                           |
-| ObjectAttribute       | Object with only type information for underlying attributes                     |
-| ListNestedAttribute   | List containing nested objects where the object attributes can be fully defined |
-| MapNestedAttribute    | Map containing nested objects where the object attributes can be fully defined  |
-| SetNestedAttribute    | Set containing nested objects where the object attributes can be fully defined  |
-| SingleNestedAttribute | Single object where the object attributes can be fully defined                  |
+Discover more about the framework implementations of this concept in the [attribute](/terraform/plugin/framework/handling-data/attributes) documentation.
 
-Refer to [Attributes - Terraform Configuration and Schema](/terraform/plugin/framework/handling-data/attributes#terraform-configuration-and-schema) for examples of Terraform configuration and schema that illustrate the usage of the various types of schema attributes.
+### Blocks
 
-## Blocks
+<Tip>
 
-The Terraform language uses a block as a container for other attributes and blocks. Terraform implements many top level blocks, such as `provider` and `resource`, while providers can implement nested blocks in their schema to enable practitioners to configure data.
+Use [nested attributes](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
 
--> Use [nested attributes](/terraform/plugin/framework/handling-data/attributes#nested-attributes) for new schema implementations. Block support is mainly for migrating prior SDK-based providers.
+</Tip>
 
-The available nesting modes are:
+A block is a container for other attributes and blocks. Terraform implements many top level blocks, such as `provider` and `resource`, while a schema supports nested blocks.
 
-- List: Ordered collection of objects
-- Set: Unordered collection of objects
-- Single: One object
+Discover more about the framework implementations of this concept in the [block](/terraform/plugin/framework/handling-data/blocks) documentation.
 
-Refer to [Blocks - Terraform Configuration](/terraform/plugin/framework/handling-data/blocks#terraform-configuration) for examples of Terraform configuration and schema that illustrate the usage of nested blocks.
+### Schema Based Data
+
+Schemas provide the structures and types for representing data with Terraform. This section discusses the concepts behind the different types of data influenced by a schema.
+
+#### Configuration
+
+As part of the Terraform workflow, a practitioner writes [configuration](/terraform/language) files, which are parsed into a graph of operations by Terraform commands. The structures and types of that configuration is the most visible aspect of a schema, since a schema has a direct effect on the expected configuration syntax.
+
+In Terraform operations where the configuration data is available to providers, the framework typically represents this as a `Config` field in the request type.
+
+#### Plan
+
+<Highlight>
+
+Only managed resources implement this data concept.
+
+</Highlight>
+
+As part of the Terraform workflow, any configuration changes are planned before they are applied into [state](/terraform/language/state) so practitioners have an opportunity to review whether those anticipated changes have their intended effect. Conceptually, this data represents the merging of configuration data and any prior state data. Terraform refers to this data as the proposed new state, while the framework more generally refers to this data as the plan.
+
+Plan data requires careful handling to prevent unexpected Terraform errors for practitioners. The framework implements various schema concepts and logic discussed in the [resource plan modification](/terraform/plugin/framework/resources/plan-modification) documentation. In-depth documentation about Terraform requirements is available in the [Terraform Resource Instance Change Lifecycle](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) documentation.
+
+In Terraform operations where the plan data is available to providers, the framework typically represents this as a `Plan` field in the request or response type.
+
+#### State
+
+<Highlight>
+
+Only managed resources and data resources implement this data concept.
+
+</Highlight>
+
+As part of the Terraform workflow, any data that should be stored for configuration references or future Terraform executions must be written to the [state](/terraform/language/state). This data must exactly match any configuration data, and if applicable, any plan data with [unknown values](#unknown-values) converted to known values.
+
+In Terraform operations where the plan data is available to providers, the framework typically represents this as a `State` field in the request or response type.
+
+## Type System
+
+The [Terraform type system](/terraform/language/expressions/types) supports deeper functionality than the standard type systems built into programming languages. While the types in the Terraform type system are similar to what is found in most languages, values have extra metadata associated with them. The framework implements its own [types](/terraform/plugin/framework/handling-data/types) to prevent the loss of this additional metadata that cannot be represented by Go built-in types.
+
+Important value metadata concepts when implementing a provider include:
+
+- [Null values](#null-values): Absence of a value.
+- [Unknown values](#unknown-values): Value that is not yet known.
+
+As Terraform exposes additional value metadata to providers, the framework type system will be updated. Therefore, it is always recommended to use the framework type system to ensure all Terraform value functionality is available in provider code.
+
+### Null Values
+
+Null represents the absence of a Terraform value. It is usually
+encountered with optional attributes that the practitioner neglected to specify
+a value for, but can show up on any non-required attribute. Required attributes
+can never be null.
+
+### Unknown Values
+
+Unknown represents a Terraform value that is not yet known. Terraform
+uses a graph of providers, resources, and data sources to do things in the
+right order, and when a provider, resource, or data source relies on a value
+from another provider, resource, or data source that has not been resolved yet,
+it represents that state by using the unknown value. For example:
+
+```hcl
+resource "example_foo" "bar" {
+  hello = "world"
+  demo = true
+}
+
+resource "example_baz" "quux" {
+  foo_id = example_foo.bar.id
+}
+```
+
+In the example above, `example_baz.quux` is relying on the `id` attribute of
+`example_foo.bar`. The `id` attribute of `example_foo.bar` isn't known until
+after the apply. The plan would list it as `(known after apply)`.  During the
+plan phase, `example_baz.quux` would get an unknown value as the value for
+`foo_id`.
+
+Because they can result from interpolations in the practitioner's config,
+you have no control over what attributes may contain an unknown
+value. However, by the time a resource is expected to be created, read, updated, or
+deleted, only its computed attributes can be unknown. The rest are
+guaranteed to have known values (or be null).
+
+Provider configuration values can be unknown, and providers should handle that
+situation, even if that means just returning an error.

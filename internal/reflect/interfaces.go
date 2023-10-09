@@ -320,17 +320,14 @@ func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path
 	// compatible. This check will ensure the framework raises its own
 	// error is there is a mismatch, rather than a terraform-plugin-go
 	// error or worse a panic.
-	//
-	// If this validation causes major issues, another option is to
-	// validate via tftypes.Type for both the type and value type.
-	if !typ.Equal(val.Type(ctx)) {
+	if !typ.TerraformType(ctx).Equal(val.Type(ctx).TerraformType(ctx)) {
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",
 			"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
 				"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-				fmt.Sprintf("Expected type: %s\n", typ)+
-				fmt.Sprintf("Value type: %s\n", val.Type(ctx))+
+				fmt.Sprintf("Expected framework type from provider logic: %s / underlying type: %s\n", typ, typ.TerraformType(ctx))+
+				fmt.Sprintf("Received framework type from provider logic: %s / underlying type: %s\n", val.Type(ctx), val.Type(ctx).TerraformType(ctx))+
 				fmt.Sprintf("Path: %s", path),
 		)
 

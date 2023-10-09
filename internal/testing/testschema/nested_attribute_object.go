@@ -6,11 +6,12 @@ package testschema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -18,6 +19,7 @@ var _ fwschema.NestedAttributeObject = NestedAttributeObject{}
 
 type NestedAttributeObject struct {
 	Attributes map[string]fwschema.Attribute
+	CustomType basetypes.ObjectTypable
 }
 
 // ApplyTerraform5AttributePathStep performs an AttributeName step on the

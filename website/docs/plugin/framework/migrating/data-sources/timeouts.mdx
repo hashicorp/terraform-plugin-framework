@@ -24,7 +24,7 @@ Terraform configuration.
 
 If your configuration is using a nested block to define timeouts, such as the following:
 
-```terraform
+```hcl
 resource "timeouts_example" "example" {
   /* ... */
 
@@ -59,7 +59,7 @@ func (d *ThingDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 
 If your configuration is using nested attributes to define timeouts, such as the following:
 
-```terraform
+```hcl
 resource "timeouts_example" "example" {
   /* ... */
 

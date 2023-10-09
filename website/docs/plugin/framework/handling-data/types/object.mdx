@@ -1,0 +1,170 @@
+---
+page_title: 'Plugin Development - Framework: Object Type'
+description: >-
+  Learn the object value type in the provider development framework.
+---
+
+# Object Type
+
+Object types store a mapping of explicit attribute names to value types. Objects must declare all attribute values, even when null or unknown, unless the entire object is null or unknown.
+
+By default, objects from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.ObjectType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectType) and its associated value storage type of [`types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Object). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as a struct. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+
+## Schema Definitions
+
+<Tip>
+
+Use [nested attribute types](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types) instead of object attribute types where possible. Object attributes have limited utility as they can only define type information.
+
+</Tip>
+
+Use one of the following attribute types to directly add a single structure of a nested attributes to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute or Block Type |
+|-------------|-------------------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#SingleNestedAttribute) |
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#SingleNestedBlock) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SingleNestedAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SingleNestedBlock) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SingleNestedAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SingleNestedBlock) |
+
+If a wrapping collection is needed on the structure of nested attributes, any of the other nested attribute and nested block types can be used.
+
+Use one of the following attribute types to directly add an object value directly to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
+
+| Schema Type | Attribute Type |
+|-------------|----------------|
+| [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ObjectAttribute) |
+| [Provider](/terraform/plugin/framework/provider) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ObjectAttribute) |
+| [Resource](/terraform/plugin/framework/resources) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ObjectAttribute) |
+
+If the object value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.ObjectType{AttrTypes: /* ... */}` or the appropriate [custom type](#extending).
+
+If the object value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value to `types.ObjectType{AttrTypes: /* ... */}` or the appropriate [custom type](#extending).
+
+## Accessing Values
+
+<Tip>
+
+Review the associated [attribute documentation](/terraform/plugin/framework/handling-data/attributes) to understand how schema-based data gets mapped into accessible values, such as a `types.Object` in this case.
+
+</Tip>
+
+Access `types.Object` information via the following methods:
+
+* [`(types.Object).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue.IsNull): Returns `true` if the object is null.
+* [`(types.Object).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue.IsUnknown): Returns `true` if the object is unknown.
+* [`(types.Object).Attributes() map[string]attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue.Attributes): Returns the known `map[string]attr.Value` value, or `nil` if null or unknown.
+* [`(types.Object).As(context.Context, any, ObjectAsOptions) diag.Diagnostics`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#ObjectValue.As): Converts the known values into the given Go type, if possible. It is recommended to use a struct of framework types to account for attributes which may be unknown.
+
+In this example, an object with a string attribute is checked for being null or unknown value first, before accessing its known value attributes as a Go struct type:
+
+```go
+// Example data model definitions
+// type ExampleModel struct {
+//   ExampleAttribute types.Object `tfsdk:"example_attribute"`
+// }
+//
+// type ExampleAttributeModel struct {
+//   StringAttribute types.String `tfsdk:"string_attribute"`
+// }
+//
+// This would be filled in, such as calling: req.Plan.Get(ctx, &data)
+var data ExampleModel
+
+// optional logic for handling null value
+if data.ExampleAttribute.IsNull() {
+    // ...
+}
+
+// optional logic for handling unknown value
+if data.ExampleAttribute.IsUnknown() {
+    // ...
+}
+
+var exampleAttribute ExampleAttributeModel
+
+diags := data.ExampleAttribute.As(ctx, &exampleAttribute, basetypes.ObjectAsOptions{})
+// Object data now is accessible, such as: exampleAttribute.StringAttribute.StringValue()
+```
+
+## Setting Values
+
+Call one of the following to create a `types.Object` value:
+
+* [`types.ObjectNull(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectNull): A null object value with the given element type.
+* [`types.ObjectUnknown(map[string]attr.Type) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectUnknown): An unknown object value with the given element type.
+* [`types.ObjectValue(map[string]attr.Type, map[string]attr.Value) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValue): A known value with the given attribute type mapping and attribute values mapping.
+* [`types.ObjectValueFrom(context.Context, map[string]attr.Type, any) (types.Object, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom): A known value with the given attribute type mapping and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each type, such as giving a `struct` for a `types.Object`.
+* [`types.ObjectValueMust(map[string]attr.Type, map[string]attr.Value) types.Object`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueMust): A known value with the given attribute type mapping and attribute value mapping. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+In this example, a known object value is created from framework types:
+
+```go
+elementTypes := map[string]attr.Type{
+    "attr1": types.StringType,
+    "attr2": types.Int64Type,
+}
+elements := map[string]attr.Value{
+    "attr1": types.StringValue("value"),
+    "attr2": types.Int64Value(123),
+}
+objectValue, diags := types.ObjectValue(elementTypes, elements)
+```
+
+Otherwise, for certain framework functionality that does not require `types` implementations directly, such as:
+
+* [`(tfsdk.State).SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute)
+* [`types.ListValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom)
+* [`types.MapValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#MapValueFrom)
+* [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
+* [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
+
+Objects can be automatically converted to any Go struct type that follows these constraints to prevent accidental data loss:
+
+* Every struct type must be an acceptable conversion type according to the type documentation, such as `*string` being acceptable for a string type. However, it is recommended to use framework types to simplify data modeling (one model type for accessing and setting data) and prevent errors when encountering unknown values from Terraform.
+* Every struct field must have a `tfsdk` struct tag and every attribute in the object must have a corresponding struct tag. The `tfsdk` struct tag must name an attribute in the object that it is being mapped or be set to `-` to explicitly declare it does not map to an attribute in the object.
+
+In this example, a struct is directly used to set an object attribute value:
+
+```go
+type ExampleAttributeModel struct {
+    Int64Attribute  types.Int64  `tfsdk:"int64_attribute`
+    StringAttribute types.String `tfsdk:"string_attribute"`
+}
+
+value := ExampleAttributeModel{
+    Int64Attribute:  types.Int64Value(123),
+    StringAttribute: types.StringValue("example"),
+}
+
+diags := resp.State.SetAttribute(ctx, path.Root("example_attribute"), value)
+```
+
+In this example, a `types.Object` is created from a struct:
+
+```go
+type ExampleAttributeModel struct {
+    Int64Attribute  types.Int64  `tfsdk:"int64_attribute`
+    StringAttribute types.String `tfsdk:"string_attribute"`
+}
+
+func (m ExampleAttributeModel) AttributeTypes() map[string]attr.Type {
+    return map[string]attr.Type{
+        "int64_attribute":  types.Int64Type,
+        "string_attribute": types.StringType,
+    }
+}
+
+value := ExampleAttributeModel{
+    Int64Attribute:  types.Int64Value(123),
+    StringAttribute: types.StringValue("example"),
+}
+
+objectValue, diags := types.ObjectValueFrom(ctx, value.AttributeTypes(), value)
+```
+
+## Extending
+
+The framework supports extending its base type implementations with [custom types](/terraform/plugin/framework/handling-data/types/custom). These can adjust expected provider code usage depending on their implementation.

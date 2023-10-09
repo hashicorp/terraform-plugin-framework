@@ -57,9 +57,9 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 		configureResp := resource.ConfigureResponse{}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Calling provider defined Resource Configure")
 		resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource Configure")
+		logging.FrameworkTrace(ctx, "Called provider defined Resource Configure")
 
 		resp.Diagnostics.Append(configureResp.Diagnostics...)
 
@@ -276,9 +276,9 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Private:         modifyPlanReq.Private,
 		}
 
-		logging.FrameworkDebug(ctx, "Calling provider defined Resource ModifyPlan")
+		logging.FrameworkTrace(ctx, "Calling provider defined Resource ModifyPlan")
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
-		logging.FrameworkDebug(ctx, "Called provider defined Resource ModifyPlan")
+		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)

@@ -107,7 +107,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -171,7 +172,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -209,7 +211,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -245,7 +248,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -285,7 +289,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -363,7 +368,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -427,7 +433,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -465,7 +472,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					PlanDestroy: true,
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
 				},
 			},
 		},
@@ -518,27 +526,17 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 
 	expectedEntries := []map[string]interface{}{
 		{
-			"@level":   "debug",
-			"@message": "Calling provider defined Provider Metadata",
-			"@module":  "sdk.framework",
-		},
-		{
-			"@level":   "debug",
-			"@message": "Called provider defined Provider Metadata",
-			"@module":  "sdk.framework",
-		},
-		{
 			"@level":   "trace",
 			"@message": "Checking ProviderSchema lock",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider Schema",
 			"@module":  "sdk.framework",
 		},
@@ -548,12 +546,27 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider Resources",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider Resources",
 			"@module":  "sdk.framework",
 		},
@@ -563,12 +576,27 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
 			"@message": "Calling provider defined Provider DataSources",
 			"@module":  "sdk.framework",
 		},
 		{
-			"@level":   "debug",
+			"@level":   "trace",
 			"@message": "Called provider defined Provider DataSources",
 			"@module":  "sdk.framework",
 		},

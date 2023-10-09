@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'providerserver: Prevented `Data Source Type Not Found` and `Resource Type Not
+  Found` errors with Terraform 1.6 and later'
+time: 2023-10-09T06:43:44.3563-04:00
+custom:
+  Issue: "853"

@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'internal/fwserver: Fix `Data Source Type Not Found` errors when `GetProviderSchema`
-  is not called'
-time: 2023-10-06T16:32:35.47541-04:00
-custom:
-  Issue: "853"

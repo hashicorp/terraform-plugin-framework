@@ -696,6 +696,130 @@ func TestServerApplyResourceChange(t *testing.T) {
 				}),
 			},
 		},
+		"delete-response-private": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+											resp.Diagnostics.Append(diags...)
+
+											// Must return error to prevent automatic private state clearing
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					"providerKey": []byte(`{"key": "value"}`),
+				}),
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+			},
+		},
+		"delete-response-private-updated": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = testSchema
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_resource"
+										},
+										CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+										},
+										DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+											diags := resp.Private.SetKey(ctx, "providerKey", []byte(`{"key": "value"}`))
+
+											resp.Diagnostics.Append(diags...)
+
+											// Must return error to prevent automatic private state clearing
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+										UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+											resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ApplyResourceChangeRequest{
+				PlannedPrivate: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
+				}),
+				PlannedState: &testEmptyDynamicValue,
+				PriorState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov6.ApplyResourceChangeResponse{
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+				Private: privatestate.MustMarshalToJson(map[string][]byte{
+					".frameworkKey": []byte(`{"frameworkKey": "framework value"}`),
+					"providerKey":   []byte(`{"key": "value"}`),
+				}),
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+				}),
+			},
+		},
 		"delete-response-newstate": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{

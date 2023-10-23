@@ -82,8 +82,18 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		deleteReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	privateProviderData := privatestate.EmptyProviderData(ctx)
+
+	deleteReq.Private = privateProviderData
+	deleteResp.Private = privateProviderData
+
 	if req.PlannedPrivate != nil {
-		deleteReq.Private = req.PlannedPrivate.Provider
+		if req.PlannedPrivate.Provider != nil {
+			deleteReq.Private = req.PlannedPrivate.Provider
+			deleteResp.Private = req.PlannedPrivate.Provider
+		}
+
+		resp.Private = req.PlannedPrivate
 	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Delete")
@@ -91,10 +101,23 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Delete")
 
 	if !deleteResp.Diagnostics.HasError() {
-		logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State is cleared")
+		logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State and Priavate are cleared")
 		deleteResp.State.RemoveResource(ctx)
+
+		// Preserve prior behavior of always returning nil.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/863
+		deleteResp.Private = nil
+		resp.Private = nil
 	}
 
 	resp.Diagnostics = deleteResp.Diagnostics
 	resp.NewState = &deleteResp.State
+
+	if deleteResp.Private != nil {
+		if resp.Private == nil {
+			resp.Private = &privatestate.Data{}
+		}
+
+		resp.Private.Provider = deleteResp.Private
+	}
 }

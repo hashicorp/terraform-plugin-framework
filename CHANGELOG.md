@@ -1,3 +1,10 @@
+## 1.4.2 (October 24, 2023)
+
+BUG FIXES:
+
+* resource: Add `Private` field to `DeleteResource` type, which was missing to allow provider logic to update private state on errors ([#863](https://github.com/hashicorp/terraform-plugin-framework/issues/863))
+* resource: Prevented private state data loss if resource destruction returned an error ([#863](https://github.com/hashicorp/terraform-plugin-framework/issues/863))
+
 ## 1.4.1 (October 09, 2023)
 
 BUG FIXES:

@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'resource: Prevented private state data loss if resource destruction returned
-  an error'
-time: 2023-10-23T16:58:14.585227-04:00
-custom:
-  Issue: "863"

@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource: Add `Private` field to `DeleteResource` type, which was missing to
+  allow provider logic to update private state on errors'
+time: 2023-10-23T16:57:12.447739-04:00
+custom:
+  Issue: "863"

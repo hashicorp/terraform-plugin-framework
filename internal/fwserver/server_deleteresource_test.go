@@ -81,11 +81,34 @@ func TestServerDeleteResource(t *testing.T) {
 		TestProviderMetaAttribute types.String `tfsdk:"test_provider_meta_attribute"`
 	}
 
+	testPrivateFrameworkMap := map[string][]byte{
+		".frameworkKey": []byte(`{"fk": "framework value"}`),
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
+
+	testPrivate := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+		Provider:  testProviderData,
+	}
+
+	testPrivateFramework := &privatestate.Data{
+		Framework: testPrivateFrameworkMap,
+	}
+
+	testPrivateProvider := &privatestate.Data{
+		Provider: testProviderData,
+	}
+
+	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
+
+	testEmptyPrivate := &privatestate.Data{
+		Provider: testEmptyProviderData,
+	}
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
@@ -245,6 +268,7 @@ func TestServerDeleteResource(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"resource-configure-data": {
@@ -308,6 +332,89 @@ func TestServerDeleteResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.DeleteResourceResponse{
 				NewState: testEmptyState,
+			},
+		},
+		"response-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+						resp.Diagnostics.Append(diags...)
+
+						// Must return error to prevent automatic private state clearing
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"error summary",
+						"error detail",
+					),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivateProvider,
+			},
+		},
+		"response-private-updated": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				PlannedPrivate: testPrivateFramework,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+						resp.Diagnostics.Append(diags...)
+
+						// Must return error to prevent automatic private state clearing
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"error summary",
+						"error detail",
+					),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivate,
 			},
 		},
 	}

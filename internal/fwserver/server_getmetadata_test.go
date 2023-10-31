@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -32,6 +33,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			expectedResponse: &fwserver.GetMetadataResponse{
 				DataSources: []fwserver.DataSourceMetadata{},
+				Functions:   []fwserver.FunctionMetadata{},
 				Resources:   []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -72,6 +74,7 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_data_source2",
 					},
 				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -113,6 +116,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -146,6 +150,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -179,6 +184,124 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "testprovidertype_data_source",
 					},
 				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function1"
+									},
+								}
+							},
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Functions: []fwserver.FunctionMetadata{
+					{
+						Name: "function1",
+					},
+					{
+						Name: "function2",
+					},
+				},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "testfunction" // intentionally duplicate
+									},
+								}
+							},
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "testfunction" // intentionally duplicate
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Function Name Defined",
+						"The testfunction function name was returned for multiple functions. "+
+							"Function names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "" // intentionally empty
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Function Name Missing",
+						"The *testprovider.Function Function returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -212,6 +335,7 @@ func TestServerGetMetadata(t *testing.T) {
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
 				DataSources: []fwserver.DataSourceMetadata{},
+				Functions:   []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -260,6 +384,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -293,6 +418,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
+				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -322,6 +448,7 @@ func TestServerGetMetadata(t *testing.T) {
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
 				DataSources: []fwserver.DataSourceMetadata{},
+				Functions:   []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "testprovidertype_resource",

@@ -1,0 +1,48 @@
+---
+page_title: 'Plugin Development - Framework: Function Returns'
+description: >-
+  Learn the function return types in the provider development framework.
+  A return describes the output data in a function definition.
+---
+
+# Returns
+
+A return in a [function definition](/terraform/plugin/framework/function/implementation#definition-method) describes the result data value from function logic. Every return type has an associated [value type](/terraform/plugin/framework/handling-data/types), although this data handling is simplified for function implementations over other provider concepts, such as resource implementations.
+
+## Available Return Types
+
+Function definitions support the following return types:
+
+- [Primitive](#primitive-return-types): Return that expects a single value, such as a boolean, number, or string.
+- [Collection](#collection-return-types): Return that expects multiple values of a single element type, such as a list, map, or set.
+- [Object](#object-return-type): Return that expects a structure of explicit attribute names.
+
+### Primitive Return Types
+
+Return types that expect a single data value, such as a boolean, number, or string.
+
+| Return Type | Use Case |
+|----------------|----------|
+| [Bool](/terraform/plugin/framework/returns/bool) | Boolean true or false |
+| [Float64](/terraform/plugin/framework/returns/float64) | 64-bit floating point number |
+| [Int64](/terraform/plugin/framework/returns/int64) | 64-bit integer number |
+| [Number](/terraform/plugin/framework/returns/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
+| [String](/terraform/plugin/framework/returns/string) | Collection of UTF-8 encoded characters |
+
+#### Collection Return Types
+
+Return types that expect multiple values of a single element type, such as a list, map, or set.
+
+| Return Type | Use Case |
+|----------------|----------|
+| [List](/terraform/plugin/framework/returns/list) | Ordered collection of single element type |
+| [Map](/terraform/plugin/framework/returns/map) | Mapping of arbitrary string keys to values of single element type |
+| [Set](/terraform/plugin/framework/returns/set) | Unordered, unique collection of single element type |
+
+#### Object Return Type
+
+Return type that expects a structure of explicit attribute names.
+
+| Return Type | Use Case |
+|----------------|----------|
+| [Object](/terraform/plugin/framework/returns/object) | Single structure mapping explicit attribute names |

@@ -18,14 +18,19 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 	}
 
 	protov6 := &tfprotov5.GetMetadataResponse{
-		DataSources:        []tfprotov5.DataSourceMetadata{},
+		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(fw.DataSources)),
 		Diagnostics:        Diagnostics(ctx, fw.Diagnostics),
-		Resources:          []tfprotov5.ResourceMetadata{},
+		Functions:          make([]tfprotov5.FunctionMetadata, 0, len(fw.Functions)),
+		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(fw.Resources)),
 		ServerCapabilities: ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
 
 	for _, datasource := range fw.DataSources {
 		protov6.DataSources = append(protov6.DataSources, DataSourceMetadata(ctx, datasource))
+	}
+
+	for _, function := range fw.Functions {
+		protov6.Functions = append(protov6.Functions, FunctionMetadata(ctx, function))
 	}
 
 	for _, resource := range fw.Resources {

@@ -1,0 +1,91 @@
+---
+page_title: 'Plugin Development - Framework: String Function Parameter'
+description: >-
+  Learn the string function parameter type in the provider development framework.
+---
+
+# String Function Parameter
+
+String function parameters expect a collection of UTF-8 encoded bytes from a practitioner configuration. Values are accessible in function logic by the Go built-in `string` type, Go built-in `*string` type, or the [framework string type](/terraform/plugin/framework/handling-data/types/string).
+
+In this Terraform configuration example, a string parameter is set to the value `"hello world"`:
+
+```hcl
+provider::example::example("hello world")
+```
+
+## Function Definition
+
+Use the [`function.StringParameter` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#StringParameter) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method) to accept a string value.
+
+In this example, a function definition includes a first position string parameter:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.StringParameter{
+                // ... potentially other StringParameter fields ...
+            },
+        },
+    }
+}
+```
+
+If the string value should be the element type of a [collection parameter type](/terraform/plugin/framework/functions/parameters#collection-parameter-types), set the `ElementType` field according to the [framework string type](/terraform/plugin/framework/handling-data/types/string). Refer to the collection parameter type documentation for additional details.
+
+If the string value should be a value type of an [object parameter type](/terraform/plugin/framework/functions/parameters#object-parameter-type), set the `AttributeTypes` map value according to the [framework string type](/terraform/plugin/framework/handling-data/types/string). Refer to the object parameter type documentation for additional details.
+
+### Allow Null Values
+
+By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires using a Go pointer type or [framework string type](/terraform/plugin/framework/handling-data/types/string) when reading argument data.
+
+### Allow Unknown Values
+
+By default, Terraform will not pass unknown values to the function logic. Use the `AllowUnknownValues` field to explicitly allow unknown values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowUnknownValues` requires using a [framework string type](/terraform/plugin/framework/handling-data/types/string) when reading argument data.
+
+### Custom Types
+
+You may want to build your own data value and type implementations to allow your provider to combine validation and other behaviors into a reusable bundle. This helps avoid duplication and ensures consistency. These implementations use the `CustomType` field in the parameter type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Documentation
+
+Refer to [function documentation](/terraform/plugin/framework/functions/documentation) for information about the `Name`, `Description`, and `MarkdownDescription` fields available.
+
+## Reading Argument Data
+
+The [function implementation](/terraform/plugin/framework/functions/implementation) documentation covers the general methods for reading function argument data in function logic.
+
+When retrieving the argument value for this parameter:
+
+* If `CustomType` is set, use its associated value type.
+* If `AllowUnknownValues` is enabled, you must use the [framework string type](/terraform/plugin/framework/handling-data/types/string).
+* If `AllowNullValue` is enabled, you must use the Go built-in `*string` type or [framework string type](/terraform/plugin/framework/handling-data/types/string).
+* Otherwise, use the Go built-in `string` type, Go built-in `*string` type, or [framework string type](/terraform/plugin/framework/handling-data/types/string).
+
+In this example, a function defines a single string parameter and accesses its argument value:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.StringParameter{},
+        },
+    }
+}
+
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var stringArg string
+    // var stringArg *string // e.g. with AllowNullValue, where Go nil equals Terraform null
+    // var stringArg types.String // e.g. with AllowUnknownValues or AllowNullValue
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &stringArg)...)
+
+    // stringArg is now populated
+    // ... other logic ...
+}
+```

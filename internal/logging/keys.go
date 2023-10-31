@@ -25,6 +25,9 @@ const (
 	// Underlying Go error string when logging an error.
 	KeyError = "error"
 
+	// The name of function being operated on, such as "parse_xyz"
+	KeyFunctionName = "tf_function_name"
+
 	// The type of resource being operated on, such as "random_pet"
 	KeyResourceType = "tf_resource_type"
 

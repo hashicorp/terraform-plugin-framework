@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
@@ -80,6 +81,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -109,6 +111,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -140,6 +143,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -169,6 +173,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -200,6 +205,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -229,6 +235,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -260,6 +267,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -289,6 +297,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -318,6 +327,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -347,6 +357,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -383,6 +394,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -416,6 +428,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -456,6 +469,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -488,6 +502,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -521,6 +536,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -553,6 +569,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -582,6 +599,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -618,6 +636,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -651,6 +670,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -691,6 +711,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -727,6 +748,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -759,6 +781,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -790,6 +813,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -819,6 +843,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -862,6 +887,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -905,6 +931,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -946,6 +973,192 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction1": {
+						Return: function.StringReturn{},
+					},
+					"testfunction2": {
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction1": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+					"testfunction2": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-deprecationmessage": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						DeprecationMessage: "test deprecation message",
+						Return:             function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						DeprecationMessage: "test deprecation message",
+						Parameters:         []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-description": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Description: "test description",
+						Return:      function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						Description: "test description",
+						Parameters:  []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-parameters": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Parameters: []function.Parameter{
+							function.BoolParameter{},
+							function.Int64Parameter{},
+							function.StringParameter{},
+						},
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						Parameters: []*tfprotov5.FunctionParameter{
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.Bool,
+							},
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.Number,
+							},
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.String,
+							},
+						},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-result": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-summary": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return:  function.StringReturn{},
+						Summary: "test summary",
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+						Summary: "test summary",
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"functions-variadicparameter": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return:            function.StringReturn{},
+						VariadicParameter: function.StringParameter{},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"testfunction": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+						VariadicParameter: &tfprotov5.FunctionParameter{
+							Name: function.DefaultParameterName,
+							Type: tftypes.String,
+						},
+					},
+				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -962,6 +1175,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -989,6 +1203,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1015,6 +1230,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1042,6 +1258,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1069,6 +1286,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1095,6 +1313,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1121,6 +1340,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1150,6 +1370,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1194,6 +1415,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1214,6 +1436,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1247,6 +1470,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1289,6 +1513,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1305,6 +1530,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1333,6 +1559,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1362,6 +1589,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1406,6 +1634,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1426,6 +1655,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1461,6 +1691,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1492,6 +1723,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1532,6 +1764,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1547,6 +1780,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1579,6 +1813,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -1619,6 +1854,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -1657,6 +1893,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -1691,6 +1928,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1717,6 +1955,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1743,6 +1982,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1769,6 +2009,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1795,6 +2036,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1824,6 +2066,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1868,6 +2111,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1905,6 +2149,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1921,6 +2166,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1963,6 +2209,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1979,6 +2226,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2007,6 +2255,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2036,6 +2285,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2080,6 +2330,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -2100,6 +2351,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2135,6 +2387,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2166,6 +2419,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2206,6 +2460,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -2221,6 +2476,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2256,6 +2512,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource_1": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2296,6 +2553,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2326,6 +2584,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2356,6 +2615,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2386,6 +2646,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2416,6 +2677,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2446,6 +2708,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2476,6 +2739,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2505,6 +2769,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2534,6 +2799,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2566,6 +2832,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2613,6 +2880,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -2637,6 +2905,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2673,6 +2942,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2718,6 +2988,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -2738,6 +3009,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2769,6 +3041,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2801,6 +3074,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2848,6 +3122,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -2872,6 +3147,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2910,6 +3186,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2944,6 +3221,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2987,6 +3265,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -3006,6 +3285,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3041,6 +3321,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3084,6 +3365,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3125,6 +3407,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3158,6 +3441,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block:   &tfprotov5.SchemaBlock{},

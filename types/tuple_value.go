@@ -37,5 +37,3 @@ func TupleValue(elementTypes []attr.Type, elements []attr.Value) (basetypes.Tupl
 func TupleValueMust(elementTypes []attr.Type, elements []attr.Value) basetypes.TupleValue {
 	return basetypes.NewTupleValueMust(elementTypes, elements)
 }
-
-// TODO: TupleValueFrom?

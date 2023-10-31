@@ -39,29 +39,31 @@ func NewTupleValue(elementTypes []attr.Type, elements []attr.Value) (TupleValue,
 	ctx := context.Background()
 
 	if len(elementTypes) != len(elements) {
+		givenTypes := make([]attr.Type, len(elements))
+		for i, v := range elements {
+			givenTypes[i] = v.Type(ctx)
+		}
+
 		diags.AddError(
-			// TODO: this error message needs to be cleaned up
 			"Invalid Tuple Elements",
-			"While creating a Tuple value, mismatched elements were detected. "+
-				"A Tuple must be an ordered array of element types where values exactly match the defined length element types. "+
+			"While creating a Tuple value, mismatched element types were detected. "+
+				"A Tuple must be an ordered array of elements where the values exactly match the length and types of the defined element types. "+
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-				fmt.Sprintf("Tuple Expected Types: [%v]\n", elementTypes)+
-				fmt.Sprintf("Tuple Given Types: [%v]", elements),
+				fmt.Sprintf("Tuple Expected Type: %v\n", elementTypes)+
+				fmt.Sprintf("Tuple Given Type: %v", givenTypes),
 		)
 
 		return NewTupleUnknown(elementTypes), diags
 	}
 
-	// validation check for tuples
 	for i, element := range elements {
 		fmt.Println(ctx, i, element)
 
 		if !elementTypes[i].Equal(element.Type(ctx)) {
 			diags.AddError(
-				"Invalid Tuple Element Type",
-				// TODO: this error message needs to be cleaned up
+				"Invalid Tuple Element",
 				"While creating a Tuple value, an invalid element was detected. "+
-					"A Tuple must be an ordered array of element types where values exactly match the element types. "+
+					"A Tuple must be an ordered array of elements where the values exactly match the length and types of the defined element types. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					fmt.Sprintf("Tuple Index (%d) Expected Type: %s\n", i, elementTypes[i])+
 					fmt.Sprintf("Tuple Index (%d) Given Type: %s", i, element.Type(ctx)),
@@ -197,6 +199,7 @@ func (v TupleValue) String() string {
 		return attr.NullValueString
 	}
 
+	// TODO: replace with simple string.join
 	var res strings.Builder
 
 	res.WriteString("[")
@@ -254,6 +257,3 @@ func (v TupleValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 		panic(fmt.Sprintf("unhandled Tuple state in ToTerraformValue: %s", v.state))
 	}
 }
-
-// TODO: NewTupleValueFrom? (reflection rules)
-// TODO: ElementsAs? (reflection rules)

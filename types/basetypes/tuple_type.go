@@ -40,7 +40,7 @@ func (t TupleType) Equal(o attr.Type) bool {
 	}
 
 	for i, elemType := range t.ElemTypes {
-		if elemType.Equal(other.ElemTypes[i]) {
+		if !elemType.Equal(other.ElemTypes[i]) {
 			return false
 		}
 	}
@@ -50,15 +50,14 @@ func (t TupleType) Equal(o attr.Type) bool {
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the tuple.
 func (t TupleType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	// TODO: is this implemented correctly? Is this needed?
 	indexStep, ok := step.(tftypes.ElementKeyInt)
 	if !ok {
 		return nil, fmt.Errorf("cannot apply step %T to TupleType", step)
 	}
 
 	index := int(indexStep)
-	if len(t.ElemTypes) <= index {
-		return nil, fmt.Errorf("undefined element at index %d in TupleType", index)
+	if index < 0 || index >= len(t.ElemTypes) {
+		return nil, fmt.Errorf("no element defined at index %d in TupleType", index)
 	}
 
 	return t.ElemTypes[index], nil
@@ -66,21 +65,21 @@ func (t TupleType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathSt
 
 // String returns a human-friendly description of the TupleType.
 func (t TupleType) String() string {
+	typeStrings := make([]string, len(t.ElemTypes))
 
-	// TODO: replace with string builder?
-	var typeStrings []string
-	for _, elemType := range t.ElemTypes {
-		typeStrings = append(typeStrings, elemType.String())
+	for i, elemType := range t.ElemTypes {
+		typeStrings[i] = elemType.String()
 	}
 
-	return "types.TupleType[" + strings.Join(typeStrings, ",") + "]"
+	return "types.TupleType[" + strings.Join(typeStrings, ", ") + "]"
 }
 
 // TerraformType returns the tftypes.Type that should be used to represent this type.
 func (t TupleType) TerraformType(ctx context.Context) tftypes.Type {
-	var tfTypes []tftypes.Type
-	for _, elemType := range t.ElemTypes {
-		tfTypes = append(tfTypes, elemType.TerraformType(ctx))
+	tfTypes := make([]tftypes.Type, len(t.ElemTypes))
+
+	for i, elemType := range t.ElemTypes {
+		tfTypes[i] = elemType.TerraformType(ctx)
 	}
 
 	return tftypes.Tuple{
@@ -110,7 +109,7 @@ func (t TupleType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 	}
 	elems := make([]attr.Value, 0, len(val))
 	for i, elem := range val {
-		// TODO: is this safe?
+		// Accessing this index is safe because of the type comparison above
 		av, err := t.ElemTypes[i].ValueFromTerraform(ctx, elem)
 		if err != nil {
 			return nil, err

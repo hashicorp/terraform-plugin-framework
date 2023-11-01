@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestNewTupleValue(t *testing.T) {
@@ -646,4 +647,90 @@ func TestTupleValueType(t *testing.T) {
 	}
 }
 
-// TODO: ToTerraformValue tests
+func TestTupleValueToTerraformValue(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       TupleValue
+		expectation tftypes.Value
+		expectedErr string
+	}
+	tests := map[string]testCase{
+		"known": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewBoolValue(true),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.Bool, true),
+			}),
+		},
+		"known-partial-unknown": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewBoolUnknown(),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+			}),
+		},
+		"known-partial-null": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Value{
+					NewStringNull(),
+					NewBoolValue(true),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, nil),
+				tftypes.NewValue(tftypes.Bool, true),
+			}),
+		},
+		"unknown": {
+			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, tftypes.UnknownValue),
+		},
+		"null": {
+			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, nil),
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, gotErr := test.input.ToTerraformValue(context.Background())
+
+			if test.expectedErr == "" && gotErr != nil {
+				t.Errorf("Unexpected error: %s", gotErr)
+				return
+			}
+
+			if test.expectedErr != "" {
+				if gotErr == nil {
+					t.Errorf("Expected error to be %q, got none", test.expectedErr)
+					return
+				}
+
+				if test.expectedErr != gotErr.Error() {
+					t.Errorf("Expected error to be %q, got %q", test.expectedErr, gotErr.Error())
+					return
+				}
+			}
+
+			if diff := cmp.Diff(got, test.expectation); diff != "" {
+				t.Errorf("Unexpected result (+got, -expected): %s", diff)
+			}
+		})
+	}
+}

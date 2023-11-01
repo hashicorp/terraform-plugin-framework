@@ -202,7 +202,212 @@ func TestTupleValueElementType(t *testing.T) {
 	}
 }
 
-// TODO: Equal
+func TestTupleValueEqual(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		receiver TupleValue
+		input    attr.Value
+		expected bool
+	}
+	tests := map[string]testCase{
+		"known-known": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			expected: true,
+		},
+		"known-known-empty": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{},
+				[]attr.Value{},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{},
+				[]attr.Value{},
+			),
+			expected: true,
+		},
+		"known-known-diff-value": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(67890),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-type": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{Int64Type{}, StringType{}},
+				[]attr.Value{
+					NewInt64Value(12345),
+					NewStringValue("hello"),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-type-length": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+					NewInt64Value(67890),
+				},
+			),
+			expected: false,
+		},
+		// This test just checks there are no panics if an invalid TupleType/Value is defined
+		"known-known-diff-element-length": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: TupleValue{
+				state:        attr.ValueStateKnown,
+				elementTypes: []attr.Type{StringType{}, Int64Type{}},
+				elements: []attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+					NewInt64Value(67890),
+				},
+			},
+			expected: false,
+		},
+		"known-known-diff-unknown": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Unknown(),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			expected: false,
+		},
+		"known-known-diff-null": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Null(),
+				},
+			),
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			expected: false,
+		},
+		"known-unknown": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input:    NewTupleUnknown([]attr.Type{StringType{}, Int64Type{}}),
+			expected: false,
+		},
+		"known-null": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input:    NewTupleNull([]attr.Type{StringType{}, Int64Type{}}),
+			expected: false,
+		},
+		"known-diff-type": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input: NewSetValueMust(
+				StringType{},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			),
+			expected: false,
+		},
+		"known-nil": {
+			receiver: NewTupleValueMust(
+				[]attr.Type{StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewInt64Value(12345),
+				},
+			),
+			input:    nil,
+			expected: false,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.receiver.Equal(test.input)
+			if got != test.expected {
+				t.Errorf("Expected %v, got %v", test.expected, got)
+			}
+		})
+	}
+}
 
 func TestTupleValueIsNull(t *testing.T) {
 	t.Parallel()
@@ -276,7 +481,91 @@ func TestTupleValueIsUnknown(t *testing.T) {
 	}
 }
 
-// TODO: String tests
+func TestTupleValueString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       TupleValue
+		expectation string
+	}
+	tests := map[string]testCase{
+		"known-empty": {
+			input: NewTupleValueMust(
+				[]attr.Type{},
+				[]attr.Value{},
+			),
+			expectation: `[]`,
+		},
+		"known": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}, StringType{}, Int64Type{}},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewBoolValue(true),
+					NewStringValue("world"),
+					NewInt64Value(123),
+				},
+			),
+			expectation: `["hello",true,"world",123]`,
+		},
+		"known-tuple-of-tuples": {
+			input: NewTupleValueMust(
+				[]attr.Type{
+					TupleType{
+						ElemTypes: []attr.Type{StringType{}, BoolType{}},
+					},
+					TupleType{
+						ElemTypes: []attr.Type{Int64Type{}, ObjectType{AttrTypes: map[string]attr.Type{"testattr": StringType{}}}},
+					},
+				},
+				[]attr.Value{
+					NewTupleValueMust(
+						[]attr.Type{StringType{}, BoolType{}},
+						[]attr.Value{
+							NewStringValue("hello"),
+							NewBoolValue(true),
+						},
+					),
+					NewTupleValueMust(
+						[]attr.Type{Int64Type{}, ObjectType{AttrTypes: map[string]attr.Type{"testattr": StringType{}}}},
+						[]attr.Value{
+							NewInt64Value(1234),
+							NewObjectValueMust(
+								map[string]attr.Type{"testattr": StringType{}},
+								map[string]attr.Value{"testattr": NewStringValue("world")},
+							),
+						},
+					),
+				},
+			),
+			expectation: `[["hello",true],[1234,{"testattr":"world"}]]`,
+		},
+		"unknown": {
+			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
+			expectation: "<null>",
+		},
+		"zero-value": {
+			input:       TupleValue{},
+			expectation: "<null>",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
 
 func TestTupleValueType(t *testing.T) {
 	t.Parallel()

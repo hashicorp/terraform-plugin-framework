@@ -165,6 +165,8 @@ func (v TupleValue) Equal(o attr.Value) bool {
 		return true
 	}
 
+	// This statement should never be true, given that element type length must exactly match the number of elements,
+	// but checking to avoid an index out of range panic
 	if len(v.elements) != len(other.elements) {
 		return false
 	}
@@ -199,19 +201,14 @@ func (v TupleValue) String() string {
 		return attr.NullValueString
 	}
 
-	// TODO: replace with simple string.join
-	var res strings.Builder
+	elements := v.Elements()
+	valueStrings := make([]string, len(elements))
 
-	res.WriteString("[")
-	for i, e := range v.Elements() {
-		if i != 0 {
-			res.WriteString(",")
-		}
-		res.WriteString(e.String())
+	for i, element := range elements {
+		valueStrings[i] = element.String()
 	}
-	res.WriteString("]")
 
-	return res.String()
+	return "[" + strings.Join(valueStrings, ",") + "]"
 }
 
 // Type returns a TupleType with the elements types for the Tuple.

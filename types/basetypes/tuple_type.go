@@ -12,7 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-var _ attr.Type = TupleType{}
+var (
+	_ attr.Type                 = TupleType{}
+	_ attr.TypeWithElementTypes = TupleType{}
+)
 
 // TupleType implements a tuple type definition. This type intentionally includes less functionality
 // than other types in the type system as it has limited real world application and therefore
@@ -25,6 +28,11 @@ type TupleType struct {
 // ElementTypes returns the ordered attr.Type slice for the tuple.
 func (t TupleType) ElementTypes() []attr.Type {
 	return t.ElemTypes
+}
+
+// WithElementTypes returns a TupleType that is identical to `t`, but with the element types set to `types`.
+func (t TupleType) WithElementTypes(types []attr.Type) attr.TypeWithElementTypes {
+	return TupleType{ElemTypes: types}
 }
 
 // Equal returns true if `o` is also a TupleType and has the same ElemTypes in the same order.

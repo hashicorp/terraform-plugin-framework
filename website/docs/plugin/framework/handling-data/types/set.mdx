@@ -83,7 +83,7 @@ Call one of the following to create a `types.Set` value:
 * [`types.SetUnknown(attr.Type) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetUnknown): An unknown set value with the given element type.
 * [`types.SetValue(attr.Type, []attr.Value) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValue): A known value with the given element type and values.
 * [`types.SetValueFrom(context.Context, attr.Type, any) (types.Set, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom): A known value with the given element type and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each element type, such as giving `[]*string` for a `types.Set` of `types.String`.
-* [`types.SetValueMust(map[string]attr.Type, map[string]attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+* [`types.SetValueMust(attr.Type, []attr.Value) types.Set`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 In this example, a known set value is created from framework types:
 

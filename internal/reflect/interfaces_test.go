@@ -703,6 +703,27 @@ func TestFromAttributeValue(t *testing.T) {
 			val:      types.StringNull(),
 			expected: types.StringNull(),
 		},
+		"TupleType-TupleValue-matching-elements": {
+			typ:      types.TupleType{ElemTypes: []attr.Type{types.StringType, types.BoolType}},
+			val:      types.TupleNull([]attr.Type{types.StringType, types.BoolType}),
+			expected: types.TupleNull([]attr.Type{types.StringType, types.BoolType}),
+		},
+		"TupleType-TupleValue-mismatching-elements": {
+			typ:      types.TupleType{ElemTypes: []attr.Type{types.StringType, types.BoolType}},
+			val:      types.TupleNull([]attr.Type{types.BoolType, types.StringType}),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected framework type from provider logic: types.TupleType[basetypes.StringType, basetypes.BoolType] / underlying type: tftypes.Tuple[tftypes.String, tftypes.Bool]\n"+
+						"Received framework type from provider logic: types.TupleType[basetypes.BoolType, basetypes.StringType] / underlying type: tftypes.Tuple[tftypes.Bool, tftypes.String]\n"+
+						"Path: test",
+				),
+			},
+		},
 	}
 
 	for name, tc := range testCases {

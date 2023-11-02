@@ -48,10 +48,10 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 	case attr.TypeWithElementType:
 		// we need to know the type the slice is wrapping
 		elemType := target.Type().Elem()
+		elemAttrType := t.ElementType()
+
 		// we want an empty version of the slice
 		slice := reflect.MakeSlice(target.Type(), 0, len(values))
-
-		elemAttrType := t.ElementType()
 
 		// go over each of the values passed in, create a Go value of the right
 		// type for them, and add it to our new slice

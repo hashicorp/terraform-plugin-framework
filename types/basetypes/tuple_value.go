@@ -57,8 +57,6 @@ func NewTupleValue(elementTypes []attr.Type, elements []attr.Value) (TupleValue,
 	}
 
 	for i, element := range elements {
-		fmt.Println(ctx, i, element)
-
 		if !elementTypes[i].Equal(element.Type(ctx)) {
 			diags.AddError(
 				"Invalid Tuple Element",

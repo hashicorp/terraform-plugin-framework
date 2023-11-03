@@ -18,9 +18,6 @@ import (
 func TestFromValue_go_types(t *testing.T) {
 	t.Parallel()
 
-	// Used for testing nil -> null attr.Value
-	var nilSlice []string
-
 	testCases := map[string]struct {
 		typ           attr.Type
 		value         any
@@ -29,17 +26,17 @@ func TestFromValue_go_types(t *testing.T) {
 	}{
 		"nil-go-slice-to-list-value": {
 			typ:      types.ListType{ElemType: types.StringType},
-			value:    nilSlice,
+			value:    new([]string),
 			expected: types.ListNull(types.StringType),
 		},
 		"nil-go-slice-to-set-value": {
 			typ:      types.SetType{ElemType: types.StringType},
-			value:    nilSlice,
+			value:    new([]string),
 			expected: types.SetNull(types.StringType),
 		},
 		"nil-go-slice-to-tuple-value": {
 			typ:      types.TupleType{ElemTypes: []attr.Type{types.StringType, types.StringType}},
-			value:    nilSlice,
+			value:    new([]string),
 			expected: types.TupleNull([]attr.Type{types.StringType, types.StringType}),
 		},
 		"go-slice-to-list-value": {

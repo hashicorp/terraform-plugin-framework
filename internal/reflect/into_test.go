@@ -21,9 +21,6 @@ import (
 func TestInto_Slices(t *testing.T) {
 	t.Parallel()
 
-	// Just using this to get the reflected type for the odd diagnostics :-)
-	var stringSlice []string
-
 	testCases := map[string]struct {
 		typ           attr.Type
 		value         tftypes.Value
@@ -73,7 +70,7 @@ func TestInto_Slices(t *testing.T) {
 							tftypes.NewValue(tftypes.String, "hello"),
 							tftypes.NewValue(tftypes.String, "world"),
 						}),
-						TargetType: reflect.TypeOf(stringSlice),
+						TargetType: reflect.TypeOf([]string{}),
 						Err:        errors.New("cannot reflect tftypes.Tuple[tftypes.String, tftypes.String] using type information provided by basetypes.TupleType, reflection support is currently not implemented for tuples"),
 					},
 				),
@@ -89,7 +86,7 @@ func TestInto_Slices(t *testing.T) {
 					path.Empty(),
 					refl.DiagIntoIncompatibleType{
 						Val:        tftypes.NewValue(tftypes.String, "hello"),
-						TargetType: reflect.TypeOf(stringSlice),
+						TargetType: reflect.TypeOf([]string{}),
 						Err:        errors.New("can't unmarshal tftypes.String into *[]tftypes.Value expected []tftypes.Value"),
 					},
 				),

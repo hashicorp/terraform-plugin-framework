@@ -83,7 +83,7 @@ Call one of the following to create a `types.List` value:
 * [`types.ListUnknown(attr.Type) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListUnknown): An unknown list value with the given element type.
 * [`types.ListValue(attr.Type, []attr.Value) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValue): A known value with the given element type and values.
 * [`types.ListValueFrom(context.Context, attr.Type, any) (types.List, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueFrom): A known value with the given element type and values. This can convert the source data from standard Go types into framework types as noted in the documentation for each element type, such as giving `[]*string` for a `types.List` of `types.String`.
-* [`types.ListValueMust(map[string]attr.Type, map[string]attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+* [`types.ListValueMust(attr.Type, []attr.Value) types.List`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ListValueMust): A known value with the given element type and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
 
 In this example, a known list value is created from framework types:
 

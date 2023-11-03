@@ -29,16 +29,6 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		}))
 		return target, diags
 	}
-	// TODO: check that the val is a list or set or tuple
-	elemTyper, ok := typ.(attr.TypeWithElementType)
-	if !ok {
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType", val.Type(), typ, typ),
-		}))
-		return target, diags
-	}
 
 	// we need our value to become a list of values so we can iterate over
 	// them and handle them individually
@@ -53,50 +43,69 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		return target, diags
 	}
 
-	// we need to know the type the slice is wrapping
-	elemType := target.Type().Elem()
-	elemAttrType := elemTyper.ElementType()
+	switch t := typ.(type) {
+	// List or Set
+	case attr.TypeWithElementType:
+		// we need to know the type the slice is wrapping
+		elemType := target.Type().Elem()
+		elemAttrType := t.ElementType()
 
-	// we want an empty version of the slice
-	slice := reflect.MakeSlice(target.Type(), 0, len(values))
+		// we want an empty version of the slice
+		slice := reflect.MakeSlice(target.Type(), 0, len(values))
 
-	// go over each of the values passed in, create a Go value of the right
-	// type for them, and add it to our new slice
-	for pos, value := range values {
-		// create a new Go value of the type that can go in the slice
-		targetValue := reflect.Zero(elemType)
+		// go over each of the values passed in, create a Go value of the right
+		// type for them, and add it to our new slice
+		for pos, value := range values {
+			// create a new Go value of the type that can go in the slice
+			targetValue := reflect.Zero(elemType)
 
-		// update our path so we can have nice errors
-		valPath := path.AtListIndex(pos)
+			// update our path so we can have nice errors
+			valPath := path.AtListIndex(pos)
 
-		if typ.TerraformType(ctx).Is(tftypes.Set{}) {
-			attrVal, err := elemAttrType.ValueFromTerraform(ctx, value)
+			if typ.TerraformType(ctx).Is(tftypes.Set{}) {
+				attrVal, err := elemAttrType.ValueFromTerraform(ctx, value)
 
-			if err != nil {
-				diags.AddAttributeError(
-					path,
-					"Value Conversion Error",
-					"An unexpected error was encountered trying to convert to slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				)
+				if err != nil {
+					diags.AddAttributeError(
+						path,
+						"Value Conversion Error",
+						"An unexpected error was encountered trying to convert to slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+					)
+					return target, diags
+				}
+
+				valPath = path.AtSetValue(attrVal)
+			}
+
+			// reflect the value into our new target
+			val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
+			diags.Append(valDiags...)
+
+			if diags.HasError() {
 				return target, diags
 			}
 
-			valPath = path.AtSetValue(attrVal)
+			// add the new target to our slice
+			slice = reflect.Append(slice, val)
 		}
 
-		// reflect the value into our new target
-		val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
-		diags.Append(valDiags...)
-
-		if diags.HasError() {
-			return target, diags
-		}
-
-		// add the new target to our slice
-		slice = reflect.Append(slice, val)
+		return slice, diags
+	// Tuple reflection from slices is currently not supported as usage is limited
+	case attr.TypeWithElementTypes:
+		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, reflection support is currently not implemented for tuples", val.Type(), t),
+		}))
+		return target, diags
+	default:
+		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+			Val:        val,
+			TargetType: target.Type(),
+			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, %T must be an attr.TypeWithElementType or attr.TypeWithElementTypes", val.Type(), typ, typ),
+		}))
+		return target, diags
 	}
-
-	return slice, diags
 }
 
 // FromSlice returns an attr.Value as produced by `typ` using the data in
@@ -110,7 +119,6 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// TODO: support tuples, which are attr.TypeWithElementTypes
 	tfType := typ.TerraformType(ctx)
 
 	if val.IsNil() {
@@ -138,51 +146,61 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 		return attrVal, diags
 	}
 
-	t, ok := typ.(attr.TypeWithElementType)
-	if !ok {
-		err := fmt.Errorf("cannot use type %T as schema type %T; %T must be an attr.TypeWithElementType to hold %T", val, typ, typ, val)
+	tfElems := make([]tftypes.Value, 0, val.Len())
+	switch t := typ.(type) {
+	// List or Set
+	case attr.TypeWithElementType:
+		elemType := t.ElementType()
+		for i := 0; i < val.Len(); i++ {
+			// The underlying reflect.Slice is fetched by Index(). For set types,
+			// the path is value-based instead of index-based. Since there is only
+			// the index until the value is retrieved, this will pass the
+			// technically incorrect index-based path at first for framework
+			// debugging purposes, then correct the path afterwards.
+			valPath := path.AtListIndex(i)
+
+			val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
+			diags.Append(valDiags...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+
+			tfVal, err := val.ToTerraformValue(ctx)
+			if err != nil {
+				return nil, append(diags, toTerraformValueErrorDiag(err, path))
+			}
+
+			if tfType.Is(tftypes.Set{}) {
+				valPath = path.AtSetValue(val)
+			}
+
+			if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+				if diags.HasError() {
+					return nil, diags
+				}
+			}
+
+			tfElems = append(tfElems, tfVal)
+		}
+	// Tuple reflection from slices is currently not supported as usage is limited
+	case attr.TypeWithElementTypes:
+		err := fmt.Errorf("cannot use type %s as schema type %T; reflection support is currently not implemented for tuples", val.Type(), t)
 		diags.AddAttributeError(
 			path,
 			"Value Conversion Error",
 			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
 		return nil, diags
-	}
-
-	elemType := t.ElementType()
-	tfElems := make([]tftypes.Value, 0, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		// The underlying reflect.Slice is fetched by Index(). For set types,
-		// the path is value-based instead of index-based. Since there is only
-		// the index until the value is retrieved, this will pass the
-		// technically incorrect index-based path at first for framework
-		// debugging purposes, then correct the path afterwards.
-		valPath := path.AtListIndex(i)
-
-		val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
-		diags.Append(valDiags...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-
-		tfVal, err := val.ToTerraformValue(ctx)
-		if err != nil {
-			return nil, append(diags, toTerraformValueErrorDiag(err, path))
-		}
-
-		if tfType.Is(tftypes.Set{}) {
-			valPath = path.AtSetValue(val)
-		}
-
-		if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-
-		tfElems = append(tfElems, tfVal)
+	default:
+		err := fmt.Errorf("cannot use type %s as schema type %T; %T must be an attr.TypeWithElementType or attr.TypeWithElementTypes", val.Type(), t, t)
+		diags.AddAttributeError(
+			path,
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
 	}
 
 	err := tftypes.ValidateValue(tfType, tfElems)

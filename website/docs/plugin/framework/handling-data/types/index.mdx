@@ -60,3 +60,15 @@ This type is associated with:
 | Type | Use Case |
 |----------------|----------|
 | [Object](/terraform/plugin/framework/handling-data/types/object) | Mapping of explicit attribute names to values |
+
+### Tuple Type
+
+Type that defines an ordered collection of elements where each element has it's own type.
+
+<Note>
+This type intentionally includes less functionality than other types in the type system as it has limited real world application and therefore is not exposed to provider developers except when working with dynamic values.
+</Note>
+
+| Type | Use Case |
+|----------------|----------|
+| [Tuple](/terraform/plugin/framework/handling-data/types/tuple) | Ordered collection of multiple element types |

@@ -1,0 +1,53 @@
+---
+page_title: 'Plugin Development - Framework: Tuple Type'
+description: >-
+  Learn the tuple value type in the provider development framework.
+---
+
+<Note>
+The tuple type intentionally includes less functionality than other types in the type system as it has limited real world application and therefore is not exposed to provider developers except when working with dynamic values.
+</Note>
+
+# Tuple Type
+
+Tuple types store an ordered collection of elements where each element has it's own type. Values must have **exactly** the same number of elements (no more and no fewer), and the value in each position must match the specified type for that position.
+
+The tuple type is used to express Terraform's [tuple type constraint](/terraform/language/expressions/type-constraints#tuple).
+
+## Schema Definitions
+
+The tuple type is not supported in schema definitions of provider, data sources, or managed resources as it has limited real world application.
+
+## Accessing Values
+
+Access `types.Tuple` information via the following methods:
+
+* [`(types.Tuple).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#TupleValue.IsNull): Returns `true` if the tuple is null.
+* [`(types.Tuple).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#TupleValue.IsUnknown): Returns `true` if the tuple is unknown. Returns `false` if the number of elements is known, any of which may be unknown.
+* [`(types.Tuple).Elements() []attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#TupleValue.Elements): Returns the known `[]attr.Value` value, or `nil` if null or unknown.
+
+## Setting Values
+
+Call one of the following to create a `types.Tuple` value:
+
+* [`types.TupleNull([]attr.Type) types.Tuple`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#TupleNull): A null tuple value with the given element types.
+* [`types.TupleUnknown([]attr.Type) types.Tuple`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#TupleUnknown): An unknown tuple value with the given element types.
+* [`types.TupleValue([]attr.Type, []attr.Value) (types.Tuple, diag.Diagnostics)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#TupleValue): A known value with the given element types and values.
+* [`types.TupleValueMust([]attr.Type, []attr.Value) types.Tuple`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#TupleValueMust): A known value with the given element types and values. Any diagnostics are converted to a runtime panic. This is recommended only for testing or exhaustively tested logic.
+
+In this example, a known tuple value (`["one", true, 123]`) is created from framework types:
+
+```go
+elementTypes := []attr.Type{
+	types.StringType,
+	types.BoolType,
+	types.Int64Type,
+}
+elements := []attr.Value{
+	types.StringValue("one"),
+	types.BoolValue(true),
+	types.Int64Value(123),
+}
+
+tupleValue, diags := types.TupleValue(elementTypes, elements)
+```

@@ -255,6 +255,10 @@
             "path": "handling-data/types/string"
           },
           {
+            "title": "Tuple",
+            "path": "handling-data/types/tuple"
+          },
+          {
             "title": "Custom Types",
             "path": "handling-data/types/custom"
           }

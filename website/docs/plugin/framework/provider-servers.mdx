@@ -15,7 +15,7 @@ The framework handles the majority of the server implementation details, however
 
 The [Terraform Plugin Protocol](/terraform/plugin/how-terraform-works#terraform-plugin-protocol) defines the compatibility between Terraform CLI and the underlying provider. It is versioned, with newer versions implementing support for enhanced provider functionality but also requiring newer Terraform CLI versions. The framework implements two versions of the protocol.
 
-* **Version 6**: The latest and recommended version, [protocol version 6](/terraform/plugin/how-terraform-works#protocol-version-6) implements enhanced provider functionality and requires Terraform CLI 1.0 or later.
+* **Version 6**: The latest and recommended version, [protocol version 6](/terraform/plugin/how-terraform-works#protocol-version-6) implements enhanced provider functionality and requires Terraform CLI 1.0 or later. If [combining providers with terraform-plugin-sdk provider code](/terraform/plugin/mux/combining-protocol-version-6-providers), such as [migrating to the framework](/terraform/plugin/framework/migrating), then Terraform CLI 1.1 or later is required.
 * **Version 5**: The prior version, [protocol version 5](/terraform/plugin/how-terraform-works#protocol-version-5) implements base provider functionality and requires Terraform CLI 0.12 or later.
 
 Provider developers must choose either version 6 or version 5 and should consistently use that one version across implementations.

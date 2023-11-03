@@ -131,7 +131,7 @@ func (v TupleValue) Elements() []attr.Value {
 	return result
 }
 
-// ElementTypes returns a copy of the ordered list of element types for the Tuple.
+// ElementTypes returns the ordered list of element types for the Tuple.
 func (v TupleValue) ElementTypes(ctx context.Context) []attr.Type {
 	return v.elementTypes
 }

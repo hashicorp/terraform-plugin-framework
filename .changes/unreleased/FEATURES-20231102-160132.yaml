@@ -1,5 +1,5 @@
-kind: FEATURES
-body: 'types/basetypes: Added TupleType and TupleValue implementations'
+kind: ENHANCEMENTS
+body: 'types/basetypes: Added `TupleType` and `TupleValue` implementations, which are only necessary for dynamic value handling'
 time: 2023-11-02T16:01:32.166746-04:00
 custom:
   Issue: "870"

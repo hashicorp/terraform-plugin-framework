@@ -38,7 +38,11 @@ and then verify that there are no planned changes after migrating to the Framewo
 - The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with a previous version of the
 provider, which is built on SDKv2.
 - The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within the
-http provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+
+<Note>
+The following is only applicable to managed resources.
+</Note>
 
 ```go
 func TestDataSource_UpgradeFromVersion(t *testing.T) {
@@ -52,17 +56,17 @@ func TestDataSource_UpgradeFromVersion(t *testing.T) {
                         Source:            "hashicorp/<provider>",
                     },
                 },
-                Config: `data "provider_datasource" "example" {
+                Config: `resource "provider_resource" "example" {
                             /* ... */
                         }`,
                 Check: resource.ComposeTestCheckFunc(
-                    resource.TestCheckResourceAttr("data.provider_datasource.example", "<attribute>", "<value>"),
+                    resource.TestCheckResourceAttr("provider_resource.example", "<attribute>", "<value>"),
                     /* ... */
                 ),
             },
             {
                 ProtoV5ProviderFactories: protoV5ProviderFactories(),
-                Config: `data "provider_datasource" "example" {
+                Config: `resource "provider_resource" "example" {
                             /* ... */
                         }`,
                 PlanOnly: true,

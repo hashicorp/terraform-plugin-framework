@@ -131,7 +131,7 @@ Implement the `Run` method by:
 1. Performing any computational logic.
 1. Setting the result value, based on the return definition, into the [`function.RunResponse.Result` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Result). Refer to the [returns](/terraform/plugin/framework/functions/returns) documentation for details about all available return types and how to handle data with each type.
 
-If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`function.RunResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Diagnostics).
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can be added into the [`function.RunResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Diagnostics).
 
 ### Reading Argument Data
 

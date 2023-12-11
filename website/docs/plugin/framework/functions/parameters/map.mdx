@@ -6,7 +6,7 @@ description: >-
 
 # Map Function Parameter
 
-Map function parameters expect a mapping of arbitrary string keys to values of single element type from a practitioner configuration. Values are accessible in function logic by a Go map of string keys to values of an appropriate type to match the element type `map[string]T` or the [framework map type](/terraform/plugin/framework/handling-data/types/map).
+Map function parameters expect a mapping of arbitrary string keys to values of single element type from a practitioner configuration. Values are accessible in function logic by a Go map of string keys to values of an appropriate pointer type to match the element type `map[string]*T` or the [framework map type](/terraform/plugin/framework/handling-data/types/map).
 
 In this Terraform configuration example, a map of string parameter is set to the mapped values of `"key1"` to `"value1"` and `"key2"` to `"value2"`:
 
@@ -45,6 +45,12 @@ If the map value should be a value type of an [object parameter type](/terraform
 
 ### Allow Null Values
 
+<Highlight>
+
+A known map value with null element values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
 By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
 
 ### Allow Unknown Values
@@ -69,7 +75,7 @@ When retrieving the argument value for this parameter:
 
 * If `CustomType` is set, use its associated value type.
 * If `AllowUnknownValues` is enabled, you must use the [framework map type](/terraform/plugin/framework/handling-data/types/map).
-* Otherwise, use the Go map of string keys to values of an appropriate type to match the element type `map[string]T` or [framework map type](/terraform/plugin/framework/handling-data/types/map).
+* Otherwise, use the Go map of string keys to values of an appropriate pointer type to match the element type `map[string]*T` or [framework map type](/terraform/plugin/framework/handling-data/types/map).
 
 In this example, a function defines a single map of string parameter and accesses its argument value:
 
@@ -86,7 +92,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
 }
 
 func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-    var mapArg map[string]string // Go nil equals Terraform null
+    var mapArg map[string]*string // Go nil equals Terraform null
     // var mapArg types.Map // e.g. with AllowUnknownValues
 
     resp.Diagnostics.Append(req.Arguments.Get(ctx, &mapArg)...)

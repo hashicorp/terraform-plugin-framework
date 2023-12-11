@@ -48,6 +48,12 @@ If the map value should be a value type of an [object parameter type](/terraform
 
 ### Allow Null Values
 
+<Highlight>
+
+A known object value with null attribute values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
 By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
 
 ### Allow Unknown Values
@@ -94,13 +100,13 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
 
 func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     var objectArg struct{
-        Attr1 string `tfsdk:"attr1"`
-        Attr2 int64  `tfsdk:"attr2"`
+        Attr1 *string `tfsdk:"attr1"`
+        Attr2 *int64  `tfsdk:"attr2"`
     }
     // e.g. with AllowNullValues
     // var objectArg *struct{
-    //    Attr1 string `tfsdk:"attr1"`
-    //    Attr2 int64  `tfsdk:"attr2"`
+    //    Attr1 *string `tfsdk:"attr1"`
+    //    Attr2 *int64  `tfsdk:"attr2"`
     // }
     // var objectArg types.Object // e.g. with AllowUnknownValues or AllowNullValues
 

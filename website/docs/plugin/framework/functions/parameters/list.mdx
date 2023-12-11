@@ -6,7 +6,7 @@ description: >-
 
 # List Function Parameter
 
-List function parameters expect an ordered collection of single element type value from a practitioner configuration. Values are accessible in function logic by a Go slice of an appropriate type to match the element type `[]T` or the [framework list type](/terraform/plugin/framework/handling-data/types/list).
+List function parameters expect an ordered collection of single element type value from a practitioner configuration. Values are accessible in function logic by a Go slice of an appropriate pointer type to match the element type `[]*T` or the [framework list type](/terraform/plugin/framework/handling-data/types/list).
 
 In this Terraform configuration example, a list of string parameter is set to the ordered collection values `one` and `two`:
 
@@ -42,6 +42,12 @@ If the list value should be a value type of an [object parameter type](/terrafor
 
 ### Allow Null Values
 
+<Highlight>
+
+A known list value with null element values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
 By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
 
 ### Allow Unknown Values
@@ -66,7 +72,7 @@ When retrieving the argument value for this parameter:
 
 * If `CustomType` is set, use its associated value type.
 * If `AllowUnknownValues` is enabled, you must use the [framework list type](/terraform/plugin/framework/handling-data/types/list).
-* Otherwise, use the Go slice of an appropriate type to match the element type `[]T` or [framework list type](/terraform/plugin/framework/handling-data/types/list).
+* Otherwise, use the Go slice of an appropriate pointer type to match the element type `[]*T` or [framework list type](/terraform/plugin/framework/handling-data/types/list).
 
 In this example, a function defines a single list of string parameter and accesses its argument value:
 
@@ -83,7 +89,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
 }
 
 func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-    var listArg []string // Go nil equals Terraform null
+    var listArg []*string // Go nil equals Terraform null
     // var listArg types.List // e.g. with AllowUnknownValues
 
     resp.Diagnostics.Append(req.Arguments.Get(ctx, &listArg)...)

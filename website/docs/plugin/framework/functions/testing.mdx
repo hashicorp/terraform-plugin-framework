@@ -22,7 +22,7 @@ Testing examples on this page are dependent on the example [echo function implem
 Testing a provider-defined function should ensure at least the following behaviors are covered:
 
 * Known values return the expected results.
-* For any list, map, object, and set parameters, null values for collection elements or object attributes.
+* For any list, map, object, and set parameters, null values for collection elements or object attributes. The `AllowNullValue` parameter setting does not affect Terraform sending these types of null values.
 * If any parameters enable `AllowNullValue`, null values for those arguments.
 * If any parameters enable `AllowUnknownValues`, unknown values for those arguments.
 * Any diagnostics, such as argument validation errors.

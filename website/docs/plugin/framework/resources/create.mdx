@@ -69,7 +69,7 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 
 func (r ThingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *ThingResourceModel
+	var data ThingResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)

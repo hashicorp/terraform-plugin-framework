@@ -11,6 +11,9 @@ import (
 )
 
 // Definition is a function definition. Always set at least the Result field.
+//
+// NOTE: Provider-defined function support is experimental and exposed without
+// compatibility promises until these notices are removed.
 type Definition struct {
 	// Parameters is the ordered list of function parameters and their
 	// associated data types.

@@ -12,8 +12,8 @@ import (
 
 // Definition is a function definition. Always set at least the Result field.
 //
-// NOTE: Provider-defined function support is experimental and exposed without
-// compatibility promises until these notices are removed.
+// NOTE: Provider-defined function support is in technical preview and offered
+// without compatibility promises until Terraform 1.8 is generally available.
 type Definition struct {
 	// Parameters is the ordered list of function parameters and their
 	// associated data types.

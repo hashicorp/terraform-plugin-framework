@@ -75,8 +75,8 @@ type ProviderWithConfigValidators interface {
 //
 // Provider defined functions are supported Terraform version 1.8 and later.
 //
-// NOTE: Provider-defined function support is experimental and exposed without
-// compatibility promises until these notices are removed.
+// NOTE: Provider-defined function support is in technical preview and offered
+// without compatibility promises until Terraform 1.8 is generally available.
 type ProviderWithFunctions interface {
 	Provider
 

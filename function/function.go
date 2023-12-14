@@ -10,8 +10,8 @@ import (
 // Function represents an instance of a function. This is the core interface
 // that all functions must implement.
 //
-// NOTE: Provider-defined function support is experimental and exposed without
-// compatibility promises until these notices are removed.
+// NOTE: Provider-defined function support is in technical preview and offered
+// without compatibility promises until Terraform 1.8 is generally available.
 type Function interface {
 	// Metadata should return the name of the function, such as parse_xyz.
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)

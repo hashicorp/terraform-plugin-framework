@@ -128,6 +128,11 @@ output "test" {
 }
 `,
                 Check: resource.TestCheckOutput("test", "test-value"),
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectUnknownOutputValue("test"),
+                    },
+                },
             },
         },
     })

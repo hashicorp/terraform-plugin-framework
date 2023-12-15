@@ -70,14 +70,14 @@ type Server struct {
 	// Provider.Functions() method.
 	functionFuncs map[string]func() function.Function
 
-	// functionTypesDiags is the cached Diagnostics obtained while populating
-	// functionTypes. This is to ensure any warnings or errors are also
-	// returned appropriately when fetching functionTypes.
-	functionTypesDiags diag.Diagnostics
+	// functionFuncsDiags is the cached Diagnostics obtained while populating
+	// functionFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching functionFuncs.
+	functionFuncsDiags diag.Diagnostics
 
-	// functionTypesMutex is a mutex to protect concurrent functionTypes
+	// functionFuncsMutex is a mutex to protect concurrent functionFuncs
 	// access from race conditions.
-	functionTypesMutex sync.Mutex
+	functionFuncsMutex sync.Mutex
 
 	// providerSchema is the cached Provider Schema for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be

@@ -121,11 +121,11 @@ func (s *Server) FunctionDefinitions(ctx context.Context) (map[string]function.D
 // on first use.
 func (s *Server) FunctionFuncs(ctx context.Context) (map[string]func() function.Function, diag.Diagnostics) {
 	logging.FrameworkTrace(ctx, "Checking FunctionTypes lock")
-	s.functionTypesMutex.Lock()
-	defer s.functionTypesMutex.Unlock()
+	s.functionFuncsMutex.Lock()
+	defer s.functionFuncsMutex.Unlock()
 
 	if s.functionFuncs != nil {
-		return s.functionFuncs, s.functionTypesDiags
+		return s.functionFuncs, s.functionFuncsDiags
 	}
 
 	s.functionFuncs = make(map[string]func() function.Function)
@@ -135,7 +135,7 @@ func (s *Server) FunctionFuncs(ctx context.Context) (map[string]func() function.
 	if !ok {
 		// Only function-specific RPCs should return diagnostics about the
 		// provider not implementing functions or missing functions.
-		return s.functionFuncs, s.functionTypesDiags
+		return s.functionFuncs, s.functionFuncsDiags
 	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Provider Functions")
@@ -151,7 +151,7 @@ func (s *Server) FunctionFuncs(ctx context.Context) (map[string]func() function.
 		functionImpl.Metadata(ctx, metadataReq, &metadataResp)
 
 		if metadataResp.Name == "" {
-			s.functionTypesDiags.AddError(
+			s.functionFuncsDiags.AddError(
 				"Function Name Missing",
 				fmt.Sprintf("The %T Function returned an empty string from the Metadata method. ", functionImpl)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
@@ -162,7 +162,7 @@ func (s *Server) FunctionFuncs(ctx context.Context) (map[string]func() function.
 		logging.FrameworkTrace(ctx, "Found function", map[string]interface{}{logging.KeyFunctionName: metadataResp.Name})
 
 		if _, ok := s.functionFuncs[metadataResp.Name]; ok {
-			s.functionTypesDiags.AddError(
+			s.functionFuncsDiags.AddError(
 				"Duplicate Function Name Defined",
 				fmt.Sprintf("The %s function name was returned for multiple functions. ", metadataResp.Name)+
 					"Function names must be unique. "+
@@ -174,7 +174,7 @@ func (s *Server) FunctionFuncs(ctx context.Context) (map[string]func() function.
 		s.functionFuncs[metadataResp.Name] = functionFunc
 	}
 
-	return s.functionFuncs, s.functionTypesDiags
+	return s.functionFuncs, s.functionFuncsDiags
 }
 
 // FunctionMetadatas returns a slice of FunctionMetadata for the GetMetadata

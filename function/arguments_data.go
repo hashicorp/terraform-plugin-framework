@@ -76,7 +76,8 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics
 		if fwreflect.IsGenericAttrValue(ctx, target) {
 			//nolint:forcetypeassert // Type assertion is guaranteed by the above `reflect.IsGenericAttrValue` function
 			*(target.(*attr.Value)) = attrValue
-			return nil
+
+			continue
 		}
 
 		tfValue, err := attrValue.ToTerraformValue(ctx)
@@ -136,6 +137,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	if fwreflect.IsGenericAttrValue(ctx, target) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `reflect.IsGenericAttrValue` function
 		*(target.(*attr.Value)) = attrValue
+
 		return nil
 	}
 

@@ -156,6 +156,23 @@ func TestArgumentsDataGet(t *testing.T) {
 				),
 			},
 		},
+		"attr-value": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewInt64Unknown(),
+				basetypes.NewStringValue("test"),
+			}),
+			targets: []any{
+				new(attr.Value),
+				new(attr.Value),
+				new(attr.Value),
+			},
+			expected: []any{
+				pointer(attr.Value(basetypes.NewBoolNull())),
+				pointer(attr.Value(basetypes.NewInt64Unknown())),
+				pointer(attr.Value(basetypes.NewStringValue("test"))),
+			},
+		},
 		"framework-type": {
 			argumentsData: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolNull(),
@@ -279,6 +296,14 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 					},
 				),
 			},
+		},
+		"attr-value": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+			}),
+			position: 0,
+			target:   new(attr.Value),
+			expected: pointer(attr.Value(basetypes.NewBoolNull())),
 		},
 		"framework-type": {
 			argumentsData: function.NewArgumentsData([]attr.Value{

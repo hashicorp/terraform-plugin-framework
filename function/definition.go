@@ -39,7 +39,7 @@ type Definition struct {
 	Description string
 
 	// MarkdownDescription is the longer documentation for usage, such as a
-	// registry, to give practitioners more information about the purpose of the'
+	// registry, to give practitioners more information about the purpose of the
 	// function and how its logic is implemented.
 	MarkdownDescription string
 

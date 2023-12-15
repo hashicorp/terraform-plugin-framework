@@ -20,7 +20,7 @@ type Return interface {
 
 	// NewResultData should return a new ResultData with an unknown value (or
 	// best approximation of an invalid value) of the corresponding data type.
-	// Ter Function type Run method is expected to overwrite the value before
+	// The Function type Run method is expected to overwrite the value before
 	// returning.
 	NewResultData(context.Context) (ResultData, diag.Diagnostics)
 }

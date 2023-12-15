@@ -192,6 +192,67 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
 }
 ```
 
+#### Reading Variadic Parameter Argument Data
+
+The optional `VariadicParameter` field in a function definition enables a final variadic parameter which accepts zero, one, or more values of the same type. It may be optionally combined with `Parameters`, meaning it represents the any argument data after the final parameter. When reading argument data, a `VariadicParameter` is represented as an ordered list of the parameter type, where the list has zero or more elements to match the given arguments.
+
+Use either the [framework list type](/terraform/plugin/framework/handling-data/types/list) or a Go slice of an appropriate type to match the variadic parameter `[]T`.
+
+In this example, there is a boolean parameter and string variadic parameter, where the variadic parameter argument data is always fetched as a list:
+
+```go
+func (f *ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other fields ...
+        Parameters: []function.Parameter{
+            function.BoolParameter{},
+        },
+        VariadicParameter: function.StringParameter{},
+    }
+}
+
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var boolArg bool
+    var stringVarg []string
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg, &stringVarg)...)
+
+    // ... other logic ...
+}
+```
+
+If necessary to return diagnostics for a specific variadic argument, note that Terraform treats each zero-based argument position individually unlike how the framework exposes the argument data. Add the number of non-variadic parameters (if any) to the variadic argument list element index to ensure the diagnostic is aligned to the correct argument in the configuration.
+
+In this example with two parameters and one variadic parameter, warning diagnostics are returned for all variadic arguments:
+
+```go
+func (f *ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other fields ...
+        Parameters: []function.Parameter{
+            function.BoolParameter{},
+            function.Int64Parameter{},
+        },
+        VariadicParameter: function.StringParameter{},
+    }
+}
+
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var boolArg bool
+    var int64Arg int64
+    var stringVarg []string
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg)...)
+
+    for index, element := range stringVarg {
+        // Added by 2 to match the definition including two parameters.
+        resp.Diagnostic.AddArgumentWarning(2+index, "example summary", "example detail")
+    }
+
+    // ... other logic ...
+}
+```
+
 ### Setting Result Data
 
 The framework supports setting a result value into the [`function.RunResponse.Result` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Result), which is of the [`function.ResultData` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ResultData). The result value must match the return type, otherwise the framework or Terraform will return an error.

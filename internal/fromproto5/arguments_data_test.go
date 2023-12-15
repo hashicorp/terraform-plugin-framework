@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -114,6 +115,23 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
+			}),
+		},
+		"parameters-one-CustomType": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolType{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Bool{
+					Bool: basetypes.NewBoolValue(true),
+				},
 			}),
 		},
 		"parameters-one-variadicparameter-zero": {
@@ -289,6 +307,27 @@ func TestArgumentsData(t *testing.T) {
 					basetypes.StringType{},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg0"),
+					},
+				),
+			}),
+		},
+		"variadicparameter-one-CustomType": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringType{},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewListValueMust(
+					testtypes.StringType{},
+					[]attr.Value{
+						testtypes.String{
+							CreatedBy:      testtypes.StringType{},
+							InternalString: basetypes.NewStringValue("varg-arg0"),
+						},
 					},
 				),
 			}),

@@ -476,6 +476,10 @@ func TestServerGetMetadata(t *testing.T) {
 				return response.DataSources[i].TypeName < response.DataSources[j].TypeName
 			})
 
+			sort.Slice(response.Functions, func(i int, j int) bool {
+				return response.Functions[i].Name < response.Functions[j].Name
+			})
+
 			sort.Slice(response.Resources, func(i int, j int) bool {
 				return response.Resources[i].TypeName < response.Resources[j].TypeName
 			})

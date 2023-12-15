@@ -15,7 +15,7 @@ import (
 // ResultData is the response data sent to Terraform for a single function call.
 // Use the Set method in the Function type Run method to set the result data.
 //
-// For unit testing, use the NewResulData function to manually create the data
+// For unit testing, use the NewResultData function to manually create the data
 // for comparison.
 type ResultData struct {
 	value attr.Value

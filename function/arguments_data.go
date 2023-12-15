@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-// ArgumentsData is the positional argument data sent by Terraform for a single
-// function call. Use the GetArgument method in the Function type Run method to
-// fetch the data of each argument.
+// ArgumentsData is the zero-based positional argument data sent by Terraform
+// for a single function call. Use the Get method or GetArgument method in the
+// Function type Run method to fetch the data.
 //
 // This data is automatically populated by the framework based on the function
 // definition. For unit testing, use the NewArgumentsData function to manually
@@ -41,9 +41,14 @@ func (d ArgumentsData) Equal(o ArgumentsData) bool {
 
 // Get retrieves all argument data and populates the targets with the values.
 // All arguments must be present in the targets, including all parameters and an
-// optional variadic parameter, if defined for the function, otherwise an error
-// diagnostic will be raised. Each target type must be acceptable for the data
-// type in the parameter definition.
+// optional variadic parameter, otherwise an error diagnostic will be raised.
+// Each target type must be acceptable for the data type in the parameter
+// definition.
+//
+// Variadic parameter argument data must be consumed by a types.List or Go slice
+// type with an element type appropriate for the parameter definition ([]T). The
+// framework automatically populates this list with elements matching the zero,
+// one, or more arguments passed.
 func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -103,9 +108,14 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics
 	return diags
 }
 
-// GetArgument retrieves the argument data found at the given position and
-// populates the target with the value. The target type must be acceptable for
-// the data type in the parameter definition.
+// GetArgument retrieves the argument data found at the given zero-based
+// position and populates the target with the value. The target type must be
+// acceptable for the data type in the parameter definition.
+//
+// Variadic parameter argument data must be consumed by a types.List or Go slice
+// type with an element type appropriate for the parameter definition ([]T) at
+// the position after all parameters. The framework automatically populates this
+// list with elements matching the zero, one, or more arguments passed.
 func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) diag.Diagnostics {
 	var diags diag.Diagnostics
 

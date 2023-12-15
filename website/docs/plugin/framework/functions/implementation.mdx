@@ -114,7 +114,7 @@ The `Return` field must be defined as all functions must return a result. This i
 
 There may be zero or more parameters, which are defined with the `Parameters` field. They are ordered, which influences how practitioners call the function in their configurations and how the [Run method](#run-method) must read the argument data. Refer to the [parameters](/terraform/plugin/framework/functions/parameters) documentation for details about all available types and how to handle data with each type.
 
-An optional `VariadicParameter` field enables a final variadic parameter which accepts zero, one, or more values. It may be optionally combined with `Parameters`, meaning it represents the any argument data after the final parameter. When reading argument data, a `VariadicParameter` is represented as an ordered list of the parameter type, where the list has zero or more elements to match the given arguments.
+An optional `VariadicParameter` field enables a final variadic parameter which accepts zero, one, or more values of the same type. It may be optionally combined with `Parameters`, meaning it represents the any argument data after the final parameter. When reading argument data, a `VariadicParameter` is represented as an ordered list of the parameter type, where the list has zero or more elements to match the given arguments.
 
 By default, Terraform will not pass null or unknown values to the provider logic when a function is called. Within each parameter, use the `AllowNullValue` and/or `AllowUnknownValues` fields to explicitly allow those kinds of values. Enabling `AllowNullValue` requires using a pointer type or [framework type](/terraform/plugin/framework/handling-data/types) when reading argument data. Enabling `AllowUnknownValues` requires using a [framework type](/terraform/plugin/framework/handling-data/types) when reading argument data.
 
@@ -128,7 +128,7 @@ If a function is being deprecated, such as for future removal, the `DeprecationM
 
 ### Run Method
 
-The [`function.Function` interface `Run` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#Function.Read) defines the logic that is invoked when Terraform calls the function. Only argument data is provided when a function is called. Refer to [HashiCorp Provider Design Principles](/terraform/plugin/best-practices/hashicorp-provider-design-principles) for additional best practice details.
+The [`function.Function` interface `Run` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#Function.Run) defines the logic that is invoked when Terraform calls the function. Only argument data is provided when a function is called. Refer to [HashiCorp Provider Design Principles](/terraform/plugin/best-practices/hashicorp-provider-design-principles) for additional best practice details.
 
 Implement the `Run` method by:
 

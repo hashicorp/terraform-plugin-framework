@@ -73,7 +73,7 @@ type ProviderWithConfigValidators interface {
 // ProviderWithFunctions is an interface type that extends Provider to
 // include provider defined functions for usage in practitioner configurations.
 //
-// Provider defined functions are supported Terraform version 1.8 and later.
+// Provider-defined functions are supported in Terraform version 1.8 and later.
 //
 // NOTE: Provider-defined function support is in technical preview and offered
 // without compatibility promises until Terraform 1.8 is generally available.

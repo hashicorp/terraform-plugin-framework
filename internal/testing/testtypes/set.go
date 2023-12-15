@@ -3,7 +3,10 @@
 
 package testtypes
 
-import "github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+)
 
 var (
 	_ basetypes.SetTypable  = SetType{}
@@ -14,6 +17,26 @@ type SetType struct {
 	basetypes.SetType
 }
 
+func (t SetType) Equal(o attr.Type) bool {
+	other, ok := o.(SetType)
+
+	if !ok {
+		return false
+	}
+
+	return t.SetType.Equal(other.SetType)
+}
+
 type SetValue struct {
 	basetypes.SetValue
+}
+
+func (v SetValue) Equal(o attr.Value) bool {
+	other, ok := o.(SetValue)
+
+	if !ok {
+		return false
+	}
+
+	return v.SetValue.Equal(other.SetValue)
 }

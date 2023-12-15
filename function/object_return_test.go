@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -31,12 +32,24 @@ func TestObjectReturnGetType(t *testing.T) {
 				},
 			},
 		},
-		// "CustomType": {
-		// 	parameter: function.ObjectReturn{
-		// 		CustomType: testtypes.ObjectType{},
-		// 	},
-		// 	expected: testtypes.ObjectType{},
-		// },
+		"CustomType": {
+			parameter: function.ObjectReturn{
+				CustomType: testtypes.ObjectType{
+					ObjectType: basetypes.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"test": basetypes.StringType{},
+						},
+					},
+				},
+			},
+			expected: testtypes.ObjectType{
+				ObjectType: basetypes.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test": basetypes.StringType{},
+					},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

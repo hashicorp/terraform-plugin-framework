@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -227,12 +228,20 @@ func TestListParameterGetType(t *testing.T) {
 				ElemType: basetypes.StringType{},
 			},
 		},
-		// "CustomType": {
-		// 	parameter: function.ListParameter{
-		// 		CustomType: testtypes.ListType{},
-		// 	},
-		// 	expected: testtypes.ListType{},
-		// },
+		"CustomType": {
+			parameter: function.ListParameter{
+				CustomType: testtypes.ListType{
+					ListType: basetypes.ListType{
+						ElemType: basetypes.StringType{},
+					},
+				},
+			},
+			expected: testtypes.ListType{
+				ListType: basetypes.ListType{
+					ElemType: basetypes.StringType{},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

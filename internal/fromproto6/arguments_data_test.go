@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -133,6 +134,42 @@ func TestArgumentsData(t *testing.T) {
 					Bool: basetypes.NewBoolValue(true),
 				},
 			}),
+		},
+		"parameters-one-TypeWithValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"parameters-one-TypeWithValidation-warning": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateWarning{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Bool{
+					Bool: basetypes.NewBoolValue(true),
+				},
+			}),
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(path.Empty(), "Warning Diagnostic", "This is a warning."),
+			},
 		},
 		"parameters-one-variadicparameter-zero": {
 			input: []*tfprotov6.DynamicValue{

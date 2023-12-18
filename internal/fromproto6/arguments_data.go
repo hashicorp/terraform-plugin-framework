@@ -8,8 +8,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
@@ -101,6 +104,23 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			)
 
 			return function.NewArgumentsData(nil), diags
+		}
+
+		// This is intentionally below the attr.Value conversion so it can be
+		// updated for any new type system validation interfaces. Note that the
+		// original xattr.TypeWithValidation interface must set a path.Path,
+		// which will always be incorrect in the context of functions.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/589
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/893
+		if attrTypeWithValidate, ok := parameterType.(xattr.TypeWithValidate); ok {
+			logging.FrameworkTrace(ctx, "Parameter type implements TypeWithValidate")
+			logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
+			diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path.Empty())...)
+			logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
+
+			if diags.HasError() {
+				continue
+			}
 		}
 
 		if definition.VariadicParameter != nil && position >= len(definition.Parameters) {

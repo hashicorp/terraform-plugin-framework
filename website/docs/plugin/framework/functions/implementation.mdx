@@ -194,7 +194,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
 
 #### Reading Variadic Parameter Argument Data
 
-The optional `VariadicParameter` field in a function definition enables a final variadic parameter which accepts zero, one, or more values of the same type. It may be optionally combined with `Parameters`, meaning it represents the any argument data after the final parameter. When reading argument data, a `VariadicParameter` is represented as an ordered list of the parameter type, where the list has zero or more elements to match the given arguments.
+The optional `VariadicParameter` field in a function definition enables a final variadic parameter which accepts zero, one, or more values of the same type. It may be optionally combined with `Parameters`, meaning it represents the argument data after the final parameter. When reading argument data, a `VariadicParameter` is represented as an ordered list of the parameter type, where the list has zero or more elements to match the given arguments.
 
 Use either the [framework list type](/terraform/plugin/framework/handling-data/types/list) or a Go slice of an appropriate type to match the variadic parameter `[]T`.
 

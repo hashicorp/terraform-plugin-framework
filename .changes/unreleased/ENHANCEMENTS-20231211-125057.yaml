@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'diag: Added `NewArgumentErrorDiagnostic()` and `NewArgumentWarningDiagnostic()`
+  functions, which create diagnostics with the function argument position set'
+time: 2023-12-11T12:50:57.570179-05:00
+custom:
+  Issue: "889"

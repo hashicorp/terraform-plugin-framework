@@ -45,6 +45,7 @@ func TestGetMetadataResponse(t *testing.T) {
 						TypeName: "test_data_source_2",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 			},
 		},
@@ -70,6 +71,31 @@ func TestGetMetadataResponse(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
+				Resources: []tfprotov6.ResourceMetadata{},
+			},
+		},
+		"functions": {
+			input: &fwserver.GetMetadataResponse{
+				Functions: []fwserver.FunctionMetadata{
+					{
+						Name: "function1",
+					},
+					{
+						Name: "function2",
+					},
+				},
+			},
+			expected: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Functions: []tfprotov6.FunctionMetadata{
+					{
+						Name: "function1",
+					},
+					{
+						Name: "function2",
+					},
+				},
 				Resources: []tfprotov6.ResourceMetadata{},
 			},
 		},
@@ -86,6 +112,7 @@ func TestGetMetadataResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetMetadataResponse{
 				DataSources: []tfprotov6.DataSourceMetadata{},
+				Functions:   []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{
 					{
 						TypeName: "test_resource_1",
@@ -105,6 +132,7 @@ func TestGetMetadataResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetMetadataResponse{
 				DataSources: []tfprotov6.DataSourceMetadata{},
+				Functions:   []tfprotov6.FunctionMetadata{},
 				Resources:   []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,

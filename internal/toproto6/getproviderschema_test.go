@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
@@ -80,6 +81,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -109,6 +111,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -140,6 +143,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -169,6 +173,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -200,6 +205,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -229,6 +235,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -260,6 +267,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -289,6 +297,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -318,6 +327,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -347,6 +357,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -383,6 +394,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -428,6 +440,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -468,6 +481,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -500,6 +514,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -545,6 +560,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -577,6 +593,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -606,6 +623,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -642,6 +660,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -687,6 +706,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -727,6 +747,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -763,6 +784,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -795,6 +817,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -838,6 +861,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -867,6 +891,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -910,6 +935,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -953,6 +979,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -994,6 +1021,192 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				Functions:       map[string]*tfprotov6.Function{},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction1": {
+						Return: function.StringReturn{},
+					},
+					"testfunction2": {
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction1": {
+						Parameters: []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+					"testfunction2": {
+						Parameters: []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-deprecationmessage": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						DeprecationMessage: "test deprecation message",
+						Return:             function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						DeprecationMessage: "test deprecation message",
+						Parameters:         []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-description": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Description: "test description",
+						Return:      function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						Description: "test description",
+						Parameters:  []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-parameters": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Parameters: []function.Parameter{
+							function.BoolParameter{},
+							function.Int64Parameter{},
+							function.StringParameter{},
+						},
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						Parameters: []*tfprotov6.FunctionParameter{
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.Bool,
+							},
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.Number,
+							},
+							{
+								Name: function.DefaultParameterName,
+								Type: tftypes.String,
+							},
+						},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-result": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return: function.StringReturn{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						Parameters: []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-summary": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return:  function.StringReturn{},
+						Summary: "test summary",
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						Parameters: []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+						Summary: "test summary",
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"functions-variadicparameter": {
+			input: &fwserver.GetProviderSchemaResponse{
+				FunctionDefinitions: map[string]function.Definition{
+					"testfunction": {
+						Return:            function.StringReturn{},
+						VariadicParameter: function.StringParameter{},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions: map[string]*tfprotov6.Function{
+					"testfunction": {
+						Parameters: []*tfprotov6.FunctionParameter{},
+						Return: &tfprotov6.FunctionReturn{
+							Type: tftypes.String,
+						},
+						VariadicParameter: &tfprotov6.FunctionParameter{
+							Name: function.DefaultParameterName,
+							Type: tftypes.String,
+						},
+					},
+				},
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
@@ -1010,6 +1223,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1037,6 +1251,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1063,6 +1278,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1090,6 +1306,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1117,6 +1334,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1143,6 +1361,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1169,6 +1388,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1198,6 +1418,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1235,6 +1456,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1275,6 +1497,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1308,6 +1531,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1343,6 +1567,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1379,6 +1604,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1407,6 +1633,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1436,6 +1663,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1473,6 +1701,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1513,6 +1742,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1548,6 +1778,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1579,6 +1810,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1612,6 +1844,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1647,6 +1880,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1679,6 +1913,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						BlockTypes: []*tfprotov6.SchemaNestedBlock{
@@ -1719,6 +1954,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						BlockTypes: []*tfprotov6.SchemaNestedBlock{
@@ -1757,6 +1993,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						BlockTypes: []*tfprotov6.SchemaNestedBlock{
@@ -1791,6 +2028,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1817,6 +2055,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1843,6 +2082,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1869,6 +2109,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1895,6 +2136,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1924,6 +2166,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -1961,6 +2204,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2001,6 +2245,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2034,6 +2279,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2069,6 +2315,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2105,6 +2352,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2133,6 +2381,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2162,6 +2411,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2199,6 +2449,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2239,6 +2490,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2274,6 +2526,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2305,6 +2558,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2338,6 +2592,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2373,6 +2628,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ProviderMeta: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -2408,6 +2664,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource_1": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2448,6 +2705,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2478,6 +2736,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2508,6 +2767,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2538,6 +2798,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2568,6 +2829,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2598,6 +2860,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2628,6 +2891,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2657,6 +2921,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2686,6 +2951,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2718,6 +2984,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2758,6 +3025,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2801,6 +3069,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2837,6 +3106,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2875,6 +3145,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2914,6 +3185,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2945,6 +3217,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -2977,6 +3250,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3017,6 +3291,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3060,6 +3335,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3098,6 +3374,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3132,6 +3409,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3168,6 +3446,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3206,6 +3485,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3241,6 +3521,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3284,6 +3565,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3325,6 +3607,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -3358,6 +3641,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block:   &tfprotov6.SchemaBlock{},

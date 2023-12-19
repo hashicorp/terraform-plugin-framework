@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -102,6 +103,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -167,6 +169,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -206,6 +209,167 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+											resp.Definition = function.Definition{
+												Return: function.StringReturn{},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "function1"
+										},
+									}
+								},
+								func() function.Function {
+									return &testprovider.Function{
+										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+											resp.Definition = function.Definition{
+												Return: function.StringReturn{},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "function2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions: map[string]*tfprotov5.Function{
+					"function1": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+					"function2": {
+						Parameters: []*tfprotov5.FunctionParameter{},
+						Return: &tfprotov5.FunctionReturn{
+							Type: tftypes.String,
+						},
+					},
+				},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+											resp.Definition = function.Definition{
+												Return: function.StringReturn{},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "testfunction" // intentionally duplicate
+										},
+									}
+								},
+								func() function.Function {
+									return &testprovider.Function{
+										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+											resp.Definition = function.Definition{
+												Return: function.StringReturn{},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "testfunction" // intentionally duplicate
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Duplicate Function Name Defined",
+						Detail: "The testfunction function name was returned for multiple functions. " +
+							"Function names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: map[string]*tfprotov5.Function{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-empty-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "" // intentionally empty
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Function Name Missing",
+						Detail: "The *testprovider.Function Function returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -235,6 +399,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -273,6 +438,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -340,6 +506,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -428,6 +595,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -467,6 +635,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -598,6 +767,11 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   "trace",
 			"@message": "Called provider defined Provider DataSources",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking FunctionTypes lock",
 			"@module":  "sdk.framework",
 		},
 	}

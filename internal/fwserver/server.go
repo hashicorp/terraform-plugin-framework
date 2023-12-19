@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -54,6 +55,29 @@ type Server struct {
 	// dataSourceTypesMutex is a mutex to protect concurrent dataSourceTypes
 	// access from race conditions.
 	dataSourceTypesMutex sync.Mutex
+
+	// functionDefinitions is the cached Function Definitions for RPCs that need to
+	// convert data from the protocol. If not found, it will be fetched from the
+	// Function.Definition() method.
+	functionDefinitions map[string]function.Definition
+
+	// functionDefinitionsMutex is a mutex to protect concurrent functionDefinitions
+	// access from race conditions.
+	functionDefinitionsMutex sync.RWMutex
+
+	// functionFuncs is the cached Function functions for RPCs that need to
+	// access functions. If not found, it will be fetched from the
+	// Provider.Functions() method.
+	functionFuncs map[string]func() function.Function
+
+	// functionFuncsDiags is the cached Diagnostics obtained while populating
+	// functionFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching functionFuncs.
+	functionFuncsDiags diag.Diagnostics
+
+	// functionFuncsMutex is a mutex to protect concurrent functionFuncs
+	// access from race conditions.
+	functionFuncsMutex sync.Mutex
 
 	// providerSchema is the cached Provider Schema for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be

@@ -34,6 +34,11 @@ func Diagnostics(ctx context.Context, diagnostics diag.Diagnostics) []*tfprotov6
 			Summary:  diagnostic.Summary(),
 		}
 
+		if diagWithFunctionArgument, ok := diagnostic.(diag.DiagnosticWithFunctionArgument); ok {
+			functionArgument := int64(diagWithFunctionArgument.FunctionArgument())
+			tfprotov6Diagnostic.FunctionArgument = &functionArgument
+		}
+
 		if diagWithPath, ok := diagnostic.(diag.DiagnosticWithPath); ok {
 			var diags diag.Diagnostics
 

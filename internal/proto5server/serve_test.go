@@ -55,6 +55,18 @@ func TestServerCancelInFlightContexts(t *testing.T) {
 	// canceled, or we have an error reported
 }
 
+func testNewSingleValueDynamicValue(t *testing.T, argumentValue tftypes.Value) *tfprotov5.DynamicValue {
+	t.Helper()
+
+	dynamicValue, err := tfprotov5.NewDynamicValue(argumentValue.Type(), argumentValue)
+
+	if err != nil {
+		t.Fatalf("unable to create DynamicValue: %s", err)
+	}
+
+	return &dynamicValue
+}
+
 func testNewDynamicValue(t *testing.T, schemaType tftypes.Type, schemaValue map[string]tftypes.Value) *tfprotov5.DynamicValue {
 	t.Helper()
 

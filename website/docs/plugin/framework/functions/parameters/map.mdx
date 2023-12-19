@@ -1,0 +1,103 @@
+---
+page_title: 'Plugin Development - Framework: Map Function Parameter'
+description: >-
+  Learn the map function parameter type in the provider development framework.
+---
+
+# Map Function Parameter
+
+Map function parameters expect a mapping of arbitrary string keys to values of single element type from a practitioner configuration. Values are accessible in function logic by a Go map of string keys to values of an appropriate pointer type to match the element type `map[string]*T` or the [framework map type](/terraform/plugin/framework/handling-data/types/map).
+
+In this Terraform configuration example, a map of string parameter is set to the mapped values of `"key1"` to `"value1"` and `"key2"` to `"value2"`:
+
+```hcl
+provider::example::example({
+    "key1" = "value1",
+    "key2" = "value2",
+})
+```
+
+## Function Definition
+
+Use the [`function.MapParameter` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#MapParameter) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method) to accept a map value.
+
+The `ElementType` field must be defined, which represents the single [framework value type](/terraform/plugin/framework/handling-data/types) of every element of the map. An element type may itself contain further collection or object types, if necessary.
+
+In this example, a function definition includes a first position map of string parameter:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.MapParameter{
+                ElementType: types.StringType,
+                // ... potentially other MapParameter fields ...
+            },
+        },
+    }
+}
+```
+
+If the map value should be the element type of another [collection parameter type](/terraform/plugin/framework/functions/parameters#collection-parameter-types), set the `ElementType` field according to the [framework map type](/terraform/plugin/framework/handling-data/types/map). Refer to the collection parameter type documentation for additional details.
+
+If the map value should be a value type of an [object parameter type](/terraform/plugin/framework/functions/parameters#object-parameter-type), set the `AttributeTypes` map value according to the [framework map type](/terraform/plugin/framework/handling-data/types/map). Refer to the object parameter type documentation for additional details.
+
+### Allow Null Values
+
+<Highlight>
+
+A known map value with null element values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
+By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
+
+### Allow Unknown Values
+
+By default, Terraform will not pass unknown values to the function logic. Use the `AllowUnknownValues` field to explicitly allow unknown values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowUnknownValues` requires using a [framework map type](/terraform/plugin/framework/handling-data/types/map) when reading argument data.
+
+### Custom Types
+
+You may want to build your own data value and type implementations to allow your provider to combine validation and other behaviors into a reusable bundle. This helps avoid duplication and ensures consistency. These implementations use the `CustomType` field in the parameter type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Documentation
+
+Refer to [function documentation](/terraform/plugin/framework/functions/documentation) for information about the `Name`, `Description`, and `MarkdownDescription` fields available.
+
+## Reading Argument Data
+
+The [function implementation](/terraform/plugin/framework/functions/implementation) documentation covers the general methods for reading function argument data in function logic.
+
+When retrieving the argument value for this parameter:
+
+* If `CustomType` is set, use its associated value type.
+* If `AllowUnknownValues` is enabled, you must use the [framework map type](/terraform/plugin/framework/handling-data/types/map).
+* Otherwise, use the Go map of string keys to values of an appropriate pointer type to match the element type `map[string]*T` or [framework map type](/terraform/plugin/framework/handling-data/types/map).
+
+In this example, a function defines a single map of string parameter and accesses its argument value:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.MapParameter{
+                ElementType: types.StringType,
+            },
+        },
+    }
+}
+
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var mapArg map[string]*string // Go nil equals Terraform null
+    // var mapArg types.Map // e.g. with AllowUnknownValues
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &mapArg)...)
+
+    // mapArg is now populated
+    // ... other logic ...
+}
+```

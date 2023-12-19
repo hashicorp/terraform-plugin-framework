@@ -1,0 +1,100 @@
+---
+page_title: 'Plugin Development - Framework: Set Function Parameter'
+description: >-
+  Learn the set function parameter type in the provider development framework.
+---
+
+# Set Function Parameter
+
+Set function parameters expect an unordered, unique collection of single element type value from a practitioner configuration. Values are accessible in function logic by a Go slice of an appropriate pointer type to match the element type `[]*T` or the [framework set type](/terraform/plugin/framework/handling-data/types/set).
+
+In this Terraform configuration example, a set of string parameter is set to the collection values `one` and `two`:
+
+```hcl
+provider::example::example(["one", "two"])
+```
+
+## Function Definition
+
+Use the [`function.SetParameter` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#SetParameter) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method) to accept a set value.
+
+The `ElementType` field must be defined, which represents the single [framework value type](/terraform/plugin/framework/handling-data/types) of every element of the set. An element type may itself contain further collection or object types, if necessary.
+
+In this example, a function definition includes a first position set of string parameter:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.SetParameter{
+                ElementType: types.StringType,
+                // ... potentially other SetParameter fields ...
+            },
+        },
+    }
+}
+```
+
+If the set value should be the element type of another [collection parameter type](/terraform/plugin/framework/functions/parameters#collection-parameter-types), set the `ElementType` field according to the [framework set type](/terraform/plugin/framework/handling-data/types/set). Refer to the collection parameter type documentation for additional details.
+
+If the set value should be a value type of an [object parameter type](/terraform/plugin/framework/functions/parameters#object-parameter-type), set the `AttributeTypes` map value according to the [framework set type](/terraform/plugin/framework/handling-data/types/set). Refer to the object parameter type documentation for additional details.
+
+### Allow Null Values
+
+<Highlight>
+
+A known set value with null element values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
+By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
+
+### Allow Unknown Values
+
+By default, Terraform will not pass unknown values to the function logic. Use the `AllowUnknownValues` field to explicitly allow unknown values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowUnknownValues` requires using a [framework set type](/terraform/plugin/framework/handling-data/types/set) when reading argument data.
+
+### Custom Types
+
+You may want to build your own data value and type implementations to allow your provider to combine validation and other behaviors into a reusable bundle. This helps avoid duplication and ensures consistency. These implementations use the `CustomType` field in the parameter type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Documentation
+
+Refer to [function documentation](/terraform/plugin/framework/functions/documentation) for information about the `Name`, `Description`, and `MarkdownDescription` fields available.
+
+## Reading Argument Data
+
+The [function implementation](/terraform/plugin/framework/functions/implementation) documentation covers the general methods for reading function argument data in function logic.
+
+When retrieving the argument value for this parameter:
+
+* If `CustomType` is set, use its associated value type.
+* If `AllowUnknownValues` is enabled, you must use the [framework set type](/terraform/plugin/framework/handling-data/types/set).
+* Otherwise, use the Go slice of an appropriate pointer type to match the element type `[]*T` or [framework set type](/terraform/plugin/framework/handling-data/types/set).
+
+In this example, a function defines a single set of string parameter and accesses its argument value:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.SetParameter{
+                ElementType: types.StringType,
+            },
+        },
+    }
+}
+
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var setArg []*string // Go nil equals Terraform null
+    // var setArg types.Set // e.g. with AllowUnknownValues
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &setArg)...)
+
+    // setArg is now populated
+    // ... other logic ...
+}
+```

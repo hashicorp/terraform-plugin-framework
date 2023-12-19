@@ -1,0 +1,118 @@
+---
+page_title: 'Plugin Development - Framework: Object Function Parameter'
+description: >-
+  Learn the object function parameter type in the provider development framework.
+---
+
+# Object Function Parameter
+
+Object function parameters expect a single structure mapping explicit attribute names to type definitions from a practitioner configuration. Values are accessible in function logic by a Go structure type annotated with `tfsdk` field tags or the [framework object type](/terraform/plugin/framework/handling-data/types/object).
+
+In this Terraform configuration example, a object parameter is set to the mapped values of `attr1` to `"value1"` and `attr2` to `123`:
+
+```hcl
+provider::example::example({
+    attr1 = "value1",
+    attr2 = 123,
+})
+```
+
+## Function Definition
+
+Use the [`function.ObjectParameter` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ObjectParameter) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method) to accept an object value.
+
+The `AttributeTypes` field must be defined, which represents a mapping of attribute names to [framework value types](/terraform/plugin/framework/handling-data/types). An attribute type may itself contain further collection or object types, if necessary.
+
+In this example, a function definition includes a first position object parameter:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.ObjectParameter{
+                AttributeTypes: map[string]attr.Value{
+                    "attr1": types.StringType,
+                    "attr2": types.Int64Type,
+                },
+                // ... potentially other ObjectParameter fields ...
+            },
+        },
+    }
+}
+```
+
+If the map value should be the element type of another [collection parameter type](/terraform/plugin/framework/functions/parameters#collection-parameter-types), set the `ElementType` field according to the [framework object type](/terraform/plugin/framework/handling-data/types/object). Refer to the collection parameter type documentation for additional details.
+
+If the map value should be a value type of an [object parameter type](/terraform/plugin/framework/functions/parameters#object-parameter-type), set the `AttributeTypes` map value according to the [framework object type](/terraform/plugin/framework/handling-data/types/object). Refer to the object parameter type documentation for additional details.
+
+### Allow Null Values
+
+<Highlight>
+
+A known object value with null attribute values will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
+By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowNullValue` requires no changes when reading argument data.
+
+### Allow Unknown Values
+
+By default, Terraform will not pass unknown values to the function logic. Use the `AllowUnknownValues` field to explicitly allow unknown values, if there is a meaningful distinction that should occur in function logic. Enabling `AllowUnknownValues` requires using a [framework object type](/terraform/plugin/framework/handling-data/types/object) when reading argument data.
+
+### Custom Types
+
+You may want to build your own data value and type implementations to allow your provider to combine validation and other behaviors into a reusable bundle. This helps avoid duplication and ensures consistency. These implementations use the `CustomType` field in the parameter type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Documentation
+
+Refer to [function documentation](/terraform/plugin/framework/functions/documentation) for information about the `Name`, `Description`, and `MarkdownDescription` fields available.
+
+## Reading Argument Data
+
+The [function implementation](/terraform/plugin/framework/functions/implementation) documentation covers the general methods for reading function argument data in function logic.
+
+When retrieving the argument value for this parameter:
+
+* If `CustomType` is set, use its associated value type.
+* If `AllowUnknownValues` is enabled, you must use the [framework object type](/terraform/plugin/framework/handling-data/types/object).
+* If `AllowNullValue` is enabled, you must use a pointer to the Go structure type annotated with `tfsdk` field tags or the [framework object type](/terraform/plugin/framework/handling-data/types/object).
+* Otherwise, use the Go structure type annotated with `tfsdk` field tags or [framework object type](/terraform/plugin/framework/handling-data/types/object).
+
+In this example, a function defines a single object parameter and accesses its argument value:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Parameters: []function.Parameter{
+            function.ObjectParameter{
+                AttributeTypes: map[string]attr.Value{
+                    "attr1": types.StringType,
+                    "attr2": types.Int64Type,
+                },
+            },
+        },
+    }
+}
+
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var objectArg struct{
+        Attr1 *string `tfsdk:"attr1"`
+        Attr2 *int64  `tfsdk:"attr2"`
+    }
+    // e.g. with AllowNullValues
+    // var objectArg *struct{
+    //    Attr1 *string `tfsdk:"attr1"`
+    //    Attr2 *int64  `tfsdk:"attr2"`
+    // }
+    // var objectArg types.Object // e.g. with AllowUnknownValues or AllowNullValues
+
+    resp.Diagnostics.Append(req.Arguments.Get(ctx, &objectArg)...)
+
+    // objectArg is now populated
+    // ... other logic ...
+}
+```

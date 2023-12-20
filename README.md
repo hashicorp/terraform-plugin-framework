@@ -30,10 +30,6 @@ This project follows the [support policy](https://golang.org/doc/devel/release.h
 
 Currently, that means Go **1.20** or later must be used when including this project as a dependency.
 
-## Contributing
-
-See [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-framework/blob/main/.github/CONTRIBUTING.md)
-
 ## License
 
 [Mozilla Public License v2.0](https://github.com/hashicorp/terraform-plugin-framework/blob/main/LICENSE)

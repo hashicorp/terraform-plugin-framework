@@ -1,4 +1,4 @@
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/hashicorp/terraform-plugin-framework)](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework)
+![isabelschoepd](https://github.com/IsabelSchoepd/hashicorp/assets/127110010/21280793-1a98-4ec2-bbae-ec16502bf57f)
 
 # Terraform Plugin Framework
 

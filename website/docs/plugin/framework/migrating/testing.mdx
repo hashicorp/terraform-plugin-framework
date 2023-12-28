@@ -38,7 +38,7 @@ and then verify that there are no planned changes after migrating to the Framewo
 - The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with a previous version of the
 provider, which is built on SDKv2.
 - The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within the
-provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+provider repository. The second step uses `ConfigPlanChecks` to verify that a no-op plan is generated.
 
 #### Managed Resource
 
@@ -69,7 +69,16 @@ func TestResource_UpgradeFromVersion(t *testing.T) {
                 Config: `resource "provider_resource" "example" {
                             /* ... */
                         }`,
-                PlanOnly: true,
+                // ConfigPlanChecks is a terraform-plugin-testing feature.
+                // If acceptance testing is still using terraform-plugin-sdk/v2,
+                // use `PlanOnly: true` instead. When migrating to
+                // terraform-plugin-testing, switch to `ConfigPlanChecks` or you
+                // will likely experience test failures.
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectEmptyPlan(),
+                    },
+                },
             },
         },
     })
@@ -117,7 +126,16 @@ func TestDataSource_UpgradeFromVersion(t *testing.T) {
                         resource "terraform_data" "test" {
                             input = data.provider_datasource.test
                         }`,
-                PlanOnly: true,
+                // ConfigPlanChecks is a terraform-plugin-testing feature.
+                // If acceptance testing is still using terraform-plugin-sdk/v2,
+                // use `PlanOnly: true` instead. When migrating to
+                // terraform-plugin-testing, switch to `ConfigPlanChecks` or you
+                // will likely experience test failures.
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectEmptyPlan(),
+                    },
+                },
             },
         },
     })

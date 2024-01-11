@@ -22,6 +22,7 @@ We recommend using the framework to develop new providers because it offers sign
 - [Schemas](/terraform/plugin/framework/handling-data/schemas) define available fields for provider, resource, or provisioner configuration block, and give Terraform metadata about those fields.
 - [Resources](/terraform/plugin/framework/resources) are an abstraction that allow Terraform to manage infrastructure objects, such as a compute instance, an access policy, or disk. Providers act as a translation layer between Terraform and an API, offering one or more resources for practitioners to define in a configuration.
 - [Data Sources](/terraform/plugin/framework/data-sources) are an abstraction that allow Terraform to reference external data. Providers have data sources that tell Terraform how to request external data and how to convert the response into a format that practitioners can interpolate.
+- [Functions](/terraform/plugin/framework/functions) are an abstraction that allow Terraform to reference computational logic. Providers can implement their own custom logic functions to augment the Terraform configuration language [built-in functions](/terraform/language/functions).
 
 ## Test and Publish
 

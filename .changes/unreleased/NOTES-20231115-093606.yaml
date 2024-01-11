@@ -1,5 +1,0 @@
-kind: NOTES
-body: 'all: Update `google.golang.org/grpc` dependency to address CVE-2023-44487'
-time: 2023-11-15T09:36:06.427572-05:00
-custom:
-  Issue: "865"

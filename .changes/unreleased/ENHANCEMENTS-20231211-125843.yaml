@@ -1,6 +1,0 @@
-kind: ENHANCEMENTS
-body: 'diag: Added `(Diagnostics).AddArgumentError()` and `(Diagnostics).AddArgumentWarning()`
-  methods for appending function argument diagnostics'
-time: 2023-12-11T12:58:43.277177-05:00
-custom:
-  Issue: "889"

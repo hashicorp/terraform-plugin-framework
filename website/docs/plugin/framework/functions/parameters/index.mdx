@@ -23,11 +23,11 @@ Parameter types that accepts a single data value, such as a boolean, number, or 
 
 | Parameter Type | Use Case |
 |----------------|----------|
-| [Bool](/terraform/plugin/framework/parameters/bool) | Boolean true or false |
-| [Float64](/terraform/plugin/framework/parameters/float64) | 64-bit floating point number |
-| [Int64](/terraform/plugin/framework/parameters/int64) | 64-bit integer number |
-| [Number](/terraform/plugin/framework/parameters/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
-| [String](/terraform/plugin/framework/parameters/string) | Collection of UTF-8 encoded characters |
+| [Bool](/terraform/plugin/framework/functions/parameters/bool) | Boolean true or false |
+| [Float64](/terraform/plugin/framework/functions/parameters/float64) | 64-bit floating point number |
+| [Int64](/terraform/plugin/framework/functions/parameters/int64) | 64-bit integer number |
+| [Number](/terraform/plugin/framework/functions/parameters/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
+| [String](/terraform/plugin/framework/functions/parameters/string) | Collection of UTF-8 encoded characters |
 
 #### Collection Parameter Types
 
@@ -35,9 +35,9 @@ Parameter types that accepts multiple values of a single element type, such as a
 
 | Parameter Type | Use Case |
 |----------------|----------|
-| [List](/terraform/plugin/framework/parameters/list) | Ordered collection of single element type |
-| [Map](/terraform/plugin/framework/parameters/map) | Mapping of arbitrary string keys to values of single element type |
-| [Set](/terraform/plugin/framework/parameters/set) | Unordered, unique collection of single element type |
+| [List](/terraform/plugin/framework/functions/parameters/list) | Ordered collection of single element type |
+| [Map](/terraform/plugin/framework/functions/parameters/map) | Mapping of arbitrary string keys to values of single element type |
+| [Set](/terraform/plugin/framework/functions/parameters/set) | Unordered, unique collection of single element type |
 
 #### Object Parameter Type
 
@@ -45,4 +45,4 @@ Parameter type that accepts a structure of explicit attribute names.
 
 | Parameter Type | Use Case |
 |----------------|----------|
-| [Object](/terraform/plugin/framework/parameters/object) | Single structure mapping explicit attribute names |
+| [Object](/terraform/plugin/framework/functions/parameters/object) | Single structure mapping explicit attribute names |

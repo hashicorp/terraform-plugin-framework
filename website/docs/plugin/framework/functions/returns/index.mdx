@@ -23,11 +23,11 @@ Return types that expect a single data value, such as a boolean, number, or stri
 
 | Return Type | Use Case |
 |----------------|----------|
-| [Bool](/terraform/plugin/framework/returns/bool) | Boolean true or false |
-| [Float64](/terraform/plugin/framework/returns/float64) | 64-bit floating point number |
-| [Int64](/terraform/plugin/framework/returns/int64) | 64-bit integer number |
-| [Number](/terraform/plugin/framework/returns/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
-| [String](/terraform/plugin/framework/returns/string) | Collection of UTF-8 encoded characters |
+| [Bool](/terraform/plugin/framework/functions/returns/bool) | Boolean true or false |
+| [Float64](/terraform/plugin/framework/functions/returns/float64) | 64-bit floating point number |
+| [Int64](/terraform/plugin/framework/functions/returns/int64) | 64-bit integer number |
+| [Number](/terraform/plugin/framework/functions/returns/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
+| [String](/terraform/plugin/framework/functions/returns/string) | Collection of UTF-8 encoded characters |
 
 #### Collection Return Types
 
@@ -35,9 +35,9 @@ Return types that expect multiple values of a single element type, such as a lis
 
 | Return Type | Use Case |
 |----------------|----------|
-| [List](/terraform/plugin/framework/returns/list) | Ordered collection of single element type |
-| [Map](/terraform/plugin/framework/returns/map) | Mapping of arbitrary string keys to values of single element type |
-| [Set](/terraform/plugin/framework/returns/set) | Unordered, unique collection of single element type |
+| [List](/terraform/plugin/framework/functions/returns/list) | Ordered collection of single element type |
+| [Map](/terraform/plugin/framework/functions/returns/map) | Mapping of arbitrary string keys to values of single element type |
+| [Set](/terraform/plugin/framework/functions/returns/set) | Unordered, unique collection of single element type |
 
 #### Object Return Type
 
@@ -45,4 +45,4 @@ Return type that expects a structure of explicit attribute names.
 
 | Return Type | Use Case |
 |----------------|----------|
-| [Object](/terraform/plugin/framework/returns/object) | Single structure mapping explicit attribute names |
+| [Object](/terraform/plugin/framework/functions/returns/object) | Single structure mapping explicit attribute names |

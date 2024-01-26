@@ -877,6 +877,64 @@ func TestProviderData_SetKey(t *testing.T) {
 				},
 			},
 		},
+		"key-value-null": {
+			providerData: &ProviderData{
+				data: map[string][]byte{
+					"keyOne": []byte(`{"foo": "bar"}`),
+				},
+			},
+			key:   "keyOne",
+			value: []byte(`null`),
+			expected: &ProviderData{
+				data: map[string][]byte{
+					"keyOne": []byte(`null`),
+				},
+			},
+		},
+		"key-value-nil": {
+			providerData: &ProviderData{
+				data: map[string][]byte{
+					"keyOne": []byte(`{"foo": "bar"}`),
+				},
+			},
+			key:   "keyOne",
+			value: nil,
+			expected: &ProviderData{
+				data: map[string][]byte{},
+			},
+		},
+		"key-value-nil-no-key": {
+			providerData: &ProviderData{
+				data: map[string][]byte{},
+			},
+			key:   "nonexistent",
+			value: nil,
+			expected: &ProviderData{
+				data: map[string][]byte{},
+			},
+		},
+		"key-value-zero-bytes": {
+			providerData: &ProviderData{
+				data: map[string][]byte{
+					"keyOne": []byte(`{"foo": "bar"}`),
+				},
+			},
+			key:   "keyOne",
+			value: []byte{},
+			expected: &ProviderData{
+				data: map[string][]byte{},
+			},
+		},
+		"key-value-zero-bytes-no-key": {
+			providerData: &ProviderData{
+				data: map[string][]byte{},
+			},
+			key:   "nonexistent",
+			value: []byte{},
+			expected: &ProviderData{
+				data: map[string][]byte{},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

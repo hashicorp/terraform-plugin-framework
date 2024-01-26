@@ -1,6 +1,6 @@
 kind: ENHANCEMENTS
-body: 'privatestate: Added `nil` or zero-length value in `SetKey()` method to fully
-  remove key'
+body: 'privatestate: Added support for `SetKey()` method to fully remove key with
+  `nil` or zero-length value'
 time: 2024-01-26T07:38:10.644333-05:00
 custom:
   Issue: "910"

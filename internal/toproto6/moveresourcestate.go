@@ -18,19 +18,19 @@ func MoveResourceStateResponse(ctx context.Context, fw *fwserver.MoveResourceSta
 		return nil
 	}
 
-	proto5 := &tfprotov6.MoveResourceStateResponse{
+	proto6 := &tfprotov6.MoveResourceStateResponse{
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
 	targetPrivate, diags := fw.TargetPrivate.Bytes(ctx)
 
-	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
-	proto5.TargetPrivate = targetPrivate
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
+	proto6.TargetPrivate = targetPrivate
 
 	targetState, diags := State(ctx, fw.TargetState)
 
-	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
-	proto5.TargetState = targetState
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
+	proto6.TargetState = targetState
 
-	return proto5
+	return proto6
 }

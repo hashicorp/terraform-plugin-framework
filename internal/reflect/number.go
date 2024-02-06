@@ -11,11 +11,12 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Number creates a *big.Float and populates it with the data in `val`. It then
@@ -168,65 +169,28 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 			return reflect.ValueOf(uintResult), diags
 		}
 	case reflect.Float32:
-		floatResult, acc := result.Float32()
-		if acc != big.Exact && !opts.AllowRoundingNumbers {
-			return target, append(diags, roundingErrorDiag)
-		} else if acc == big.Above {
-			floatResult = math.MaxFloat32
-		} else if acc == big.Below {
-			floatResult = math.SmallestNonzeroFloat32
-		} else if acc != big.Exact {
-			err := fmt.Errorf("unsure how to round %s and %f", acc, floatResult)
-			diags.AddAttributeError(
-				path,
-				"Value Conversion Error",
-				"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
+		floatResult, _ := result.Float32()
+
+		bf := big.NewFloat(float64(floatResult))
+
+		if result.Text('f', -1) != bf.Text('f', -1) {
+			diags.Append(roundingErrorDiag)
+
 			return target, diags
 		}
+
 		return reflect.ValueOf(floatResult), diags
 	case reflect.Float64:
-		floatResult, acc := result.Float64()
-		if acc != big.Exact && !opts.AllowRoundingNumbers {
-			return target, append(diags, roundingErrorDiag)
-		}
-		if acc == big.Above {
-			if floatResult == math.Inf(1) || floatResult == math.MaxFloat64 {
-				floatResult = math.MaxFloat64
-			} else if floatResult == 0.0 || floatResult == math.SmallestNonzeroFloat64 {
-				floatResult = -math.SmallestNonzeroFloat64
-			} else {
-				err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-				diags.AddAttributeError(
-					path,
-					"Value Conversion Error",
-					"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				)
-				return target, diags
-			}
-		} else if acc == big.Below {
-			if floatResult == math.Inf(-1) || floatResult == -math.MaxFloat64 {
-				floatResult = -math.MaxFloat64
-			} else if floatResult == -0.0 || floatResult == -math.SmallestNonzeroFloat64 { //nolint:staticcheck
-				floatResult = math.SmallestNonzeroFloat64
-			} else {
-				err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-				diags.AddAttributeError(
-					path,
-					"Value Conversion Error",
-					"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-				)
-				return target, diags
-			}
-		} else if acc != big.Exact {
-			err := fmt.Errorf("not sure how to round %s and %f", acc, floatResult)
-			diags.AddAttributeError(
-				path,
-				"Value Conversion Error",
-				"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
+		floatResult, _ := result.Float64()
+
+		bf := big.NewFloat(floatResult)
+
+		if result.Text('f', -1) != bf.Text('f', -1) {
+			diags.Append(roundingErrorDiag)
+
 			return target, diags
 		}
+
 		return reflect.ValueOf(floatResult), diags
 	}
 	err = fmt.Errorf("cannot convert number to %s", target.Type())

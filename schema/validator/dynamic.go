@@ -12,16 +12,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Map is a schema validator for types.Map attributes.
-type Map interface {
+// Dynamic is a schema validator for types.Dynamic attributes.
+type Dynamic interface {
 	Describer
 
-	// ValidateMap should perform the validation.
-	ValidateMap(context.Context, MapRequest, *MapResponse)
+	// ValidateDynamic should perform the validation.
+	ValidateDynamic(context.Context, DynamicRequest, *DynamicResponse)
 }
 
-// MapRequest is a request for types.Map schema validation.
-type MapRequest struct {
+// DynamicRequest is a request for types.Dynamic schema validation.
+type DynamicRequest struct {
 	// Path contains the path of the attribute for validation. Use this path
 	// for any response diagnostics.
 	Path path.Path
@@ -34,11 +34,11 @@ type MapRequest struct {
 	Config tfsdk.Config
 
 	// ConfigValue contains the value of the attribute for validation from the configuration.
-	ConfigValue types.Map
+	ConfigValue types.Dynamic
 }
 
-// MapResponse is a response to a MapRequest.
-type MapResponse struct {
+// DynamicResponse is a response to a DynamicRequest.
+type DynamicResponse struct {
 	// Diagnostics report errors or warnings related to validating the data source, provider, or resource
 	// configuration. An empty slice indicates success, with no warnings
 	// or errors generated.

@@ -19,7 +19,10 @@ var (
 	_ fwxschema.AttributeWithDynamicValidators = DynamicAttribute{}
 )
 
-// DynamicAttribute represents a schema attribute where the type is not yet known. When
+// DynamicAttribute represents a schema attribute that is a dynamic, rather
+// than a single static type. Static types are always preferable over dynamic
+// types in Terraform as practitioners will receive less helpful configuration
+// assistance from validation error diagnostics and editor integrations. When
 // retrieving the value for this attribute, use types.Dynamic as the value type
 // unless the CustomType field is set.
 //

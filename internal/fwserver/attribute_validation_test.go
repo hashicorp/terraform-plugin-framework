@@ -3588,6 +3588,209 @@ func TestAttributeValidateString(t *testing.T) {
 	}
 }
 
+func TestAttributeValidateDynamic(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute fwxschema.AttributeWithDynamicValidators
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
+	}{
+		"request-path": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("test")),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-pathexpression": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.DynamicValue(types.StringValue("test")),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-config": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.DynamicPseudoType,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.String, "test"),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("test")),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.String, "test"),
+						},
+					),
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-configvalue": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							got := req.ConfigValue
+							expected := types.DynamicValue(types.StringValue("test"))
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("test")),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"response-diagnostics": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("test")),
+			},
+			response: &ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			AttributeValidateDynamic(context.Background(), testCase.attribute, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
 func TestNestedAttributeObjectValidateObject(t *testing.T) {
 	t.Parallel()
 

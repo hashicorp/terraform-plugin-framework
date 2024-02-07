@@ -394,6 +394,10 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			if a.StringDefaultValue() != nil {
 				return val, nil
 			}
+		case fwschema.AttributeWithDynamicDefaultValue:
+			if a.DynamicDefaultValue() != nil {
+				return val, nil
+			}
 		}
 
 		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")

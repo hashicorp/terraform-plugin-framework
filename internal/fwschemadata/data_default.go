@@ -142,7 +142,6 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
 
 			return resp.PlanValue.ToTerraformValue(ctx)
-
 		case fwschema.AttributeWithListDefaultValue:
 			defaultValue := a.ListDefaultValue()
 
@@ -288,6 +287,29 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			resp := defaults.StringResponse{}
 
 			defaultValue.DefaultString(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
+		case fwschema.AttributeWithDynamicDefaultValue:
+			defaultValue := a.DynamicDefaultValue()
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
+			}
+
+			req := defaults.DynamicRequest{
+				Path: fwPath,
+			}
+			resp := defaults.DynamicResponse{}
+
+			defaultValue.DefaultDynamic(ctx, req, &resp)
 
 			diags.Append(resp.Diagnostics...)
 

@@ -145,3 +145,18 @@ func coerceStringTypable(ctx context.Context, schemaPath path.Path, valuable bas
 
 	return typable, nil
 }
+
+func coerceDynamicTypable(ctx context.Context, schemaPath path.Path, valuable basetypes.DynamicValuable) (basetypes.DynamicTypable, diag.Diagnostics) {
+	typable, ok := valuable.Type(ctx).(basetypes.DynamicTypable)
+
+	// Type() of a Valuable should always be a Typable to recreate the Valuable,
+	// but if for some reason it is not, raise an implementation error instead
+	// of a panic.
+	if !ok {
+		return nil, diag.Diagnostics{
+			attributePlanModificationTypableError(schemaPath, valuable),
+		}
+	}
+
+	return typable, nil
+}

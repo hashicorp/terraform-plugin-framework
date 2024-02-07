@@ -333,6 +333,13 @@ func TestFunctionParameter(t *testing.T) {
 				Type: tftypes.String,
 			},
 		},
+		"type-dynamic": {
+			fw: function.DynamicParameter{},
+			expected: &tfprotov6.FunctionParameter{
+				Name: function.DefaultParameterName,
+				Type: tftypes.DynamicPseudoType,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

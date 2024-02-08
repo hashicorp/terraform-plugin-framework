@@ -87,12 +87,14 @@ func (v DynamicValue) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	// TODO: should we check for a nil `v.value`?
 	switch v.state {
 	case attr.ValueStateKnown:
-		tfTypeVal, err := v.value.ToTerraformValue(ctx)
-		if err != nil {
-			return tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue), err
-		}
+		// tfTypeVal, err := v.value.ToTerraformValue(ctx)
+		// if err != nil {
+		// 	return tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue), err
+		// }
 
-		return tfTypeVal.AsDynamic(), nil
+		// return tfTypeVal.AsDynamic(), nil
+
+		return v.value.ToTerraformValue(ctx)
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.DynamicPseudoType, nil), nil
 	case attr.ValueStateUnknown:

@@ -142,7 +142,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	//
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
-	if !resp.PlannedState.Raw.IsNull() && !resp.PlannedState.Raw.Equal(req.PriorState.Raw) {
+	if !resp.PlannedState.Raw.IsNull() && !resp.PlannedState.Raw.SafeEqual(req.PriorState.Raw) {
 		// Loop through top level attributes/blocks to individually emit logs
 		// for value changes. This is helpful for troubleshooting unexpected
 		// plan outputs and only needs to be done for resource update plans.
@@ -205,7 +205,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			return
 		}
 
-		if !resp.PlannedState.Raw.Equal(modifiedPlan) {
+		if !resp.PlannedState.Raw.SafeEqual(modifiedPlan) {
 			logging.FrameworkTrace(ctx, "At least one Computed null Config value was changed to unknown")
 		}
 

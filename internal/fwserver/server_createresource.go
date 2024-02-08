@@ -104,7 +104,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	resp.Diagnostics = createResp.Diagnostics
 	resp.NewState = &createResp.State
 
-	if !resp.Diagnostics.HasError() && createResp.State.Raw.Equal(nullSchemaData) {
+	if !resp.Diagnostics.HasError() && createResp.State.Raw.SafeEqual(nullSchemaData) {
 		detail := "The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. " +
 			"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n" +
 			"The resource may have been successfully created, but Terraform is not tracking it. " +

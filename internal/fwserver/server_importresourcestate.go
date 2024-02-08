@@ -113,7 +113,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
-	if importResp.State.Raw.Equal(req.EmptyState.Raw) {
+	if importResp.State.Raw.SafeEqual(req.EmptyState.Raw) {
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",
 			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+

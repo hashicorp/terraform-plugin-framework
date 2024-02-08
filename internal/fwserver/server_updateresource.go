@@ -125,7 +125,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 	resp.Diagnostics = updateResp.Diagnostics
 	resp.NewState = &updateResp.State
 
-	if !resp.Diagnostics.HasError() && updateResp.State.Raw.Equal(nullSchemaData) {
+	if !resp.Diagnostics.HasError() && updateResp.State.Raw.SafeEqual(nullSchemaData) {
 		resp.Diagnostics.AddError(
 			"Missing Resource State After Update",
 			"The Terraform Provider unexpectedly returned no resource state after having no errors in the resource update. "+

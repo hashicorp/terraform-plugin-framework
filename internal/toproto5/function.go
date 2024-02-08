@@ -5,11 +5,14 @@ package toproto5
 
 import (
 	"context"
+	"errors"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // Function returns the *tfprotov5.Function for a function.Definition.
@@ -88,8 +91,8 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov5.Function
 
 // FunctionResultData returns the *tfprotov5.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, error) {
+	var err error
 
 	attrValue := data.Value()
 
@@ -98,30 +101,32 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	}
 
 	tfType := attrValue.Type(ctx).TerraformType(ctx)
-	tfValue, err := attrValue.ToTerraformValue(ctx)
+	tfValue, tfValueErr := attrValue.ToTerraformValue(ctx)
 
-	if err != nil {
-		diags.AddError(
-			"Unable to Convert Function Result Data",
-			"An unexpected error was encountered when converting the function result data to the protocol type. "+
-				"Please report this to the provider developer:\n\n"+
-				"Unable to convert framework type to tftypes: "+err.Error(),
-		)
+	if tfValueErr != nil {
+		severity := diag.SeverityError
+		summary := "Unable to Convert Function Result Data"
+		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
+			"Please report this to the provider developer:\n\n" +
+			"Unable to convert framework type to tftypes: " + err.Error()
 
-		return nil, diags
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
+
+		return nil, err
 	}
 
 	dynamicValue, err := tfprotov5.NewDynamicValue(tfType, tfValue)
 
 	if err != nil {
-		diags.AddError(
-			"Unable to Convert Function Result Data",
-			"An unexpected error was encountered when converting the function result data to the protocol type. "+
-				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-				"Unable to create DynamicValue: "+err.Error(),
-		)
+		severity := diag.SeverityError
+		summary := "Unable to Convert Function Result Data"
+		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
+			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
+			"Unable to create DynamicValue: " + err.Error()
 
-		return nil, diags
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
+
+		return nil, err
 	}
 
 	return &dynamicValue, nil

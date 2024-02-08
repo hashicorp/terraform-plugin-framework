@@ -5,13 +5,14 @@ package function_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -19,40 +20,28 @@ func TestResultDataSet(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		resultData          function.ResultData
-		value               any
-		expected            attr.Value
-		expectedDiagnostics diag.Diagnostics
+		resultData  function.ResultData
+		value       any
+		expected    attr.Value
+		expectedErr error
 	}{
 		"nil": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),
 			value:      nil,
 			expected:   basetypes.NewBoolUnknown(),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Empty(),
-					"Value Conversion Error",
-					"An unexpected error was encountered trying to convert from value. "+
-						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"cannot construct attr.Type from <nil> (invalid)",
-				),
-			},
+			expectedErr: errors.Join(fmt.Errorf("Error: Value Conversion Error\n\nAn unexpected error was encountered trying to convert from value. " +
+				"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
+				"cannot construct attr.Type from <nil> (invalid)")),
 		},
 		"invalid-type": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),
 			value:      basetypes.NewStringValue("test"),
 			expected:   basetypes.NewBoolUnknown(),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Empty(),
-					"Value Conversion Error",
-					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
-						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n"+
-						"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n"+
-						"Path: ",
-				),
-			},
+			expectedErr: errors.Join(fmt.Errorf("Error: Value Conversion Error\n\nAn unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. " +
+				"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
+				"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n" +
+				"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n" +
+				"Path: ")),
 		},
 		"framework-type": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),
@@ -72,13 +61,22 @@ func TestResultDataSet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := testCase.resultData.Set(context.Background(), testCase.value)
+			err := testCase.resultData.Set(context.Background(), testCase.value)
+
+			// Handle error comparison
+			equateErrors := cmp.Comparer(func(x, y error) bool {
+				if x == nil || y == nil {
+					return x == nil && y == nil
+				}
+
+				return x.Error() == y.Error()
+			})
 
 			if diff := cmp.Diff(testCase.resultData.Value(), testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(err, testCase.expectedErr, equateErrors); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

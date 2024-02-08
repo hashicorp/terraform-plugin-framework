@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,21 +15,24 @@ import (
 )
 
 // Function returns the Function for a given name.
-func (s *Server) Function(ctx context.Context, name string) (function.Function, diag.Diagnostics) {
+func (s *Server) Function(ctx context.Context, name string) (function.Function, error) {
 	functionFuncs, diags := s.FunctionFuncs(ctx)
+
+	var err error
+
+	for _, d := range diags {
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", d.Severity(), d.Summary(), d.Detail()))
+	}
 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		diags.AddError(
-			"Function Not Found",
-			fmt.Sprintf("No function named %q was found in the provider.", name),
-		)
+		err = errors.Join(err, fmt.Errorf("ERROR: Function Not Found %s was found in the provider.", fmt.Sprintf("No function named %q was found in the provider.", name)))
 
-		return nil, diags
+		return nil, err
 	}
 
-	return functionFunc(), diags
+	return functionFunc(), err
 }
 
 // FunctionDefinition returns the Function Definition for the given name and
@@ -44,9 +48,20 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 
 	var diags diag.Diagnostics
 
-	functionImpl, functionDiags := s.Function(ctx, name)
+	//functionImpl, functionDiags := s.Function(ctx, name)
+	functionImpl, _ := s.Function(ctx, name)
 
-	diags.Append(functionDiags...)
+	// TODO: We can use a custom error type for function errors.
+	//    type FunctionError struct {
+	//      severity string
+	//      summary string
+	//      detail string
+	//    }
+	//
+	//    func (e FunctionError) Error() string {
+	//      return e.severity + ": " + e.summary + "\n\n" + e.detail
+	//    }
+	//	diags.Append(functionDiags...)
 
 	if diags.HasError() {
 		return function.Definition{}, diags

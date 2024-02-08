@@ -5,9 +5,11 @@ package toproto5
 
 import (
 	"context"
+	"errors"
+
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // CallFunctionResponse returns the *tfprotov5.CallFunctionResponse
@@ -18,12 +20,12 @@ func CallFunctionResponse(ctx context.Context, fw *fwserver.CallFunctionResponse
 	}
 
 	proto := &tfprotov5.CallFunctionResponse{
-		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
+		Error: fw.Error,
 	}
 
-	result, diags := FunctionResultData(ctx, fw.Result)
+	result, err := FunctionResultData(ctx, fw.Result)
 
-	proto.Diagnostics = append(proto.Diagnostics, Diagnostics(ctx, diags)...)
+	proto.Error = errors.Join(proto.Error, err)
 	proto.Result = result
 
 	return proto

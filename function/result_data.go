@@ -5,9 +5,10 @@ package function
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -22,7 +23,7 @@ type ResultData struct {
 }
 
 // Equal returns true if the value is equivalent.
-func (d ResultData) Equal(o ResultData) bool {
+func (d *ResultData) Equal(o ResultData) bool {
 	if d.value == nil {
 		return o.value == nil
 	}
@@ -32,24 +33,26 @@ func (d ResultData) Equal(o ResultData) bool {
 
 // Set saves the result data. The value type must be acceptable for the data
 // type in the result definition.
-func (d *ResultData) Set(ctx context.Context, value any) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (d *ResultData) Set(ctx context.Context, value any) error {
+	var err error
 
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	diags.Append(reflectDiags...)
+	for _, reflectDiag := range reflectDiags {
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+	}
 
-	if diags.HasError() {
-		return diags
+	if err != nil {
+		return err
 	}
 
 	d.value = reflectValue
 
-	return diags
+	return err
 }
 
 // Value returns the saved value.
-func (d ResultData) Value() attr.Value {
+func (d *ResultData) Value() attr.Value {
 	return d.value
 }
 

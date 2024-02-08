@@ -5,6 +5,7 @@ package function
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -49,30 +50,32 @@ func (d ArgumentsData) Equal(o ArgumentsData) bool {
 // type with an element type appropriate for the parameter definition ([]T). The
 // framework automatically populates this list with elements matching the zero,
 // one, or more arguments passed.
-func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (d ArgumentsData) Get(ctx context.Context, targets ...any) error {
+	var err error
 
 	if len(d.values) == 0 {
-		diags.AddError(
-			"Invalid Argument Data Usage",
-			"When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-				"Function does not have argument data.",
-		)
+		severity := diag.SeverityError
+		summary := "Invalid Argument Data Usage"
+		detail := "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
+			"Function does not have argument data."
 
-		return diags
+		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+
+		return err
 	}
 
 	if len(targets) != len(d.values) {
-		diags.AddError(
-			"Invalid Argument Data Usage",
-			"When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-				"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. "+
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
-				fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values)),
-		)
+		severity := diag.SeverityError
+		summary := "Invalid Argument Data Usage"
+		detail := "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+			"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
+			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
+			fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values))
 
-		return diags
+		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+
+		return err
 	}
 
 	for position, attrValue := range d.values {
@@ -85,27 +88,30 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics
 			continue
 		}
 
-		tfValue, err := attrValue.ToTerraformValue(ctx)
+		tfValue, tfValueErr := attrValue.ToTerraformValue(ctx)
 
-		if err != nil {
-			diags.AddError(
-				"Argument Value Conversion Error",
-				fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
-					"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
-					"Position: %d\n"+
-					"Error: %s",
-					attrValue, position, err),
-			)
+		if tfValueErr != nil {
+			severity := diag.SeverityError
+			summary := "Argument Value Conversion Error"
+			detail := fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+				"Position: %d\n"+
+				"Error: %s",
+				attrValue, position, tfValueErr)
+
+			err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
 
 			continue
 		}
 
 		reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-		diags.Append(reflectDiags...)
+		for _, reflectDiag := range reflectDiags {
+			err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+		}
 	}
 
-	return diags
+	return err
 }
 
 // GetArgument retrieves the argument data found at the given zero-based
@@ -116,30 +122,32 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics
 // type with an element type appropriate for the parameter definition ([]T) at
 // the position after all parameters. The framework automatically populates this
 // list with elements matching the zero, one, or more arguments passed.
-func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) error {
+	var err error
 
 	if len(d.values) == 0 {
-		diags.AddError(
-			"Invalid Argument Data Usage",
-			"When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-				"Function does not have argument data.",
-		)
+		severity := diag.SeverityError
+		summary := "Invalid Argument Data Usage"
+		detail := "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
+			"Function does not have argument data."
 
-		return diags
+		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+
+		return err
 	}
 
 	if position >= len(d.values) {
-		diags.AddError(
-			"Invalid Argument Data Position",
-			"When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
-				"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
-				fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1),
-		)
+		severity := diag.SeverityError
+		summary := "Invalid Argument Data Position"
+		detail := "When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
+			"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. " +
+			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
+			fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1)
 
-		return diags
+		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+
+		return err
 	}
 
 	attrValue := d.values[position]
@@ -154,20 +162,24 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		diags.AddError(
-			"Argument Value Conversion Error",
-			fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
-				"Error: %s", attrValue, err),
-		)
-		return diags
+		severity := diag.SeverityError
+		summary := "Argument Value Conversion Error"
+		detail := fmt.Sprintf("An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+			"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+			"Error: %s", attrValue, err)
+
+		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+
+		return err
 	}
 
 	reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-	diags.Append(reflectDiags...)
+	for _, reflectDiag := range reflectDiags {
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+	}
 
-	return diags
+	return err
 }
 
 // NewArgumentsData creates an ArgumentsData. This is only necessary for unit

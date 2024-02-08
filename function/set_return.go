@@ -5,9 +5,10 @@ package function
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -46,7 +47,7 @@ func (r SetReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r SetReturn) NewResultData(ctx context.Context) (ResultData, diag.Diagnostics) {
+func (r SetReturn) NewResultData(ctx context.Context) (ResultData, error) {
 	value := basetypes.NewSetUnknown(r.ElementType)
 
 	if r.CustomType == nil {
@@ -55,5 +56,11 @@ func (r SetReturn) NewResultData(ctx context.Context) (ResultData, diag.Diagnost
 
 	valuable, diags := r.CustomType.ValueFromSet(ctx, value)
 
-	return NewResultData(valuable), diags
+	var err error
+
+	for _, diag := range diags {
+		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", diag.Severity(), diag.Summary(), diag.Detail()))
+	}
+
+	return NewResultData(valuable), err
 }

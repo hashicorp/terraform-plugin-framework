@@ -104,6 +104,13 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	resp.Diagnostics = createResp.Diagnostics
 	resp.NewState = &createResp.State
 
+	// TODO: Need to verify this logic won't cause issues
+	//
+	// I added a new method to `terraform-plugin-go` that prevents the Equals method from panicking when there is a type mismatch.
+	// This code path wasn't possible to hit with framework's schema, but the introduction of dynamic types (which can potentially change types)
+	// has revealed this path.
+	//
+	// This is most likely to occur during PlanResourceChangeRPC, but I've updated it here as well for consistency.
 	if !resp.Diagnostics.HasError() && createResp.State.Raw.SafeEqual(nullSchemaData) {
 		detail := "The Terraform Provider unexpectedly returned no resource state after having no errors in the resource creation. " +
 			"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n" +

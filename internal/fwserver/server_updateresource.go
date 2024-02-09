@@ -125,6 +125,13 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 	resp.Diagnostics = updateResp.Diagnostics
 	resp.NewState = &updateResp.State
 
+	// TODO: Need to verify this logic won't cause issues
+	//
+	// I added a new method to `terraform-plugin-go` that prevents the Equals method from panicking when there is a type mismatch.
+	// This code path wasn't possible to hit with framework's schema, but the introduction of dynamic types (which can potentially change types)
+	// has revealed this path.
+	//
+	// This is most likely to occur during PlanResourceChangeRPC, but I've updated it here as well for consistency.
 	if !resp.Diagnostics.HasError() && updateResp.State.Raw.SafeEqual(nullSchemaData) {
 		resp.Diagnostics.AddError(
 			"Missing Resource State After Update",

@@ -142,6 +142,12 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	//
 	// We only do this if there's a plan to modify; otherwise, it
 	// represents a resource being deleted and there's no point.
+	//
+	// TODO: Need to verify this logic won't cause issues
+	//
+	// I added a new method to `terraform-plugin-go` that prevents the Equals method from panicking when there is a type mismatch.
+	// This code path wasn't possible to hit with framework's schema, but the introduction of dynamic types (which can potentially change types)
+	// has revealed this path.
 	if !resp.PlannedState.Raw.IsNull() && !resp.PlannedState.Raw.SafeEqual(req.PriorState.Raw) {
 		// Loop through top level attributes/blocks to individually emit logs
 		// for value changes. This is helpful for troubleshooting unexpected

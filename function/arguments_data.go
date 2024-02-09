@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -60,7 +61,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) error {
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+		err = fwerror.NewFunctionError(severity, summary, detail)
 
 		return err
 	}
@@ -73,7 +74,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) error {
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values))
 
-		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+		err = fwerror.NewFunctionError(severity, summary, detail)
 
 		return err
 	}
@@ -99,7 +100,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) error {
 				"Error: %s",
 				attrValue, position, tfValueErr)
 
-			err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
+			err = errors.Join(err, fwerror.NewFunctionError(severity, summary, detail))
 
 			continue
 		}
@@ -107,7 +108,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) error {
 		reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
 		for _, reflectDiag := range reflectDiags {
-			err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+			err = errors.Join(err, fwerror.NewFunctionError(reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
 		}
 	}
 
@@ -132,7 +133,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+		err = fwerror.NewFunctionError(severity, summary, detail)
 
 		return err
 	}
@@ -145,7 +146,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1)
 
-		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+		err = fwerror.NewFunctionError(severity, summary, detail)
 
 		return err
 	}
@@ -168,7 +169,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 			"Error: %s", attrValue, err)
 
-		err = fmt.Errorf("%s: %s\n\n%s", severity, summary, detail)
+		err = fwerror.NewFunctionError(severity, summary, detail)
 
 		return err
 	}
@@ -176,7 +177,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
 	for _, reflectDiag := range reflectDiags {
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+		err = errors.Join(err, fwerror.NewFunctionError(reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
 	}
 
 	return err

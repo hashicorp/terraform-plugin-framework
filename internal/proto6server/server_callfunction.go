@@ -6,10 +6,10 @@ package proto6server
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -35,7 +35,7 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 	functionDefinition, diags := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
 
 	for _, d := range diags {
-		fwResp.Error = errors.Join(fwResp.Error, fmt.Errorf("%s: %s\n\n%s", d.Severity(), d.Summary(), d.Detail()))
+		fwResp.Error = errors.Join(fwResp.Error, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
 	}
 
 	if fwResp.Error != nil {
@@ -46,7 +46,7 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, function, functionDefinition)
 
 	for _, d := range diags {
-		fwResp.Error = errors.Join(fwResp.Error, fmt.Errorf("%s: %s\n\n%s", d.Severity(), d.Summary(), d.Detail()))
+		fwResp.Error = errors.Join(fwResp.Error, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
 	}
 
 	if fwResp.Error != nil {

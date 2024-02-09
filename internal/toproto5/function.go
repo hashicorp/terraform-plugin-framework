@@ -5,13 +5,12 @@ package toproto5
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
@@ -91,9 +90,7 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov5.Function
 
 // FunctionResultData returns the *tfprotov5.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, error) {
-	var err error
-
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, fwerror.FunctionError) {
 	attrValue := data.Value()
 
 	if attrValue == nil {
@@ -101,18 +98,16 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	}
 
 	tfType := attrValue.Type(ctx).TerraformType(ctx)
-	tfValue, tfValueErr := attrValue.ToTerraformValue(ctx)
+	tfValue, err := attrValue.ToTerraformValue(ctx)
 
-	if tfValueErr != nil {
+	if err != nil {
 		severity := diag.SeverityError
 		summary := "Unable to Convert Function Result Data"
 		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
-
-		return nil, err
+		return nil, fwerror.NewFunctionError(severity, summary, detail).(fwerror.FunctionError)
 	}
 
 	dynamicValue, err := tfprotov5.NewDynamicValue(tfType, tfValue)
@@ -124,9 +119,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
-
-		return nil, err
+		return nil, fwerror.NewFunctionError(severity, summary, detail).(fwerror.FunctionError)
 	}
 
 	return &dynamicValue, nil

@@ -6,12 +6,12 @@ package toproto6
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
@@ -110,7 +110,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
+		err = errors.Join(err, fwerror.NewFunctionError(severity, summary, detail))
 
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", severity, summary, detail))
+		err = errors.Join(err, fwerror.NewFunctionError(severity, summary, detail))
 
 		return nil, err
 	}

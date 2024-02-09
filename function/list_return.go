@@ -6,9 +6,9 @@ package function
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -59,7 +59,7 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, error) {
 	var err error
 
 	for _, diag := range diags {
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", diag.Severity(), diag.Summary(), diag.Detail()))
+		err = errors.Join(err, fwerror.NewFunctionError(diag.Severity(), diag.Summary(), diag.Detail()))
 	}
 
 	return NewResultData(valuable), err

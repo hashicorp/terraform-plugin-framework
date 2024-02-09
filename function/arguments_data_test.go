@@ -12,7 +12,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -96,8 +98,8 @@ func TestArgumentsDataGet(t *testing.T) {
 			argumentsData: function.NewArgumentsData(nil),
 			targets:       []any{new(bool)},
 			expected:      []any{new(bool)},
-			expectedErr: fmt.Errorf("Error: Invalid Argument Data Usage\n\nWhen attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
-				"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
+			expectedErr: fwerror.NewFunctionError(diag.SeverityError, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
 				"Function does not have argument data."),
 		},
 		"invalid-targets-too-few": {
@@ -107,9 +109,9 @@ func TestArgumentsDataGet(t *testing.T) {
 			}),
 			targets:  []any{new(bool)},
 			expected: []any{new(bool)},
-			expectedErr: fmt.Errorf("Error: Invalid Argument Data Usage\n\nWhen attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
-				"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
+			expectedErr: fwerror.NewFunctionError(diag.SeverityError, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. "+
+				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				"Given targets count: 1, expected targets count: 2"),
 		},
 		"invalid-targets-too-many": {
@@ -118,9 +120,9 @@ func TestArgumentsDataGet(t *testing.T) {
 			}),
 			targets:  []any{new(bool), new(bool)},
 			expected: []any{new(bool), new(bool)},
-			expectedErr: fmt.Errorf("Error: Invalid Argument Data Usage\n\nWhen attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
-				"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
+			expectedErr: fwerror.NewFunctionError(diag.SeverityError, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. "+
+				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				"Given targets count: 2, expected targets count: 1"),
 		},
 		"invalid-target": {
@@ -239,8 +241,8 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			position:      0,
 			target:        new(bool),
 			expected:      new(bool),
-			expectedErr: fmt.Errorf("Error: Invalid Argument Data Usage\n\nWhen attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
-				"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
+			expectedErr: fwerror.NewFunctionError(diag.SeverityError, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
 				"Function does not have argument data."),
 		},
 		"invalid-position": {
@@ -250,9 +252,9 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			position: 1,
 			target:   new(bool),
 			expected: new(bool),
-			expectedErr: fmt.Errorf("Error: Invalid Argument Data Position\n\nWhen attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
-				"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. " +
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
+			expectedErr: fwerror.NewFunctionError(diag.SeverityError, "Invalid Argument Data Position", "When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
+				"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
+				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				"Given argument position: 1, last argument position: 0"),
 		},
 		"invalid-target": {

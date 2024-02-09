@@ -6,9 +6,9 @@ package function
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -39,7 +39,7 @@ func (d *ResultData) Set(ctx context.Context, value any) error {
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
 	for _, reflectDiag := range reflectDiags {
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
+		err = errors.Join(err, fwerror.NewFunctionError(reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
 	}
 
 	if err != nil {

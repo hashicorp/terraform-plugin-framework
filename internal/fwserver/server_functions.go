@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
@@ -21,13 +22,13 @@ func (s *Server) Function(ctx context.Context, name string) (function.Function, 
 	var err error
 
 	for _, d := range diags {
-		err = errors.Join(err, fmt.Errorf("%s: %s\n\n%s", d.Severity(), d.Summary(), d.Detail()))
+		err = errors.Join(err, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
 	}
 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		err = errors.Join(err, fmt.Errorf("ERROR: Function Not Found %s was found in the provider.", fmt.Sprintf("No function named %q was found in the provider.", name)))
+		err = errors.Join(err, fwerror.NewFunctionError(diag.SeverityError, "Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name)))
 
 		return nil, err
 	}
@@ -52,13 +53,13 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 	functionImpl, _ := s.Function(ctx, name)
 
 	// TODO: We can use a custom error type for function errors.
-	//    type FunctionError struct {
+	//    type functionError struct {
 	//      severity string
 	//      summary string
 	//      detail string
 	//    }
 	//
-	//    func (e FunctionError) Error() string {
+	//    func (e functionError) Error() string {
 	//      return e.severity + ": " + e.summary + "\n\n" + e.detail
 	//    }
 	//	diags.Append(functionDiags...)

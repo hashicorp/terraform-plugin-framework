@@ -6,7 +6,6 @@ package basetypes
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -28,7 +27,8 @@ type DynamicType struct{}
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the type.
 func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, t.String())
+	return t, nil
+	// return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, t.String())
 }
 
 // Equal returns true if the given type is equivalent.

@@ -25,7 +25,7 @@ func (s *Server) Function(ctx context.Context, name string) (function.Function, 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		funcErrs.Append(fwerror.NewErrorFunctionError("Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name)))
+		funcErrs.AddError("Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name))
 
 		return nil, funcErrs
 	}

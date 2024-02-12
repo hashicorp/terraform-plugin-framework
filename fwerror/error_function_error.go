@@ -63,9 +63,9 @@ func FunctionErrorsFromDiags(diags diag.Diagnostics) FunctionErrors {
 	for _, d := range diags {
 		switch d.Severity() {
 		case diag.SeverityError:
-			funcErrs.Append(NewErrorFunctionError(d.Summary(), d.Detail()))
+			funcErrs.AddError(d.Summary(), d.Detail())
 		case diag.SeverityWarning:
-			funcErrs.Append(NewWarningFunctionError(d.Summary(), d.Detail()))
+			funcErrs.AddWarning(d.Summary(), d.Detail())
 		}
 	}
 

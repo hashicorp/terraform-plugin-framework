@@ -107,7 +107,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		funcErrs.Append(fwerror.NewErrorFunctionError(summary, detail))
+		funcErrs.AddError(summary, detail)
 
 		return nil, funcErrs
 	}
@@ -120,7 +120,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		funcErrs.Append(fwerror.NewErrorFunctionError(summary, detail))
+		funcErrs.AddError(summary, detail)
 
 		return nil, funcErrs
 	}

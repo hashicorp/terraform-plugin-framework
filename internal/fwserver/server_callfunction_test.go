@@ -55,15 +55,15 @@ func TestServerCallFunction(t *testing.T) {
 						expectedArg2 := basetypes.NewStringValue("arg2")
 
 						if !arg0.Equal(expectedArg0) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if !arg1.Equal(expectedArg1) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
 						}
 
 						if !arg2.Equal(expectedArg2) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2)))
+							resp.Error.AddError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -97,11 +97,11 @@ func TestServerCallFunction(t *testing.T) {
 						expectedArg0 := "arg0"
 
 						if arg0 != expectedArg0 {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if arg1 != nil {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: nil", *arg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: nil", *arg1))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -148,11 +148,11 @@ func TestServerCallFunction(t *testing.T) {
 						)
 
 						if !arg0.Equal(expectedArg0) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if !arg1.Equal(expectedArg1) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -192,15 +192,15 @@ func TestServerCallFunction(t *testing.T) {
 						expectedArg2 := basetypes.NewStringValue("arg2")
 
 						if !arg0.Equal(expectedArg0) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if !arg1.Equal(expectedArg1) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
 						}
 
 						if !arg2.Equal(expectedArg2) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2)))
+							resp.Error.AddError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -235,11 +235,11 @@ func TestServerCallFunction(t *testing.T) {
 						expectedArg0 := "arg0"
 
 						if arg0 != expectedArg0 {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if arg1 != nil {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: nil", *arg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: nil", *arg1))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -287,11 +287,11 @@ func TestServerCallFunction(t *testing.T) {
 						)
 
 						if !arg0.Equal(expectedArg0) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+							resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
 						}
 
 						if !arg1.Equal(expectedArg1) {
-							resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+							resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
 						}
 
 						resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -314,8 +314,8 @@ func TestServerCallFunction(t *testing.T) {
 				Arguments: function.NewArgumentsData(nil),
 				Function: &testprovider.Function{
 					RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-						resp.Error.Append(fwerror.NewWarningFunctionError("warning summary", "warning detail"))
-						resp.Error.Append(fwerror.NewErrorFunctionError("error summary", "error detail"))
+						resp.Error.AddWarning("warning summary", "warning detail")
+						resp.Error.AddError("error summary", "error detail")
 					},
 				},
 				FunctionDefinition: function.Definition{

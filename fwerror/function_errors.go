@@ -2,9 +2,19 @@ package fwerror
 
 type FunctionErrors []FunctionError
 
+// AddArgumentError adds an argument error to the collection.
+func (f *FunctionErrors) AddArgumentError(functionArgument int, summary string, detail string) {
+	f.Append(NewArgumentErrorFunctionError(functionArgument, summary, detail))
+}
+
 // AddError adds a generic error to the collection.
 func (f *FunctionErrors) AddError(summary string, detail string) {
 	f.Append(NewErrorFunctionError(summary, detail))
+}
+
+// AddWarning adds a generic warning to the collection.
+func (f *FunctionErrors) AddWarning(summary string, detail string) {
+	f.Append(NewWarningFunctionError(summary, detail))
 }
 
 func (f *FunctionErrors) Append(in ...FunctionError) {

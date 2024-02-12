@@ -58,7 +58,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.Function
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		fe.Append(fwerror.NewErrorFunctionError(summary, detail))
+		fe.AddError(summary, detail)
 
 		return fe
 	}
@@ -70,7 +70,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.Function
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values))
 
-		fe.Append(fwerror.NewErrorFunctionError(summary, detail))
+		fe.AddError(summary, detail)
 
 		return fe
 	}
@@ -95,7 +95,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.Function
 				"Error: %s",
 				attrValue, position, tfValueErr)
 
-			fe.Append(fwerror.NewArgumentErrorFunctionError(position, summary, detail))
+			fe.AddArgumentError(position, summary, detail)
 
 			continue
 		}
@@ -125,7 +125,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		fe.Append(fwerror.NewArgumentErrorFunctionError(position, summary, detail))
+		fe.AddArgumentError(position, summary, detail)
 
 		return fe
 	}
@@ -137,7 +137,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1)
 
-		fe.Append(fwerror.NewArgumentErrorFunctionError(position, summary, detail))
+		fe.AddArgumentError(position, summary, detail)
 
 		return fe
 	}
@@ -159,7 +159,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 			"Error: %s", attrValue, err)
 
-		fe.Append(fwerror.NewArgumentErrorFunctionError(position, summary, detail))
+		fe.AddArgumentError(position, summary, detail)
 
 		return fe
 	}

@@ -5,7 +5,6 @@ package toproto6
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
@@ -19,14 +18,14 @@ func CallFunctionResponse(ctx context.Context, fw *fwserver.CallFunctionResponse
 		return nil
 	}
 
-	proto := &tfprotov6.CallFunctionResponse{
-		Error: fw.Error,
+	funcErrs := fw.Error
+
+	result, resultErrs := FunctionResultData(ctx, fw.Result)
+
+	funcErrs.Append(resultErrs...)
+
+	return &tfprotov6.CallFunctionResponse{
+		Error:  FunctionError(ctx, funcErrs),
+		Result: result,
 	}
-
-	result, err := FunctionResultData(ctx, fw.Result)
-
-	proto.Error = errors.Join(proto.Error, err)
-	proto.Result = result
-
-	return proto
 }

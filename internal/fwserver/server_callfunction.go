@@ -5,9 +5,9 @@ package fwserver
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
 
@@ -22,22 +22,25 @@ type CallFunctionRequest struct {
 // CallFunctionResponse is the framework server response for the
 // CallFunction RPC.
 type CallFunctionResponse struct {
-	Error  error
+	Error  fwerror.FunctionErrors
 	Result function.ResultData
 }
 
 // CallFunction implements the framework server CallFunction RPC.
 func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, resp *CallFunctionResponse) {
+	var fe fwerror.FunctionErrors
+
 	if req == nil {
 		return
 	}
 
 	resultData, err := req.FunctionDefinition.Return.NewResultData(ctx)
 
-	resp.Error = errors.Join(resp.Error, err)
+	fe.Append(err...)
 
-	if err != nil {
-		resp.Error = err
+	resp.Error = fe
+
+	if resp.Error.HasError() {
 		return
 	}
 

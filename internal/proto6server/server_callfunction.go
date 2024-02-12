@@ -5,7 +5,6 @@ package proto6server
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
@@ -28,29 +27,22 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 	fwResp.Error = err
 
 	if fwResp.Error != nil {
-		//nolint:nilerr
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	functionDefinition, diags := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
+	functionDefinition, funcErrs := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
 
-	for _, d := range diags {
-		fwResp.Error = errors.Join(fwResp.Error, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
-	}
+	fwResp.Error.Append(funcErrs...)
 
-	if fwResp.Error != nil {
-		//nolint:nilerr
+	if fwResp.Error.HasError() {
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
 	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, function, functionDefinition)
 
-	for _, d := range diags {
-		fwResp.Error = errors.Join(fwResp.Error, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
-	}
+	fwResp.Error.Append(fwerror.FunctionErrorsFromDiags(diags)...)
 
-	if fwResp.Error != nil {
-		//nolint:nilerr
+	if fwResp.Error.HasError() {
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 

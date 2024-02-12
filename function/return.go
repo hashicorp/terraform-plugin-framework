@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 )
 
 // Return is the interface for defining function return data.
@@ -21,5 +22,5 @@ type Return interface {
 	// best approximation of an invalid value) of the corresponding data type.
 	// The Function type Run method is expected to overwrite the value before
 	// returning.
-	NewResultData(context.Context) (ResultData, error)
+	NewResultData(context.Context) (ResultData, fwerror.FunctionErrors)
 }

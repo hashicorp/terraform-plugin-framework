@@ -5,7 +5,6 @@ package fwserver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,29 +15,27 @@ import (
 )
 
 // Function returns the Function for a given name.
-func (s *Server) Function(ctx context.Context, name string) (function.Function, error) {
+func (s *Server) Function(ctx context.Context, name string) (function.Function, fwerror.FunctionErrors) {
 	functionFuncs, diags := s.FunctionFuncs(ctx)
 
-	var err error
+	var funcErrs fwerror.FunctionErrors
 
-	for _, d := range diags {
-		err = errors.Join(err, fwerror.NewFunctionError(d.Severity(), d.Summary(), d.Detail()))
-	}
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		err = errors.Join(err, fwerror.NewFunctionError(diag.SeverityError, "Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name)))
+		funcErrs.Append(fwerror.NewErrorFunctionError("Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name)))
 
-		return nil, err
+		return nil, funcErrs
 	}
 
-	return functionFunc(), err
+	return functionFunc(), funcErrs
 }
 
 // FunctionDefinition returns the Function Definition for the given name and
 // caches the result for later Function operations.
-func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, diag.Diagnostics) {
+func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, fwerror.FunctionErrors) {
 	s.functionDefinitionsMutex.RLock()
 	functionDefinition, ok := s.functionDefinitions[name]
 	s.functionDefinitionsMutex.RUnlock()
@@ -47,25 +44,10 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 		return functionDefinition, nil
 	}
 
-	var diags diag.Diagnostics
+	functionImpl, funcErrs := s.Function(ctx, name)
 
-	//functionImpl, functionDiags := s.Function(ctx, name)
-	functionImpl, _ := s.Function(ctx, name)
-
-	// TODO: We can use a custom error type for function errors.
-	//    type functionError struct {
-	//      severity string
-	//      summary string
-	//      detail string
-	//    }
-	//
-	//    func (e functionError) Error() string {
-	//      return e.severity + ": " + e.summary + "\n\n" + e.detail
-	//    }
-	//	diags.Append(functionDiags...)
-
-	if diags.HasError() {
-		return function.Definition{}, diags
+	if funcErrs.HasError() {
+		return function.Definition{}, funcErrs
 	}
 
 	definitionReq := function.DefinitionRequest{}
@@ -75,10 +57,10 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 	functionImpl.Definition(ctx, definitionReq, &definitionResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Definition method", map[string]interface{}{logging.KeyFunctionName: name})
 
-	diags.Append(definitionResp.Diagnostics...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(definitionResp.Diagnostics)...)
 
-	if diags.HasError() {
-		return definitionResp.Definition, diags
+	if funcErrs.HasError() {
+		return definitionResp.Definition, funcErrs
 	}
 
 	s.functionDefinitionsMutex.Lock()
@@ -91,7 +73,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 
 	s.functionDefinitionsMutex.Unlock()
 
-	return definitionResp.Definition, diags
+	return definitionResp.Definition, funcErrs
 }
 
 // FunctionDefinitions returns a map of Function Definitions for the

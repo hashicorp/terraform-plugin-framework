@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
@@ -90,7 +89,9 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov5.Function
 
 // FunctionResultData returns the *tfprotov5.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, fwerror.FunctionError) {
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, fwerror.FunctionErrors) {
+	var funcErrs fwerror.FunctionErrors
+
 	attrValue := data.Value()
 
 	if attrValue == nil {
@@ -101,25 +102,27 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		severity := diag.SeverityError
 		summary := "Unable to Convert Function Result Data"
 		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		return nil, fwerror.NewFunctionError(severity, summary, detail).(fwerror.FunctionError)
+		funcErrs.Append(fwerror.NewErrorFunctionError(summary, detail))
+
+		return nil, funcErrs
 	}
 
 	dynamicValue, err := tfprotov5.NewDynamicValue(tfType, tfValue)
 
 	if err != nil {
-		severity := diag.SeverityError
 		summary := "Unable to Convert Function Result Data"
 		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		return nil, fwerror.NewFunctionError(severity, summary, detail).(fwerror.FunctionError)
+		funcErrs.Append(fwerror.NewErrorFunctionError(summary, detail))
+
+		return nil, funcErrs
 	}
 
 	return &dynamicValue, nil

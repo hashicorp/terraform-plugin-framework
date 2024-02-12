@@ -5,7 +5,6 @@ package proto5server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -15,6 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -55,25 +55,25 @@ func TestServerCallFunction(t *testing.T) {
 											var arg1 basetypes.Int64Value
 											var arg2 basetypes.StringValue
 
-											resp.Error = errors.Join(resp.Error, req.Arguments.Get(ctx, &arg0, &arg1, &arg2))
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
 
 											expectedArg0 := basetypes.NewBoolNull()
 											expectedArg1 := basetypes.NewInt64Unknown()
 											expectedArg2 := basetypes.NewStringValue("arg2")
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+												resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+												resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
 											if !arg2.Equal(expectedArg2) {
-												resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2)))
+												resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2)))
 											}
 
-											resp.Error = errors.Join(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
+											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -118,7 +118,7 @@ func TestServerCallFunction(t *testing.T) {
 											var arg0 basetypes.StringValue
 											var arg1 basetypes.ListValue
 
-											resp.Error = errors.Join(resp.Error, req.Arguments.Get(ctx, &arg0, &arg1))
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1)
 
 											expectedArg0 := basetypes.NewStringValue("arg0")
 											expectedArg1 := basetypes.NewListValueMust(
@@ -130,14 +130,14 @@ func TestServerCallFunction(t *testing.T) {
 											)
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
+												resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
+												resp.Error.Append(fwerror.NewErrorFunctionError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
-											resp.Error = errors.Join(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
+											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -175,9 +175,9 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Error = errors.Join(resp.Error, fmt.Errorf("WARNING: warning summary\n\nwarning detail"))
-											resp.Error = errors.Join(resp.Error, fmt.Errorf("ERROR: error summary\n\nerror detail"))
-											resp.Error = errors.Join(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
+											resp.Error.Append(fwerror.NewWarningFunctionError("warning summary", "warning detail"))
+											resp.Error.Append(fwerror.NewErrorFunctionError("error summary", "error detail"))
+											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -191,10 +191,9 @@ func TestServerCallFunction(t *testing.T) {
 				Name:      "testfunction",
 			},
 			expectedResponse: &tfprotov5.CallFunctionResponse{
-				Error: errors.Join(
-					fmt.Errorf("WARNING: warning summary\n\nwarning detail"),
-					fmt.Errorf("ERROR: error summary\n\nerror detail"),
-				),
+				Error: &tfprotov5.FunctionError{
+					Text: "Warning: warning summary\n\nwarning detail\n\nError: error summary\n\nerror detail\n\n",
+				},
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},
 		},
@@ -215,7 +214,7 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Error = errors.Join(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
+											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},

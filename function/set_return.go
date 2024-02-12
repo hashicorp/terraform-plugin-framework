@@ -5,7 +5,6 @@ package function
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/fwerror"
@@ -47,7 +46,9 @@ func (r SetReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r SetReturn) NewResultData(ctx context.Context) (ResultData, error) {
+func (r SetReturn) NewResultData(ctx context.Context) (ResultData, fwerror.FunctionErrors) {
+	var funcErrs fwerror.FunctionErrors
+
 	value := basetypes.NewSetUnknown(r.ElementType)
 
 	if r.CustomType == nil {
@@ -56,11 +57,7 @@ func (r SetReturn) NewResultData(ctx context.Context) (ResultData, error) {
 
 	valuable, diags := r.CustomType.ValueFromSet(ctx, value)
 
-	var err error
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
 
-	for _, diag := range diags {
-		err = errors.Join(err, fwerror.NewFunctionError(diag.Severity(), diag.Summary(), diag.Detail()))
-	}
-
-	return NewResultData(valuable), err
+	return NewResultData(valuable), funcErrs
 }

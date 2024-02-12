@@ -5,7 +5,6 @@ package function
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/fwerror"
@@ -33,22 +32,20 @@ func (d *ResultData) Equal(o ResultData) bool {
 
 // Set saves the result data. The value type must be acceptable for the data
 // type in the result definition.
-func (d *ResultData) Set(ctx context.Context, value any) error {
-	var err error
+func (d *ResultData) Set(ctx context.Context, value any) fwerror.FunctionErrors {
+	var funcErrs fwerror.FunctionErrors
 
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	for _, reflectDiag := range reflectDiags {
-		err = errors.Join(err, fwerror.NewFunctionError(reflectDiag.Severity(), reflectDiag.Summary(), reflectDiag.Detail()))
-	}
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(reflectDiags)...)
 
-	if err != nil {
-		return err
+	if funcErrs.HasError() {
+		return funcErrs
 	}
 
 	d.value = reflectValue
 
-	return err
+	return nil
 }
 
 // Value returns the saved value.

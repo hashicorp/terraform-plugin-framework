@@ -5,8 +5,6 @@ package toproto6_test
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -32,16 +31,15 @@ func TestCallFunctionResponse(t *testing.T) {
 		},
 		"error": {
 			input: &fwserver.CallFunctionResponse{
-				Error: errors.Join(
-					fmt.Errorf("WARNING: warning summary\n\nwarning detail"),
-					fmt.Errorf("ERROR: error summary\n\nerror detail"),
-				),
+				Error: fwerror.FunctionErrors{
+					fwerror.NewWarningFunctionError("warning summary", "warning detail"),
+					fwerror.NewErrorFunctionError("error summary", "error detail"),
+				},
 			},
 			expected: &tfprotov6.CallFunctionResponse{
-				Error: errors.Join(
-					fmt.Errorf("WARNING: warning summary\n\nwarning detail"),
-					fmt.Errorf("ERROR: error summary\n\nerror detail"),
-				),
+				Error: &tfprotov6.FunctionError{
+					Text: "Warning: warning summary\n\nwarning detail\n\nError: error summary\n\nerror detail\n\n",
+				},
 			},
 		},
 		"result": {

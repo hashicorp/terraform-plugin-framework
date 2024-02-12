@@ -381,16 +381,7 @@ func TestServerCallFunction(t *testing.T) {
 			response := &fwserver.CallFunctionResponse{}
 			testCase.server.CallFunction(context.Background(), testCase.request, response)
 
-			// Handling error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
-			if diff := cmp.Diff(response, testCase.expectedResponse, equateErrors, cmp.AllowUnexported(function.ResultData{})); diff != "" {
+			if diff := cmp.Diff(response, testCase.expectedResponse, cmp.AllowUnexported(function.ResultData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

@@ -66,20 +66,11 @@ func TestResultDataSet(t *testing.T) {
 
 			err := testCase.resultData.Set(context.Background(), testCase.value)
 
-			// Handle error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
 			if diff := cmp.Diff(testCase.resultData.Value(), testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(err, testCase.expectedErr, equateErrors); diff != "" {
+			if diff := cmp.Diff(err, testCase.expectedErr); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

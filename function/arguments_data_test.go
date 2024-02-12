@@ -211,20 +211,11 @@ func TestArgumentsDataGet(t *testing.T) {
 				}),
 			}
 
-			// Handle error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
 			if diff := cmp.Diff(testCase.targets, testCase.expected, options...); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(err, testCase.expectedErr, equateErrors); diff != "" {
+			if diff := cmp.Diff(err, testCase.expectedErr); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})
@@ -247,7 +238,7 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			target:        new(bool),
 			expected:      new(bool),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				fwerror.NewArgumentErrorFunctionError(0, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
 					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
 					"Function does not have argument data."),
 			},
@@ -260,7 +251,7 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			target:   new(bool),
 			expected: new(bool),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Invalid Argument Data Position", "When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
+				fwerror.NewArgumentErrorFunctionError(1, "Invalid Argument Data Position", "When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
 					"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
 					"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 					"Given argument position: 1, last argument position: 0"),
@@ -323,20 +314,11 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 				}),
 			}
 
-			// Handle error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
 			if diff := cmp.Diff(testCase.target, testCase.expected, options...); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(err, testCase.expectedErr, equateErrors); diff != "" {
+			if diff := cmp.Diff(err, testCase.expectedErr); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

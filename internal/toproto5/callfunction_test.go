@@ -60,16 +60,7 @@ func TestCallFunctionResponse(t *testing.T) {
 
 			got := toproto5.CallFunctionResponse(context.Background(), testCase.input)
 
-			// Handling error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
-			if diff := cmp.Diff(got, testCase.expected, equateErrors); diff != "" {
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

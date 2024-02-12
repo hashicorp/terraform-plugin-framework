@@ -241,20 +241,11 @@ func TestServerCallFunction(t *testing.T) {
 
 			got, err := testCase.server.CallFunction(context.Background(), testCase.request)
 
-			// Handling error comparison
-			equateErrors := cmp.Comparer(func(x, y error) bool {
-				if x == nil || y == nil {
-					return x == nil && y == nil
-				}
-
-				return x.Error() == y.Error()
-			})
-
 			if diff := cmp.Diff(testCase.expectedError, err); diff != "" {
 				t.Errorf("unexpected error difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(testCase.expectedResponse, got, equateErrors); diff != "" {
+			if diff := cmp.Diff(testCase.expectedResponse, got); diff != "" {
 				t.Errorf("unexpected response difference: %s", diff)
 			}
 		})

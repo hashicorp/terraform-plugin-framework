@@ -65,8 +65,8 @@ type ResourceWithConfigure interface {
 	Resource
 
 	// Configure enables provider-level data or clients to be set in the
-	// provider-defined DataSource type. It is separately executed for each
-	// ReadDataSource RPC.
+	// provider-defined Resource type. It is separately executed for each
+	// ReadResource RPC.
 	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
 }
 

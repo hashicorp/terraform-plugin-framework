@@ -101,7 +101,7 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Delete")
 
 	if !deleteResp.Diagnostics.HasError() {
-		logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State and Priavate are cleared")
+		logging.FrameworkTrace(ctx, "No provider defined Delete errors detected, ensuring State and Private are cleared")
 		deleteResp.State.RemoveResource(ctx)
 
 		// Preserve prior behavior of always returning nil.

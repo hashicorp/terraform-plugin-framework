@@ -19,7 +19,7 @@ func FunctionError(ctx context.Context, funcErrs fwerror.FunctionErrors) *tfprot
 	var funcArg *int64
 
 	for _, funcErr := range funcErrs {
-		text += fmt.Sprintf("%s: %s\n\n%s\n\n", funcErr.Severity(), funcErr.Summary(), funcErr.Detail())
+		text += fmt.Sprintf("%s\n\n", funcErr.Error())
 
 		var funcErrWithFunctionArgument fwerror.FunctionErrorWithFunctionArgument
 

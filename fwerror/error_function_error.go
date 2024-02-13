@@ -59,18 +59,3 @@ func (f *errorFunctionError) Severity() diag.Severity {
 func (f *errorFunctionError) Summary() string {
 	return f.summary
 }
-
-func FunctionErrorsFromDiags(diags diag.Diagnostics) FunctionErrors {
-	var funcErrs FunctionErrors
-
-	for _, d := range diags {
-		switch d.Severity() {
-		case diag.SeverityError:
-			funcErrs.AddError(d.Summary(), d.Detail())
-		case diag.SeverityWarning:
-			funcErrs.AddWarning(d.Summary(), d.Detail())
-		}
-	}
-
-	return funcErrs
-}

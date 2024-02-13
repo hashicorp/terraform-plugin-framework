@@ -37,7 +37,7 @@ func (d withFunctionArgument) Equal(other FunctionError) bool {
 	return d.FunctionError.Equal(o.FunctionError)
 }
 
-// FunctionArgument returns the diagnostic function argument.
+// FunctionArgument returns the function argument.
 func (d withFunctionArgument) FunctionArgument() int {
 	return d.functionArgument
 }

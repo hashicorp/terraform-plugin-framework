@@ -3,6 +3,8 @@
 
 package fwerror
 
+import "github.com/hashicorp/terraform-plugin-framework/diag"
+
 type FunctionErrors []FunctionError
 
 // AddArgumentError adds an argument error to the collection.
@@ -72,4 +74,19 @@ func (f *FunctionErrors) HasError() bool {
 	}
 
 	return len(*f) > 0
+}
+
+func FunctionErrorsFromDiags(diags diag.Diagnostics) FunctionErrors {
+	var funcErrs FunctionErrors
+
+	for _, d := range diags {
+		switch d.Severity() {
+		case diag.SeverityError:
+			funcErrs.AddError(d.Summary(), d.Detail())
+		case diag.SeverityWarning:
+			funcErrs.AddWarning(d.Summary(), d.Detail())
+		}
+	}
+
+	return funcErrs
 }

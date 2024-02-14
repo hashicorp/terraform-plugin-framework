@@ -158,7 +158,7 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 	}
 
 	if parentValue.IsNull() || !parentValue.IsKnown() {
-		// TODO: This will break when DynamicPsuedoType is introduced.
+		// TODO: This will break when DynamicPseudoType is introduced.
 		// tftypes.Type should implement AttributePathStepper, but it currently does not.
 		// When it does, we should use: tftypes.WalkAttributePath(p.Raw.Type(), parentPath)
 		// Reference: https://github.com/hashicorp/terraform-plugin-go/issues/110

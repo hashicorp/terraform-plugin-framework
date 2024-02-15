@@ -158,12 +158,40 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 	}
 
 	if parentValue.IsNull() || !parentValue.IsKnown() {
-		// TODO: This will break when DynamicPseudoType is introduced.
-		// tftypes.Type should implement AttributePathStepper, but it currently does not.
-		// When it does, we should use: tftypes.WalkAttributePath(p.Raw.Type(), parentPath)
-		// Reference: https://github.com/hashicorp/terraform-plugin-go/issues/110
 		parentType := parentAttrType.TerraformType(ctx)
 		var childValue interface{}
+
+		// TODO: fix up error messages + verify logic
+		// If the parent type from the schema is DynamicPseudoType, we need to get the type from the concrete value
+		if parentType.Is(tftypes.DynamicPseudoType) {
+			parentWalkedValue, _, err := tftypes.WalkAttributePath(d.TerraformValue, parentTftypesPath)
+			if err != nil {
+				err = fmt.Errorf("error getting parent attribute type in schema: %w", err)
+				diags.AddAttributeError(
+					parentPath,
+					d.Description.Title()+" Write Error",
+					"An unexpected error was encountered trying to write an attribute to the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return nil, diags
+			}
+
+			val, ok := parentWalkedValue.(tftypes.Value)
+			if !ok {
+				return nil, diags
+			}
+
+			if val.Type().Is(tftypes.DynamicPseudoType) {
+				diags.AddAttributeError(
+					parentPath,
+					d.Description.Title()+" Read Error",
+					"An unexpected error was encountered trying to read an attribute from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Parent value is tftypes.DynamicPseudoType, which cannot be upserted to.",
+				)
+				return nil, diags
+			}
+
+			parentType = val.Type()
+		}
 
 		if !parentValue.IsKnown() {
 			childValue = tftypes.UnknownValue

@@ -62,12 +62,10 @@ type MoveStateRequest struct {
 	// State conversion errors based on [StateMover.SourceSchema] not matching
 	// the source state are only intentionally logged at DEBUG level as there
 	// may be multiple [StateMover] implementations on the same target resource
-	// for differing source resources. In these cases, this value will be nil,
-	// and the [StateMover] implementation will still be called to enable
-	// fallback logic, such as using SourceRawState. If that fallback logic is
-	// not desired, implementations can check this value for nil and return
-	// early without errors or setting the target state to signal that the
-	// [StateMover] was skipped.
+	// for differing source resources. The [StateMover] implementation will
+	// still be called even with these errors, so it is important that
+	// implementations verify the request via the SourceTypeName and other
+	// fields before attempting to use this data.
 	SourceState *tfsdk.State
 
 	// SourceTypeName is the type name of the source resource. For example,

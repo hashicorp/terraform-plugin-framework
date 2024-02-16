@@ -108,6 +108,7 @@ func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
                 },
             },
             StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+                // Always verify the expected source before working with the data.
                 if req.SourceTypeName != "examplecloud_source" {
                     return
                 }
@@ -175,6 +176,7 @@ func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
     return []resource.StateMover{
         {
             StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+                // Always verify the expected source before working with the data.
                 if req.SourceTypeName != "examplecloud_source" {
                     return
                 }
@@ -260,5 +262,6 @@ func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
 
 Note these caveats when implementing the `MoveState` method:
 
+* The `SourceState` will not always be `nil` if the schema does not match the source state. Always verify the implementation matches other request fields (`SourceTypeName`, etc.) beforehand.
 * An error is returned if the response state contains unknown values. Set all attributes to either null or known values in the response.
 * Any response errors will cause Terraform to keep the source resource state.

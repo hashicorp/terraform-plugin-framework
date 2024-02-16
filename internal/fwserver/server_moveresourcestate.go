@@ -163,6 +163,14 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			// since both the developer and calling practitioner cannot avoid
 			// the situation. Instead, developers will still have a nil
 			// SourceState and they can investigate any error as logged here.
+			//
+			// It is also important to note that the error generally only occurs
+			// if the source schema declared incompatible types. The
+			// IgnoreUndefinedAttributes option above can cause the error to be
+			// nil and the SourceState to be populated with null values. It is
+			// always recommended for StateMover implementations to check the
+			// other request fields (SourceTypeName, SourceProviderAddress,
+			// etc.) instead of relying on SourceState to be populated or not.
 			if err != nil {
 				logging.FrameworkDebug(
 					ctx,

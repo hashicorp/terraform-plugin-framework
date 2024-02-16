@@ -298,6 +298,139 @@ func TestServerMoveResourceState(t *testing.T) {
 				},
 			},
 		},
+		"request-SourceState-conversion-errors-ignored": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								// Intentionally invalid SourceSchema to cause conversion errors
+								SourceSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.BoolAttribute{
+											Computed: true,
+										},
+									},
+								},
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									if req.SourceState != nil {
+										resp.Diagnostics.AddError("Unexpected req.SourceState", "expected nil, got non-nil")
+									}
+								},
+							},
+							{
+								SourceSchema: &testSchema,
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									var id, requiredAttribute types.String
+
+									resp.Diagnostics.Append(req.SourceState.GetAttribute(ctx, path.Root("id"), &id)...)
+									resp.Diagnostics.Append(req.SourceState.GetAttribute(ctx, path.Root("required_attribute"), &requiredAttribute)...)
+
+									if diff := cmp.Diff(id, types.StringValue("test-id-value")); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceState difference", diff)
+									}
+
+									if diff := cmp.Diff(requiredAttribute, types.StringValue("true")); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceState difference", diff)
+									}
+
+									// Prevent missing implementation error, the values do not matter except for response assertion
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+			},
+		},
+		"request-SourceState-IgnoreUndefinedAttributes": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								// Intentionally different SourceSchema to cause null state
+								SourceSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"nonexistent": schema.BoolAttribute{
+											Computed: true,
+										},
+									},
+								},
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// Intentionally populated SourceState due to IgnoreUndefinedAttributes
+									if req.SourceState == nil {
+										resp.Diagnostics.AddError("Expected req.SourceState", "expected non-nil, got nil")
+									}
+								},
+							},
+							{
+								SourceSchema: &testSchema,
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									var id, requiredAttribute types.String
+
+									resp.Diagnostics.Append(req.SourceState.GetAttribute(ctx, path.Root("id"), &id)...)
+									resp.Diagnostics.Append(req.SourceState.GetAttribute(ctx, path.Root("required_attribute"), &requiredAttribute)...)
+
+									if diff := cmp.Diff(id, types.StringValue("test-id-value")); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceState difference", diff)
+									}
+
+									if diff := cmp.Diff(requiredAttribute, types.StringValue("true")); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceState difference", diff)
+									}
+
+									// Prevent missing implementation error, the values do not matter except for response assertion
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+			},
+		},
 		"request-SourceTypeName": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -447,6 +580,55 @@ func TestServerMoveResourceState(t *testing.T) {
 				TargetPrivate: privatestate.EmptyData(ctx),
 			},
 		},
+		"response-Diagnostics-first-error-always-responds": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				// SourceRawState required to prevent error
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// This intentionally should not be included in the response.
+									// The error in the next StateMover should always be the response.
+									resp.Diagnostics.AddWarning("warning summary 1", "warning detail 1")
+								},
+							},
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									resp.Diagnostics.AddError("error summary 2", "error detail 2")
+								},
+							},
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// These intentionally should not be included in the response.
+									// The error in the prior StateMover should always be the response.
+									resp.Diagnostics.AddWarning("warning summary 3", "warning detail 3")
+									resp.Diagnostics.AddError("error summary 3", "error detail 3")
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"error summary 2",
+						"error detail 2",
+					),
+				},
+				TargetPrivate: privatestate.EmptyData(ctx),
+			},
+		},
 		"response-TargetPrivate": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -520,6 +702,54 @@ func TestServerMoveResourceState(t *testing.T) {
 				TargetState: &tfsdk.State{
 					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
 						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+			},
+		},
+		"response-TargetState-first-state-responds": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// Intentionally empty TargetState as below StateMover should respond.
+								},
+							},
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value-2")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// Intentionally different TargetState as above StateMover should respond.
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value-3")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "false")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value-2"),
 						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),

@@ -173,6 +173,46 @@ func TestArgumentsDataGet(t *testing.T) {
 				pointer(attr.Value(basetypes.NewStringValue("test"))),
 			},
 		},
+		"attr-value-variadic": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewInt64Unknown(),
+				basetypes.NewStringValue("test"),
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("test1"),
+						basetypes.NewStringValue("test2"),
+					},
+				),
+			}),
+			targets: []any{
+				new(attr.Value),
+				new(attr.Value),
+				new(attr.Value),
+				new(attr.Value),
+			},
+			expected: []any{
+				pointer(attr.Value(basetypes.NewBoolNull())),
+				pointer(attr.Value(basetypes.NewInt64Unknown())),
+				pointer(attr.Value(basetypes.NewStringValue("test"))),
+				pointer(attr.Value(
+					basetypes.NewTupleValueMust(
+						[]attr.Type{
+							basetypes.StringType{},
+							basetypes.StringType{},
+						},
+						[]attr.Value{
+							basetypes.NewStringValue("test1"),
+							basetypes.NewStringValue("test2"),
+						},
+					),
+				)),
+			},
+		},
 		"framework-type": {
 			argumentsData: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolNull(),
@@ -190,6 +230,46 @@ func TestArgumentsDataGet(t *testing.T) {
 				pointer(basetypes.NewStringValue("test")),
 			},
 		},
+		"framework-type-variadic": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewInt64Unknown(),
+				basetypes.NewStringValue("test"),
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("test1"),
+						basetypes.NewStringValue("test2"),
+					},
+				),
+			}),
+			targets: []any{
+				new(basetypes.BoolValue),
+				new(basetypes.Int64Value),
+				new(basetypes.StringValue),
+				new(basetypes.TupleValue),
+			},
+			expected: []any{
+				pointer(basetypes.NewBoolNull()),
+				pointer(basetypes.NewInt64Unknown()),
+				pointer(basetypes.NewStringValue("test")),
+				pointer(
+					basetypes.NewTupleValueMust(
+						[]attr.Type{
+							basetypes.StringType{},
+							basetypes.StringType{},
+						},
+						[]attr.Value{
+							basetypes.NewStringValue("test1"),
+							basetypes.NewStringValue("test2"),
+						},
+					),
+				),
+			},
+		},
 		"reflection": {
 			argumentsData: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolNull(),
@@ -202,6 +282,46 @@ func TestArgumentsDataGet(t *testing.T) {
 			expected: []any{
 				pointer((*bool)(nil)),
 				pointer("test"),
+			},
+		},
+		"reflection-variadic": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("test1"),
+						basetypes.NewStringValue("test2"),
+					},
+				),
+			}),
+			targets: []any{
+				new(*bool),
+				new([]string),
+			},
+			expected: []any{
+				pointer((*bool)(nil)),
+				pointer([]string{
+					"test1",
+					"test2",
+				}),
+			},
+		},
+		"reflection-variadic-empty": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
+			}),
+			targets: []any{
+				new(*bool),
+				new([]string),
+			},
+			expected: []any{
+				pointer((*bool)(nil)),
+				pointer([]string{}),
 			},
 		},
 	}
@@ -223,6 +343,9 @@ func TestArgumentsDataGet(t *testing.T) {
 					return *v
 				}),
 				cmp.Transformer("StringValue", func(v *basetypes.StringValue) basetypes.StringValue {
+					return *v
+				}),
+				cmp.Transformer("TupleValue", func(v *basetypes.TupleValue) basetypes.TupleValue {
 					return *v
 				}),
 			}
@@ -273,8 +396,8 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 				diag.NewErrorDiagnostic(
 					"Invalid Argument Data Position",
 					"When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
-						"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
-						"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+						"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with a tuple where each element "+
+						"type matches the parameter data type. This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 						"Given argument position: 1, last argument position: 0",
 				),
 			},

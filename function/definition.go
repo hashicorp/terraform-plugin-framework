@@ -21,7 +21,7 @@ type Definition struct {
 
 	// VariadicParameter is an optional final parameter which can accept zero or
 	// more arguments when the function is called. The argument data is sent as
-	// an ordered list of the associated data type.
+	// a tuple, where all elements are of the same associated data type.
 	VariadicParameter Parameter
 
 	// Return is the function call response data type.

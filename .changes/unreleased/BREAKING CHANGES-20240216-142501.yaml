@@ -1,8 +1,8 @@
-kind: NOTES
+kind: BREAKING CHANGES
 body: 'function: Changed the framework type for variadic parameters to `types.TupleType`,
   where each element is the same element type. Provider-defined functions using a
   `types.List` for retrieving variadic argument data will need to update their code
   to use `types.Tuple`.'
-time: 2024-02-16T09:01:21.079352-05:00
+time: 2024-02-16T14:25:01.729428-05:00
 custom:
   Issue: "923"

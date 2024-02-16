@@ -22,7 +22,7 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 	}{
 		"known-primitive": {
 			input:    NewDynamicValue(NewStringValue("test")),
-			expected: tftypes.NewValue(tftypes.DynamicPseudoType, "test"),
+			expected: tftypes.NewValue(tftypes.String, "test"),
 		},
 		"known-collection": {
 			input: NewDynamicValue(
@@ -33,7 +33,9 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 				}),
 			),
 			expected: tftypes.NewValue(
-				tftypes.DynamicPseudoType,
+				tftypes.List{
+					ElementType: tftypes.Number,
+				},
 				[]tftypes.Value{
 					tftypes.NewValue(tftypes.Number, big.NewFloat(1.234)),
 					tftypes.NewValue(tftypes.Number, big.NewFloat(100)),
@@ -61,7 +63,14 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 				),
 			),
 			expected: tftypes.NewValue(
-				tftypes.DynamicPseudoType,
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"string_val": tftypes.String,
+						"map_val": tftypes.Map{
+							ElementType: tftypes.Number,
+						},
+					},
+				},
 				map[string]tftypes.Value{
 					"string_val": tftypes.NewValue(tftypes.String, "hello world"),
 					"map_val": tftypes.NewValue(

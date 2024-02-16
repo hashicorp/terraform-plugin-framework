@@ -20,7 +20,14 @@ import (
 // UpgradeResourceStateRequest is the framework server request for the
 // UpgradeResourceState RPC.
 type UpgradeResourceStateRequest struct {
-	// TODO: Create framework defined type that is not protocol specific.
+	// Using the tfprotov6 type here was a pragmatic effort decision around when
+	// the framework introduced compatibility promises. This type was chosen as
+	// it was readily available and trivial to convert between tfprotov5.
+	//
+	// Using a terraform-plugin-go type is not ideal for the framework as almost
+	// all terraform-plugin-go types have framework abstractions, but if there
+	// is ever a time where it makes sense to re-evaluate this decision, such as
+	// a major version bump, it could be changed then.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
 	RawState *tfprotov6.RawState
 

@@ -27,15 +27,12 @@ type DynamicType struct{}
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the type.
 func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	// TODO: Need to verify this won't cause issues elsewhere
-	//
-	// Based on dynamic type alone, there is no alternative type information to return related to a path step.
+	// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
 	// However, it is possible for a dynamic type to have an underlying value of a list, set, map, object, or tuple
-	// that will have corresponding path steps. the type
-	// will have no reference to this value.
+	// that will have corresponding path steps.
 	//
 	// Since the dynamic type has no reference to the underlying value, we just return the dynamic type which can be used
-	// to grab the attr.Value from `(DynamicType).ValueFromTerraform`; which can be used to create any underlying value.
+	// to grab the attr.Value from `(DynamicType).ValueFromTerraform`.
 	return t, nil
 }
 
@@ -72,12 +69,8 @@ func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return NewDynamicNull(), nil
 	}
 
-	// TODO: is it possible to receive a DynamicPseudoType with a known value from terraform-plugin-go or Terraform core? I don't think so
-	// - tftypes.NewValue() does allow you to create known values with DynamicPseudoType, but I'm not sure if that is really possible in normal
-	// 	 Terraform operations.
-	// - (tfprotov6.DynamicValue).Unmarshal only uses DynamicPseudoType for "dynamic" marked values from Terraform. I believe this only happens
-	// 	 with null and unknown values where the schema is DynamicPseudoType.
-	// If it is possible, there will be an infinite recursive bug without this if statement
+	// MAINTAINER NOTE: It should not be possible for Terraform core to send a known value of `tftypes.DynamicPseudoType`.
+	// This check prevents an infinite recursion when attempting to create a dynamic value.
 	if in.Type().Is(tftypes.DynamicPseudoType) {
 		return nil, errors.New("ambiguous known value for `tftypes.DynamicPseudoType` detected")
 	}

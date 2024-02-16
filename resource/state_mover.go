@@ -34,7 +34,12 @@ type StateMover struct {
 	// [MoveStateRequest.SourceState] when possible similar to other [Resource]
 	// types. State conversion errors based on this schema are only logged at
 	// DEBUG level as there may be multiple [StateMover] implementations on the
-	// same target resource for differing source resources.
+	// same target resource for differing source resources. The [StateMover]
+	// implementation will still be called to enable fallback logic, such as
+	// using [MoveStateRequest.SourceRawState]. If that fallback logic is not
+	// desired, implementations can check [MoveStateRequest.SourceState] for nil
+	// and return early without error or setting the target state to signal that
+	// the [StateMover] was skipped.
 	//
 	// If not set, source state data is only available in
 	// [MoveStateRequest.SourceRawState].

@@ -43,9 +43,6 @@ type MoveStateRequest struct {
 	// redeclaration of source schemas and instead use lower level handlers to
 	// transform data. A typical implementation for working with this data will
 	// call the Unmarshal() method.
-	//
-	// TODO: Create framework defined type that is not protocol specific.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
 	SourceRawState *tfprotov6.RawState
 
 	// SourceSchemaVersion is the schema version of the source resource. It is
@@ -61,6 +58,16 @@ type MoveStateRequest struct {
 	// If this request matches the intended implementation, the implementation
 	// logic must set [MoveStateResponse.TargetState] as it is intentionally not
 	// copied automatically.
+	//
+	// State conversion errors based on [StateMover.SourceSchema] not matching
+	// the source state are only intentionally logged at DEBUG level as there
+	// may be multiple [StateMover] implementations on the same target resource
+	// for differing source resources. In these cases, this value will be nil,
+	// and the [StateMover] implementation will still be called to enable
+	// fallback logic, such as using SourceRawState. If that fallback logic is
+	// not desired, implementations can check this value for nil and return
+	// early without errors or setting the target state to signal that the
+	// [StateMover] was skipped.
 	SourceState *tfsdk.State
 
 	// SourceTypeName is the type name of the source resource. For example,

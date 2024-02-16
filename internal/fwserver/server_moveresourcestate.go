@@ -21,15 +21,50 @@ import (
 // MoveResourceStateRequest is the framework server request for the
 // MoveResourceState RPC.
 type MoveResourceStateRequest struct {
-	SourcePrivate         *privatestate.Data
-	SourceProviderAddress string
-	SourceSchemaVersion   int64
-	SourceRawState        *tfprotov6.RawState
-	SourceTypeName        string
+	// SourcePrivate is the private state of the source resource as given by
+	// Terraform across the protocol.
+	SourcePrivate *privatestate.Data
 
-	TargetResource       resource.Resource
+	// SourceProviderAddress is the address of the source provider as given by
+	// Terraform across the protocol.
+	SourceProviderAddress string
+
+	// SourceSchemaVersion is the version of the source resource schema as given
+	// by Terraform across the protocol.
+	SourceSchemaVersion int64
+
+	// SourceRawState is the raw state of the source resource as given by
+	// Terraform across the protocol.
+	//
+	// Using the tfprotov6 type here was a pragmatic effort decision around when
+	// the framework introduced compatibility promises. This type was chosen as
+	// it was readily available and trivial to convert between tfprotov5.
+	//
+	// Using a terraform-plugin-go type is not ideal for the framework as almost
+	// all terraform-plugin-go types have framework abstractions, but if there
+	// is ever a time where it makes sense to re-evaluate this decision, such as
+	// a major version bump, it could be changed then.
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/340
+	SourceRawState *tfprotov6.RawState
+
+	// SourceTypeName is the type name of the source resource as given by
+	// Terraform across the protocol.
+	SourceTypeName string
+
+	// TargetResource is the provider-defined resource implementation as
+	// determined by the framework looking up the resource name from the
+	// provider.Provider implementation Resources method defined by the
+	// provider developer.
+	TargetResource resource.Resource
+
+	// TargetResourceSchema is the evaluated schema definition of the target
+	// resource as determined by the framework calling the resource.Resource
+	// implementation Schema method defined by the provider developer.
 	TargetResourceSchema fwschema.Schema
-	TargetTypeName       string
+
+	// TargetTypeName is the type name of the target resource as given by
+	// Terraform across the protocol.
+	TargetTypeName string
 }
 
 // MoveResourceStateResponse is the framework server response for the

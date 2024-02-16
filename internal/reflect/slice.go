@@ -139,8 +139,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 			targetValue := reflect.Zero(elemType)
 
 			// update our path so we can have nice errors
-			// utilizing `AtListIndex` because tuple paths are also based on the underlying `PathStepElementKeyInt`
-			valPath := path.AtListIndex(pos)
+			valPath := path.AtTupleIndex(pos)
 
 			// reflect the value into our new target
 			val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
@@ -280,8 +279,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 		}
 
 		for i := 0; i < val.Len(); i++ {
-			// utilizing `AtListIndex` because tuple paths are also based on the underlying `PathStepElementKeyInt`
-			valPath := path.AtListIndex(i)
+			valPath := path.AtTupleIndex(i)
 
 			val, valDiags := FromValue(ctx, elemAttrType, val.Index(i).Interface(), valPath)
 			diags.Append(valDiags...)

@@ -52,6 +52,46 @@ func TestPathAtListIndex(t *testing.T) {
 	}
 }
 
+func TestPathAtTupleIndex(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		path     path.Path
+		index    int
+		expected path.Path
+	}{
+		"empty": {
+			path:     path.Empty(),
+			index:    1,
+			expected: path.Empty().AtTupleIndex(1),
+		},
+		"shallow": {
+			path:     path.Root("test"),
+			index:    1,
+			expected: path.Root("test").AtTupleIndex(1),
+		},
+		"deep": {
+			path:     path.Root("test1").AtTupleIndex(0).AtName("test2"),
+			index:    1,
+			expected: path.Root("test1").AtTupleIndex(0).AtName("test2").AtTupleIndex(1),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.path.AtTupleIndex(testCase.index)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPathAtMapKey(t *testing.T) {
 	t.Parallel()
 

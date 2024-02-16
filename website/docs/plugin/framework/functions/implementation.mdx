@@ -207,7 +207,9 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
         Parameters: []function.Parameter{
             function.BoolParameter{},
         },
-        VariadicParameter: function.StringParameter{},
+        VariadicParameter: function.StringParameter{
+			Name: "variadic_param",
+        },
     }
 }
 
@@ -233,7 +235,9 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
             function.BoolParameter{},
             function.Int64Parameter{},
         },
-        VariadicParameter: function.StringParameter{},
+        VariadicParameter: function.StringParameter{
+			Name: "variadic_param",
+        },
     }
 }
 

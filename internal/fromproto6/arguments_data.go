@@ -133,9 +133,9 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 	}
 
 	if definition.VariadicParameter != nil {
-		// Variadic parameters are represented as a TupleType that contains all of the same element type.
+		// Variadic parameters are represented as a TupleType where each element contains the same element type.
 		//
-		// This is intentional and meant to match how the variadic parameter is handled by Terraform core,
+		// This is intentional and meant to match how variadic arguments are handled by Terraform core,
 		// where the variadic parameter type constraint is applied to each argument individually.
 		variadicType := definition.VariadicParameter.GetType()
 		tupleTypes := make([]attr.Type, len(variadicValues))

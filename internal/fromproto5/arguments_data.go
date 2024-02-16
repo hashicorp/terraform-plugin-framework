@@ -51,7 +51,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		return function.NewArgumentsData(nil), nil
 	}
 
-	// Variadic values are collected as a separate list to ease developer usage.
+	// Variadic values are collected as a separate tuple to ease developer usage.
 	argumentValues := make([]attr.Value, 0, len(definition.Parameters))
 	variadicValues := make([]attr.Value, 0, len(arguments)-len(definition.Parameters))
 	var diags diag.Diagnostics
@@ -133,7 +133,19 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	}
 
 	if definition.VariadicParameter != nil {
-		variadicValue, variadicValueDiags := basetypes.NewListValue(definition.VariadicParameter.GetType(), variadicValues)
+		// Variadic parameters are represented as a TupleType that contains all of the same element type.
+		//
+		// This is intentional and meant to match how the variadic parameter is handled by Terraform core,
+		// where the variadic parameter type constraint is applied to each argument individually.
+		variadicType := definition.VariadicParameter.GetType()
+		tupleTypes := make([]attr.Type, len(variadicValues))
+		tupleValues := make([]attr.Value, len(variadicValues))
+		for i, val := range variadicValues {
+			tupleTypes[i] = variadicType
+			tupleValues[i] = val
+		}
+
+		variadicValue, variadicValueDiags := basetypes.NewTupleValue(tupleTypes, tupleValues)
 
 		diags.Append(variadicValueDiags...)
 

@@ -61,15 +61,58 @@ func TestFromValue_go_types(t *testing.T) {
 				},
 			),
 		},
-		"go-slice-to-tuple-value-unsupported": {
+		"go-slice-to-tuple-value": {
 			typ:   types.TupleType{ElemTypes: []attr.Type{types.StringType, types.StringType}},
-			value: []any{"hello", "world"},
+			value: []string{"hello", "world"},
+			expected: types.TupleValueMust(
+				[]attr.Type{
+					types.StringType,
+					types.StringType,
+				},
+				[]attr.Value{
+					types.StringValue("hello"),
+					types.StringValue("world"),
+				},
+			),
+		},
+		"go-slice-to-tuple-value-empty": {
+			typ:      types.TupleType{ElemTypes: []attr.Type{}},
+			value:    []any{},
+			expected: types.TupleValueMust([]attr.Type{}, []attr.Value{}),
+		},
+		"go-slice-to-tuple-value-one-element": {
+			typ:   types.TupleType{ElemTypes: []attr.Type{types.BoolType}},
+			value: []bool{true},
+			expected: types.TupleValueMust(
+				[]attr.Type{
+					types.BoolType,
+				},
+				[]attr.Value{
+					types.BoolValue(true),
+				},
+			),
+		},
+		"go-slice-to-tuple-value-unsupported-no-element-types-with-values": {
+			typ:   types.TupleType{ElemTypes: []attr.Type{}},
+			value: []string{"hello", "world"},
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"cannot use type []interface {} as schema type basetypes.TupleType; reflection support is currently not implemented for tuples",
+						"cannot use type []string as schema type basetypes.TupleType; tuple type contained no element types but received values",
+				),
+			},
+		},
+		"go-slice-to-tuple-value-unsupported-multiple-element-types": {
+			typ:   types.TupleType{ElemTypes: []attr.Type{types.StringType, types.BoolType}},
+			value: []any{"hello", true},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"cannot use type []interface {} as schema type basetypes.TupleType; reflection support for tuples is limited to multiple elements of the same element type. Expected all element types to be basetypes.StringType",
 				),
 			},
 		},

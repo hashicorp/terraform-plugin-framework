@@ -45,9 +45,9 @@ func (d ArgumentsData) Equal(o ArgumentsData) bool {
 // Each target type must be acceptable for the data type in the parameter
 // definition.
 //
-// Variadic parameter argument data must be consumed by a types.List or Go slice
+// Variadic parameter argument data must be consumed by a types.Tuple or Go slice
 // type with an element type appropriate for the parameter definition ([]T). The
-// framework automatically populates this list with elements matching the zero,
+// framework automatically populates this tuple with elements matching the zero,
 // one, or more arguments passed.
 func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -112,10 +112,10 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) diag.Diagnostics
 // position and populates the target with the value. The target type must be
 // acceptable for the data type in the parameter definition.
 //
-// Variadic parameter argument data must be consumed by a types.List or Go slice
+// Variadic parameter argument data must be consumed by a types.Tuple or Go slice
 // type with an element type appropriate for the parameter definition ([]T) at
 // the position after all parameters. The framework automatically populates this
-// list with elements matching the zero, one, or more arguments passed.
+// tuple with elements matching the zero, one, or more arguments passed.
 func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -134,8 +134,8 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 		diags.AddError(
 			"Invalid Argument Data Position",
 			"When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
-				"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
-				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+				"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with a tuple where each element "+
+				"type matches the parameter data type. This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1),
 		)
 

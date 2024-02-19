@@ -37,7 +37,7 @@ func (d *ResultData) Set(ctx context.Context, value any) fwerror.FunctionErrors 
 
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(reflectDiags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, reflectDiags)...)
 
 	if funcErrs.HasError() {
 		return funcErrs

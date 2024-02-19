@@ -57,7 +57,7 @@ func (r MapReturn) NewResultData(ctx context.Context) (ResultData, fwerror.Funct
 
 	valuable, diags := r.CustomType.ValueFromMap(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

@@ -7,18 +7,27 @@ import (
 	"errors"
 )
 
-var _ FunctionErrorWithFunctionArgument = withFunctionArgument{}
+var _ FunctionErrorWithFunctionArgument = argumentFunctionError{}
 
-// withFunctionArgument wraps a function error with function argument information.
-type withFunctionArgument struct {
+// NewArgumentFunctionError returns a new function error with the
+// given message, and function argument.
+func NewArgumentFunctionError(functionArgument int, msg string) FunctionErrorWithFunctionArgument {
+	return argumentFunctionError{
+		FunctionError:    NewFunctionError(msg),
+		functionArgument: functionArgument,
+	}
+}
+
+// argumentFunctionError wraps a function error with function argument information.
+type argumentFunctionError struct {
 	FunctionError
 
 	functionArgument int
 }
 
 // Equal returns true if the other function error is wholly equivalent.
-func (d withFunctionArgument) Equal(other FunctionError) bool {
-	var o withFunctionArgument
+func (d argumentFunctionError) Equal(other FunctionError) bool {
+	var o argumentFunctionError
 
 	ok := errors.As(other, &o)
 
@@ -38,25 +47,25 @@ func (d withFunctionArgument) Equal(other FunctionError) bool {
 }
 
 // FunctionArgument returns the function argument.
-func (d withFunctionArgument) FunctionArgument() int {
+func (d argumentFunctionError) FunctionArgument() int {
 	return d.functionArgument
 }
 
 // WithFunctionArgument wraps a function error with function argument information
 // or overwrites the function argument.
 func WithFunctionArgument(functionArgument int, f FunctionError) FunctionErrorWithFunctionArgument {
-	var wp withFunctionArgument
+	var afe argumentFunctionError
 
-	ok := errors.As(f, &wp)
+	ok := errors.As(f, &afe)
 
 	if !ok {
-		return withFunctionArgument{
+		return argumentFunctionError{
 			FunctionError:    f,
 			functionArgument: functionArgument,
 		}
 	}
 
-	wp.functionArgument = functionArgument
+	afe.functionArgument = functionArgument
 
-	return wp
+	return afe
 }

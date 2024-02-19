@@ -57,7 +57,7 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, fwerror.Func
 
 	valuable, diags := r.CustomType.ValueFromList(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

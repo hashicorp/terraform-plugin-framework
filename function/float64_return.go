@@ -50,7 +50,7 @@ func (r Float64Return) NewResultData(ctx context.Context) (ResultData, fwerror.F
 
 	valuable, diags := r.CustomType.ValueFromFloat64(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

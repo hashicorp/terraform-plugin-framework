@@ -49,7 +49,7 @@ func (r StringReturn) NewResultData(ctx context.Context) (ResultData, fwerror.Fu
 
 	valuable, diags := r.CustomType.ValueFromString(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

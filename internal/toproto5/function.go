@@ -102,12 +102,11 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		summary := "Unable to Convert Function Result Data"
-		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
+		msg := "Unable to Convert Function Result Data: An unexpected error was encountered when converting the function result data to the protocol type. " +
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		funcErrs.AddError(summary, detail)
+		funcErrs.AddError(msg)
 
 		return nil, funcErrs
 	}
@@ -115,12 +114,11 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	dynamicValue, err := tfprotov5.NewDynamicValue(tfType, tfValue)
 
 	if err != nil {
-		summary := "Unable to Convert Function Result Data"
-		detail := "An unexpected error was encountered when converting the function result data to the protocol type. " +
+		msg := "Unable to Convert Function Result Data: An unexpected error was encountered when converting the function result data to the protocol type. " +
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		funcErrs.AddError(summary, detail)
+		funcErrs.AddError(msg)
 
 		return nil, funcErrs
 	}

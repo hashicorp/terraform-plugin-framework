@@ -32,13 +32,12 @@ func TestCallFunctionResponse(t *testing.T) {
 		"error": {
 			input: &fwserver.CallFunctionResponse{
 				Error: fwerror.FunctionErrors{
-					fwerror.NewWarningFunctionError("warning summary", "warning detail"),
-					fwerror.NewErrorFunctionError("error summary", "error detail"),
+					fwerror.NewFunctionError("error summary: error detail"),
 				},
 			},
 			expected: &tfprotov6.CallFunctionResponse{
 				Error: &tfprotov6.FunctionError{
-					Text: "Warning: warning summary\n\nwarning detail\n\nError: error summary\n\nerror detail\n\n",
+					Text: "error summary: error detail",
 				},
 			},
 		},

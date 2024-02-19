@@ -40,7 +40,7 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 
 	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, function, functionDefinition)
 
-	fwResp.Error.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	fwResp.Error.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	if fwResp.Error.HasError() {
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil

@@ -61,15 +61,15 @@ func TestServerCallFunction(t *testing.T) {
 											expectedArg2 := basetypes.NewStringValue("arg2")
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
+												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
+												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1))
 											}
 
 											if !arg2.Equal(expectedArg2) {
-												resp.Error.AddError("Unexpected Argument 2 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2))
+												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2))
 											}
 
 											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -129,11 +129,11 @@ func TestServerCallFunction(t *testing.T) {
 											)
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error.AddError("Unexpected Argument 0 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0))
+												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error.AddError("Unexpected Argument 1 Difference\n\n%s", fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1))
+												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1))
 											}
 
 											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
@@ -174,8 +174,7 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Error.AddWarning("warning summary", "warning detail")
-											resp.Error.AddError("error summary", "error detail")
+											resp.Error.AddError("error summary: error detail")
 											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
@@ -191,7 +190,7 @@ func TestServerCallFunction(t *testing.T) {
 			},
 			expectedResponse: &tfprotov5.CallFunctionResponse{
 				Error: &tfprotov5.FunctionError{
-					Text: "Warning: warning summary\n\nwarning detail\n\nError: error summary\n\nerror detail\n\n",
+					Text: "error summary: error detail",
 				},
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},

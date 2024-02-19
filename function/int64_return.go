@@ -49,7 +49,7 @@ func (r Int64Return) NewResultData(ctx context.Context) (ResultData, fwerror.Fun
 
 	valuable, diags := r.CustomType.ValueFromInt64(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

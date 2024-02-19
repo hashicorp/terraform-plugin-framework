@@ -96,8 +96,8 @@ func TestArgumentsDataGet(t *testing.T) {
 			targets:       []any{new(bool)},
 			expected:      []any{new(bool)},
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+				fwerror.NewFunctionError("Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+					"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 					"Function does not have argument data."),
 			},
 		},
@@ -109,9 +109,9 @@ func TestArgumentsDataGet(t *testing.T) {
 			targets:  []any{new(bool)},
 			expected: []any{new(bool)},
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-					"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. "+
-					"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+				fwerror.NewFunctionError("Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+					"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
+					"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 					"Given targets count: 1, expected targets count: 2"),
 			},
 		},
@@ -122,9 +122,9 @@ func TestArgumentsDataGet(t *testing.T) {
 			targets:  []any{new(bool), new(bool)},
 			expected: []any{new(bool), new(bool)},
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
-					"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. "+
-					"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
+				fwerror.NewFunctionError("Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+					"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
+					"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 					"Given targets count: 2, expected targets count: 1"),
 			},
 		},
@@ -135,8 +135,8 @@ func TestArgumentsDataGet(t *testing.T) {
 			targets:  []any{new(basetypes.StringValue)},
 			expected: []any{new(basetypes.StringValue)},
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Value Conversion Error", "An unexpected error was encountered trying to convert into a Terraform value. "+
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fwerror.NewFunctionError("Value Conversion Error: An unexpected error was encountered trying to convert into a Terraform value. " +
+					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
 					"Cannot use attr.Value basetypes.StringValue, only basetypes.BoolValue is supported because basetypes.BoolType is the type in the schema"),
 			},
 		},
@@ -238,7 +238,7 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			target:        new(bool),
 			expected:      new(bool),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewArgumentErrorFunctionError(0, "Invalid Argument Data Usage", "When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
+				fwerror.NewArgumentFunctionError(0, "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. "+
 					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
 					"Function does not have argument data."),
 			},
@@ -251,7 +251,7 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			target:   new(bool),
 			expected: new(bool),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewArgumentErrorFunctionError(1, "Invalid Argument Data Position", "When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
+				fwerror.NewArgumentFunctionError(1, "Invalid Argument Data Position: When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. "+
 					"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. "+
 					"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 					"Given argument position: 1, last argument position: 0"),
@@ -265,8 +265,8 @@ func TestArgumentsDataGetArgument(t *testing.T) {
 			target:   new(basetypes.StringValue),
 			expected: new(basetypes.StringValue),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Value Conversion Error", "An unexpected error was encountered trying to convert into a Terraform value. "+
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fwerror.NewFunctionError("Value Conversion Error: An unexpected error was encountered trying to convert into a Terraform value. " +
+					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
 					"Cannot use attr.Value basetypes.StringValue, only basetypes.BoolValue is supported because basetypes.BoolType is the type in the schema"),
 			},
 		},

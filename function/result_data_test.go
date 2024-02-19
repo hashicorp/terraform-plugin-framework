@@ -29,8 +29,8 @@ func TestResultDataSet(t *testing.T) {
 			value:      nil,
 			expected:   basetypes.NewBoolUnknown(),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Value Conversion Error", "An unexpected error was encountered trying to convert from value. "+
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				fwerror.NewFunctionError("Value Conversion Error: An unexpected error was encountered trying to convert from value. " +
+					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
 					"cannot construct attr.Type from <nil> (invalid)"),
 			},
 		},
@@ -39,10 +39,10 @@ func TestResultDataSet(t *testing.T) {
 			value:      basetypes.NewStringValue("test"),
 			expected:   basetypes.NewBoolUnknown(),
 			expectedErr: fwerror.FunctionErrors{
-				fwerror.NewErrorFunctionError("Value Conversion Error", "An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n"+
-					"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n"+
+				fwerror.NewFunctionError("Value Conversion Error: An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. " +
+					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
+					"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n" +
+					"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n" +
 					"Path: "),
 			},
 		},

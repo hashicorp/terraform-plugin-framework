@@ -6,7 +6,6 @@ package toproto6
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
@@ -19,7 +18,7 @@ func FunctionError(ctx context.Context, funcErrs fwerror.FunctionErrors) *tfprot
 	var funcArg *int64
 
 	for _, funcErr := range funcErrs {
-		text += fmt.Sprintf("%s\n\n", funcErr.Error())
+		text += funcErr.Error()
 
 		var funcErrWithFunctionArgument fwerror.FunctionErrorWithFunctionArgument
 

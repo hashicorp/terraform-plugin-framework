@@ -3,50 +3,58 @@
 
 package fwerror
 
-import "github.com/hashicorp/terraform-plugin-framework/diag"
+import (
+	"context"
+	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+)
+
+// FunctionErrors represents a collection of function errors.
+//
+// While this collection is ordered, the order is not guaranteed as reliable
+// or consistent.
 type FunctionErrors []FunctionError
 
 // AddArgumentError adds an argument error to the collection.
-func (f *FunctionErrors) AddArgumentError(functionArgument int, summary string, detail string) {
-	f.Append(NewArgumentErrorFunctionError(functionArgument, summary, detail))
+func (fe *FunctionErrors) AddArgumentError(functionArgument int, msg string) {
+	fe.Append(NewArgumentFunctionError(functionArgument, msg))
 }
 
 // AddError adds a generic error to the collection.
-func (f *FunctionErrors) AddError(summary string, detail string) {
-	f.Append(NewErrorFunctionError(summary, detail))
+func (fe *FunctionErrors) AddError(msg string) {
+	fe.Append(NewFunctionError(msg))
 }
 
-// AddWarning adds a generic warning to the collection.
-func (f *FunctionErrors) AddWarning(summary string, detail string) {
-	f.Append(NewWarningFunctionError(summary, detail))
-}
-
-func (f *FunctionErrors) Append(in ...FunctionError) {
-	for _, fe := range in {
-		if fe == nil {
+// Append adds non-empty and non-duplicate function errors to the collection.
+func (fe *FunctionErrors) Append(in ...FunctionError) {
+	for _, funcErr := range in {
+		if funcErr == nil {
 			continue
 		}
 
-		if f.Contains(fe) {
+		if fe.Contains(funcErr) {
 			continue
 		}
 
-		if f == nil {
-			*f = FunctionErrors{fe}
+		if funcErr == nil {
+			*fe = FunctionErrors{funcErr}
 		} else {
-			*f = append(*f, fe)
+			*fe = append(*fe, funcErr)
 		}
 	}
 }
 
-func (f *FunctionErrors) Contains(in FunctionError) bool {
-	if f == nil {
+// Contains returns true if the collection contains an equal FunctionError.
+func (fe *FunctionErrors) Contains(in FunctionError) bool {
+	if fe == nil {
 		return false
 	}
 
-	for _, fe := range *f {
-		if fe.Equal(in) {
+	for _, funcErr := range *fe {
+		if funcErr.Equal(in) {
 			return true
 		}
 	}
@@ -54,37 +62,68 @@ func (f *FunctionErrors) Contains(in FunctionError) bool {
 	return false
 }
 
-func (f *FunctionErrors) Error() string {
+// Equal returns true if all given function errors are equivalent in order and
+// content, based on the underlying (FunctionError).Equal() method of each.
+func (fe *FunctionErrors) Equal(other *FunctionErrors) bool {
+	if fe == nil && other == nil {
+		return true
+	}
+
+	if fe == nil || other == nil {
+		return false
+	}
+
+	if len(*fe) != len(*other) {
+		return false
+	}
+
+	o := *other
+
+	for funcErrIndex, funcErr := range *fe {
+		if !funcErr.Equal(o[funcErrIndex]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Error returns a string representation of the collection.
+func (fe *FunctionErrors) Error() string {
 	var errStr string
 
-	if f == nil {
+	if fe == nil {
 		return ""
 	}
 
-	for _, err := range *f {
+	for _, err := range *fe {
 		errStr += err.Error() + "\n"
 	}
 
 	return errStr
 }
 
-func (f *FunctionErrors) HasError() bool {
-	if f == nil {
+// HasError returns true if the collection has a FunctionError.
+func (fe *FunctionErrors) HasError() bool {
+	if fe == nil {
 		return false
 	}
 
-	return len(*f) > 0
+	return len(*fe) > 0
 }
 
-func FunctionErrorsFromDiags(diags diag.Diagnostics) FunctionErrors {
+// FunctionErrorsFromDiags iterates over the given diagnostics and returns FunctionErrors populated
+// with a FunctionError for each [diag.Diagnostic] with an Error severity. Each warning severity
+// [diag.Diagnostic] is logged, but not converted into a FunctionError.
+func FunctionErrorsFromDiags(ctx context.Context, diags diag.Diagnostics) FunctionErrors {
 	var funcErrs FunctionErrors
 
 	for _, d := range diags {
 		switch d.Severity() {
 		case diag.SeverityError:
-			funcErrs.AddError(d.Summary(), d.Detail())
+			funcErrs.AddError(fmt.Sprintf("%s: %s", d.Summary(), d.Detail()))
 		case diag.SeverityWarning:
-			funcErrs.AddWarning(d.Summary(), d.Detail())
+			tflog.Warn(ctx, "warning: call function", map[string]interface{}{"summary": d.Summary(), "detail": d.Detail()})
 		}
 	}
 

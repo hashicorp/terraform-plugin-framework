@@ -20,12 +20,12 @@ func (s *Server) Function(ctx context.Context, name string) (function.Function, 
 
 	var funcErrs fwerror.FunctionErrors
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(diags)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		funcErrs.AddError("Function Not Found", fmt.Sprintf("No function named %q was found in the provider.", name))
+		funcErrs.AddError(fmt.Sprintf("Function Not Found: No function named %q was found in the provider.", name))
 
 		return nil, funcErrs
 	}
@@ -57,7 +57,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 	functionImpl.Definition(ctx, definitionReq, &definitionResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Definition method", map[string]interface{}{logging.KeyFunctionName: name})
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(definitionResp.Diagnostics)...)
+	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, definitionResp.Diagnostics)...)
 
 	if funcErrs.HasError() {
 		return definitionResp.Definition, funcErrs

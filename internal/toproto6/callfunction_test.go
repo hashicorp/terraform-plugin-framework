@@ -31,7 +31,7 @@ func TestCallFunctionResponse(t *testing.T) {
 		},
 		"error": {
 			input: &fwserver.CallFunctionResponse{
-				Error: fwerror.FunctionErrors{
+				Errors: fwerror.FunctionErrors{
 					fwerror.NewFunctionError("error summary one: error detail one"),
 					fwerror.NewArgumentFunctionError(0, "error summary two: error detail two"),
 				},

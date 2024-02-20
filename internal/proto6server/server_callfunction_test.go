@@ -54,25 +54,25 @@ func TestServerCallFunction(t *testing.T) {
 											var arg1 basetypes.Int64Value
 											var arg2 basetypes.StringValue
 
-											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
+											resp.Errors = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
 
 											expectedArg0 := basetypes.NewBoolNull()
 											expectedArg1 := basetypes.NewInt64Unknown()
 											expectedArg2 := basetypes.NewStringValue("arg2")
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
+												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1))
+												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1))
 											}
 
 											if !arg2.Equal(expectedArg2) {
-												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2))
+												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2))
 											}
 
-											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -117,7 +117,7 @@ func TestServerCallFunction(t *testing.T) {
 											var arg0 basetypes.StringValue
 											var arg1 basetypes.ListValue
 
-											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1)
+											resp.Errors = req.Arguments.Get(ctx, &arg0, &arg1)
 
 											expectedArg0 := basetypes.NewStringValue("arg0")
 											expectedArg1 := basetypes.NewListValueMust(
@@ -129,14 +129,14 @@ func TestServerCallFunction(t *testing.T) {
 											)
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
+												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Error.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg1, expectedArg1))
+												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg1, expectedArg1))
 											}
 
-											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -174,8 +174,8 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Error.AddError("error summary: error detail")
-											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Errors.AddError("error summary: error detail")
+											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},
@@ -212,7 +212,7 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Error.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
 										},
 									}
 								},

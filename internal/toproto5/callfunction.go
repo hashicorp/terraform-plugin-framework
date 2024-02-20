@@ -18,7 +18,7 @@ func CallFunctionResponse(ctx context.Context, fw *fwserver.CallFunctionResponse
 		return nil
 	}
 
-	funcErrs := fw.Error
+	funcErrs := fw.Errors
 
 	result, resultErrs := FunctionResultData(ctx, fw.Result)
 

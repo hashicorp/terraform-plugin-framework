@@ -17,9 +17,9 @@ type RunRequest struct {
 // RunResponse represents a response to a RunRequest. An instance of this
 // response struct is supplied as an argument to the Function type Run method.
 type RunResponse struct {
-	// Error contains errors related to running the function.
+	// Errors contains errors related to running the function.
 	// A nil error indicates success, with no errors generated.
-	Error fwerror.FunctionErrors
+	Errors fwerror.FunctionErrors
 
 	// Result is the data to be returned to Terraform matching the function
 	// result definition. This must be set or an error diagnostic is raised. Use

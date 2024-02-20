@@ -1,0 +1,267 @@
+---
+page_title: 'Plugin Development - Framework: State Move'
+description: >-
+  How to move state data across managed resource types using the provider
+  development framework.
+---
+
+# State Move
+
+<Tip>
+
+State move across managed resource types is supported in Terraform 1.8 and later.
+
+</Tip>
+
+Terraform is designed with each managed resource type being distinguished from all other types. To prevent data loss or unexpected data issues, Terraform will raise an error when practitioners attempt to refactor existing resource usage across resource types via the [`moved` configuration block](/terraform/language/modules/develop/refactoring) since data compatibility is not guaranteed. Provider developers can opt into explicitly enabling Terraform to allow these refactoring operations for a target resource type based on source resource type criteria. This criteria can include the source provider address, resource type name, and schema version.
+
+## Use Cases
+
+Example use cases include:
+
+* Renaming a resource type, such as API service name changes or for Terraform resource naming consistency.
+* Splitting a resource type, into separate resource types for practitioner ease, such as a compute resource into Linux and Windows variants.
+* Handing a resource type with API versioning quirks, such as multiple resource types representing the same real world resources with partially different configuration data/concepts.
+
+## Concepts
+
+A managed resource type has an associated [state](/terraform/language/state), which captures the structure and types of data for the resource type. Enabling state move support requires the provider to handle data transformation logic which takes in source resource type state as an input and outputs the equivalent target resource type state.
+
+When a plan is generated with a `moved` configuration block, Terraform will send a request to the provider with all the source resource state information (provider address, resource type, schema version) and target resource type. The framework will check the target resource to see if it defines state move support.
+
+The framework implementation does the following:
+
+* If no state move support is defined for the resource, an error diagnostic is returned.
+* If state move support is defined for the resource, each provider defined implementation is called until one responds with error diagnostics or state data.
+* If all implementations return without error diagnostics and state data, an error diagnostic is returned.
+
+## Implementation
+
+Implement the [`resource.ResourceWithStateMove` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithStateMove) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). That interface requires the `StateMove` method, which enables individual source resource criteria and logic for each source resource type to support.
+
+This example shows a `Resource` with the necessary `StateMove` method to implement the `ResourceWithStateMove` interface:
+
+```go
+// Other Resource methods are omitted in this example
+var _ resource.ResourceWithMoveState = &TargetResource{}
+
+type TargetResource struct{/* ... */}
+
+func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
+    return []resource.StateMover{
+        {
+            // Optionally, the SourceSchema field can be defined.
+            StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) { /* ... */ },
+        },
+        // ... potentially more StateMover for each compatible source ...
+    }
+}
+```
+
+Each [`resource.StateMover`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#StateMover) implementation is expected to:
+
+* Check the [`resource.MoveStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateRequest) for whether this implementation matches a known source resource. It is always recommended to check the `SourceTypeName`, `SourceSchemaVersion`, and `SourceProviderAddress` (without the hostname, unless needed for disambiguation).
+* If not matching, return early without diagnostics or setting state data in the [`resource.MoveStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateResponse). The framework will try the next implementation.
+* If matching, wholly set the resource state from the source state. All state data must be populated in the [`resource.MoveStateResponse`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateResponse). The framework does not copy any source state data from the [`resource.MoveStateRequest`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateRequest).
+
+There are two approaches to implementing the provider logic for state moves in `StateMover`. The recommended approach is defining the source schema matching the source resource state, which allows for source state access similar to other parts of the framework. The second, more advanced, approach is accessing the source resource state using lower level data handlers.
+
+### StateMover With SourceSchema
+
+Implement the [`StateMover` type `SourceSchema` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#StateMover.SourceSchema) to enable the framework to populate the [`resource.MoveStateRequest` type `SourceState` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateRequest.SourceState) for the provider defined state move logic. Access the request `SourceState` using methods such as [`Get()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Get) or [`GetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.GetAttribute). Write the [`resource.MoveStateResponse` type `TargetState` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateResponse.TargetState) using methods such as [`Set()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Set) or [`SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute).
+
+This example shows a target resource that supports moving state from a source resource, using the `SourceSchema` approach:
+
+```go
+// Other Resource methods are omitted in this example
+var _ resource.Resource = &TargetResource{}
+var _ resource.ResourceWithMoveState = &TargetResource{}
+
+type TargetResource struct{/* ... */}
+
+type TargetResourceModel struct {
+    Id              types.String `tfsdk:"id"`
+    TargetAttribute types.Bool   `tfsdk:"target_attribute"`
+}
+
+type SourceResourceModel struct {
+    Id              types.String `tfsdk:"id"`
+    SourceAttribute types.Bool   `tfsdk:"source_attribute"`
+}
+
+func (r *TargetResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "id": schema.StringAttribute{ /* ... */ },
+            "target_attribute": schema.BoolAttribute{ /* ... */ },
+        },
+    }
+}
+
+func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
+    return []resource.StateMover{
+        {
+            SourceSchema: &schema.Schema{
+                Attributes: map[string]schema.Attribute{
+                    "id": schema.StringAttribute{},
+                    "source_attribute": schema.BoolAttribute{},
+                },
+            },
+            StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+                // Always verify the expected source before working with the data.
+                if req.SourceTypeName != "examplecloud_source" {
+                    return
+                }
+
+                if req.SourceSchemaVersion != 0 {
+                    return
+                }
+
+                // This only checks the provider address namespace and type
+                // since practitioners may use differing hostnames for the same
+                // provider, such as a network mirror. If necessary though, the
+                // hostname can be used for disambiguation.
+                if !strings.HasSuffix(req.SourceProviderAddress, "examplecorp/examplecloud") {
+                    return
+                }
+
+                var sourceStateData SourceResourceModel
+
+                resp.Diagnostics.Append(req.SourceState.Get(ctx, &sourceStateData)...)
+
+                if resp.Diagnostics.HasError() {
+                    return
+                }
+
+                targetStateData := TargetResourceModel{
+                    Id:              sourceStateData.Id,
+                    TargetAttribute: sourceStateData.SourceAttribute,
+                }
+
+                resp.Diagnostics.Append(resp.TargetState.Set(ctx, targetStateData)...)
+            },
+        },
+    }
+}
+```
+
+### StateMover Without SourceSchema
+
+Read source state data from the [`resource.MoveStateRequest` type `SourceRawState` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateRequest.SourceRawState). Write the [`resource.MoveStateResponse` type `TargetState` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#MoveStateResponse.TargetState) using methods such as [`Set()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.Set) or [`SetAttribute()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#State.SetAttribute).
+
+This example shows a target resource that supports moving state from a source resource, using the `SourceRawState` approach for the request:
+
+```go
+// Other Resource methods are omitted in this example
+var _ resource.Resource = &TargetResource{}
+var _ resource.ResourceWithMoveState = &TargetResource{}
+
+type TargetResource struct{/* ... */}
+
+type TargetResourceModel struct {
+    Id              types.String `tfsdk:"id"`
+    TargetAttribute types.Bool   `tfsdk:"target_attribute"`
+}
+
+func (r *TargetResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "id": schema.StringAttribute{ /* ... */ },
+            "target_attribute": schema.BoolAttribute{ /* ... */ },
+        },
+    }
+}
+
+func (r *TargetResource) MoveState(ctx context.Context) []resource.StateMover {
+    return []resource.StateMover{
+        {
+            StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+                // Always verify the expected source before working with the data.
+                if req.SourceTypeName != "examplecloud_source" {
+                    return
+                }
+
+                if req.SourceSchemaVersion != 0 {
+                    return
+                }
+
+                // This only checks the provider address namespace and type
+                // since practitioners may use differing hostnames for the same
+                // provider, such as a network mirror. If necessary though, the
+                // hostname can be used for disambiguation.
+                if !strings.HasSuffix(req.SourceProviderAddress, "examplecorp/examplecloud") {
+                    return
+                }
+
+                // Refer also to the RawState type JSON field which can be used
+                // with json.Unmarshal()
+                rawStateValue, err := req.SourceRawState.Unmarshal(tftypes.Object{
+                    AttributeTypes: map[string]tftypes.Type{
+                        "id":               tftypes.String,
+                        "source_attribute": tftypes.Bool,
+                    },
+                })
+
+                if err != nil {
+                    resp.Diagnostics.AddError(
+                        "Unable to Unmarshal Source State",
+                        err.Error(),
+                    )
+
+                    return
+                }
+
+                var rawState map[string]tftypes.Value
+
+                if err := rawStateValue.As(&rawState); err != nil {
+                    resp.Diagnostics.AddError(
+                        "Unable to Convert Source State",
+                        err.Error(),
+                    )
+
+                    return
+                }
+
+                var id *string
+
+                if err := rawState["id"].As(&id); err != nil {
+                    resp.Diagnostics.AddAttributeError(
+                        path.Root("id"),
+                        "Unable to Convert Source State",
+                        err.Error(),
+                    )
+
+                    return
+                }
+
+                var sourceAttribute *bool
+
+                if err := rawState["source_attribute"].As(&sourceAttribute); err != nil {
+                    resp.Diagnostics.AddAttributeError(
+                        path.Root("source_attribute"),
+                        "Unable to Convert Source State",
+                        err.Error(),
+                    )
+
+                    return
+                }
+
+                targetStateData := TargetResourceModel{
+                    Id:              types.StringPointerValue(id),
+                    TargetAttribute: types.BoolPointerValue(sourceAttribute),
+                }
+
+                resp.Diagnostics.Append(resp.TargetState.Set(ctx, targetStateData)...)
+            },
+        },
+    }
+}
+```
+
+## Caveats
+
+Note these caveats when implementing the `MoveState` method:
+
+* The `SourceState` will not always be `nil` if the schema does not match the source state. Always verify the implementation matches other request fields (`SourceTypeName`, etc.) beforehand.
+* An error is returned if the response state contains unknown values. Set all attributes to either null or known values in the response.
+* Any response errors will cause Terraform to keep the source resource state.

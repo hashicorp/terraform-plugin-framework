@@ -133,10 +133,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 	}
 
 	if definition.VariadicParameter != nil {
-		// Variadic parameters are represented as a TupleType where each element type of the tuple matches the variadic parameter type.
+		// Variadic parameters are represented as a framework Tuple where each element type of the tuple matches the variadic parameter type.
 		//
-		// This is intentional and meant to match how variadic arguments are handled by Terraform core,
-		// where the variadic parameter type constraint is applied to each argument individually.
+		// MAINTAINER NOTE:
+		//		Variadic parameters are represented as individual arguments in the CallFunction RPC and Terraform core applies the variadic parameter
+		//		type constraint to each argument individually. For developer convenience, the framework logic below, groups the variadic arguments into a
+		// 		framework Tuple where each element type of the tuple matches the variadic parameter type.
+		//
+		//		Previously, this logic utilized a framework List with an element type that matched the variadic parameter type. Using a List presented an issue with dynamic
+		//		variadic parameters, as each argument was allowed to be any type "individually", rather than having a single type constraint applied to all dynamic elements,
+		//		like a cty.List in Terraform. This eventually results in an error attempting to create a tftypes.List with multiple element types (when unwrapping from a framework
+		//		dynamic to a tftypes concrete value).
+		//
+		//		While a framework List type can handle multiple dynamic values of different types (due to it's wrapping of dynamic values), `terraform-plugin-go` and `tftypes.List` cannot.
+		// 		Currently, the logic for retrieving argument data is dependent on the tftypes package to utilize the framework reflection logic, requiring us to apply the a type constraint
+		//		that is valid in Terraform core and `terraform-plugin-go`, which we are doing here with a Tuple.
+		//
 		variadicType := definition.VariadicParameter.GetType()
 		tupleTypes := make([]attr.Type, len(variadicValues))
 		tupleValues := make([]attr.Value, len(variadicValues))

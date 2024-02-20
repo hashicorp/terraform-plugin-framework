@@ -84,6 +84,10 @@
         "path": "resources/import"
       },
       {
+        "title": "Move State",
+        "path": "resources/state-move"
+      },
+      {
         "title": "Upgrade State",
         "path": "resources/state-upgrade"
       },

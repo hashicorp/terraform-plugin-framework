@@ -90,7 +90,12 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		}
 
 		return slice, diags
+
 	// Tuple reflection into slices is currently limited to use-cases where all tuple element types are the same.
+	//
+	// Overall, Tuple support is limited in the framework, but the main path that executes tuple reflection is the provider-defined function variadic
+	// parameter. All tuple elements in this variadic parameter will have the same element type. For use-cases where the variadic parameter is a dynamic type,
+	// all elements will have the same type of `DynamicType` and value of `DynamicValue`, with an underlying value that may be different.
 	case attr.TypeWithElementTypes:
 		// we need to know the type the slice is wrapping
 		elemType := target.Type().Elem()
@@ -139,8 +144,7 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 			targetValue := reflect.Zero(elemType)
 
 			// update our path so we can have nice errors
-			// utilizing `AtListIndex` because tuple paths are also based on the underlying `PathStepElementKeyInt`
-			valPath := path.AtListIndex(pos)
+			valPath := path.AtTupleIndex(pos)
 
 			// reflect the value into our new target
 			val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
@@ -241,7 +245,12 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 
 			tfElems = append(tfElems, tfVal)
 		}
+
 	// Tuple reflection from slices is currently limited to use-cases where all tuple element types are the same.
+	//
+	// Overall, Tuple support is limited in the framework, but the main path that executes tuple reflection is the provider-defined function variadic
+	// parameter. All tuple elements in this variadic parameter will have the same element type. For use-cases where the variadic parameter is a dynamic type,
+	// all elements will have the same type of `DynamicType` and value of `DynamicValue`, with an underlying value that may be different.
 	case attr.TypeWithElementTypes:
 		if len(t.ElementTypes()) <= 0 {
 			// If the tuple values are empty as well, we can just pass back an empty slice of the type we received.
@@ -280,8 +289,7 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 		}
 
 		for i := 0; i < val.Len(); i++ {
-			// utilizing `AtListIndex` because tuple paths are also based on the underlying `PathStepElementKeyInt`
-			valPath := path.AtListIndex(i)
+			valPath := path.AtTupleIndex(i)
 
 			val, valDiags := FromValue(ctx, elemAttrType, val.Index(i).Interface(), valPath)
 			diags.Append(valDiags...)

@@ -63,10 +63,10 @@ func (f *EchoFunction) Run(ctx context.Context, req function.RunRequest, resp *f
     var input string
 
     // Read Terraform argument data into the variable
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &input)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &input)...)
 
     // Set the result to the same data
-    resp.Diagnostics.Append(resp.Result.Set(ctx, &input)...)
+    resp.Errors.Append(resp.Result.Set(ctx, &input)...)
 }
 ```
 
@@ -137,7 +137,7 @@ Implement the `Run` method by:
 1. Performing any computational logic.
 1. Setting the result value, based on the return definition, into the [`function.RunResponse.Result` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Result). Refer to the [returns](/terraform/plugin/framework/functions/returns) documentation for details about all available return types and how to handle data with each type.
 
-If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can be added into the [`function.RunResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Diagnostics).
+If the logic needs to return [errors](/terraform/plugin/framework/functions/errors), they can be added into the [`function.RunResponse.Errors` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Errors).
 
 ### Reading Argument Data
 
@@ -162,7 +162,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringArg string
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg, &stringArg)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &stringArg)...)
 
     // ... other logic ...
 }
@@ -186,7 +186,7 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     var boolArg bool
 
-    resp.Diagnostics.Append(req.Arguments.GetArgument(ctx, 0, &boolArg)...)
+    resp.Errors.Append(req.Arguments.GetArgument(ctx, 0, &boolArg)...)
 
     // ... other logic ...
 }
@@ -215,15 +215,15 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringVarg []string
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg, &stringVarg)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &stringVarg)...)
 
     // ... other logic ...
 }
 ```
 
-If necessary to return diagnostics for a specific variadic argument, note that Terraform treats each zero-based argument position individually unlike how the framework exposes the argument data. Add the number of non-variadic parameters (if any) to the variadic argument list element index to ensure the diagnostic is aligned to the correct argument in the configuration.
+If it is necessary to return [errors](/terraform/plugin/framework/functions/errors) for a specific variadic argument, note that Terraform treats each zero-based argument position individually unlike how the framework exposes the argument data. Add the number of non-variadic parameters (if any) to the variadic argument list element index to ensure the error is aligned to the correct argument in the configuration.
 
-In this example with two parameters and one variadic parameter, warning diagnostics are returned for all variadic arguments:
+In this example with two parameters and one variadic parameter, errors are returned for all variadic arguments:
 
 ```go
 func (f *ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
@@ -242,11 +242,11 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var int64Arg int64
     var stringVarg []string
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg)...)
 
     for index, element := range stringVarg {
         // Added by 2 to match the definition including two parameters.
-        resp.Diagnostic.AddArgumentWarning(2+index, "example summary", "example detail")
+        resp.Errors.AddArgumentWarning(2+index, "example summary", "example detail")
     }
 
     // ... other logic ...
@@ -273,7 +273,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     // Value based on the return type. Returns can also use the framework type system.
     result := "hardcoded example"
 
-    resp.Diagnostics.Append(resp.Result.Set(ctx, result)...)
+    resp.Errors.Append(resp.Result.Set(ctx, result)...)
 }
 ```
 

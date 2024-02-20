@@ -95,7 +95,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     var mapArg map[string]*string // Go nil equals Terraform null
     // var mapArg types.Map // e.g. with AllowUnknownValues
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &mapArg)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &mapArg)...)
 
     // mapArg is now populated
     // ... other logic ...

@@ -83,7 +83,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // var stringArg *string // e.g. with AllowNullValue, where Go nil equals Terraform null
     // var stringArg types.String // e.g. with AllowUnknownValues or AllowNullValue
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &stringArg)...)
+    resp.Errors.Append(req.Arguments.Get(ctx, &stringArg)...)
 
     // stringArg is now populated
     // ... other logic ...

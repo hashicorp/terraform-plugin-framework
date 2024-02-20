@@ -65,6 +65,6 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // hardcoded value for example brevity
     result := []string{"one", "two"}
 
-    resp.Diagnostics.Append(resp.Result.Set(ctx, &result)...)
+    resp.Errors.Append(resp.Result.Set(ctx, &result)...)
 }
 ```

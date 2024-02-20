@@ -25,7 +25,7 @@ Testing a provider-defined function should ensure at least the following behavio
 * For any list, map, object, and set parameters, null values for collection elements or object attributes. The `AllowNullValue` parameter setting does not affect Terraform sending these types of null values.
 * If any parameters enable `AllowNullValue`, null values for those arguments.
 * If any parameters enable `AllowUnknownValues`, unknown values for those arguments.
-* Any diagnostics, such as argument validation errors.
+* Any errors, such as argument validation errors.
 
 ## Acceptance Testing
 
@@ -65,7 +65,7 @@ output "test" {
     })
 }
 
-// The example implementation does not return any error diagnostics, however
+// The example implementation does not return any errors, however
 // this acceptance test verifies how the function should behave if it did.
 func TestEchoFunction_Invalid(t *testing.T) {
     t.Parallel()
@@ -154,8 +154,8 @@ import (
 
     "example.com/terraform-provider-example/internal/provider"
     "github.com/google/go-cmp/cmp"
-    "github.com/hashicorp/terraform-plugin-framework/diag"
     "github.com/hashicorp/terraform-plugin-framework/function"
+    "github.com/hashicorp/terraform-plugin-framework/fwerror"
     "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -196,7 +196,7 @@ func TestEchoFunctionRun(t *testing.T) {
                 Result: function.NewResultData(types.StringValue("test-value")),
             },
         },
-        // The example implementation does not return any diagnostics, however
+        // The example implementation does not return any errors, however
         // this test case shows how the function would be expected to behave if
         // it did.
         "value-invalid": {
@@ -204,8 +204,8 @@ func TestEchoFunctionRun(t *testing.T) {
                 Arguments: function.NewArgumentsData(types.StringValue()),
             },
             Expected: function.RunResponse{
-                Diagnostics: diag.Diagnostics{
-                    diag.NewArgumentErrorDiagnostic(0, "error summary", "error detail"),
+                Errors: fwerror.FunctionErrors{
+                    fwerror.NewArgumentFunctionError(0, "error summary: error detail"),
                 },
                 Result: function.NewResultData(types.StringUnknown()),
             },

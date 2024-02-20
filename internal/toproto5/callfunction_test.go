@@ -32,12 +32,14 @@ func TestCallFunctionResponse(t *testing.T) {
 		"error": {
 			input: &fwserver.CallFunctionResponse{
 				Error: fwerror.FunctionErrors{
-					fwerror.NewFunctionError("error summary: error detail"),
+					fwerror.NewFunctionError("error summary one: error detail one"),
+					fwerror.NewArgumentFunctionError(0, "error summary two: error detail two"),
 				},
 			},
 			expected: &tfprotov5.CallFunctionResponse{
 				Error: &tfprotov5.FunctionError{
-					Text: "error summary: error detail",
+					Text:             "error summary one: error detail one\nerror summary two: error detail two\n",
+					FunctionArgument: pointer(int64(0)),
 				},
 			},
 		},

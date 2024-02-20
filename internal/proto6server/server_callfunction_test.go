@@ -157,7 +157,7 @@ func TestServerCallFunction(t *testing.T) {
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},
 		},
-		"response-diagnostics": {
+		"response-function-errors": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.ProviderWithFunctions{
@@ -190,7 +190,7 @@ func TestServerCallFunction(t *testing.T) {
 			},
 			expectedResponse: &tfprotov6.CallFunctionResponse{
 				Error: &tfprotov6.FunctionError{
-					Text: "error summary: error detail",
+					Text: "error summary: error detail\n",
 				},
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},

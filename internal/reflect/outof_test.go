@@ -128,6 +128,26 @@ func TestFromValue_go_types(t *testing.T) {
 				),
 			},
 		},
+		"go-struct-with-dynamic-value": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"dynamic_attr": types.DynamicType,
+				},
+			},
+			value: struct {
+				DynamicAttr types.Dynamic `tfsdk:"dynamic_attr"`
+			}{
+				DynamicAttr: types.DynamicValue(types.StringValue("hello world")),
+			},
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"dynamic_attr": types.DynamicType,
+				},
+				map[string]attr.Value{
+					"dynamic_attr": types.DynamicValue(types.StringValue("hello world")),
+				},
+			),
+		},
 	}
 	for name, testCase := range testCases {
 		name, testCase := name, testCase

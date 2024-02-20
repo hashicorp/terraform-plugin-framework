@@ -235,10 +235,10 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		}
 
 		tfObjTyp := tfObjVal.Type()
-		// TODO: I'm not sure this is exact place to make this change.
-		// - I added this because otherwise it fails to create the return object below in (ObjectType).ValueFromTerraform
-		// If the original attribute value was a DynamicPseudoType, propagate that type
-		if attrVal.Type(ctx).TerraformType(ctx).Is(tftypes.DynamicPseudoType) {
+
+		// If the original attribute type is tftypes.DynamicPseudoType, the value is a concrete type (like tftypes.String, tftypes.List, etc.)
+		// however, the type used to build the tftypes.Object needs to be tftypes.DynamicPseudoType.
+		if attrTypes[name].TerraformType(ctx).Is(tftypes.DynamicPseudoType) {
 			tfObjTyp = tftypes.DynamicPseudoType
 		}
 

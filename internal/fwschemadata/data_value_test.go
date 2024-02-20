@@ -1718,6 +1718,463 @@ func TestDataValueAtPath(t *testing.T) {
 			path:     path.Root("test"),
 			expected: types.StringValue("value"),
 		},
+		"WithAttributeName-Dynamic-null": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-unknown": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			expected: types.DynamicUnknown(),
+		},
+		"WithAttributeName-Dynamic-value": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
+		"WithAttributeName-Dynamic-null-WithElementKeyInt": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtListIndex(0),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-List-null-WithElementKeyInt": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.String,
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtListIndex(0),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-List-WithElementKeyInt": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "value"),
+						tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtListIndex(0),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
+		"WithAttributeName-Dynamic-null-WithElementKeyString": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-Map-WithElementKeyString": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+						"other":    tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtMapKey("sub_test"),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
+		"WithAttributeName-Dynamic-Map-WithElementKeyString-nonexistent": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtMapKey("other"),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-null-WithElementKeyValue": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtSetValue(types.StringValue("value")),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-Set-WithElementKeyValue-At-StringValue": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "value"),
+						tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtSetValue(types.StringValue("value")),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
+		"WithAttributeName-Dynamic-Set-WithElementKeyValue-At-DynamicValue": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, []tftypes.Value{
+						tftypes.NewValue(tftypes.String, "value"),
+						tftypes.NewValue(tftypes.String, "othervalue"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtSetValue(types.DynamicValue(types.StringValue("value"))),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
+		"WithAttributeName-Dynamic-null-WithAttributeName": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-Object-null-WithAttributeName": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.DynamicNull(),
+		},
+		"WithAttributeName-Dynamic-Object-WithAttributeName": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.String,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"sub_test": tftypes.NewValue(tftypes.String, "value"),
+					}),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.DynamicValue(types.StringValue("value")),
+		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{

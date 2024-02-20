@@ -119,7 +119,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
-	for field, structFieldPos := range targetFields {
+	for field := range targetFields {
 		attrType, ok := attrTypes[field]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
@@ -129,7 +129,11 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			}))
 			return target, diags
 		}
-		structField := result.Field(structFieldPos)
+
+		fieldMap := make(map[string]string)
+		collectFieldNames(result.Type(), fieldMap)
+
+		structField := result.FieldByName(fieldMap[field])
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
@@ -139,6 +143,25 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 		structField.Set(fieldVal)
 	}
 	return result, diags
+}
+
+func collectFieldNames(t reflect.Type, m map[string]string) {
+	// Return if not struct or pointer to struct.
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return
+	}
+	// Iterate through fields collecting names in map.
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		m[string(sf.Tag.Get("tfsdk"))] = sf.Name
+		// Recurse into anonymous fields.
+		if sf.Anonymous {
+			collectFieldNames(sf.Type, m)
+		}
+	}
 }
 
 // FromStruct builds an attr.Value as produced by `typ` from the data in `val`.
@@ -210,9 +233,13 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		return nil, diags
 	}
 
-	for name, fieldNo := range targetFields {
+	for name := range targetFields {
 		path := path.AtName(name)
-		fieldValue := val.Field(fieldNo)
+
+		fieldMap := make(map[string]string)
+		collectFieldNames(val.Type(), fieldMap)
+
+		fieldValue := val.FieldByName(fieldMap[name])
 
 		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
 		diags.Append(attrValDiags...)

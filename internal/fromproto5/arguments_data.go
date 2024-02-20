@@ -133,8 +133,6 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	}
 
 	if definition.VariadicParameter != nil {
-		// Variadic parameters are represented as a framework Tuple where each element type of the tuple matches the variadic parameter type.
-		//
 		// MAINTAINER NOTE:
 		//		Variadic parameters are represented as individual arguments in the CallFunction RPC and Terraform core applies the variadic parameter
 		//		type constraint to each argument individually. For developer convenience, the framework logic below, groups the variadic arguments into a
@@ -146,7 +144,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		//		dynamic to a tftypes concrete value).
 		//
 		//		While a framework List type can handle multiple dynamic values of different types (due to it's wrapping of dynamic values), `terraform-plugin-go` and `tftypes.List` cannot.
-		// 		Currently, the logic for retrieving argument data is dependent on the tftypes package to utilize the framework reflection logic, requiring us to apply the a type constraint
+		// 		Currently, the logic for retrieving argument data is dependent on the tftypes package to utilize the framework reflection logic, requiring us to apply a type constraint
 		//		that is valid in Terraform core and `terraform-plugin-go`, which we are doing here with a Tuple.
 		//
 		variadicType := definition.VariadicParameter.GetType()

@@ -130,10 +130,17 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			return target, diags
 		}
 
-		fieldMap := make(map[string]string)
-		collectFieldNames(result.Type(), fieldMap)
+		fieldName, err := getFieldNameByTag(result.Type(), field)
+		if err != nil {
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        object,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("error getting field name by tag: %w", err),
+			}))
+			return target, diags
+		}
 
-		structField := result.FieldByName(fieldMap[field])
+		structField := result.FieldByName(*fieldName)
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
@@ -143,25 +150,6 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 		structField.Set(fieldVal)
 	}
 	return result, diags
-}
-
-func collectFieldNames(t reflect.Type, m map[string]string) {
-	// Return if not struct or pointer to struct.
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	if t.Kind() != reflect.Struct {
-		return
-	}
-	// Iterate through fields collecting names in map.
-	for i := 0; i < t.NumField(); i++ {
-		sf := t.Field(i)
-		m[string(sf.Tag.Get("tfsdk"))] = sf.Name
-		// Recurse into anonymous fields.
-		if sf.Anonymous {
-			collectFieldNames(sf.Type, m)
-		}
-	}
 }
 
 // FromStruct builds an attr.Value as produced by `typ` from the data in `val`.
@@ -236,10 +224,18 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	for name := range targetFields {
 		path := path.AtName(name)
 
-		fieldMap := make(map[string]string)
-		collectFieldNames(val.Type(), fieldMap)
+		fieldName, err := getFieldNameByTag(val.Type(), name)
+		if err != nil {
+			err = fmt.Errorf("error getting field name by tag: %w", err)
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
 
-		fieldValue := val.FieldByName(fieldMap[name])
+		fieldValue := val.FieldByName(*fieldName)
 
 		attrVal, attrValDiags := FromValue(ctx, attrTypes[name], fieldValue.Interface(), path)
 		diags.Append(attrValDiags...)
@@ -283,4 +279,29 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	}
 
 	return ret, diags
+}
+
+func getFieldNameByTag(t reflect.Type, tag string) (*string, error) {
+	// Return if not struct or pointer to struct.
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("error trying to extract fields from struct. Not a struct")
+	}
+	// Iterate through fields to find the tag.
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		if sf.Tag.Get("tfsdk") == tag {
+			return &sf.Name, nil
+		}
+		// Recurse into anonymous fields.
+		if sf.Anonymous {
+			fieldName, err := getFieldNameByTag(sf.Type, tag)
+			if err == nil {
+				return fieldName, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("error trying to extract fields from struct. Could not find match for tag: %s", tag)
 }

@@ -61,25 +61,20 @@ func getStructTags(_ context.Context, in reflect.Value, path path.Path) (map[str
 			// skip unexported fields
 			continue
 		}
+
 		tag := field.Tag.Get(`tfsdk`)
-		if tag == "^" {
+		if (tag == "") && (val.Field(i).Kind() == reflect.Struct) {
 			// process embedded struct
-			v := val.Field(i)
-			k := v.Kind()
-			switch k {
-			case reflect.Struct:
-				sTags, err := getStructTags(context.TODO(), v, path)
-				if err != nil {
-					return nil, fmt.Errorf(`%s: failed to process embedded struct %s`, path, field.Name)
-				}
-				for k, v := range sTags {
-					tags[k] = v
-				}
-			default:
-				return nil, fmt.Errorf(`%s: invalid use of ^ tag %s`, path, field.Name)
+			sTags, err := getStructTags(context.TODO(), val.Field(i), path)
+			if err != nil {
+				return nil, fmt.Errorf(`%s: failed to process embedded struct %s`, path, field.Name)
+			}
+			for k, v := range sTags {
+				tags[k] = v
 			}
 			continue
 		}
+
 		if tag == "-" {
 			// skip explicitly excluded fields
 			continue

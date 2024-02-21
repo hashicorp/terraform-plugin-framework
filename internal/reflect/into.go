@@ -148,6 +148,14 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 
 		return target, diags
 	}
+
+	// If the attr.Type has a dynamic value, then we need to utilize the tftypes.Value to determine the correct attr.Type
+	// for the reflection logic below.
+	dynTyp, ok := typ.(attr.TypeWithDynamicValue)
+	if ok {
+		typ = dynTyp.DetermineAttrType(val.Type())
+	}
+
 	// *big.Float and *big.Int are technically pointers, but we want them
 	// handled as numbers
 	if target.Type() == reflect.TypeOf(big.NewFloat(0)) || target.Type() == reflect.TypeOf(big.NewInt(0)) {

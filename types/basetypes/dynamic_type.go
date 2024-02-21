@@ -14,7 +14,7 @@ import (
 
 // DynamicTypable extends attr.Type for dynamic types. Implement this interface to create a custom DynamicType type.
 type DynamicTypable interface {
-	attr.Type
+	attr.TypeWithDynamicValue
 
 	// ValueFromDynamic should convert the DynamicValue to a DynamicValuable type.
 	ValueFromDynamic(context.Context, DynamicValue) (DynamicValuable, diag.Diagnostics)
@@ -75,7 +75,7 @@ func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return nil, errors.New("ambiguous known value for `tftypes.DynamicPseudoType` detected")
 	}
 
-	attrType := tfToAttr(in.Type())
+	attrType := t.DetermineAttrType(in.Type())
 	val, err := attrType.ValueFromTerraform(ctx, in)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (t DynamicType) ValueType(_ context.Context) attr.Value {
 }
 
 // TODO: move this somewhere else?
-func tfToAttr(in tftypes.Type) attr.Type {
+func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 	// Primitive types
 	if in.Is(tftypes.Bool) {
 		return BoolType{}
@@ -111,21 +111,21 @@ func tfToAttr(in tftypes.Type) attr.Type {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		l := in.(tftypes.List)
 
-		elemType := tfToAttr(l.ElementType)
+		elemType := t.DetermineAttrType(l.ElementType)
 		return ListType{ElemType: elemType}
 	}
 	if in.Is(tftypes.Map{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		m := in.(tftypes.Map)
 
-		elemType := tfToAttr(m.ElementType)
+		elemType := t.DetermineAttrType(m.ElementType)
 		return MapType{ElemType: elemType}
 	}
 	if in.Is(tftypes.Set{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		s := in.(tftypes.Set)
 
-		elemType := tfToAttr(s.ElementType)
+		elemType := t.DetermineAttrType(s.ElementType)
 		return SetType{ElemType: elemType}
 	}
 
@@ -136,21 +136,21 @@ func tfToAttr(in tftypes.Type) attr.Type {
 
 		attrTypes := make(map[string]attr.Type, len(o.AttributeTypes))
 		for name, tfType := range o.AttributeTypes {
-			attrTypes[name] = tfToAttr(tfType)
+			attrTypes[name] = t.DetermineAttrType(tfType)
 		}
 		return ObjectType{AttrTypes: attrTypes}
 	}
 	if in.Is(tftypes.Tuple{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
-		t := in.(tftypes.Tuple)
+		tup := in.(tftypes.Tuple)
 
-		elemTypes := make([]attr.Type, len(t.ElementTypes))
-		for i, tfType := range t.ElementTypes {
-			elemTypes[i] = tfToAttr(tfType)
+		elemTypes := make([]attr.Type, len(tup.ElementTypes))
+		for i, tfType := range tup.ElementTypes {
+			elemTypes[i] = t.DetermineAttrType(tfType)
 		}
 		return TupleType{ElemTypes: elemTypes}
 	}
 
-	// TODO: probably return an error to bubble up
+	// TODO: I think it'd probably be best to return an error from this?
 	panic("need to handle this")
 }

@@ -92,6 +92,14 @@ type TypeWithElementTypes interface {
 	ElementTypes() []Type
 }
 
+// TODO: doc
+type TypeWithDynamicValue interface {
+	Type
+
+	// TODO: doc
+	DetermineAttrType(tftypes.Type) Type
+}
+
 // TypeWithPlaintextDescription extends the Type interface to include a
 // Description method, used to bundle extra information to include in attribute
 // descriptions with the Type. It expects the description to be written as

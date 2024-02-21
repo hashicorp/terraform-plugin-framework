@@ -84,6 +84,10 @@
         "path": "resources/import"
       },
       {
+        "title": "Move State",
+        "path": "resources/state-move"
+      },
+      {
         "title": "Upgrade State",
         "path": "resources/state-upgrade"
       },
@@ -115,6 +119,121 @@
       {
         "title": "Timeouts",
         "path": "data-sources/timeouts"
+      }
+    ]
+  },
+  {
+    "title": "Functions",
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "functions"
+      },
+      {
+        "title": "Concepts",
+        "path": "functions/concepts"
+      },
+      {
+        "title": "Implementation",
+        "path": "functions/implementation"
+      },
+      {
+        "title": "Parameters",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "functions/parameters"
+          },
+          {
+            "title": "Bool",
+            "path": "functions/parameters/bool"
+          },
+          {
+            "title": "Float64",
+            "path": "functions/parameters/float64"
+          },
+          {
+            "title": "Int64",
+            "path": "functions/parameters/int64"
+          },
+          {
+            "title": "List",
+            "path": "functions/parameters/list"
+          },
+          {
+            "title": "Map",
+            "path": "functions/parameters/map"
+          },
+          {
+            "title": "Number",
+            "path": "functions/parameters/number"
+          },
+          {
+            "title": "Object",
+            "path": "functions/parameters/object"
+          },
+          {
+            "title": "Set",
+            "path": "functions/parameters/set"
+          },
+          {
+            "title": "String",
+            "path": "functions/parameters/string"
+          }
+        ]
+      },
+      {
+        "title": "Returns",
+        "routes": [
+          {
+            "title": "Overview",
+            "path": "functions/returns"
+          },
+          {
+            "title": "Bool",
+            "path": "functions/returns/bool"
+          },
+          {
+            "title": "Float64",
+            "path": "functions/returns/float64"
+          },
+          {
+            "title": "Int64",
+            "path": "functions/returns/int64"
+          },
+          {
+            "title": "List",
+            "path": "functions/returns/list"
+          },
+          {
+            "title": "Map",
+            "path": "functions/returns/map"
+          },
+          {
+            "title": "Number",
+            "path": "functions/returns/number"
+          },
+          {
+            "title": "Object",
+            "path": "functions/returns/object"
+          },
+          {
+            "title": "Set",
+            "path": "functions/returns/set"
+          },
+          {
+            "title": "String",
+            "path": "functions/returns/string"
+          }
+        ]
+      },
+      {
+        "title": "Testing",
+        "path": "functions/testing"
+      },
+      {
+        "title": "Documentation",
+        "path": "functions/documentation"
       }
     ]
   },
@@ -253,6 +372,10 @@
           {
             "title": "String",
             "path": "handling-data/types/string"
+          },
+          {
+            "title": "Tuple",
+            "path": "handling-data/types/tuple"
           },
           {
             "title": "Custom Types",

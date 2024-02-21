@@ -92,6 +92,26 @@ func TestDiagnostics(t *testing.T) {
 				},
 			},
 		},
+		"DiagnosticWithFunctionArgument": {
+			diags: diag.Diagnostics{
+				diag.NewArgumentErrorDiagnostic(1, "one summary", "one detail"),
+				diag.NewArgumentWarningDiagnostic(2, "two summary", "two detail"),
+			},
+			expected: []*tfprotov5.Diagnostic{
+				{
+					Detail:           "one detail",
+					FunctionArgument: pointer(int64(1)),
+					Severity:         tfprotov5.DiagnosticSeverityError,
+					Summary:          "one summary",
+				},
+				{
+					Detail:           "two detail",
+					FunctionArgument: pointer(int64(2)),
+					Severity:         tfprotov5.DiagnosticSeverityWarning,
+					Summary:          "two summary",
+				},
+			},
+		},
 		"DiagnosticWithPath": {
 			diags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(path.Empty(), "one summary", "one detail"),

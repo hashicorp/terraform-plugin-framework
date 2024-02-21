@@ -1,0 +1,33 @@
+---
+page_title: 'Plugin Development - Framework: Functions'
+description: >-
+  How to build functions in the provider development framework. Provider-defined
+  functions expose logic beyond Terraform's built-in functions and simplify
+  practitioner configurations.
+---
+
+# Functions
+
+<Highlight>
+
+Provider-defined function support is in technical preview and offered without compatibility promises until Terraform 1.8 is generally available.
+
+</Highlight>
+
+Functions are an abstraction that allow providers to expose computational logic beyond Terraform's [built-in functions](/terraform/language/functions) and simplify practitioner configurations. Provider-defined functions are supported in Terraform 1.8 and later.
+
+## Concepts
+
+Learn about Terraform's [concepts](/terraform/plugin/framework/functions/concepts) for provider-defined functions, such as intended purpose, example use cases, and terminology. The framework's implementation details, such as naming, are based on these concepts.
+
+## Implementation
+
+Learn about how to [implement code](/terraform/plugin/framework/functions/implementation) for a provider-defined function in the framework.
+
+## Testing
+
+Learn about how to ensure a provider-defined function implementation works as expected via [unit testing and acceptance testing](/terraform/plugin/framework/functions/testing).
+
+## Documentation
+
+Learn about how to [document](/terraform/plugin/framework/functions/documentation) a provider-defined function implementation so practitioners can discover and use the function.

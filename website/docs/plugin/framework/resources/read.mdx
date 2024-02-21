@@ -147,6 +147,13 @@ func (r *ThingResource) Read(ctx context.Context, req resource.ReadRequest, resp
 }
 ```
 
+## Caveats
+
+Note these caveats when implementing the `Read` method:
+
+* An error is returned if the response state contains unknown values. Set all attributes to either null or known values in the response.
+* Any response errors will cause Terraform to keep the prior resource state.
+
 ## Recommendations
 
 Note these recommendations when implementing the `Read` method:

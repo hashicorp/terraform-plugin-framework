@@ -638,6 +638,90 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"delete-response-private": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+						resp.Diagnostics.Append(diags...)
+
+						// Must return error to prevent automatic private state clearing
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"error summary",
+						"error detail",
+					),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivateProvider,
+			},
+		},
+		"delete-response-private-updated": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedPrivate: testPrivateFramework,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						diags := resp.Private.SetKey(ctx, "providerKeyOne", []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`))
+
+						resp.Diagnostics.Append(diags...)
+
+						// Must return error to prevent automatic private state clearing
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"error summary",
+						"error detail",
+					),
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testPrivate,
 			},
 		},
 		"delete-response-newstate": {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -60,6 +61,7 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_data_source2",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -104,6 +106,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -140,6 +143,132 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
+				Resources: []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "function1"
+										},
+									}
+								},
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "function2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Functions: []tfprotov6.FunctionMetadata{
+					{
+						Name: "function1",
+					},
+					{
+						Name: "function2",
+					},
+				},
+				Resources: []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "testfunction" // intentionally duplicate
+										},
+									}
+								},
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "testfunction" // intentionally duplicate
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Duplicate Function Name Defined",
+						Detail: "The testfunction function name was returned for multiple functions. " +
+							"Function names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: []tfprotov6.FunctionMetadata{},
+				Resources: []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functions-empty-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithFunctions{
+						FunctionsMethod: func(_ context.Context) []func() function.Function {
+							return []func() function.Function{
+								func() function.Function {
+									return &testprovider.Function{
+										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+											resp.Name = "" // intentionally empty
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Function Name Missing",
+						Detail: "The *testprovider.Function Function returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -175,6 +304,7 @@ func TestServerGetMetadata(t *testing.T) {
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
 				DataSources: []tfprotov6.DataSourceMetadata{},
+				Functions:   []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -226,6 +356,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -262,6 +393,7 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
+				Functions: []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -286,6 +418,10 @@ func TestServerGetMetadata(t *testing.T) {
 			// Prevent false positives with random map access in testing
 			sort.Slice(got.DataSources, func(i int, j int) bool {
 				return got.DataSources[i].TypeName < got.DataSources[j].TypeName
+			})
+
+			sort.Slice(got.Functions, func(i int, j int) bool {
+				return got.Functions[i].Name < got.Functions[j].Name
 			})
 
 			sort.Slice(got.Resources, func(i int, j int) bool {

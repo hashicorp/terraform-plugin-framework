@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -35,11 +36,13 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          providerschema.Schema{},
-				ResourceSchemas:   map[string]fwschema.Schema{},
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -103,10 +106,12 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				Provider:        providerschema.Schema{},
-				ResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -158,6 +163,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
@@ -227,6 +233,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -261,6 +268,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -304,10 +312,209 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functiondefinitions": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: function.StringReturn{},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function1"
+									},
+								}
+							},
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: function.StringReturn{},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{
+					"function1": {
+						Return: function.StringReturn{},
+					},
+					"function2": {
+						Return: function.StringReturn{},
+					},
+				},
 				Provider:        providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functiondefinitions-invalid-definition": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: nil, // intentional
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function1"
+									},
+								}
+							},
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: function.StringReturn{},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "function2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Definition Return field is undefined",
+					),
+				},
+				FunctionDefinitions: nil,
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functiondefinitions-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: function.StringReturn{},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "testfunction" // intentionally duplicate
+									},
+								}
+							},
+							func() function.Function {
+								return &testprovider.Function{
+									DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+										resp.Definition = function.Definition{
+											Return: function.StringReturn{},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "testfunction" // intentionally duplicate
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Function Name Defined",
+						"The testfunction function name was returned for multiple functions. "+
+							"Function names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				FunctionDefinitions: nil,
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"functiondefinitions-empty-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.ProviderWithFunctions{
+					FunctionsMethod: func(_ context.Context) []func() function.Function {
+						return []func() function.Function{
+							func() function.Function {
+								return &testprovider.Function{
+									MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
+										resp.Name = "" // intentionally empty
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Function Name Missing",
+						"The *testprovider.Function Function returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				FunctionDefinitions: nil,
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -328,7 +535,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
 				Provider: providerschema.Schema{
 					Attributes: map[string]providerschema.Attribute{
 						"test": providerschema.StringAttribute{
@@ -339,6 +547,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -361,6 +570,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
@@ -391,8 +601,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          providerschema.Schema{},
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
 				ProviderMeta: metaschema.Schema{
 					Attributes: map[string]metaschema.Attribute{
 						"test": metaschema.StringAttribute{
@@ -403,6 +614,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -427,6 +639,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: providerschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
@@ -483,8 +696,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          providerschema.Schema{},
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"test_resource1": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
@@ -503,6 +717,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -553,6 +768,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: providerschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 				Diagnostics: diag.Diagnostics{
@@ -622,6 +838,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -656,6 +873,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: nil,
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -690,8 +908,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
-				Provider:          providerschema.Schema{},
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_resource": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
@@ -703,6 +922,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},

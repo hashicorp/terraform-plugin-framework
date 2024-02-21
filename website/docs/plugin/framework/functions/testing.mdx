@@ -1,0 +1,231 @@
+---
+page_title: 'Plugin Development - Framework: Testing Functions'
+description: >-
+  How to test provider-defined functions.
+---
+
+# Testing Functions
+
+When a function is [implemented](/terraform/plugin/framework/functions/implementation), ensure the function behaves as expected. Follow [recommendations](#recommendations) to cover how practitioner configurations may call the function.
+
+There are two methodologies for testing provider-defined functions:
+
+* [Acceptance Testing](#acceptance-testing): Verify implementation using real Terraform configurations and commands.
+* [Unit Testing](#unit-testing): Verify implementation using with Terraform and framework implementation details.
+
+Similar to other provider concepts, many provider developers prefer acceptance testing over unit testing. Acceptance testing guarantees the function implementation works exactly as expected in real world use cases without trying to determine Terraform or framework implementation details. Unit testing details are provided, however, for function implementations which warrant a broad amount of input value testing, such as generic data handling functions or to perform [fuzzing](https://go.dev/security/fuzz/).
+
+Testing examples on this page are dependent on the example [echo function implementation](/terraform/plugin/framework/functions/implementation).
+
+## Recommendations
+
+Testing a provider-defined function should ensure at least the following behaviors are covered:
+
+* Known values return the expected results.
+* For any list, map, object, and set parameters, null values for collection elements or object attributes. The `AllowNullValue` parameter setting does not affect Terraform sending these types of null values.
+* If any parameters enable `AllowNullValue`, null values for those arguments.
+* If any parameters enable `AllowUnknownValues`, unknown values for those arguments.
+* Any diagnostics, such as argument validation errors.
+
+## Acceptance Testing
+
+Use the [plugin testing Go module](/terraform/plugin/testing) to implement real world testing with Terraform configurations and commands. The documentation for that Go module covers many more available testing features, however this section example gives a high level overview of how to start writing these tests.
+
+In this example, a `echo_function_test.go` file is created:
+
+```go
+package provider_test
+
+import (
+    "testing"
+
+    "example.com/terraform-provider-example/internal/provider"
+    "github.com/hashicorp/terraform-plugin-framework/providerserver"
+    "github.com/hashicorp/terraform-plugin-go/tfprotov6"
+    "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestEchoFunction_Valid(t *testing.T) {
+    t.Parallel()
+
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
+            "example": providerserver.NewProtocol6WithError(provider.New()),
+        },
+        Steps: []resource.TestStep{
+            {
+                Config: `
+output "test" {
+    value = provider::example::echo("test-value")
+}
+`,
+                Check: resource.TestCheckOutput("test", "test-value"),
+            },
+        },
+    })
+}
+
+// The example implementation does not return any error diagnostics, however
+// this acceptance test verifies how the function should behave if it did.
+func TestEchoFunction_Invalid(t *testing.T) {
+    t.Parallel()
+
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
+            "example": providerserver.NewProtocol6WithError(provider.New()),
+        },
+        Steps: []resource.TestStep{
+            {
+                Config: `
+output "test" {
+    value = provider::example::echo("invalid")
+}
+`,
+                ExpectError: regexp.MustCompile(`error summary`),
+            },
+        },
+    })
+}
+
+// The example implementation does not enable AllowNullValue, however this
+// acceptance test shows how to verify the behavior.
+func TestEchoFunction_Null(t *testing.T) {
+    t.Parallel()
+
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
+            "example": providerserver.NewProtocol6WithError(provider.New()),
+        },
+        Steps: []resource.TestStep{
+            {
+                Config: `
+output "test" {
+    value = provider::example::echo(null)
+}
+`,
+                ExpectError: regexp.MustCompile(`Invalid Function Call`),
+            },
+        },
+    })
+}
+
+// The example implementation does not enable AllowUnknownValues, however this
+// acceptance test shows how to verify the behavior.
+func TestEchoFunction_Unknown(t *testing.T) {
+    resource.UnitTest(t, resource.TestCase{
+        ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
+            "example": providerserver.NewProtocol6WithError(provider.New()),
+        },
+        Steps: []resource.TestStep{
+            {
+                Config: `
+terraform_data "test" {
+    input = "test-value"
+}
+
+output "test" {
+    value = provider::example::echo(terraform_data.test.output)
+}
+`,
+                Check: resource.TestCheckOutput("test", "test-value"),
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectUnknownOutputValue("test"),
+                    },
+                },
+            },
+        },
+    })
+}
+```
+
+## Unit Testing
+
+Use the [`function.NewArgumentsData()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/functions#NewArgumentsData) and [`function.NewResultData()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/functions#NewResultData) as part of implementing a [Go test](https://go.dev/doc/tutorial/add-a-test).
+
+In this example, a `echo_function_test.go` file is created:
+
+```go
+package provider_test
+
+import (
+    "context"
+    "testing"
+
+    "example.com/terraform-provider-example/internal/provider"
+    "github.com/google/go-cmp/cmp"
+    "github.com/hashicorp/terraform-plugin-framework/diag"
+    "github.com/hashicorp/terraform-plugin-framework/function"
+    "github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func TestEchoFunctionRun(t *testing.T) {
+    t.Parallel()
+
+    testCases := map[string]struct {
+        request  function.RunRequest
+        expected function.RunResponse
+    }{
+        // The example implementation uses the Go built-in string type, however
+        // if AllowNullValue was enabled and *string or types.String was used,
+        // this test case shows how the function would be expected to behave.
+        "null": {
+            request: function.RunRequest{
+                Arguments: function.NewArgumentsData(types.StringNull()),
+            },
+            Expected: function.RunResponse{
+                Result: function.NewResultData(types.StringNull()),
+            },
+        },
+        // The example implementation uses the Go built-in string type, however
+        // if AllowUnknownValues was enabled and types.String was used,
+        // this test case shows how the function would be expected to behave.
+        "unknown": {
+            request: function.RunRequest{
+                Arguments: function.NewArgumentsData(types.StringUnknown()),
+            },
+            Expected: function.RunResponse{
+                Result: function.NewResultData(types.StringUnknown()),
+            },
+        },
+        "value-valid": {
+            request: function.RunRequest{
+                Arguments: function.NewArgumentsData(types.StringValue("test-value")),
+            },
+            Expected: function.RunResponse{
+                Result: function.NewResultData(types.StringValue("test-value")),
+            },
+        },
+        // The example implementation does not return any diagnostics, however
+        // this test case shows how the function would be expected to behave if
+        // it did.
+        "value-invalid": {
+            request: function.RunRequest{
+                Arguments: function.NewArgumentsData(types.StringValue()),
+            },
+            Expected: function.RunResponse{
+                Diagnostics: diag.Diagnostics{
+                    diag.NewArgumentErrorDiagnostic(0, "error summary", "error detail"),
+                },
+                Result: function.NewResultData(types.StringUnknown()),
+            },
+        },
+    }
+
+    for name, testCase := range testCases {
+        name, testCase := name, testCase
+
+        t.Run(name, func(t *testing.T) {
+            t.Parallel()
+
+            got := function.RunResponse{}
+
+            provider.EchoFunction{}.Run(context.Background(), testCase.request, &got)
+
+            if diff := cmp.Diff(got, testCase.expected); diff != "" {
+                t.Errorf("unexpected difference: %s", diff)
+            }
+        })
+    }
+}
+```

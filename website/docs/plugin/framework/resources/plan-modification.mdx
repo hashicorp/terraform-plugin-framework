@@ -153,7 +153,7 @@ func (m ExampleModifier) PlanModifyString(_ context.Context, req planmodifier.St
 }
 ```
 
-Implement the following to check whether the resource is being created:
+Implement the following to check whether the resource is being destroyed:
 
 ```go
 func (m ExampleModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {

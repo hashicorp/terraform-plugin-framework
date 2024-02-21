@@ -18,14 +18,11 @@ Example uses in the framework include:
 
 ## Concepts
 
-Private state data is byte data stored in the Terraform state and is intended for provider usage only (i.e., it is only
-used by the Framework and provider code). Providers have the ability to save this data during create, import, planning, 
-read, and update operations and the ability to read this data during delete, planning, read, and update operations.
+Private state data is byte data stored in the Terraform state and is intended for provider usage only (i.e., it is only used by the Framework and provider code). Providers have the ability to save this data during create, import, planning, read, and update operations and the ability to read this data during delete, planning, read, and update operations.
 
 ## Accessing Private State Data
 
-Private state data can be read from a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
-type in the `Private` field present in the _request_ that is passed into:
+Private state data can be read from a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) type in the `Private` field present in the _request_ that is passed into:
 
 | Resource Operation | Private State Data |
 | --- | --- |
@@ -35,8 +32,7 @@ type in the `Private` field present in the _request_ that is passed into:
 | Read | [resource.ReadRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ReadRequest.Private) |
 | Update | [resource.UpdateRequest.Private](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#UpdateRequest.Private)
 
-Private state data can be saved to a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) 
-type in the `Private` field present in the _response_ that is returned from:
+Private state data can be saved to a [privatestate.ProviderData](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/internal/privatestate#ProviderData) type in the `Private` field present in the _response_ that is returned from:
 
 | Resource Operation | Private State Data |
 | --- | --- |
@@ -89,6 +85,8 @@ func (r *resourceExample) Read(ctx context.Context, req resource.ReadRequest, re
 If the key supplied is [reserved](#reserved-keys) for framework usage, an error diagnostic will be returned.
 
 If the value is not valid JSON and UTF-8 safe, an error diagnostic will be returned.
+
+To remove a key and its associated value, use `nil` or a zero-length value such as `[]byte{}`.
 
 ### Reserved Keys
 

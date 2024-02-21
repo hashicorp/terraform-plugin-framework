@@ -11,10 +11,6 @@ on:
 permissions:
   contents: read # Changelog commit operations use service account PAT
 
-env:
-  CI_COMMIT_AUTHOR: hc-github-team-tf-provider-devex
-  CI_COMMIT_EMAIL: github-team-tf-provider-devex@hashicorp.com
-
 jobs:
   changelog-version:
     runs-on: ubuntu-latest
@@ -29,36 +25,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
           # Avoid persisting GITHUB_TOKEN credentials as they take priority over our service account PAT for `git push` operations
           # More details: https://github.com/actions/checkout/blob/b4626ce19ce1106186ddf9bb20e706842f11a7c3/adrs/0153-checkout-v2.md#persist-credentials
           persist-credentials: false
       - name: Batch changes
-        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # v2.0.0
         with:
           version: latest
           args: batch ${{ needs.changelog-version.outputs.version }}
       - name: Merge changes
-        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # v2
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # v2.0.0
         with:
           version: latest
           args: merge
       - name: Git push changelog
         run: |
-          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          git config --global user.name "${{ vars.TF_DEVEX_CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ vars.TF_DEVEX_CI_COMMIT_EMAIL }}"
           git add .
           git commit -a -m "Update changelog"
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push "https://${{ vars.TF_DEVEX_CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
 
   release-tag:
     needs: changelog
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
           # Default input is the SHA that initially triggered the workflow. As we created a new commit in the previous job,
@@ -70,11 +66,11 @@ jobs:
 
       - name: Git push release tag
         run: |
-          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          git config --global user.name "${{ vars.TF_DEVEX_CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ vars.TF_DEVEX_CI_COMMIT_EMAIL }}"
           
           git tag "${{ inputs.versionNumber }}"
-          git push "https://${{ env.CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ inputs.versionNumber }}"
+          git push "https://${{ vars.TF_DEVEX_CI_COMMIT_AUTHOR }}:${{ secrets.TF_DEVEX_COMMIT_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "${{ inputs.versionNumber }}"
 
   goreleaser:
     needs: [ changelog-version, changelog, release-tag ]
@@ -83,12 +79,12 @@ jobs:
       contents: write # Needed for goreleaser to create GitHub release
       issues: write # Needed for goreleaser to close associated milestone
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.versionNumber }}
           fetch-depth: 0
 
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: 'go.mod'
 

@@ -1,0 +1,73 @@
+---
+page_title: 'Plugin Development - Framework: Map Function Return'
+description: >-
+  Learn the map function return type in the provider development framework.
+---
+
+# Map Function Return
+
+Map function return expects a mapping of arbitrary string keys to values of single element type from function logic. Set values in function logic with a Go map of string keys to values of an appropriate type to match the element type `map[string]T` or the [framework map type](/terraform/plugin/framework/handling-data/types/map).
+
+## Function Definition
+
+Use the [`function.MapReturn` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#MapReturn) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method).
+
+The `ElementType` field must be defined, which represents the single [framework value type](/terraform/plugin/framework/handling-data/types) of every element of the map. An element type may itself contain further collection or object types, if necessary.
+
+In this example, a function definition includes a map of string return:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Return: function.MapReturn{
+            ElementType: types.StringType,
+            // ... potentially other MapReturn fields ...
+        },
+    }
+}
+```
+
+### Custom Types
+
+You may want to build your own data value and type implementations to allow your provider to combine validation and other behaviors into a reusable bundle. This helps avoid duplication and ensures consistency. These implementations use the `CustomType` field in the return type.
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values.
+
+### Documentation
+
+Return documentation is expected in the top-level function documentation. Refer to [function documentation](/terraform/plugin/framework/functions/documentation) for information about the `Summary`, `Description`, and `MarkdownDescription` fields available.
+
+## Setting Return Data
+
+The [function implementation](/terraform/plugin/framework/functions/implementation) documentation covers the general methods for setting function return data in function logic.
+
+When setting the value for this return:
+
+* If `CustomType` is set, use its associated value type.
+* Otherwise, use a Go map of string keys to values of an appropriate type to match the element type `map[string]T` or [framework map type](/terraform/plugin/framework/handling-data/types/map).
+
+In this example, a function defines a map of string return and sets its value:
+
+```go
+func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+    resp.Definition = function.Definition{
+        // ... other Definition fields ...
+        Return: function.MapReturn{
+            ElementType: types.StringType,
+        },
+    }
+}
+
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    // ... other logic ...
+
+    // hardcoded value for example brevity
+    result := map[string]string{
+        "key1": "value1",
+        "key2": "value2",
+    }
+
+    resp.Diagnostics.Append(resp.Result.Set(ctx, &result)...)
+}
+```

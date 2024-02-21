@@ -32,13 +32,70 @@ the Framework.
 
 ### Example
 
-This example shows how you can use external providers to generate a state file with a previous version of the provider
+These examples show how you can use external providers to generate state with a previous version of the provider
 and then verify that there are no planned changes after migrating to the Framework.
 
 - The first `TestStep` uses `ExternalProviders` to cause `terraform apply` to execute with a previous version of the
 provider, which is built on SDKv2.
 - The second `TestStep` uses `ProtoV5ProviderFactories` so that the test uses the provider code contained within the
-http provider repository. The second step also uses `PlanOnly` to verify that a no-op plan is generated.
+provider repository. The second step uses `ConfigPlanChecks` to verify that a no-op plan is generated.
+
+#### Managed Resource
+
+In this example configuration, all managed resource attribute values are compared between the SDK and Framework implementations:
+
+```go
+func TestResource_UpgradeFromVersion(t *testing.T) {
+    /* ... */
+    resource.Test(t, resource.TestCase{
+        Steps: []resource.TestStep{
+            {
+                ExternalProviders: map[string]resource.ExternalProvider{
+                    "<provider>": {
+                        VersionConstraint: "<sdk_version>",
+                        Source:            "hashicorp/<provider>",
+                    },
+                },
+                Config: `resource "provider_resource" "example" {
+                            /* ... */
+                        }`,
+                Check: resource.ComposeTestCheckFunc(
+                    resource.TestCheckResourceAttr("provider_resource.example", "<attribute>", "<value>"),
+                    /* ... */
+                ),
+            },
+            {
+                ProtoV5ProviderFactories: protoV5ProviderFactories(),
+                Config: `resource "provider_resource" "example" {
+                            /* ... */
+                        }`,
+                // ConfigPlanChecks is a terraform-plugin-testing feature.
+                // If acceptance testing is still using terraform-plugin-sdk/v2,
+                // use `PlanOnly: true` instead. When migrating to
+                // terraform-plugin-testing, switch to `ConfigPlanChecks` or you
+                // will likely experience test failures.
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectEmptyPlan(),
+                    },
+                },
+            },
+        },
+    })
+}
+```
+
+#### Data Source
+
+<Tip>
+
+Prefer individually testing all attribute values of a data source instead of this testing pattern. Testing individual attribute values will catch unexpected data handling changes after migration and prevent any expected introduction of new attributes from causing test failures when using this pattern.
+
+</Tip>
+
+Since data sources are refreshed every Terraform plan and do not use prior state during planning, additional configuration of a separate managed resource or output value is required to track value differences. The [`terraform_data` managed resource](/terraform/language/resources/terraform-data) is one option that is implicitly available for configurations in Terraform 1.4 and later. If testing on older versions of Terraform is required, use the [`null_resource` managed resource](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) with an associated `ExternalProviders` step configuration instead.
+
+In this example configuration, all data source attribute values are compared between the SDK and Framework implementations:
 
 ```go
 func TestDataSource_UpgradeFromVersion(t *testing.T) {
@@ -52,20 +109,33 @@ func TestDataSource_UpgradeFromVersion(t *testing.T) {
                         Source:            "hashicorp/<provider>",
                     },
                 },
-                Config: `data "provider_datasource" "example" {
+                Config: `data "provider_datasource" "test" {
                             /* ... */
+                        }
+                        
+                        resource "terraform_data" "test" {
+                            input = data.provider_datasource.test
                         }`,
-                Check: resource.ComposeTestCheckFunc(
-                    resource.TestCheckResourceAttr("data.provider_datasource.example", "<attribute>", "<value>"),
-                    /* ... */
-                ),
             },
             {
                 ProtoV5ProviderFactories: protoV5ProviderFactories(),
-                Config: `data "provider_datasource" "example" {
+                Config: `data "provider_datasource" "test" {
                             /* ... */
+                        }
+                        
+                        resource "terraform_data" "test" {
+                            input = data.provider_datasource.test
                         }`,
-                PlanOnly: true,
+                // ConfigPlanChecks is a terraform-plugin-testing feature.
+                // If acceptance testing is still using terraform-plugin-sdk/v2,
+                // use `PlanOnly: true` instead. When migrating to
+                // terraform-plugin-testing, switch to `ConfigPlanChecks` or you
+                // will likely experience test failures.
+                ConfigPlanChecks: resource.ConfigPlanChecks{
+                    PreApply: []plancheck.PlanCheck{
+                        plancheck.ExpectEmptyPlan(),
+                    },
+                },
             },
         },
     })

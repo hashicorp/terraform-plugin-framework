@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -55,6 +56,29 @@ type Server struct {
 	// access from race conditions.
 	dataSourceTypesMutex sync.Mutex
 
+	// functionDefinitions is the cached Function Definitions for RPCs that need to
+	// convert data from the protocol. If not found, it will be fetched from the
+	// Function.Definition() method.
+	functionDefinitions map[string]function.Definition
+
+	// functionDefinitionsMutex is a mutex to protect concurrent functionDefinitions
+	// access from race conditions.
+	functionDefinitionsMutex sync.RWMutex
+
+	// functionFuncs is the cached Function functions for RPCs that need to
+	// access functions. If not found, it will be fetched from the
+	// Provider.Functions() method.
+	functionFuncs map[string]func() function.Function
+
+	// functionFuncsDiags is the cached Diagnostics obtained while populating
+	// functionFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching functionFuncs.
+	functionFuncsDiags diag.Diagnostics
+
+	// functionFuncsMutex is a mutex to protect concurrent functionFuncs
+	// access from race conditions.
+	functionFuncsMutex sync.Mutex
+
 	// providerSchema is the cached Provider Schema for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Provider.GetSchema() method.
@@ -83,9 +107,13 @@ type Server struct {
 	// access from race conditions.
 	providerMetaSchemaMutex sync.Mutex
 
-	// providerTypeName is the type name of the provider, if the provider
-	// implemented the Metadata method.
+	// providerTypeName is the cached type name of the provider, if the provider
+	// implemented the Metadata method. Access this field with the Provider.ProviderTypeName() method.
 	providerTypeName string
+
+	// providerTypeNameMutex is a mutex to protect concurrent providerTypeName
+	// access from race conditions.
+	providerTypeNameMutex sync.Mutex
 
 	// resourceSchemas is the cached Resource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
@@ -140,6 +168,7 @@ func (s *Server) DataSourceFuncs(ctx context.Context) (map[string]func() datasou
 		return s.dataSourceFuncs, s.dataSourceTypesDiags
 	}
 
+	providerTypeName := s.ProviderTypeName(ctx)
 	s.dataSourceFuncs = make(map[string]func() datasource.DataSource)
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Provider DataSources")
@@ -150,7 +179,7 @@ func (s *Server) DataSourceFuncs(ctx context.Context) (map[string]func() datasou
 		dataSource := dataSourceFunc()
 
 		dataSourceTypeNameReq := datasource.MetadataRequest{
-			ProviderTypeName: s.providerTypeName,
+			ProviderTypeName: providerTypeName,
 		}
 		dataSourceTypeNameResp := datasource.MetadataResponse{}
 
@@ -285,6 +314,28 @@ func (s *Server) DataSourceSchemas(ctx context.Context) (map[string]fwschema.Sch
 	return dataSourceSchemas, diags
 }
 
+// ProviderTypeName returns the TypeName associated with the Provider. The TypeName is cached on first use.
+func (s *Server) ProviderTypeName(ctx context.Context) string {
+	logging.FrameworkTrace(ctx, "Checking ProviderTypeName lock")
+	s.providerTypeNameMutex.Lock()
+	defer s.providerTypeNameMutex.Unlock()
+
+	if s.providerTypeName != "" {
+		return s.providerTypeName
+	}
+
+	metadataReq := provider.MetadataRequest{}
+	metadataResp := provider.MetadataResponse{}
+
+	logging.FrameworkTrace(ctx, "Calling provider defined Provider Metadata")
+	s.Provider.Metadata(ctx, metadataReq, &metadataResp)
+	logging.FrameworkTrace(ctx, "Called provider defined Provider Metadata")
+
+	s.providerTypeName = metadataResp.TypeName
+
+	return s.providerTypeName
+}
+
 // ProviderSchema returns the Schema associated with the Provider. The Schema
 // and Diagnostics are cached on first use.
 func (s *Server) ProviderSchema(ctx context.Context) (fwschema.Schema, diag.Diagnostics) {
@@ -374,6 +425,7 @@ func (s *Server) ResourceFuncs(ctx context.Context) (map[string]func() resource.
 		return s.resourceFuncs, s.resourceTypesDiags
 	}
 
+	providerTypeName := s.ProviderTypeName(ctx)
 	s.resourceFuncs = make(map[string]func() resource.Resource)
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Provider Resources")
@@ -384,7 +436,7 @@ func (s *Server) ResourceFuncs(ctx context.Context) (map[string]func() resource.
 		res := resourceFunc()
 
 		resourceTypeNameReq := resource.MetadataRequest{
-			ProviderTypeName: s.providerTypeName,
+			ProviderTypeName: providerTypeName,
 		}
 		resourceTypeNameResp := resource.MetadataResponse{}
 

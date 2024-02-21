@@ -255,6 +255,51 @@ func TestValue(t *testing.T) {
 				},
 			),
 		},
+		"tuple-null": {
+			tfType: tftypes.NewValue(
+				tftypes.Tuple{
+					ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				},
+				nil,
+			),
+			attrType: types.TupleType{
+				ElemTypes: []attr.Type{types.StringType, types.BoolType},
+			},
+			expected: types.TupleNull([]attr.Type{types.StringType, types.BoolType}),
+		},
+		"tuple-unknown": {
+			tfType: tftypes.NewValue(
+				tftypes.Tuple{
+					ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				},
+				tftypes.UnknownValue,
+			),
+			attrType: types.TupleType{
+				ElemTypes: []attr.Type{types.StringType, types.BoolType},
+			},
+			expected: types.TupleUnknown([]attr.Type{types.StringType, types.BoolType}),
+		},
+		"tuple-value": {
+			tfType: tftypes.NewValue(
+				tftypes.Tuple{
+					ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				},
+				[]tftypes.Value{
+					tftypes.NewValue(tftypes.String, "test-value"),
+					tftypes.NewValue(tftypes.Bool, true),
+				},
+			),
+			attrType: types.TupleType{
+				ElemTypes: []attr.Type{types.StringType, types.BoolType},
+			},
+			expected: types.TupleValueMust(
+				[]attr.Type{types.StringType, types.BoolType},
+				[]attr.Value{
+					types.StringValue("test-value"),
+					types.BoolValue(true),
+				},
+			),
+		},
 		"string-null": {
 			tfType:   tftypes.NewValue(tftypes.String, nil),
 			attrType: types.StringType,

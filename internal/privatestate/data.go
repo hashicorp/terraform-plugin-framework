@@ -327,6 +327,13 @@ func (d *ProviderData) SetKey(ctx context.Context, key string, value []byte) dia
 		return diags
 	}
 
+	// Support removing keys by setting them to nil or zero-length value.
+	if len(value) == 0 {
+		delete(d.data, key)
+
+		return diags
+	}
+
 	if !utf8.Valid(value) {
 		tflog.Error(ctx, "invalid UTF-8 value", map[string]interface{}{"key": key, "value": value})
 

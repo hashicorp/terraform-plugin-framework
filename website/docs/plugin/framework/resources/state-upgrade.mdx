@@ -285,3 +285,10 @@ func (r *ThingResource) UpgradeState(ctx context.Context) map[int64]resource.Sta
     }
 }
 ```
+
+## Caveats
+
+Note these caveats when implementing the `UpgradeState` method:
+
+* An error is returned if the response state contains unknown values. Set all attributes to either null or known values in the response.
+* Any response errors will cause Terraform to keep the prior resource state.

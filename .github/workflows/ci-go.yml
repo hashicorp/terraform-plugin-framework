@@ -16,12 +16,12 @@ jobs:
   golangci-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: 'go.mod'
       - run: go mod download
-      - uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+      - uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v4.0.0
   terraform-provider-corner-tfprotov5:
     defaults:
       run:
@@ -29,17 +29,17 @@ jobs:
     name: terraform-provider-corner (tfprotov5 / Terraform ${{ matrix.terraform}})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           path: terraform-provider-corner
           repository: hashicorp/terraform-provider-corner
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
         with:
-          terraform_version: ${{ matrix.terraform }}
+          terraform_version: ${{ matrix.terraform }}.*
           terraform_wrapper: false
       - run: go mod edit -replace=github.com/hashicorp/terraform-plugin-framework=../
       - run: go mod tidy
@@ -47,17 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform:
-          - '0.12.*'
-          - '0.13.*'
-          - '0.14.*'
-          - '0.15.*'
-          - '1.0.*'
-          - '1.1.*'
-          - '1.2.*'
-          - '1.3.*'
-          - '1.4.*'
-          - '1.5.*'
+        terraform: ${{ fromJSON(vars.TF_VERSIONS_PROTOCOL_V5) }}
   terraform-provider-corner-tfprotov6:
     defaults:
       run:
@@ -65,17 +55,17 @@ jobs:
     name: terraform-provider-corner (tfprotov6 / Terraform ${{ matrix.terraform}})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           path: terraform-provider-corner
           repository: hashicorp/terraform-provider-corner
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
         with:
-          terraform_version: ${{ matrix.terraform }}
+          terraform_version: ${{ matrix.terraform }}.*
           terraform_wrapper: false
       - run: go mod edit -replace=github.com/hashicorp/terraform-plugin-framework=../
       - run: go mod tidy
@@ -83,13 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform:
-          - '1.0.*'
-          - '1.1.*'
-          - '1.2.*'
-          - '1.3.*'
-          - '1.4.*'
-          - '1.5.*'
+        terraform: ${{ fromJSON(vars.TF_VERSIONS_PROTOCOL_V6) }}
   test:
     name: test (Go v${{ matrix.go-version }})
     runs-on: ubuntu-latest
@@ -97,14 +81,14 @@ jobs:
       matrix:
         go-version: [ '1.21', '1.20' ]
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version: ${{ matrix.go-version }}
       - run: go mod download
       - run: go test -coverprofile=coverage.out ./...
       - run: go tool cover -html=coverage.out -o coverage.html
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      - uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: go-${{ matrix.go-version }}-coverage
           path: coverage.html

@@ -52,6 +52,18 @@ func (p Path) AtListIndex(index int) Path {
 	return copiedPath
 }
 
+// AtTupleIndex returns a copied path with a new tuple index step at the end.
+// The returned path is safe to modify without affecting the original.
+//
+// Tuple indices are 0-based. The first element of a tuple is 0.
+func (p Path) AtTupleIndex(index int) Path {
+	copiedPath := p.Copy()
+
+	copiedPath.steps.Append(PathStepElementKeyInt(index))
+
+	return copiedPath
+}
+
 // AtMapKey returns a copied path with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (p Path) AtMapKey(key string) Path {

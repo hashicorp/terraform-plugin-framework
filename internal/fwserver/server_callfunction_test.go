@@ -138,8 +138,11 @@ func TestServerCallFunction(t *testing.T) {
 			request: &fwserver.CallFunctionRequest{
 				Arguments: function.NewArgumentsData([]attr.Value{
 					basetypes.NewStringValue("arg0"),
-					basetypes.NewListValueMust(
-						basetypes.StringType{},
+					basetypes.NewTupleValueMust(
+						[]attr.Type{
+							basetypes.StringType{},
+							basetypes.StringType{},
+						},
 						[]attr.Value{
 							basetypes.NewStringValue("arg1-element0"),
 							basetypes.NewStringValue("arg1-element1"),
@@ -149,13 +152,16 @@ func TestServerCallFunction(t *testing.T) {
 				Function: &testprovider.Function{
 					RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 						var arg0 basetypes.StringValue
-						var arg1 basetypes.ListValue
+						var arg1 basetypes.TupleValue
 
 						resp.Diagnostics.Append(req.Arguments.Get(ctx, &arg0, &arg1)...)
 
 						expectedArg0 := basetypes.NewStringValue("arg0")
-						expectedArg1 := basetypes.NewListValueMust(
-							basetypes.StringType{},
+						expectedArg1 := basetypes.NewTupleValueMust(
+							[]attr.Type{
+								basetypes.StringType{},
+								basetypes.StringType{},
+							},
 							[]attr.Value{
 								basetypes.NewStringValue("arg1-element0"),
 								basetypes.NewStringValue("arg1-element1"),
@@ -297,8 +303,11 @@ func TestServerCallFunction(t *testing.T) {
 			request: &fwserver.CallFunctionRequest{
 				Arguments: function.NewArgumentsData([]attr.Value{
 					basetypes.NewStringValue("arg0"),
-					basetypes.NewListValueMust(
-						basetypes.StringType{},
+					basetypes.NewTupleValueMust(
+						[]attr.Type{
+							basetypes.StringType{},
+							basetypes.StringType{},
+						},
 						[]attr.Value{
 							basetypes.NewStringValue("arg1-element0"),
 							basetypes.NewStringValue("arg1-element1"),
@@ -308,14 +317,17 @@ func TestServerCallFunction(t *testing.T) {
 				Function: &testprovider.Function{
 					RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 						var arg0 basetypes.StringValue
-						var arg1 basetypes.ListValue
+						var arg1 basetypes.TupleValue
 
 						resp.Diagnostics.Append(req.Arguments.GetArgument(ctx, 0, &arg0)...)
 						resp.Diagnostics.Append(req.Arguments.GetArgument(ctx, 1, &arg1)...)
 
 						expectedArg0 := basetypes.NewStringValue("arg0")
-						expectedArg1 := basetypes.NewListValueMust(
-							basetypes.StringType{},
+						expectedArg1 := basetypes.NewTupleValueMust(
+							[]attr.Type{
+								basetypes.StringType{},
+								basetypes.StringType{},
+							},
 							[]attr.Value{
 								basetypes.NewStringValue("arg1-element0"),
 								basetypes.NewStringValue("arg1-element1"),

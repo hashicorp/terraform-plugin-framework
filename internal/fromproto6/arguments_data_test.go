@@ -183,8 +183,8 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{},
 					[]attr.Value{},
 				),
 			}),
@@ -202,8 +202,10 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg1"),
 					},
@@ -224,8 +226,11 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg1"),
 						basetypes.NewStringValue("varg-arg2"),
@@ -264,8 +269,8 @@ func TestArgumentsData(t *testing.T) {
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
 				basetypes.NewBoolValue(false),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{},
 					[]attr.Value{},
 				),
 			}),
@@ -286,8 +291,10 @@ func TestArgumentsData(t *testing.T) {
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
 				basetypes.NewBoolValue(false),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg2"),
 					},
@@ -311,8 +318,11 @@ func TestArgumentsData(t *testing.T) {
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
 				basetypes.NewBoolValue(false),
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg2"),
 						basetypes.NewStringValue("varg-arg3"),
@@ -326,8 +336,8 @@ func TestArgumentsData(t *testing.T) {
 				VariadicParameter: function.StringParameter{},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{},
 					[]attr.Value{},
 				),
 			}),
@@ -340,8 +350,10 @@ func TestArgumentsData(t *testing.T) {
 				VariadicParameter: function.StringParameter{},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg0"),
 					},
@@ -358,8 +370,10 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewListValueMust(
-					testtypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						testtypes.StringType{},
+					},
 					[]attr.Value{
 						testtypes.String{
 							CreatedBy:      testtypes.StringType{},
@@ -378,8 +392,11 @@ func TestArgumentsData(t *testing.T) {
 				VariadicParameter: function.StringParameter{},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewListValueMust(
-					basetypes.StringType{},
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
 					[]attr.Value{
 						basetypes.NewStringValue("varg-arg0"),
 						basetypes.NewStringValue("varg-arg1"),

@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -22,7 +22,7 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 
 	fwResp := &fwserver.CallFunctionResponse{}
 
-	function, err := s.FrameworkServer.Function(ctx, protoReq.Name)
+	serverFunction, err := s.FrameworkServer.Function(ctx, protoReq.Name)
 
 	fwResp.Errors = err
 
@@ -38,9 +38,9 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, function, functionDefinition)
+	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, serverFunction, functionDefinition)
 
-	fwResp.Errors.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
+	fwResp.Errors.Append(function.FunctionErrorsFromDiags(ctx, diags)...)
 
 	if fwResp.Errors.HasError() {
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil

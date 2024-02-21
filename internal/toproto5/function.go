@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
@@ -89,8 +88,8 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov5.Function
 
 // FunctionResultData returns the *tfprotov5.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, fwerror.FunctionErrors) {
-	var funcErrs fwerror.FunctionErrors
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov5.DynamicValue, function.FunctionErrors) {
+	var funcErrs function.FunctionErrors
 
 	attrValue := data.Value()
 

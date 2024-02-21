@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -38,8 +37,8 @@ func (r Int64Return) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r Int64Return) NewResultData(ctx context.Context) (ResultData, fwerror.FunctionErrors) {
-	var funcErrs fwerror.FunctionErrors
+func (r Int64Return) NewResultData(ctx context.Context) (ResultData, FunctionErrors) {
+	var funcErrs FunctionErrors
 
 	value := basetypes.NewInt64Unknown()
 
@@ -49,7 +48,7 @@ func (r Int64Return) NewResultData(ctx context.Context) (ResultData, fwerror.Fun
 
 	valuable, diags := r.CustomType.ValueFromInt64(ctx, value)
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
+	funcErrs.Append(FunctionErrorsFromDiags(ctx, diags)...)
 
 	return NewResultData(valuable), funcErrs
 }

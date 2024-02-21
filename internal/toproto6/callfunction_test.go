@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -31,9 +30,9 @@ func TestCallFunctionResponse(t *testing.T) {
 		},
 		"error": {
 			input: &fwserver.CallFunctionResponse{
-				Errors: fwerror.FunctionErrors{
-					fwerror.NewFunctionError("error summary one: error detail one"),
-					fwerror.NewArgumentFunctionError(0, "error summary two: error detail two"),
+				Errors: function.FunctionErrors{
+					function.NewFunctionError("error summary one: error detail one"),
+					function.NewArgumentFunctionError(0, "error summary two: error detail two"),
 				},
 			},
 			expected: &tfprotov6.CallFunctionResponse{

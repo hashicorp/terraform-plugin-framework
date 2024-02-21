@@ -13,7 +13,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -391,7 +390,7 @@ func TestFunctionResultData(t *testing.T) {
 	testCases := map[string]struct {
 		fw          function.ResultData
 		expected    *tfprotov5.DynamicValue
-		expectedErr fwerror.FunctionErrors
+		expectedErr function.FunctionErrors
 	}{
 		"empty": {
 			fw:          function.ResultData{},

@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package fwerror
+package function
 
 // FunctionError is an interface for errors generated during the execution
 // of provider-defined functions.

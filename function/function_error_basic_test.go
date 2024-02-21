@@ -1,40 +1,40 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package fwerror_test
+package function_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 )
 
 func TestFunctionError_Equal(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		funcErr  fwerror.FunctionError
-		other    fwerror.FunctionError
+		funcErr  function.FunctionError
+		other    function.FunctionError
 		expected bool
 	}{
 		"matching": {
-			funcErr:  fwerror.NewFunctionError("test summary: test detail"),
-			other:    fwerror.NewFunctionError("test summary: test detail"),
+			funcErr:  function.NewFunctionError("test summary: test detail"),
+			other:    function.NewFunctionError("test summary: test detail"),
 			expected: true,
 		},
 		"nil": {
-			funcErr:  fwerror.NewFunctionError("test summary: test detail"),
+			funcErr:  function.NewFunctionError("test summary: test detail"),
 			other:    nil,
 			expected: false,
 		},
 		"different-msg": {
-			funcErr:  fwerror.NewFunctionError("test summary: test detail"),
-			other:    fwerror.NewFunctionError("test summary: different detail"),
+			funcErr:  function.NewFunctionError("test summary: test detail"),
+			other:    function.NewFunctionError("test summary: different detail"),
 			expected: false,
 		},
 		"different-type": {
-			funcErr:  fwerror.NewFunctionError("test summary: test detail"),
-			other:    fwerror.NewArgumentFunctionError(0, "test summary: test detail"),
+			funcErr:  function.NewFunctionError("test summary: test detail"),
+			other:    function.NewArgumentFunctionError(0, "test summary: test detail"),
 			expected: false,
 		},
 	}

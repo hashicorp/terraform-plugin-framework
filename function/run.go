@@ -3,8 +3,6 @@
 
 package function
 
-import "github.com/hashicorp/terraform-plugin-framework/fwerror"
-
 // RunRequest represents a request for the Function to call its implementation
 // logic. An instance of this request struct is supplied as an argument to the
 // Function type Run method.
@@ -19,7 +17,7 @@ type RunRequest struct {
 type RunResponse struct {
 	// Errors contains errors related to running the function.
 	// A nil error indicates success, with no errors generated.
-	Errors fwerror.FunctionErrors
+	Errors FunctionErrors
 
 	// Result is the data to be returned to Terraform matching the function
 	// result definition. This must be set or an error diagnostic is raised. Use

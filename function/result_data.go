@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -32,12 +31,12 @@ func (d *ResultData) Equal(o ResultData) bool {
 
 // Set saves the result data. The value type must be acceptable for the data
 // type in the result definition.
-func (d *ResultData) Set(ctx context.Context, value any) fwerror.FunctionErrors {
-	var funcErrs fwerror.FunctionErrors
+func (d *ResultData) Set(ctx context.Context, value any) FunctionErrors {
+	var funcErrs FunctionErrors
 
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, reflectDiags)...)
+	funcErrs.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
 
 	if funcErrs.HasError() {
 		return funcErrs

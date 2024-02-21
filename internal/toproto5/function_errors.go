@@ -10,18 +10,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 )
 
 // FunctionError converts the function errors into the tfprotov6 function error.
-func FunctionError(ctx context.Context, funcErrs fwerror.FunctionErrors) *tfprotov5.FunctionError {
+func FunctionError(ctx context.Context, funcErrs function.FunctionErrors) *tfprotov5.FunctionError {
 	var text string
 	var funcArg *int64
 
 	for _, funcErr := range funcErrs {
 		text += fmt.Sprintf("%s\n", funcErr.Error())
 
-		var funcErrWithFunctionArgument fwerror.FunctionErrorWithFunctionArgument
+		var funcErrWithFunctionArgument function.FunctionErrorWithFunctionArgument
 
 		if errors.As(funcErr, &funcErrWithFunctionArgument) && funcArg == nil {
 			fArg := int64(funcErrWithFunctionArgument.FunctionArgument())

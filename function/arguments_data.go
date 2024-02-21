@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -49,8 +48,8 @@ func (d ArgumentsData) Equal(o ArgumentsData) bool {
 // type with an element type appropriate for the parameter definition ([]T). The
 // framework automatically populates this list with elements matching the zero,
 // one, or more arguments passed.
-func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.FunctionErrors {
-	var fe fwerror.FunctionErrors
+func (d ArgumentsData) Get(ctx context.Context, targets ...any) FunctionErrors {
+	var fe FunctionErrors
 
 	if len(d.values) == 0 {
 		msg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
@@ -99,7 +98,7 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.Function
 
 		reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-		fe.Append(fwerror.FunctionErrorsFromDiags(ctx, reflectDiags)...)
+		fe.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
 	}
 
 	return fe
@@ -113,8 +112,8 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) fwerror.Function
 // type with an element type appropriate for the parameter definition ([]T) at
 // the position after all parameters. The framework automatically populates this
 // list with elements matching the zero, one, or more arguments passed.
-func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) fwerror.FunctionErrors {
-	var fe fwerror.FunctionErrors
+func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) FunctionErrors {
+	var fe FunctionErrors
 
 	if len(d.values) == 0 {
 		msg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
@@ -160,7 +159,7 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 
 	reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-	fe.Append(fwerror.FunctionErrorsFromDiags(ctx, reflectDiags)...)
+	fe.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
 
 	return fe
 }

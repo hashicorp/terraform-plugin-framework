@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -322,8 +321,8 @@ func TestServerCallFunction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.CallFunctionResponse{
-				Errors: fwerror.FunctionErrors{
-					fwerror.NewFunctionError("error summary: error detail"),
+				Errors: function.FunctionErrors{
+					function.NewFunctionError("error summary: error detail"),
 				},
 				Result: function.NewResultData(basetypes.NewStringUnknown()),
 			},

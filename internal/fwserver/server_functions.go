@@ -9,18 +9,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 // Function returns the Function for a given name.
-func (s *Server) Function(ctx context.Context, name string) (function.Function, fwerror.FunctionErrors) {
+func (s *Server) Function(ctx context.Context, name string) (function.Function, function.FunctionErrors) {
 	functionFuncs, diags := s.FunctionFuncs(ctx)
 
-	var funcErrs fwerror.FunctionErrors
+	var funcErrs function.FunctionErrors
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, diags)...)
+	funcErrs.Append(function.FunctionErrorsFromDiags(ctx, diags)...)
 
 	functionFunc, ok := functionFuncs[name]
 
@@ -35,7 +34,7 @@ func (s *Server) Function(ctx context.Context, name string) (function.Function, 
 
 // FunctionDefinition returns the Function Definition for the given name and
 // caches the result for later Function operations.
-func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, fwerror.FunctionErrors) {
+func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, function.FunctionErrors) {
 	s.functionDefinitionsMutex.RLock()
 	functionDefinition, ok := s.functionDefinitions[name]
 	s.functionDefinitionsMutex.RUnlock()
@@ -57,7 +56,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 	functionImpl.Definition(ctx, definitionReq, &definitionResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Definition method", map[string]interface{}{logging.KeyFunctionName: name})
 
-	funcErrs.Append(fwerror.FunctionErrorsFromDiags(ctx, definitionResp.Diagnostics)...)
+	funcErrs.Append(function.FunctionErrorsFromDiags(ctx, definitionResp.Diagnostics)...)
 
 	if funcErrs.HasError() {
 		return definitionResp.Definition, funcErrs

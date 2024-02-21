@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/fwerror"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
 
@@ -22,13 +21,13 @@ type CallFunctionRequest struct {
 // CallFunctionResponse is the framework server response for the
 // CallFunction RPC.
 type CallFunctionResponse struct {
-	Errors fwerror.FunctionErrors
+	Errors function.FunctionErrors
 	Result function.ResultData
 }
 
 // CallFunction implements the framework server CallFunction RPC.
 func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, resp *CallFunctionResponse) {
-	var fe fwerror.FunctionErrors
+	var fe function.FunctionErrors
 
 	if req == nil {
 		return

@@ -8,17 +8,17 @@ import (
 	"math"
 	"math/big"
 	"reflect"
-	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
@@ -69,27 +69,6 @@ func TestNumber_bigInt(t *testing.T) {
 	}
 }
 
-func TestNumber_bigIntRounded(t *testing.T) {
-	t.Parallel()
-
-	var n *big.Int
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123456.123), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n == nil {
-		t.Error("Expected value, got nil")
-		return
-	}
-	if n.Cmp(big.NewInt(123456)) != 0 {
-		t.Errorf("Expected %v, got %v", big.NewInt(123456), n)
-	}
-}
-
 func TestNumber_bigIntRoundingError(t *testing.T) {
 	t.Parallel()
 
@@ -124,25 +103,6 @@ func TestNumber_int(t *testing.T) {
 	}
 }
 
-func TestNumber_intOverflow(t *testing.T) {
-	t.Parallel()
-
-	var n int
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if strconv.IntSize == 64 && n != math.MaxInt64 {
-		t.Errorf("Expected %v, got %v", math.MaxInt64, n)
-	} else if strconv.IntSize == 32 && n != math.MaxInt32 {
-		t.Errorf("Expected %v, got %v", math.MaxInt32, n)
-	}
-}
-
 func TestNumber_intOverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -159,25 +119,6 @@ func TestNumber_intOverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_intUnderflow(t *testing.T) {
-	t.Parallel()
-
-	var n int
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if strconv.IntSize == 64 && n != math.MinInt64 {
-		t.Errorf("Expected %v, got %v", math.MinInt64, n)
-	} else if strconv.IntSize == 32 && n != math.MinInt32 {
-		t.Errorf("Expected %v, got %v", math.MinInt32, n)
 	}
 }
 
@@ -215,23 +156,6 @@ func TestNumber_int8(t *testing.T) {
 	}
 }
 
-func TestNumber_int8Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n int8
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt8+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxInt8 {
-		t.Errorf("Expected %v, got %v", math.MaxInt8, n)
-	}
-}
-
 func TestNumber_int8OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -248,23 +172,6 @@ func TestNumber_int8OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_int8Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n int8
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt8-1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MinInt8 {
-		t.Errorf("Expected %v, got %v", math.MinInt8, n)
 	}
 }
 
@@ -291,23 +198,6 @@ func TestNumber_int16(t *testing.T) {
 	t.Parallel()
 }
 
-func TestNumber_int16Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n int16
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt16+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxInt16 {
-		t.Errorf("Expected %v, got %v", math.MaxInt16, n)
-	}
-}
-
 func TestNumber_int16OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -324,23 +214,6 @@ func TestNumber_int16OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_int16Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n int16
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt16-1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MinInt16 {
-		t.Errorf("Expected %v, got %v", math.MinInt16, n)
 	}
 }
 
@@ -367,23 +240,6 @@ func TestNumber_int32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestNumber_int32Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n int32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxInt32+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxInt32 {
-		t.Errorf("Expected %v, got %v", math.MaxInt32, n)
-	}
-}
-
 func TestNumber_int32OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -400,23 +256,6 @@ func TestNumber_int32OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_int32Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n int32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MinInt32-1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MinInt32 {
-		t.Errorf("Expected %v, got %v", math.MinInt32, n)
 	}
 }
 
@@ -454,23 +293,6 @@ func TestNumber_int64(t *testing.T) {
 	}
 }
 
-func TestNumber_int64Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n int64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowInt), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxInt64 {
-		t.Errorf("Expected %v, got %v", math.MaxInt64, n)
-	}
-}
-
 func TestNumber_int64OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -487,23 +309,6 @@ func TestNumber_int64OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_int64Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n int64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowInt), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MinInt64 {
-		t.Errorf("Expected %v, got %v", math.MinInt64, n)
 	}
 }
 
@@ -541,25 +346,6 @@ func TestNumber_uint(t *testing.T) {
 	}
 }
 
-func TestNumber_uintOverflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if strconv.IntSize == 64 && n != math.MaxUint64 {
-		t.Errorf("Expected %v, got %v", uint64(math.MaxUint64), n)
-	} else if strconv.IntSize == 32 && n != math.MaxUint32 {
-		t.Errorf("Expected %v, got %v", math.MaxUint32, n)
-	}
-}
-
 func TestNumber_uintOverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -576,23 +362,6 @@ func TestNumber_uintOverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_uintUnderflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 0 {
-		t.Errorf("Expected %v, got %v", 0, n)
 	}
 }
 
@@ -630,23 +399,6 @@ func TestNumber_uint8(t *testing.T) {
 	}
 }
 
-func TestNumber_uint8Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint8
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint8+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxUint8 {
-		t.Errorf("Expected %v, got %v", math.MaxUint8, n)
-	}
-}
-
 func TestNumber_uint8OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -663,23 +415,6 @@ func TestNumber_uint8OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_uint8Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint8
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 0 {
-		t.Errorf("Expected %v, got %v", 0, n)
 	}
 }
 
@@ -706,23 +441,6 @@ func TestNumber_uint16(t *testing.T) {
 	t.Parallel()
 }
 
-func TestNumber_uint16Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint16
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint16+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxUint16 {
-		t.Errorf("Expected %v, got %v", math.MaxUint16, n)
-	}
-}
-
 func TestNumber_uint16OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -739,23 +457,6 @@ func TestNumber_uint16OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_uint16Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint16
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 0 {
-		t.Errorf("Expected %v, got %v", 0, n)
 	}
 }
 
@@ -782,23 +483,6 @@ func TestNumber_uint32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestNumber_uint32Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxUint32+1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxUint32 {
-		t.Errorf("Expected %v, got %v", math.MaxUint32, n)
-	}
-}
-
 func TestNumber_uint32OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -815,23 +499,6 @@ func TestNumber_uint32OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_uint32Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 0 {
-		t.Errorf("Expected %v, got %v", 0, n)
 	}
 }
 
@@ -869,23 +536,6 @@ func TestNumber_uint64(t *testing.T) {
 	}
 }
 
-func TestNumber_uint64Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowUint), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxUint64 {
-		t.Errorf("Expected %v, got %v", uint64(math.MaxUint64), n)
-	}
-}
-
 func TestNumber_uint64OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -902,23 +552,6 @@ func TestNumber_uint64OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_uint64Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n uint64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, -1), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 0 {
-		t.Errorf("Expected %v, got %v", 0, n)
 	}
 }
 
@@ -945,23 +578,6 @@ func TestNumber_float32(t *testing.T) {
 	t.Parallel()
 }
 
-func TestNumber_float32Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n float32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxFloat32 {
-		t.Errorf("Expected %v, got %v", math.MaxFloat32, n)
-	}
-}
-
 func TestNumber_float32OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -978,23 +594,6 @@ func TestNumber_float32OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_float32Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n float32
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.SmallestNonzeroFloat32 {
-		t.Errorf("Expected %v, got %v", math.SmallestNonzeroFloat32, n)
 	}
 }
 
@@ -1032,23 +631,6 @@ func TestNumber_float64(t *testing.T) {
 	}
 }
 
-func TestNumber_float64Overflow(t *testing.T) {
-	t.Parallel()
-
-	var n float64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.MaxFloat64 {
-		t.Errorf("Expected %v, got %v", math.MaxFloat64, n)
-	}
-}
-
 func TestNumber_float64OverflowError(t *testing.T) {
 	t.Parallel()
 
@@ -1065,23 +647,6 @@ func TestNumber_float64OverflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_float64OverflowNegative(t *testing.T) {
-	t.Parallel()
-
-	var n float64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != -math.MaxFloat64 {
-		t.Errorf("Expected %v, got %v", -math.MaxFloat64, n)
 	}
 }
 
@@ -1104,23 +669,6 @@ func TestNumber_float64OverflowNegativeError(t *testing.T) {
 	}
 }
 
-func TestNumber_float64Underflow(t *testing.T) {
-	t.Parallel()
-
-	var n float64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != math.SmallestNonzeroFloat64 {
-		t.Errorf("Expected %v, got %v", math.SmallestNonzeroFloat64, n)
-	}
-}
-
 func TestNumber_float64UnderflowError(t *testing.T) {
 	t.Parallel()
 
@@ -1137,23 +685,6 @@ func TestNumber_float64UnderflowError(t *testing.T) {
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
-	}
-}
-
-func TestNumber_float64UnderflowNegative(t *testing.T) {
-	t.Parallel()
-
-	var n float64
-
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{
-		AllowRoundingNumbers: true,
-	}, path.Empty())
-	if diags.HasError() {
-		t.Errorf("Unexpected error: %v", diags)
-	}
-	reflect.ValueOf(&n).Elem().Set(result)
-	if n != -math.SmallestNonzeroFloat64 {
-		t.Errorf("Expected %v, got %v", -math.SmallestNonzeroFloat64, n)
 	}
 }
 

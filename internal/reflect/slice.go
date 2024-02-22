@@ -90,14 +90,75 @@ func reflectSlice(ctx context.Context, typ attr.Type, val tftypes.Value, target 
 		}
 
 		return slice, diags
-	// Tuple reflection from slices is currently not supported as usage is limited
+
+	// Tuple reflection into slices is currently limited to use-cases where all tuple element types are the same.
+	//
+	// Overall, Tuple support is limited in the framework, but the main path that executes tuple reflection is the provider-defined function variadic
+	// parameter. All tuple elements in this variadic parameter will have the same element type. For use-cases where the variadic parameter is a dynamic type,
+	// all elements will have the same type of `DynamicType` and value of `DynamicValue`, with an underlying value that may be different.
 	case attr.TypeWithElementTypes:
-		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
-			Val:        val,
-			TargetType: target.Type(),
-			Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, reflection support is currently not implemented for tuples", val.Type(), t),
-		}))
-		return target, diags
+		// we need to know the type the slice is wrapping
+		elemType := target.Type().Elem()
+
+		// we want an empty version of the slice
+		slice := reflect.MakeSlice(target.Type(), 0, len(values))
+
+		if len(t.ElementTypes()) <= 0 {
+			// If the tuple values are empty as well, we can just pass back an empty slice of the type we received.
+			if len(values) == 0 {
+				return slice, diags
+			}
+
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        val,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, tuple type contained no element types but received values", val.Type(), t),
+			}))
+			return target, diags
+		}
+
+		// Ensure that all tuple element types are the same by comparing each element type to the first
+		multipleTypes := false
+		allElemTypes := t.ElementTypes()
+		elemAttrType := allElemTypes[0]
+		for _, elemType := range allElemTypes[1:] {
+			if !elemAttrType.Equal(elemType) {
+				multipleTypes = true
+				break
+			}
+		}
+
+		if multipleTypes {
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        val,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("cannot reflect %s using type information provided by %T, reflection support for tuples is limited to multiple elements of the same element type. Expected all element types to be %T", val.Type(), t, elemAttrType),
+			}))
+			return target, diags
+		}
+
+		// go over each of the values passed in, create a Go value of the right
+		// type for them, and add it to our new slice
+		for pos, value := range values {
+			// create a new Go value of the type that can go in the slice
+			targetValue := reflect.Zero(elemType)
+
+			// update our path so we can have nice errors
+			valPath := path.AtTupleIndex(pos)
+
+			// reflect the value into our new target
+			val, valDiags := BuildValue(ctx, elemAttrType, value, targetValue, opts, valPath)
+			diags.Append(valDiags...)
+
+			if diags.HasError() {
+				return target, diags
+			}
+
+			// add the new target to our slice
+			slice = reflect.Append(slice, val)
+		}
+
+		return slice, diags
 	default:
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 			Val:        val,
@@ -184,15 +245,73 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 
 			tfElems = append(tfElems, tfVal)
 		}
-	// Tuple reflection from slices is currently not supported as usage is limited
+
+	// Tuple reflection from slices is currently limited to use-cases where all tuple element types are the same.
+	//
+	// Overall, Tuple support is limited in the framework, but the main path that executes tuple reflection is the provider-defined function variadic
+	// parameter. All tuple elements in this variadic parameter will have the same element type. For use-cases where the variadic parameter is a dynamic type,
+	// all elements will have the same type of `DynamicType` and value of `DynamicValue`, with an underlying value that may be different.
 	case attr.TypeWithElementTypes:
-		err := fmt.Errorf("cannot use type %s as schema type %T; reflection support is currently not implemented for tuples", val.Type(), t)
-		diags.AddAttributeError(
-			path,
-			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return nil, diags
+		if len(t.ElementTypes()) <= 0 {
+			// If the tuple values are empty as well, we can just pass back an empty slice of the type we received.
+			if val.Len() == 0 {
+				break
+			}
+
+			err := fmt.Errorf("cannot use type %s as schema type %T; tuple type contained no element types but received values", val.Type(), t)
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
+
+		// Ensure that all tuple element types are the same by comparing each element type to the first
+		multipleTypes := false
+		allElemTypes := t.ElementTypes()
+		elemAttrType := allElemTypes[0]
+		for _, elemType := range allElemTypes[1:] {
+			if !elemAttrType.Equal(elemType) {
+				multipleTypes = true
+				break
+			}
+		}
+
+		if multipleTypes {
+			err := fmt.Errorf("cannot use type %s as schema type %T; reflection support for tuples is limited to multiple elements of the same element type. Expected all element types to be %T", val.Type(), t, elemAttrType)
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
+
+		for i := 0; i < val.Len(); i++ {
+			valPath := path.AtTupleIndex(i)
+
+			val, valDiags := FromValue(ctx, elemAttrType, val.Index(i).Interface(), valPath)
+			diags.Append(valDiags...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+
+			tfVal, err := val.ToTerraformValue(ctx)
+			if err != nil {
+				return nil, append(diags, toTerraformValueErrorDiag(err, path))
+			}
+
+			if typeWithValidate, ok := elemAttrType.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+				if diags.HasError() {
+					return nil, diags
+				}
+			}
+
+			tfElems = append(tfElems, tfVal)
+		}
 	default:
 		err := fmt.Errorf("cannot use type %s as schema type %T; %T must be an attr.TypeWithElementType or attr.TypeWithElementTypes", val.Type(), t, t)
 		diags.AddAttributeError(

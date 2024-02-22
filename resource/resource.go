@@ -127,6 +127,35 @@ type ResourceWithModifyPlan interface {
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)
 }
 
+// Optional interface on top of [Resource] that enables provider control over
+// the MoveResourceState RPC. This RPC is called by Terraform when there is a
+// `moved` configuration block that changes the resource type and where this
+// [Resource] is the target resource type. Since state data operations can cause
+// data loss for practitioners, this support is explicitly opt-in to ensure that
+// all data transformation logic is explicitly defined by the provider.
+//
+// If the [Resource] does not implement this interface and Terraform sends a
+// MoveResourceState request, the framework will automatically return an error
+// diagnostic notifying the practitioner that this resource does not support the
+// requested operation.
+//
+// This functionality is only supported in Terraform 1.8 and later.
+type ResourceWithMoveState interface {
+	Resource
+
+	// An ordered list of source resource to current schema version state move
+	// implementations. Only the first [StateMover] implementation that returns
+	// state data or error diagnostics will be used, otherwise the framework
+	// considers the [StateMover] as skipped and will try the next [StateMover].
+	// If all implementations return without state and error diagnostics, the
+	// framework will return an implementation not found error.
+	//
+	// It is strongly recommended that implementations be overly cautious and
+	// return no state data if the source provider address, resource type,
+	// or schema version is not fully implemented.
+	MoveState(context.Context) []StateMover
+}
+
 // Optional interface on top of Resource that enables provider control over
 // the UpgradeResourceState RPC. This RPC is automatically called by Terraform
 // when the current Schema type Version field is greater than the stored state.

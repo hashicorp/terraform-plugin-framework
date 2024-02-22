@@ -39,6 +39,17 @@ func TestInto_Slices(t *testing.T) {
 			target:   make([]string, 0),
 			expected: []string{"hello", "world"},
 		},
+		"dynamic-list-to-go-slice": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: []string{"hello", "world"},
+		},
 		"set-to-go-slice": {
 			typ: types.SetType{ElemType: types.StringType},
 			value: tftypes.NewValue(tftypes.Set{
@@ -50,8 +61,30 @@ func TestInto_Slices(t *testing.T) {
 			target:   make([]string, 0),
 			expected: []string{"hello", "world"},
 		},
+		"dynamic-set-to-go-slice": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: []string{"hello", "world"},
+		},
 		"tuple-to-go-slice": {
 			typ: types.TupleType{ElemTypes: []attr.Type{types.StringType, types.StringType}},
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: []string{"hello", "world"},
+		},
+		"dynamic-tuple-to-go-slice": {
+			typ: types.DynamicType,
 			value: tftypes.NewValue(tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			}, []tftypes.Value{
@@ -135,6 +168,22 @@ func TestInto_Slices(t *testing.T) {
 		},
 		"list-to-incompatible-type": {
 			typ:      types.ListType{ElemType: types.StringType},
+			value:    tftypes.NewValue(tftypes.String, "hello"),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					path.Empty(),
+					refl.DiagIntoIncompatibleType{
+						Val:        tftypes.NewValue(tftypes.String, "hello"),
+						TargetType: reflect.TypeOf([]string{}),
+						Err:        errors.New("can't unmarshal tftypes.String into *[]tftypes.Value expected []tftypes.Value"),
+					},
+				),
+			},
+		},
+		"dynamic-list-to-incompatible-type": {
+			typ:      types.DynamicType,
 			value:    tftypes.NewValue(tftypes.String, "hello"),
 			target:   make([]string, 0),
 			expected: make([]string, 0),

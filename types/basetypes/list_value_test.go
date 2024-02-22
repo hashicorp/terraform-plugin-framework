@@ -268,12 +268,38 @@ func TestListValueToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
 		},
+		"known-dynamic-values": {
+			input: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicValue(NewStringValue("hello")),
+					NewDynamicValue(NewStringValue("world")),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+		},
 		"known-partial-unknown": {
 			input: NewListValueMust(
 				StringType{},
 				[]attr.Value{
 					NewStringUnknown(),
 					NewStringValue("hello, world"),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+		},
+		"known-dynamic-values-partial-unknown": {
+			input: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicUnknown(),
+					NewDynamicValue(NewStringValue("hello, world")),
 				},
 			),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -294,13 +320,34 @@ func TestListValueToTerraformValue(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello, world"),
 			}),
 		},
+		"known-dynamic-values-partial-null": {
+			input: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicNull(),
+					NewDynamicValue(NewStringValue("hello, world")),
+				},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, nil),
+				tftypes.NewValue(tftypes.String, "hello, world"),
+			}),
+		},
 		"unknown": {
 			input:       NewListUnknown(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
 		},
+		"unknown-dynamic-values": {
+			input:       NewListUnknown(DynamicType{}),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.DynamicPseudoType}, tftypes.UnknownValue),
+		},
 		"null": {
 			input:       NewListNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		},
+		"null-dynamic-values": {
+			input:       NewListNull(DynamicType{}),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.DynamicPseudoType}, nil),
 		},
 	}
 	for name, test := range tests {

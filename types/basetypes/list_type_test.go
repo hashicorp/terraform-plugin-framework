@@ -136,6 +136,24 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				},
 			),
 		},
+		"list-of-dynamic-values-strings": {
+			receiver: ListType{
+				ElemType: DynamicType{},
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			expected: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicValue(NewStringValue("hello")),
+					NewDynamicValue(NewStringValue("world")),
+				},
+			),
+		},
 		"unknown-list": {
 			receiver: ListType{
 				ElemType: StringType{},
@@ -144,6 +162,15 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
 			expected: NewListUnknown(StringType{}),
+		},
+		"unknown-list-of-dynamic-values": {
+			receiver: ListType{
+				ElemType: DynamicType{},
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.DynamicPseudoType,
+			}, tftypes.UnknownValue),
+			expected: NewListUnknown(DynamicType{}),
 		},
 		"partially-unknown-list": {
 			receiver: ListType{
@@ -163,6 +190,24 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				},
 			),
 		},
+		"partially-unknown-list-of-dynamic-values-strings": {
+			receiver: ListType{
+				ElemType: DynamicType{},
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			expected: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicValue(NewStringValue("hello")),
+					NewDynamicUnknown(),
+				},
+			),
+		},
 		"null-list": {
 			receiver: ListType{
 				ElemType: StringType{},
@@ -171,6 +216,15 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				ElementType: tftypes.String,
 			}, nil),
 			expected: NewListNull(StringType{}),
+		},
+		"null-list-of-dynamic-values": {
+			receiver: ListType{
+				ElemType: DynamicType{},
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.DynamicPseudoType,
+			}, nil),
+			expected: NewListNull(DynamicType{}),
 		},
 		"partially-null-list": {
 			receiver: ListType{
@@ -187,6 +241,24 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				[]attr.Value{
 					NewStringValue("hello"),
 					NewStringNull(),
+				},
+			),
+		},
+		"partially-null-list-of-dynamic-values-strings": {
+			receiver: ListType{
+				ElemType: DynamicType{},
+			},
+			input: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, nil),
+			}),
+			expected: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{
+					NewDynamicValue(NewStringValue("hello")),
+					NewDynamicNull(),
 				},
 			),
 		},

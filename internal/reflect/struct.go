@@ -236,6 +236,8 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 		tfObjTyp := tfObjVal.Type()
 
+		// TODO: improve this test case
+		// TODO: add this to slices
 		// If the original attribute type is tftypes.DynamicPseudoType, the value is a concrete type (like tftypes.String, tftypes.List, etc.)
 		// however, the type used to build the tftypes.Object needs to be tftypes.DynamicPseudoType.
 		if attrTypes[name].TerraformType(ctx).Is(tftypes.DynamicPseudoType) {

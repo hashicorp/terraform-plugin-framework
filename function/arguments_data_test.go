@@ -274,14 +274,27 @@ func TestArgumentsDataGet(t *testing.T) {
 			argumentsData: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolNull(),
 				basetypes.NewStringValue("test"),
+				basetypes.NewDynamicValue(basetypes.NewStringValue("dynamic_test")),
+				basetypes.NewDynamicValue(basetypes.NewListValueMust(
+					basetypes.StringType{},
+					[]attr.Value{
+						basetypes.NewStringValue("hello"),
+						basetypes.NewStringValue("dynamic"),
+						basetypes.NewStringValue("world"),
+					},
+				)),
 			}),
 			targets: []any{
 				new(*bool),
 				new(string),
+				new(string),
+				new([]string),
 			},
 			expected: []any{
 				pointer((*bool)(nil)),
 				pointer("test"),
+				pointer("dynamic_test"),
+				pointer([]string{"hello", "dynamic", "world"}),
 			},
 		},
 		"reflection-variadic": {

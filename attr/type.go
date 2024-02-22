@@ -92,11 +92,12 @@ type TypeWithElementTypes interface {
 	ElementTypes() []Type
 }
 
-// TODO: doc
+// TypeWithDynamicValue extends the Type interface to include information about how
+// a dynamic type will determine the type of a dynamic value.
 type TypeWithDynamicValue interface {
 	Type
 
-	// TODO: doc
+	// DetermineAttrType returns a corresponding attr.Type, based on the tftypes.Type representation.
 	DetermineAttrType(tftypes.Type) Type
 }
 

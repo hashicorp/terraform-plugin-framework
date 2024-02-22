@@ -45,9 +45,7 @@ func (r MapReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r MapReturn) NewResultData(ctx context.Context) (ResultData, FunctionErrors) {
-	var funcErrs FunctionErrors
-
+func (r MapReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 	value := basetypes.NewMapUnknown(r.ElementType)
 
 	if r.CustomType == nil {
@@ -56,7 +54,5 @@ func (r MapReturn) NewResultData(ctx context.Context) (ResultData, FunctionError
 
 	valuable, diags := r.CustomType.ValueFromMap(ctx, value)
 
-	funcErrs.Append(FunctionErrorsFromDiags(ctx, diags)...)
-
-	return NewResultData(valuable), funcErrs
+	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
 }

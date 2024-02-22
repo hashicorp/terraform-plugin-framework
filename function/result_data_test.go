@@ -21,29 +21,25 @@ func TestResultDataSet(t *testing.T) {
 		resultData  function.ResultData
 		value       any
 		expected    attr.Value
-		expectedErr function.FunctionErrors
+		expectedErr *function.FuncError
 	}{
 		"nil": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),
 			value:      nil,
 			expected:   basetypes.NewBoolUnknown(),
-			expectedErr: function.FunctionErrors{
-				function.NewFunctionError("Value Conversion Error: An unexpected error was encountered trying to convert from value. " +
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
-					"cannot construct attr.Type from <nil> (invalid)"),
-			},
+			expectedErr: function.NewFuncError("Value Conversion Error: An unexpected error was encountered trying to convert from value. " +
+				"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
+				"cannot construct attr.Type from <nil> (invalid)"),
 		},
 		"invalid-type": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),
 			value:      basetypes.NewStringValue("test"),
 			expected:   basetypes.NewBoolUnknown(),
-			expectedErr: function.FunctionErrors{
-				function.NewFunctionError("Value Conversion Error: An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. " +
-					"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
-					"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n" +
-					"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n" +
-					"Path: "),
-			},
+			expectedErr: function.NewFuncError("Value Conversion Error: An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. " +
+				"This is always an error in the provider. Please report the following to the provider developer:\n\n" +
+				"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n" +
+				"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n" +
+				"Path: "),
 		},
 		"framework-type": {
 			resultData: function.NewResultData(basetypes.NewBoolUnknown()),

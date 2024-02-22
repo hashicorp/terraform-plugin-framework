@@ -54,25 +54,24 @@ func TestServerCallFunction(t *testing.T) {
 											var arg1 basetypes.Int64Value
 											var arg2 basetypes.StringValue
 
-											resp.Errors = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
 
 											expectedArg0 := basetypes.NewBoolNull()
 											expectedArg1 := basetypes.NewInt64Unknown()
 											expectedArg2 := basetypes.NewStringValue("arg2")
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1))
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
 											if !arg2.Equal(expectedArg2) {
-												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2))
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2)))
 											}
-
-											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -117,7 +116,7 @@ func TestServerCallFunction(t *testing.T) {
 											var arg0 basetypes.StringValue
 											var arg1 basetypes.ListValue
 
-											resp.Errors = req.Arguments.Get(ctx, &arg0, &arg1)
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1)
 
 											expectedArg0 := basetypes.NewStringValue("arg0")
 											expectedArg1 := basetypes.NewListValueMust(
@@ -129,14 +128,14 @@ func TestServerCallFunction(t *testing.T) {
 											)
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0))
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Errors.AddError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg1, expectedArg1))
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
-											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -174,8 +173,8 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Errors.AddError("error summary: error detail")
-											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("error summary: error detail"))
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -190,7 +189,7 @@ func TestServerCallFunction(t *testing.T) {
 			},
 			expectedResponse: &tfprotov6.CallFunctionResponse{
 				Error: &tfprotov6.FunctionError{
-					Text: "error summary: error detail\n",
+					Text: "error summary: error detail",
 				},
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},
@@ -212,7 +211,7 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Errors.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},

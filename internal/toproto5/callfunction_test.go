@@ -30,14 +30,14 @@ func TestCallFunctionResponse(t *testing.T) {
 		},
 		"error": {
 			input: &fwserver.CallFunctionResponse{
-				Errors: function.FunctionErrors{
-					function.NewFunctionError("error summary one: error detail one"),
-					function.NewArgumentFunctionError(0, "error summary two: error detail two"),
-				},
+				Error: function.ConcatFuncErrors(
+					function.NewFuncError("error summary one: error detail one"),
+					function.NewArgumentFuncError(0, "error summary two: error detail two"),
+				),
 			},
 			expected: &tfprotov5.CallFunctionResponse{
 				Error: &tfprotov5.FunctionError{
-					Text:             "error summary one: error detail one\nerror summary two: error detail two\n",
+					Text:             "error summary one: error detail one\nerror summary two: error detail two",
 					FunctionArgument: pointer(int64(0)),
 				},
 			},

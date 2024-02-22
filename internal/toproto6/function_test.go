@@ -390,7 +390,7 @@ func TestFunctionResultData(t *testing.T) {
 	testCases := map[string]struct {
 		fw          function.ResultData
 		expected    *tfprotov6.DynamicValue
-		expectedErr function.FunctionErrors
+		expectedErr *function.FuncError
 	}{
 		"empty": {
 			fw:          function.ResultData{},

@@ -38,9 +38,7 @@ func (r NumberReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r NumberReturn) NewResultData(ctx context.Context) (ResultData, FunctionErrors) {
-	var funcErrs FunctionErrors
-
+func (r NumberReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 	value := basetypes.NewNumberUnknown()
 
 	if r.CustomType == nil {
@@ -49,7 +47,5 @@ func (r NumberReturn) NewResultData(ctx context.Context) (ResultData, FunctionEr
 
 	valuable, diags := r.CustomType.ValueFromNumber(ctx, value)
 
-	funcErrs.Append(FunctionErrorsFromDiags(ctx, diags)...)
-
-	return NewResultData(valuable), funcErrs
+	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
 }

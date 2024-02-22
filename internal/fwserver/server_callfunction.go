@@ -21,25 +21,21 @@ type CallFunctionRequest struct {
 // CallFunctionResponse is the framework server response for the
 // CallFunction RPC.
 type CallFunctionResponse struct {
-	Errors function.FunctionErrors
+	Error  *function.FuncError
 	Result function.ResultData
 }
 
 // CallFunction implements the framework server CallFunction RPC.
 func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, resp *CallFunctionResponse) {
-	var fe function.FunctionErrors
-
 	if req == nil {
 		return
 	}
 
 	resultData, err := req.FunctionDefinition.Return.NewResultData(ctx)
 
-	fe.Append(err...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, err)
 
-	resp.Errors = fe
-
-	if resp.Errors.HasError() {
+	if resp.Error.HasError() {
 		return
 	}
 
@@ -54,6 +50,7 @@ func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, res
 	req.Function.Run(ctx, runReq, &runResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Run")
 
-	resp.Errors = runResp.Errors
+	resp.Error = function.ConcatFuncErrors(resp.Error, runResp.Error)
+
 	resp.Result = runResp.Result
 }

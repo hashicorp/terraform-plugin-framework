@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
@@ -18,14 +19,12 @@ func CallFunctionResponse(ctx context.Context, fw *fwserver.CallFunctionResponse
 		return nil
 	}
 
-	funcErrs := fw.Errors
+	result, resultErr := FunctionResultData(ctx, fw.Result)
 
-	result, resultErrs := FunctionResultData(ctx, fw.Result)
-
-	funcErrs.Append(resultErrs...)
+	funcErr := function.ConcatFuncErrors(fw.Error, resultErr)
 
 	return &tfprotov6.CallFunctionResponse{
-		Error:  FunctionError(ctx, funcErrs),
+		Error:  FunctionError(ctx, funcErr),
 		Result: result,
 	}
 }

@@ -88,9 +88,7 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov6.Function
 
 // FunctionResultData returns the *tfprotov6.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov6.DynamicValue, function.FunctionErrors) {
-	var funcErrs function.FunctionErrors
-
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov6.DynamicValue, *function.FuncError) {
 	attrValue := data.Value()
 
 	if attrValue == nil {
@@ -105,9 +103,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"Please report this to the provider developer:\n\n" +
 			"Unable to convert framework type to tftypes: " + err.Error()
 
-		funcErrs.AddError(msg)
-
-		return nil, funcErrs
+		return nil, function.NewFuncError(msg)
 	}
 
 	dynamicValue, err := tfprotov6.NewDynamicValue(tfType, tfValue)
@@ -117,9 +113,7 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 			"Unable to create DynamicValue: " + err.Error()
 
-		funcErrs.AddError(msg)
-
-		return nil, funcErrs
+		return nil, function.NewFuncError(msg)
 	}
 
 	return &dynamicValue, nil

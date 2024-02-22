@@ -48,28 +48,28 @@ func (d ArgumentsData) Equal(o ArgumentsData) bool {
 // type with an element type appropriate for the parameter definition ([]T). The
 // framework automatically populates this list with elements matching the zero,
 // one, or more arguments passed.
-func (d ArgumentsData) Get(ctx context.Context, targets ...any) FunctionErrors {
-	var fe FunctionErrors
+func (d ArgumentsData) Get(ctx context.Context, targets ...any) *FuncError {
+	var funcErr *FuncError
 
 	if len(d.values) == 0 {
-		msg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		fe.AddError(msg)
+		funcErr = ConcatFuncErrors(funcErr, NewFuncError(text))
 
-		return fe
+		return funcErr
 	}
 
 	if len(targets) != len(d.values) {
-		msg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values))
 
-		fe.AddError(msg)
+		funcErr = ConcatFuncErrors(funcErr, NewFuncError(text))
 
-		return fe
+		return funcErr
 	}
 
 	for position, attrValue := range d.values {
@@ -85,23 +85,23 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) FunctionErrors {
 		tfValue, tfValueErr := attrValue.ToTerraformValue(ctx)
 
 		if tfValueErr != nil {
-			msg := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+			text := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
 				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				"Position: %d\n"+
 				"Error: %s",
 				attrValue, position, tfValueErr)
 
-			fe.AddArgumentError(position, msg)
+			funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
 
 			continue
 		}
 
 		reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-		fe.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
+		funcErr = ConcatFuncErrors(funcErr, FuncErrorFromDiags(ctx, reflectDiags))
 	}
 
-	return fe
+	return funcErr
 }
 
 // GetArgument retrieves the argument data found at the given zero-based
@@ -112,28 +112,28 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) FunctionErrors {
 // type with an element type appropriate for the parameter definition ([]T) at
 // the position after all parameters. The framework automatically populates this
 // list with elements matching the zero, one, or more arguments passed.
-func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) FunctionErrors {
-	var fe FunctionErrors
+func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any) *FuncError {
+	var funcErr *FuncError
 
 	if len(d.values) == 0 {
-		msg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		fe.AddArgumentError(position, msg)
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
 
-		return fe
+		return funcErr
 	}
 
 	if position >= len(d.values) {
-		msg := "Invalid Argument Data Position: When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
+		text := "Invalid Argument Data Position: When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
 			"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with an ordered list of the parameter data type. " +
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1)
 
-		fe.AddArgumentError(position, msg)
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
 
-		return fe
+		return funcErr
 	}
 
 	attrValue := d.values[position]
@@ -148,20 +148,20 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		msg := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+		text := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 			"Error: %s", attrValue, err)
 
-		fe.AddArgumentError(position, msg)
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
 
-		return fe
+		return funcErr
 	}
 
 	reflectDiags := fwreflect.Into(ctx, attrValue.Type(ctx), tfValue, target, fwreflect.Options{}, path.Empty())
 
-	fe.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
+	funcErr = ConcatFuncErrors(funcErr, FuncErrorFromDiags(ctx, reflectDiags))
 
-	return fe
+	return funcErr
 }
 
 // NewArgumentsData creates an ArgumentsData. This is only necessary for unit

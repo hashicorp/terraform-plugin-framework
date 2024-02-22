@@ -31,15 +31,13 @@ func (d *ResultData) Equal(o ResultData) bool {
 
 // Set saves the result data. The value type must be acceptable for the data
 // type in the result definition.
-func (d *ResultData) Set(ctx context.Context, value any) FunctionErrors {
-	var funcErrs FunctionErrors
-
+func (d *ResultData) Set(ctx context.Context, value any) *FuncError {
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	funcErrs.Append(FunctionErrorsFromDiags(ctx, reflectDiags)...)
+	funcErr := FuncErrorFromDiags(ctx, reflectDiags)
 
-	if funcErrs.HasError() {
-		return funcErrs
+	if funcErr.HasError() {
+		return funcErr
 	}
 
 	d.value = reflectValue

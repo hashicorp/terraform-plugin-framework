@@ -24,25 +24,25 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov5.CallFunct
 
 	serverFunction, err := s.FrameworkServer.Function(ctx, protoReq.Name)
 
-	fwResp.Errors = err
+	fwResp.Error = err
 
-	if fwResp.Errors != nil {
+	if fwResp.Error.HasError() {
 		return toproto5.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	functionDefinition, funcErrs := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
+	functionDefinition, funcErr := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
 
-	fwResp.Errors.Append(funcErrs...)
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, funcErr)
 
-	if fwResp.Errors.HasError() {
+	if fwResp.Error.HasError() {
 		return toproto5.CallFunctionResponse(ctx, fwResp), nil
 	}
 
 	fwReq, diags := fromproto5.CallFunctionRequest(ctx, protoReq, serverFunction, functionDefinition)
 
-	fwResp.Errors.Append(function.FunctionErrorsFromDiags(ctx, diags)...)
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, function.FuncErrorFromDiags(ctx, diags))
 
-	if fwResp.Errors.HasError() {
+	if fwResp.Error.HasError() {
 		return toproto5.CallFunctionResponse(ctx, fwResp), nil
 	}
 

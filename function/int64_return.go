@@ -37,9 +37,7 @@ func (r Int64Return) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r Int64Return) NewResultData(ctx context.Context) (ResultData, FunctionErrors) {
-	var funcErrs FunctionErrors
-
+func (r Int64Return) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 	value := basetypes.NewInt64Unknown()
 
 	if r.CustomType == nil {
@@ -48,7 +46,5 @@ func (r Int64Return) NewResultData(ctx context.Context) (ResultData, FunctionErr
 
 	valuable, diags := r.CustomType.ValueFromInt64(ctx, value)
 
-	funcErrs.Append(FunctionErrorsFromDiags(ctx, diags)...)
-
-	return NewResultData(valuable), funcErrs
+	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
 }

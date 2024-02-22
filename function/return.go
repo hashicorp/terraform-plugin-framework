@@ -21,5 +21,5 @@ type Return interface {
 	// best approximation of an invalid value) of the corresponding data type.
 	// The Function type Run method is expected to overwrite the value before
 	// returning.
-	NewResultData(context.Context) (ResultData, FunctionErrors)
+	NewResultData(context.Context) (ResultData, *FuncError)
 }

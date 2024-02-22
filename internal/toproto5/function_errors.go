@@ -5,37 +5,20 @@ package toproto5
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
 )
 
-// FunctionError converts the function errors into the tfprotov6 function error.
-func FunctionError(ctx context.Context, funcErrs function.FunctionErrors) *tfprotov5.FunctionError {
-	var text string
-	var funcArg *int64
-
-	for _, funcErr := range funcErrs {
-		text += fmt.Sprintf("%s\n", funcErr.Error())
-
-		var funcErrWithFunctionArgument function.FunctionErrorWithFunctionArgument
-
-		if errors.As(funcErr, &funcErrWithFunctionArgument) && funcArg == nil {
-			fArg := int64(funcErrWithFunctionArgument.FunctionArgument())
-
-			funcArg = &fArg
-		}
-	}
-
-	if text == "" {
+// FunctionError converts the function error into the tfprotov5 function error.
+func FunctionError(ctx context.Context, funcErr *function.FuncError) *tfprotov5.FunctionError {
+	if !funcErr.HasError() {
 		return nil
 	}
 
 	return &tfprotov5.FunctionError{
-		Text:             text,
-		FunctionArgument: funcArg,
+		Text:             funcErr.Text,
+		FunctionArgument: funcErr.FunctionArgument,
 	}
 }

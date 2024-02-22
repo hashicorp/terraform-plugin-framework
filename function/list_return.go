@@ -45,9 +45,7 @@ func (r ListReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r ListReturn) NewResultData(ctx context.Context) (ResultData, FunctionErrors) {
-	var funcErrs FunctionErrors
-
+func (r ListReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 	value := basetypes.NewListUnknown(r.ElementType)
 
 	if r.CustomType == nil {
@@ -56,7 +54,5 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, FunctionErro
 
 	valuable, diags := r.CustomType.ValueFromList(ctx, value)
 
-	funcErrs.Append(FunctionErrorsFromDiags(ctx, diags)...)
-
-	return NewResultData(valuable), funcErrs
+	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
 }

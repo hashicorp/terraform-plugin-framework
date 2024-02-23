@@ -37,6 +37,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources:   []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -78,6 +79,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -120,6 +122,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -154,6 +157,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -188,6 +192,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -229,6 +234,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -271,6 +277,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -305,6 +312,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -346,6 +354,7 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -388,6 +397,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -422,6 +432,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -456,6 +467,7 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},

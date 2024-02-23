@@ -15,9 +15,4 @@ type Options struct {
 	// translated into empty values without provider interaction, or if
 	// they must be explicitly handled.
 	UnhandledUnknownAsEmpty bool
-
-	// AllowRoundingNumbers silently rounds numbers that don't fit
-	// perfectly in the types they're being stored in, rather than
-	// returning errors. Numbers will always be rounded towards 0.
-	AllowRoundingNumbers bool
 }

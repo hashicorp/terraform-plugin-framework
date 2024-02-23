@@ -50,7 +50,7 @@ func TestInto_Slices(t *testing.T) {
 			target:   make([]string, 0),
 			expected: []string{"hello", "world"},
 		},
-		"tuple-to-go-slice-unsupported": {
+		"tuple-to-go-slice": {
 			typ: types.TupleType{ElemTypes: []attr.Type{types.StringType, types.StringType}},
 			value: tftypes.NewValue(tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
@@ -58,6 +58,35 @@ func TestInto_Slices(t *testing.T) {
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.String, "world"),
 			}),
+			target:   make([]string, 0),
+			expected: []string{"hello", "world"},
+		},
+		"tuple-to-go-slice-no-element-types-no-values": {
+			typ:      types.TupleType{ElemTypes: []attr.Type{}},
+			value:    tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{}}, []tftypes.Value{}),
+			target:   make([]string, 0),
+			expected: []string{},
+		},
+		"tuple-to-go-slice-one-element": {
+			typ: types.TupleType{ElemTypes: []attr.Type{types.StringType}},
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			target:   make([]string, 0),
+			expected: []string{"hello"},
+		},
+		"tuple-to-go-slice-unsupported-no-element-types-with-values": {
+			typ: types.TupleType{ElemTypes: []attr.Type{}},
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			// Target isn't relevant for this test, as the wrapping reflection logic doesn't attempt to determine the underlying type of an `any`
+			// The test will successfully reject the reflection attempt based on the element types of the TupleType.
 			target:   make([]string, 0),
 			expected: make([]string, 0),
 			expectedDiags: diag.Diagnostics{
@@ -71,7 +100,35 @@ func TestInto_Slices(t *testing.T) {
 							tftypes.NewValue(tftypes.String, "world"),
 						}),
 						TargetType: reflect.TypeOf([]string{}),
-						Err:        errors.New("cannot reflect tftypes.Tuple[tftypes.String, tftypes.String] using type information provided by basetypes.TupleType, reflection support is currently not implemented for tuples"),
+						Err:        errors.New("cannot reflect tftypes.Tuple[tftypes.String, tftypes.String] using type information provided by basetypes.TupleType, tuple type contained no element types but received values"),
+					},
+				),
+			},
+		},
+		"tuple-to-go-slice-unsupported-multiple-element-types": {
+			typ: types.TupleType{ElemTypes: []attr.Type{types.StringType, types.BoolType}},
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.Bool, true),
+			}),
+			// Target isn't relevant for this test, as the wrapping reflection logic doesn't attempt to determine the underlying type of an `any`
+			// The test will successfully reject the reflection attempt based on the element types of the TupleType.
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.WithPath(
+					path.Empty(),
+					refl.DiagIntoIncompatibleType{
+						Val: tftypes.NewValue(tftypes.Tuple{
+							ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "hello"),
+							tftypes.NewValue(tftypes.Bool, true),
+						}),
+						TargetType: reflect.TypeOf([]string{}),
+						Err:        errors.New("cannot reflect tftypes.Tuple[tftypes.String, tftypes.Bool] using type information provided by basetypes.TupleType, reflection support for tuples is limited to multiple elements of the same element type. Expected all element types to be basetypes.StringType"),
 					},
 				),
 			},

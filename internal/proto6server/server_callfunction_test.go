@@ -114,13 +114,16 @@ func TestServerCallFunction(t *testing.T) {
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 											var arg0 basetypes.StringValue
-											var arg1 basetypes.ListValue
+											var arg1 basetypes.TupleValue
 
 											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1)
 
 											expectedArg0 := basetypes.NewStringValue("arg0")
-											expectedArg1 := basetypes.NewListValueMust(
-												basetypes.StringType{},
+											expectedArg1 := basetypes.NewTupleValueMust(
+												[]attr.Type{
+													basetypes.StringType{},
+													basetypes.StringType{},
+												},
 												[]attr.Value{
 													basetypes.NewStringValue("varg-arg1"),
 													basetypes.NewStringValue("varg-arg2"),

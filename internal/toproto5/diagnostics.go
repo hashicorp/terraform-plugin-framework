@@ -6,9 +6,10 @@ package toproto5
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // DiagnosticSeverity converts diag.Severity into tfprotov5.DiagnosticSeverity.
@@ -32,11 +33,6 @@ func Diagnostics(ctx context.Context, diagnostics diag.Diagnostics) []*tfprotov5
 			Detail:   diagnostic.Detail(),
 			Severity: DiagnosticSeverity(diagnostic.Severity()),
 			Summary:  diagnostic.Summary(),
-		}
-
-		if diagWithFunctionArgument, ok := diagnostic.(diag.DiagnosticWithFunctionArgument); ok {
-			functionArgument := int64(diagWithFunctionArgument.FunctionArgument())
-			tfprotov5Diagnostic.FunctionArgument = &functionArgument
 		}
 
 		if diagWithPath, ok := diagnostic.(diag.DiagnosticWithPath); ok {

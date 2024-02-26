@@ -5,6 +5,7 @@ package schema
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -253,5 +254,16 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 
 	if !a.IsComputed() && a.ListDefaultValue() != nil {
 		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
+
+	if a.ElementType != nil {
+		_, isDynamic := a.ElementType.(attr.TypeWithDynamicValue)
+		if isDynamic {
+
+			resp.Diagnostics.AddError(
+				"Schema Using Dynamic as Element Type",
+				fmt.Sprintf("Attribute %q cannot have an element type that is dynamic. ", req.Path.String())+
+					"This is an issue with the provider and should be reported to the provider developers.")
+		}
 	}
 }

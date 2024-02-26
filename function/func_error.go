@@ -87,14 +87,9 @@ func (fe *FuncError) HasError() bool {
 // ConcatFuncErrors returns a new function error with the text from all supplied
 // function errors concatenated together. If any of the function errors have a
 // function argument, the first one encountered will be used.
-func ConcatFuncErrors(funcErr *FuncError, funcErrs ...*FuncError) *FuncError {
+func ConcatFuncErrors(funcErrs ...*FuncError) *FuncError {
 	var text string
 	var functionArgument *int64
-
-	if funcErr != nil {
-		text = funcErr.Text
-		functionArgument = funcErr.FunctionArgument
-	}
 
 	for _, f := range funcErrs {
 		if f == nil {

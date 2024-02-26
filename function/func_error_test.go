@@ -129,12 +129,12 @@ func TestFuncError_HasError(t *testing.T) {
 	}
 }
 
-func TestConcat(t *testing.T) {
+func TestConcatFuncErrors(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		funcErr  *function.FuncError
-		other    []*function.FuncError
+		other    *function.FuncError
 		expected *function.FuncError
 	}{
 		"nil-nil": {},
@@ -142,15 +142,9 @@ func TestConcat(t *testing.T) {
 			funcErr: &function.FuncError{},
 			other:   nil,
 		},
-		"empty-empty-slice": {
-			funcErr: &function.FuncError{},
-			other:   []*function.FuncError{},
-		},
 		"empty-empty": {
 			funcErr: &function.FuncError{},
-			other: []*function.FuncError{
-				{},
-			},
+			other:   &function.FuncError{},
 		},
 		"text-nil": {
 			funcErr: &function.FuncError{
@@ -165,19 +159,15 @@ func TestConcat(t *testing.T) {
 			funcErr: &function.FuncError{
 				Text: "function error one",
 			},
-			other: []*function.FuncError{
-				{},
-			},
+			other: &function.FuncError{},
 			expected: &function.FuncError{
 				Text: "function error one",
 			},
 		},
 		"nil-text": {
 			funcErr: nil,
-			other: []*function.FuncError{
-				{
-					Text: "function error two",
-				},
+			other: &function.FuncError{
+				Text: "function error two",
 			},
 			expected: &function.FuncError{
 				Text: "function error two",
@@ -185,10 +175,8 @@ func TestConcat(t *testing.T) {
 		},
 		"empty-text": {
 			funcErr: &function.FuncError{},
-			other: []*function.FuncError{
-				{
-					Text: "function error two",
-				},
+			other: &function.FuncError{
+				Text: "function error two",
 			},
 			expected: &function.FuncError{
 				Text: "function error two",
@@ -198,10 +186,8 @@ func TestConcat(t *testing.T) {
 			funcErr: &function.FuncError{
 				Text: "function error one",
 			},
-			other: []*function.FuncError{
-				{
-					Text: "function error two",
-				},
+			other: &function.FuncError{
+				Text: "function error two",
 			},
 			expected: &function.FuncError{
 				Text: "function error one\nfunction error two",
@@ -209,10 +195,8 @@ func TestConcat(t *testing.T) {
 		},
 		"nil-argument": {
 			funcErr: nil,
-			other: []*function.FuncError{
-				{
-					FunctionArgument: pointer(int64(0)),
-				},
+			other: &function.FuncError{
+				FunctionArgument: pointer(int64(0)),
 			},
 			expected: &function.FuncError{
 				FunctionArgument: pointer(int64(0)),
@@ -231,10 +215,8 @@ func TestConcat(t *testing.T) {
 			funcErr: &function.FuncError{
 				FunctionArgument: pointer(int64(0)),
 			},
-			other: []*function.FuncError{
-				{
-					FunctionArgument: pointer(int64(1)),
-				},
+			other: &function.FuncError{
+				FunctionArgument: pointer(int64(1)),
 			},
 			expected: &function.FuncError{
 				FunctionArgument: pointer(int64(0)),
@@ -247,7 +229,7 @@ func TestConcat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := function.ConcatFuncErrors(tc.funcErr, tc.other...)
+			got := function.ConcatFuncErrors(tc.funcErr, tc.other)
 
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

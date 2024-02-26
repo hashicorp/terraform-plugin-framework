@@ -209,21 +209,6 @@ func (l ListValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 
 	switch l.state {
 	case attr.ValueStateKnown:
-		elemTfType := l.ElementType(ctx).TerraformType(ctx)
-
-		// If the element type is dynamic, the lists element type will be determined by the value.
-		_, ok := l.ElementType(ctx).(attr.TypeWithDynamicValue)
-		if ok {
-			for _, elem := range l.elements {
-				val, err := elem.ToTerraformValue(ctx)
-				// Find the first non-dynamic value and use that as the type
-				if err == nil && !val.Type().Is(tftypes.DynamicPseudoType) {
-					elemTfType = val.Type()
-					break
-				}
-			}
-		}
-
 		vals := make([]tftypes.Value, 0, len(l.elements))
 
 		for _, elem := range l.elements {
@@ -231,15 +216,6 @@ func (l ListValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 
 			if err != nil {
 				return tftypes.NewValue(listType, tftypes.UnknownValue), err
-			}
-
-			// If the value is an unknown/nil DynamicPseudoType, we need to append a unknown/nil that matches the concrete value type
-			if val.Type().Is(tftypes.DynamicPseudoType) {
-				if val.IsNull() {
-					val = tftypes.NewValue(elemTfType, nil)
-				} else if !val.IsKnown() {
-					val = tftypes.NewValue(elemTfType, tftypes.UnknownValue)
-				}
 			}
 
 			vals = append(vals, val)

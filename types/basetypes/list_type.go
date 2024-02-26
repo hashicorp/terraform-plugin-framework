@@ -66,11 +66,7 @@ func (l ListType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 		return NewListNull(l.ElementType()), nil
 	}
 	if !in.Type().Equal(l.TerraformType(ctx)) {
-		// If the element type is dynamic, then we don't need to raise an error if the tftype.Value does not match the list type.
-		_, ok := l.ElementType().(attr.TypeWithDynamicValue)
-		if !ok {
-			return nil, fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElementType(), l.ElementType().TerraformType(ctx).String())
-		}
+		return nil, fmt.Errorf("can't use %s as value of List with ElementType %T, can only use %s values", in.String(), l.ElementType(), l.ElementType().TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
 		return NewListUnknown(l.ElementType()), nil

@@ -26,15 +26,17 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 
 	fwResp.Error = err
 
-	if fwResp.Error.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	functionDefinition, funcErr := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
+	functionDefinition, err := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
 
-	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, funcErr)
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, err)
 
-	if fwResp.Error.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
@@ -42,7 +44,8 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 
 	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, function.FuncErrorFromDiags(ctx, diags))
 
-	if fwResp.Error.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 

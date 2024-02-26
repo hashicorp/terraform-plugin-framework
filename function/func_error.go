@@ -74,16 +74,6 @@ func (fe *FuncError) Error() string {
 	return fe.Text
 }
 
-// HasError returns true if the function error is not nil, and
-// has either text, or function argument fields populated .
-func (fe *FuncError) HasError() bool {
-	if fe == nil {
-		return false
-	}
-
-	return fe.Text != "" || fe.FunctionArgument != nil
-}
-
 // ConcatFuncErrors returns a new function error with the text from all supplied
 // function errors concatenated together. If any of the function errors have a
 // function argument, the first one encountered will be used.
@@ -132,9 +122,5 @@ func FuncErrorFromDiags(ctx context.Context, diags diag.Diagnostics) *FuncError 
 		}
 	}
 
-	if funcErr.HasError() {
-		return funcErr
-	}
-
-	return nil
+	return funcErr
 }

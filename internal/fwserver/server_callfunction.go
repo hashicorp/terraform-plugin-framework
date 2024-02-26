@@ -35,7 +35,7 @@ func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, res
 
 	resp.Error = function.ConcatFuncErrors(resp.Error, err)
 
-	if resp.Error.HasError() {
+	if resp.Error != nil {
 		return
 	}
 

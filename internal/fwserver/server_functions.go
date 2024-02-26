@@ -43,7 +43,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 
 	functionImpl, funcErr := s.Function(ctx, name)
 
-	if funcErr.HasError() {
+	if funcErr != nil {
 		return function.Definition{}, funcErr
 	}
 
@@ -56,7 +56,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 
 	funcErr = function.ConcatFuncErrors(funcErr, function.FuncErrorFromDiags(ctx, definitionResp.Diagnostics))
 
-	if funcErr.HasError() {
+	if funcErr != nil {
 		return definitionResp.Definition, funcErr
 	}
 

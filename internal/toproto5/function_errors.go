@@ -13,7 +13,7 @@ import (
 
 // FunctionError converts the function error into the tfprotov5 function error.
 func FunctionError(ctx context.Context, funcErr *function.FuncError) *tfprotov5.FunctionError {
-	if !funcErr.HasError() {
+	if funcErr == nil {
 		return nil
 	}
 

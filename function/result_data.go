@@ -36,7 +36,7 @@ func (d *ResultData) Set(ctx context.Context, value any) *FuncError {
 
 	funcErr := FuncErrorFromDiags(ctx, reflectDiags)
 
-	if funcErr.HasError() {
+	if funcErr != nil {
 		return funcErr
 	}
 

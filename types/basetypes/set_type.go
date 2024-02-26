@@ -68,6 +68,20 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 	if in.Type() == nil {
 		return NewSetNull(st.ElementType()), nil
 	}
+
+	// MAINTAINER NOTE:
+	// SetType does not support DynamicType as an element type. It is not explicitly prevented from being created with the
+	// Framework type system, but the Framework-supported SetAttribute, SetNestedAttribute, and SetNestedBlock all prevent DynamicType
+	// from being used as an element type. An attempt to use DynamicType as the element type will eventually lead you to an error on this line :)
+	//
+	// In the future, if we ever need to support a set of dynamic element types, this type equality check will need to be modified to allow
+	// dynamic types to not return an error, as the tftypes.Value coming in (if known) will be a concrete value, for example:
+	//
+	// - st.TerraformType(ctx): tftypes.Set[tftypes.DynamicPseudoType]
+	// - in.Type(): tftypes.Set[tftypes.String]
+	//
+	// The `ValueFromTerraform` function for a dynamic type will be able create the correct concrete dynamic value with this modification in place.
+	//
 	if !in.Type().Equal(st.TerraformType(ctx)) {
 		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElementType(), st.ElementType().TerraformType(ctx).String())
 	}

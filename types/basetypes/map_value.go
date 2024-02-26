@@ -216,6 +216,19 @@ func (m MapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 
 	switch m.state {
 	case attr.ValueStateKnown:
+		// MAINTAINER NOTE:
+		// MapValue does not support DynamicType as an element type. It is not explicitly prevented from being created with the
+		// Framework type system, but the Framework-supported MapAttribute and MapNestedAttribute prevent DynamicType
+		// from being used as an element type.
+		//
+		// In the future, if we ever need to support a map of dynamic element types, this tftypes.Map creation logic will need to be modified to ensure
+		// that known values contain the exact same concrete element type, specifically with unknown and null values. Dynamic values will return the correct concrete
+		// element type for known values from `elem.ToTerraformValue`, but unknown and null values will be tftypes.DynamicPseudoType, causing an error due to multiple element
+		// types in a tftypes.Map.
+		//
+		// Unknown and null element types of tftypes.DynamicPseudoType must be recreated as the concrete element type unknown/null value. This can be done by checking `m.elements`
+		// for a single concrete type (i.e. not tftypes.DynamicPseudoType), and using that concrete type to create unknown and null dynamic values later.
+		//
 		vals := make(map[string]tftypes.Value, len(m.elements))
 
 		for key, elem := range m.elements {

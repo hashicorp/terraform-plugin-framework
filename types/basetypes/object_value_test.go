@@ -730,6 +730,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
 				},
 				map[string]attr.Value{
 					"a": NewListValueMust(
@@ -757,6 +758,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 							NewStringValue("world"),
 						},
 					),
+					"g": NewDynamicValue(NewStringValue("dynamic-woohoo")),
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -767,6 +769,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 					"d": tftypes.Number,
 					"e": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"name": tftypes.String}},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
 				},
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -787,6 +790,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
 				}),
+				"g": tftypes.NewValue(tftypes.String, "dynamic-woohoo"),
 			}),
 		},
 		"unknown": {
@@ -802,6 +806,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -816,6 +821,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
 				},
 			}, tftypes.UnknownValue),
 		},
@@ -832,6 +838,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -846,6 +853,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
 				},
 			}, nil),
 		},
@@ -862,6 +870,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
+					"h": DynamicType{},
 				},
 				map[string]attr.Value{
 					"a": NewListValueMust(
@@ -889,6 +899,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 							NewStringValue("world"),
 						},
 					),
+					"g": NewDynamicValue(NewStringValue("dynamic-woohoo")),
+					"h": NewDynamicUnknown(),
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -903,6 +915,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
+					"h": tftypes.DynamicPseudoType,
 				},
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -923,6 +937,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
 				}),
+				"g": tftypes.NewValue(tftypes.DynamicPseudoType, "dynamic-woohoo"),
+				"h": tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 			}),
 		},
 		"partial-null": {
@@ -938,6 +954,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
+					"h": DynamicType{},
 				},
 				map[string]attr.Value{
 					"a": NewListValueMust(
@@ -965,6 +983,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 							NewStringValue("world"),
 						},
 					),
+					"g": NewDynamicValue(NewStringValue("dynamic-woohoo")),
+					"h": NewDynamicNull(),
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -979,6 +999,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
+					"h": tftypes.DynamicPseudoType,
 				},
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -999,6 +1021,8 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
 				}),
+				"g": tftypes.NewValue(tftypes.DynamicPseudoType, "dynamic-woohoo"),
+				"h": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 			}),
 		},
 		"deep-partial-unknown": {
@@ -1014,6 +1038,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
 				},
 				map[string]attr.Value{
 					"a": NewListValueMust(
@@ -1041,6 +1066,14 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 							NewStringValue("world"),
 						},
 					),
+					"g": NewDynamicValue(NewObjectValueMust(
+						map[string]attr.Type{
+							"name": DynamicType{},
+						},
+						map[string]attr.Value{
+							"name": NewDynamicUnknown(),
+						},
+					)),
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -1055,6 +1088,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
 				},
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -1075,6 +1109,13 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
 				}),
+				"g": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.DynamicPseudoType,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+				}),
 			}),
 		},
 		"deep-partial-null": {
@@ -1090,6 +1131,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
 				},
 				map[string]attr.Value{
 					"a": NewListValueMust(
@@ -1117,6 +1159,14 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 							NewStringValue("world"),
 						},
 					),
+					"g": NewDynamicValue(NewObjectValueMust(
+						map[string]attr.Type{
+							"name": DynamicType{},
+						},
+						map[string]attr.Value{
+							"name": NewDynamicNull(),
+						},
+					)),
 				},
 			),
 			expected: tftypes.NewValue(tftypes.Object{
@@ -1131,6 +1181,7 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 						},
 					},
 					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
 				},
 			}, map[string]tftypes.Value{
 				"a": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
@@ -1150,6 +1201,13 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 				"f": tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{
 					tftypes.NewValue(tftypes.String, "hello"),
 					tftypes.NewValue(tftypes.String, "world"),
+				}),
+				"g": tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.DynamicPseudoType,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 				}),
 			}),
 		},

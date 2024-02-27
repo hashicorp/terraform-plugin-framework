@@ -307,57 +307,83 @@ func TestTupleTypeValueFromTerraform(t *testing.T) {
 				},
 			),
 		},
-		"unknown-tuple": {
+		"tuple-with-dynamic-types": {
 			receiver: TupleType{
-				ElemTypes: []attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{DynamicType{}, DynamicType{}},
 			},
 			input: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				ElementTypes: []tftypes.Type{tftypes.DynamicPseudoType, tftypes.DynamicPseudoType},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.Bool, true),
+			}),
+			expected: NewTupleValueMust(
+				[]attr.Type{DynamicType{}, DynamicType{}},
+				[]attr.Value{
+					NewDynamicValue(NewStringValue("hello")),
+					NewDynamicValue(NewBoolValue(true)),
+				},
+			),
+		},
+		"unknown-tuple": {
+			receiver: TupleType{
+				ElemTypes: []attr.Type{StringType{}, BoolType{}, DynamicType{}},
+			},
+			input: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType},
 			}, tftypes.UnknownValue),
-			expected: NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			expected: NewTupleUnknown([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
 		},
 		"partially-unknown-tuple": {
 			receiver: TupleType{
-				ElemTypes: []attr.Type{StringType{}, BoolType{}},
+				ElemTypes: []attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 			},
 			input: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType, tftypes.DynamicPseudoType},
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+				tftypes.NewValue(tftypes.String, "world"),
+				tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 			}),
 			expected: NewTupleValueMust(
-				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 				[]attr.Value{
 					NewStringValue("hello"),
 					NewBoolUnknown(),
+					NewDynamicValue(NewStringValue("world")),
+					NewDynamicUnknown(),
 				},
 			),
 		},
 		"null-tuple": {
 			receiver: TupleType{
-				ElemTypes: []attr.Type{StringType{}, BoolType{}},
+				ElemTypes: []attr.Type{StringType{}, BoolType{}, DynamicType{}},
 			},
 			input: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType},
 			}, nil),
-			expected: NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
+			expected: NewTupleNull([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
 		},
 		"partially-null-tuple": {
 			receiver: TupleType{
-				ElemTypes: []attr.Type{StringType{}, BoolType{}},
+				ElemTypes: []attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 			},
 			input: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType, tftypes.DynamicPseudoType},
 			}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.Bool, nil),
+				tftypes.NewValue(tftypes.String, "world"),
+				tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 			}),
 			expected: NewTupleValueMust(
-				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 				[]attr.Value{
 					NewStringValue("hello"),
 					NewBoolNull(),
+					NewDynamicValue(NewStringValue("world")),
+					NewDynamicNull(),
 				},
 			),
 		},

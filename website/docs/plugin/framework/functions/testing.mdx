@@ -155,7 +155,6 @@ import (
     "example.com/terraform-provider-example/internal/provider"
     "github.com/google/go-cmp/cmp"
     "github.com/hashicorp/terraform-plugin-framework/function"
-    "github.com/hashicorp/terraform-plugin-framework/fwerror"
     "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -196,7 +195,7 @@ func TestEchoFunctionRun(t *testing.T) {
                 Result: function.NewResultData(types.StringValue("test-value")),
             },
         },
-        // The example implementation does not return any errors, however
+        // The example implementation does not return an error, however
         // this test case shows how the function would be expected to behave if
         // it did.
         "value-invalid": {
@@ -204,9 +203,7 @@ func TestEchoFunctionRun(t *testing.T) {
                 Arguments: function.NewArgumentsData(types.StringValue()),
             },
             Expected: function.RunResponse{
-                Errors: fwerror.FunctionErrors{
-                    fwerror.NewArgumentFunctionError(0, "error summary: error detail"),
-                },
+                Error: function.NewArgumentFuncError(0, "error summary: error detail"),
                 Result: function.NewResultData(types.StringUnknown()),
             },
         },

@@ -108,8 +108,8 @@ func ConcatFuncErrors(funcErrs ...*FuncError) *FuncError {
 }
 
 // FuncErrorFromDiags iterates over the given diagnostics and returns a new function error
-// with the text from all error diagnostics concatenated together. If any of the error diagnostics
-// have a function argument, the first one encountered will be used.
+// with the summary and detail text from all error diagnostics concatenated together.
+// Diagnostics with a severity of warning are logged.
 func FuncErrorFromDiags(ctx context.Context, diags diag.Diagnostics) *FuncError {
 	var funcErr *FuncError
 

@@ -68,6 +68,6 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
         "key2": "value2",
     }
 
-    resp.Errors.Append(resp.Result.Set(ctx, &result)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Set(ctx, &result))
 }
 ```

@@ -89,7 +89,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // var float64Arg *float64 // e.g. with AllowNullValue, where Go nil equals Terraform null
     // var float64Arg types.Float64 // e.g. with AllowUnknownValues or AllowNullValue
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &float64Arg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &float64Arg))
 
     // float64Arg is now populated
     // ... other logic ...

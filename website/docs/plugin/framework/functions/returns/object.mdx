@@ -77,6 +77,6 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
         Attr2: 123,
     }
 
-    resp.Errors.Append(resp.Result.Set(ctx, &result)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Set(ctx, &result))
 }
 ```

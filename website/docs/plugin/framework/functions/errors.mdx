@@ -5,10 +5,10 @@ description: |-
   framework.
 ---
 
-# Returning Errors
+# Returning Function Errors
 
-Providers use `FunctionErrors` to surface errors generated during execution
-of provider-defined functions to practitioners. These errors are
+Providers use [`FuncError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncError) to
+surface a practitioner-facing error generated during execution of provider-defined functions. These errors are
 returned from Terraform CLI at the end of command output:
 
 ```console
@@ -29,82 +29,40 @@ provider-defined function execution.:
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 ```
 
-This is the most common form for Function Errors: a slice that has one or more
-errors appended to it. This approach allows your provider to inform
-practitioners about all relevant errors at the same time, allowing
-practitioners to fix their configuration or environment more quickly. You
-should only append to Function Errors slices and never replace or remove
-information from them.
+This is the most common form for `FuncError`: a single error whose text
+is the concatenated error text from one or more errors. This approach allows
+your provider to inform practitioners about all relevant errors at the same
+time, allowing practitioners to fix their configuration or environment more
+quickly. You should only concatenate a `FunctError` and never replace or
+remove information it.
 
 The next section will detail the concepts and typical behaviors of
-function errors, while the final section will outline the typical methods for
-working with function errors, using functionality from the available
-[`fwerror` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror).
+function error, while the final section will outline the typical methods for
+working with function error, using functionality from the available
+[`function` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function).
 
 ## Function Error Concepts
 
-### Error
+### Text
 
-`Error` is a practitioner-oriented description of the problem. This should
-contain sufficient detail to provide a both general and more specific details
+`Text` is a practitioner-oriented description of the problem. This should
+contain sufficient detail to provide both general and more specific information
 regarding the issue. For example "Error executing function: foo can only contain
 letters, numbers, and digits."
 
-### Argument
+### FunctionArgument
 
-`Argument` identifies the specific function argument position that caused the
-error. Only errors that pertain to a function argument will
-include this information.
-
-## How Errors Affect State
-
-**Returning function errors does not stop the state from being updated**.
-Terraform will still persist the returned state even when function errors
-are returned with it. This is to allow Terraform to persist the values that have
-already been modified when a resource modification requires multiple API
-requests or an API request fails after an earlier one succeeded.
-
-When returning function errors, we recommend resetting the state in the
-response to the prior state available in the configuration.
-
-## fwerror Package
-
-The framework provides the `fwerror` package for interacting with function errors.
-While the [Go documentation](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror)
-contains the complete functionality, this section will highlight the most
-common methods.
+`FunctionArgument` identifies the specific function argument position that caused the
+error. Only errors that pertain to a function argument will include this information.
 
 ### Working With Existing Function Errors
 
-#### Append
+#### ConcatFuncErrors
 
-When receiving `fwerror.FunctionErrors` from a function or method, such as
-`Run()`, these should typically be appended to the
-response function errors for the method. This can be accomplished with the
-[`Append(in ...FunctionError)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionErrors.Append).
-
-For example:
-
-```go
-func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-    var boolArg bool
-    var stringArg string
-
-    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &stringArg)...)
-
-    // ... other logic ...
-}
-```
-
-This method automatically ignores `nil` or empty slice function errors and
-deduplicates where possible.
-
-#### HasError
-
-The most typical form of function errors checking is ensuring that execution should
-not stop due to encountering an error, potentially causing further confusing
-errors or crashes. The [`HasError()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionErrors.HasError)
-will check each of the function errors for error severity and return true if found.
+When receiving `function.FuncError` from a function or method, such as
+`Run()`, these should typically be concatenated with the
+response function error for the method. This can be accomplished with the
+[`ConcatFuncErrors(in ...*FuncError)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ConcatFuncErrors).
 
 For example:
 
@@ -113,40 +71,28 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringArg string
 
-	funcErrs := req.Arguments.Get(ctx, &boolArg, &stringArg)
-    resp.Errors.Append(funcErrs...)
-
-	if resp.Errors.HasError() {
-		return
-	}
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringArg))
 
     // ... other logic ...
 }
 ```
 
-In this example, you will note that we opted to check `resp.Errors`
-instead of `funcErrs`. Technically checking either is correct, however, checking
-the response function errors can help ensure that any response will include the
-expected function errors.
+This method automatically ignores `nil` function errors.
 
-### Creating Diagnostics
+### Creating Function Errors
 
-When working with logic outside the framework, such as interacting with the
-vendor or `net/http` library to make the actual calls to manage infrastructure
-or creating custom plan modifiers and validators, it will be necessary to
-create function errors. The `fwerror` package provides helper methods and allows
-custom abstractions as described below.
-
-To craft the message of a function error, it is recommended to use a sufficient
+To craft the message of a function error, it is recommended to use sufficient
 detail to convey both the cause of the error and as much contextual,
 troubleshooting, and next action information as possible. These details can
 use newlines for easier readability where necessary.
 
-#### AddError
+#### NewFuncError
 
 When creating function errors that affect an entire data source, provider, or
-resource, and where a `fwerror.FunctionErrors` is already available such as within
-a response type, the [`AddError(msg string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionErrors.AddError) can append a new function error.
+resource, and where a `function.FunctionError` is already available such as within
+a response type, the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError.AddError) can
+be used with the [`NewFuncError(text string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError) to concatenate
+a new function error.
 
 For example:
 
@@ -157,7 +103,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
 	val, err := // operation that may return an error
 
 	if err != nil {
-        resp.Errors.AddError("Error performing operation: " + err.Error())
+        resp.Error = ConcatFuncErrors(resp.Error, function.NewFuncError("Error performing operation: " + err.Error()))
         return
     }
 
@@ -165,9 +111,10 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
 }
 ```
 
-#### AddArgumentError
+#### NewArgumentFuncError
 
-When creating function errors that affect only a single function argument, the [`AddArgumentError(functionArgument int, msg string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionErrors.AddArgumentError) appends a new function error pointing specifically at the function argument. This provides additional context to practitioners, such as showing the specific line(s) and value(s) of configuration where possible.
+When creating function errors that affect only a single function argument, the [`NewArgumentFuncError(functionArgument int, msg string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewArgumentFuncError)
+can be used in conjunction with  the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewArgumentFuncError). This provides additional context to practitioners, such as showing the specific line(s) and value(s) of configuration where possible.
 
 For example:
 
@@ -176,76 +123,8 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // ... other logic ...
 
     // Add function error associated with first function argument position
-    resp.Errors.AddArgumentError(0, "Example Warning Summary: Example Warning Detail")
+	resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(0, "Example Error Summary: Example Error Detail"))
 
     // ... other logic ...
-}
-```
-
-### Consistent Function Error Creation
-
-Create a helper function in your provider code using the function error creation functions available in the [`fwerror` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror) to generate consistent function errors for types of errors. It is also possible to use [custom function errors types](#custom-function-errors-types) to accomplish this same goal.
-
-The [`fwerror` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror) provides these functions to create various diagnostics:
-
-| Function                                                                                                                                   | Description                                                    |
-|--------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
-| [`fwerror.NewArgumentFunctionError()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewArgumentErrorDiagnostic) | Create a new function error with a function argument position. |
-| [`diag.NewFunctionError()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#NewErrorDiagnostic)                    | Create a new function error diagnostic.                        |
-
-## Custom Function Errors Types
-
-Advanced provider developers may want to store additional data in function errors for other logic or create custom function errors that include specialized logic.
-
-The [`fwerror.FunctionError` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionError) that can be implemented with these methods:
-
-```go
-type FunctionError interface {
-    Equal(FunctionError) bool
-	error
-}
-```
-
-To include function argument information, the [`fwerror.FunctionErrorWithFunctionArgument` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/fwerror#FunctionErrorWithFunctionArgument) can be implemented with the additional `FunctionArgument()` method:
-
-```go
-type FunctionErrorWithFunctionArgument interface {
-	FunctionError
-	FunctionArgument() int
-}
-```
-
-In this example, a custom diagnostic type stores an underlying `error` that caused the diagnostic:
-
-```go
-// UnderlyingErrorFunctionError is a function error
-// which also stores the underlying error.
-type UnderlyingErrorFunctionError struct {
-  msg             string
-  underlyingError error
-}
-
-func (e UnderlyingErrorFunctionError) Equal(o SpecialFunctionError) bool {
-  if e.Error() != o.Error() {
-    return false
-  }
-
-  if e.UnderlyingError == nil {
-    return o.UnderlyingError == nil
-  }
-
-  if o.UnderlyingError == nil {
-    return false
-  }
-
-  if e.UnderlyingError.Error() != o.UnderlyingError.Error() {
-    return false
-  }
-
-  return true
-}
-
-func (e UnderlyingErrorFunctionError) Error() string {
-  return fmt.Sprintf("%s: %s", e.msg, e.underlyingError.Error())
 }
 ```

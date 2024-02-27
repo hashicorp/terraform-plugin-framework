@@ -87,7 +87,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     var numberArg *big.Float
     // var numberArg types.Number // e.g. with AllowUnknownValues or AllowNullValue
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &numberArg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &numberArg))
 
     // numberArg is now populated
     // ... other logic ...

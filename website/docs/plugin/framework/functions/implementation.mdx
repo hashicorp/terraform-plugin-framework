@@ -63,10 +63,10 @@ func (f *EchoFunction) Run(ctx context.Context, req function.RunRequest, resp *f
     var input string
 
     // Read Terraform argument data into the variable
-    resp.Errors.Append(req.Arguments.Get(ctx, &input)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &input))
 
     // Set the result to the same data
-    resp.Errors.Append(resp.Result.Set(ctx, &input)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, input))
 }
 ```
 
@@ -137,13 +137,13 @@ Implement the `Run` method by:
 1. Performing any computational logic.
 1. Setting the result value, based on the return definition, into the [`function.RunResponse.Result` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Result). Refer to the [returns](/terraform/plugin/framework/functions/returns) documentation for details about all available return types and how to handle data with each type.
 
-If the logic needs to return [errors](/terraform/plugin/framework/functions/errors), they can be added into the [`function.RunResponse.Errors` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Errors).
+If the logic needs to return a [function error](/terraform/plugin/framework/functions/errors), it can be added into the [`function.RunResponse.Error` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunResponse.Error).
 
 ### Reading Argument Data
 
 The framework supports two methodologies for reading argument data from the [`function.RunRequest.Arguments` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#RunRequest.Arguments), which is of the [`function.ArgumentsData` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ArgumentsData).
 
-The first option is using the [`(function.ArgumentsData).Get()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ArgumentsData.Get) to read all arguments at once. The framework will return errors if the number and types of target variables does not match the argument data.
+The first option is using the [`(function.ArgumentsData).Get()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ArgumentsData.Get) to read all arguments at once. The framework will return an error if the number and types of target variables does not match the argument data.
 
 In this example, the parameters are defined as a boolean and string which are read into Go built-in `bool` and `string` variables since they do not opt into null or unknown value handling:
 
@@ -162,13 +162,13 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringArg string
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &stringArg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringArg))
 
     // ... other logic ...
 }
 ```
 
-The second option is using [`(function.ArgumentsData).GetArgument()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ArgumentsData.GetArgument) to read individual arguments. The framework will return errors if the argument position does not exist or if the type of the target variable does not match the argument data.
+The second option is using [`(function.ArgumentsData).GetArgument()` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ArgumentsData.GetArgument) to read individual arguments. The framework will return an error if the argument position does not exist or if the type of the target variable does not match the argument data.
 
 In this example, the parameters are defined as a boolean and string and the first argument is read into a Go built-in `bool` variable since it does not opt into null or unknown value handling:
 
@@ -186,7 +186,7 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     var boolArg bool
 
-    resp.Errors.Append(req.Arguments.GetArgument(ctx, 0, &boolArg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.GetArgument(ctx, 0, &boolArg))
 
     // ... other logic ...
 }
@@ -217,15 +217,15 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringVarg []string
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &stringVarg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringVarg))
 
     // ... other logic ...
 }
 ```
 
-If it is necessary to return [errors](/terraform/plugin/framework/functions/errors) for a specific variadic argument, note that Terraform treats each zero-based argument position individually unlike how the framework exposes the argument data. Add the number of non-variadic parameters (if any) to the variadic argument tuple element index to ensure the error is aligned to the correct argument in the configuration.
+If it is necessary to return a [function error](/terraform/plugin/framework/functions/errors) for a specific variadic argument, note that Terraform treats each zero-based argument position individually unlike how the framework exposes the argument data. Add the number of non-variadic parameters (if any) to the variadic argument tuple element index to ensure the error is aligned to the correct argument in the configuration.
 
-In this example with two parameters and one variadic parameter, errors are returned for all variadic arguments:
+In this example with two parameters and one variadic parameter, an error is returned for variadic arguments:
 
 ```go
 func (f *ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
@@ -246,11 +246,11 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var int64Arg int64
     var stringVarg []string
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg))
 
     for index, element := range stringVarg {
         // Added by 2 to match the definition including two parameters.
-        resp.Errors.AddArgumentWarning(2+index, "example summary", "example detail")
+		resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(2+index, "example summary: example detail"))
     }
 
     // ... other logic ...
@@ -277,7 +277,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     // Value based on the return type. Returns can also use the framework type system.
     result := "hardcoded example"
 
-    resp.Errors.Append(resp.Result.Set(ctx, result)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, result))
 }
 ```
 

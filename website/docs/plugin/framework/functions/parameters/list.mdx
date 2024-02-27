@@ -92,7 +92,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     var listArg []*string // Go nil equals Terraform null
     // var listArg types.List // e.g. with AllowUnknownValues
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &listArg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &listArg))
 
     // listArg is now populated
     // ... other logic ...

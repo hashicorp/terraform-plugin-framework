@@ -110,7 +110,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // }
     // var objectArg types.Object // e.g. with AllowUnknownValues or AllowNullValues
 
-    resp.Errors.Append(req.Arguments.Get(ctx, &objectArg)...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &objectArg))
 
     // objectArg is now populated
     // ... other logic ...

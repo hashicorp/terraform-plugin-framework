@@ -52,8 +52,9 @@ letters, numbers, and digits."
 
 ### FunctionArgument
 
-`FunctionArgument` identifies the specific function argument position that caused the
-error. Only errors that pertain to a function argument will include this information.
+`FunctionArgument` is a zero-based, int64 value that identifies the specific
+function argument position that caused the error. Only errors that pertain
+to a function argument will include this information.
 
 ### Working With Existing Function Errors
 
@@ -88,11 +89,10 @@ use newlines for easier readability where necessary.
 
 #### NewFuncError
 
-When creating function errors that affect an entire data source, provider, or
-resource, and where a `function.FunctionError` is already available such as within
-a response type, the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError.AddError) can
-be used with the [`NewFuncError(text string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError) to concatenate
-a new function error.
+When creating function errors where a `function.FunctionError` is already available,
+such as within a response type, the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError.AddError)
+can be used with the [`NewFuncError(text string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError) to concatenate a new
+function error.
 
 For example:
 
@@ -100,9 +100,9 @@ For example:
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     // ... prior logic ...
 
-	val, err := // operation that may return an error
+    val, err := // operation that may return an error
 
-	if err != nil {
+    if err != nil {
         resp.Error = ConcatFuncErrors(resp.Error, function.NewFuncError("Error performing operation: " + err.Error()))
         return
     }
@@ -123,7 +123,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // ... other logic ...
 
     // Add function error associated with first function argument position
-	resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(0, "Example Error Summary: Example Error Detail"))
+    resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(0, "Example Error Summary: Example Error Detail"))
 
     // ... other logic ...
 }
@@ -142,7 +142,7 @@ For example:
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     // ... other logic ...
 
-	_, diags := // operation that may return diagnostics
+    _, diags := // operation that may return diagnostics
 
     resp.Error = function.ConcatFuncErrors(resp.Error, function.FuncErrorFromDiags(ctx, diags))
 }

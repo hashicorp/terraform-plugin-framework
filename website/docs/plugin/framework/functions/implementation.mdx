@@ -63,10 +63,10 @@ func (f *EchoFunction) Run(ctx context.Context, req function.RunRequest, resp *f
     var input string
 
     // Read Terraform argument data into the variable
-	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &input))
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &input))
 
     // Set the result to the same data
-	resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, input))
+    resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, input))
 }
 ```
 
@@ -162,7 +162,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringArg string
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringArg))
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringArg))
 
     // ... other logic ...
 }
@@ -186,7 +186,7 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
 func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
     var boolArg bool
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.GetArgument(ctx, 0, &boolArg))
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.GetArgument(ctx, 0, &boolArg))
 
     // ... other logic ...
 }
@@ -208,7 +208,7 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
             function.BoolParameter{},
         },
         VariadicParameter: function.StringParameter{
-			Name: "variadic_param",
+            Name: "variadic_param",
         },
     }
 }
@@ -217,7 +217,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var boolArg bool
     var stringVarg []string
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringVarg))
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringVarg))
 
     // ... other logic ...
 }
@@ -236,7 +236,7 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
             function.Int64Parameter{},
         },
         VariadicParameter: function.StringParameter{
-			Name: "variadic_param",
+            Name: "variadic_param",
         },
     }
 }
@@ -246,11 +246,11 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     var int64Arg int64
     var stringVarg []string
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg))
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &int64arg, &stringVarg))
 
     for index, element := range stringVarg {
         // Added by 2 to match the definition including two parameters.
-		resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(2+index, "example summary: example detail"))
+        resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(2+index, "example summary: example detail"))
     }
 
     // ... other logic ...
@@ -277,7 +277,7 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
     // Value based on the return type. Returns can also use the framework type system.
     result := "hardcoded example"
 
-	resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, result))
+    resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, result))
 }
 ```
 

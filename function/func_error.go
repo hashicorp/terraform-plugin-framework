@@ -5,7 +5,6 @@ package function
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,35 +37,27 @@ type FuncError struct {
 
 // Equal returns true if the other function error is wholly equivalent.
 func (fe *FuncError) Equal(other *FuncError) bool {
-	var funcErr *FuncError
-
-	ok := errors.As(other, &funcErr)
-
-	if !ok {
-		return false
-	}
-
-	if fe == nil && funcErr == nil {
+	if fe == nil && other == nil {
 		return true
 	}
 
-	if fe == nil || funcErr == nil {
+	if fe == nil || other == nil {
 		return false
 	}
 
-	if fe.Text != funcErr.Text {
+	if fe.Text != other.Text {
 		return false
 	}
 
-	if fe.FunctionArgument == nil && funcErr.FunctionArgument == nil {
+	if fe.FunctionArgument == nil && other.FunctionArgument == nil {
 		return true
 	}
 
-	if fe.FunctionArgument == nil || funcErr.FunctionArgument == nil {
+	if fe.FunctionArgument == nil || other.FunctionArgument == nil {
 		return false
 	}
 
-	return *fe.FunctionArgument == *funcErr.FunctionArgument
+	return *fe.FunctionArgument == *other.FunctionArgument
 }
 
 // Error returns the error text.
@@ -109,7 +100,8 @@ func ConcatFuncErrors(funcErrs ...*FuncError) *FuncError {
 
 // FuncErrorFromDiags iterates over the given diagnostics and returns a new function error
 // with the summary and detail text from all error diagnostics concatenated together.
-// Diagnostics with a severity of warning are logged.
+// Diagnostics with a severity of warning are logged but are not included in the returned
+// function error.
 func FuncErrorFromDiags(ctx context.Context, diags diag.Diagnostics) *FuncError {
 	var funcErr *FuncError
 

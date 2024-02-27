@@ -128,3 +128,22 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // ... other logic ...
 }
 ```
+
+#### FuncErrorFromDiags
+
+A function error is created from diagnostics by using the [`FuncErrorFromDiags(context.Context, diag.Diagnostics)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncErrorFromDiags). The function error will contain the concatenated summary and details of error-level
+diagnostics.
+
+~> **Note**: The [`FuncErrorFromDiags(context.Context, diag.Diagnostics)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncErrorFromDiags) does not include warning-level diagnostics in the function error. Warning-level diagnostics are logged instead.
+
+For example:
+
+```go
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    // ... other logic ...
+
+	_, diags := // operation that may return diagnostics
+
+    resp.Error = function.ConcatFuncErrors(resp.Error, function.FuncErrorFromDiags(ctx, diags))
+}
+```

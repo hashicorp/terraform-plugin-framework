@@ -17,6 +17,7 @@ type RunRequest struct {
 type RunResponse struct {
 	// Error contains errors related to running the function.
 	// A nil error indicates success, with no errors generated.
+	// [ConcatFuncErrors] can be used to combine multiple errors into a single error.
 	Error *FuncError
 
 	// Result is the data to be returned to Terraform matching the function

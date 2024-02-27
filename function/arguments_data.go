@@ -52,22 +52,22 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) *FuncError {
 	var funcErr *FuncError
 
 	if len(d.values) == 0 {
-		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		errMsg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		funcErr = ConcatFuncErrors(funcErr, NewFuncError(text))
+		funcErr = ConcatFuncErrors(funcErr, NewFuncError(errMsg))
 
 		return funcErr
 	}
 
 	if len(targets) != len(d.values) {
-		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		errMsg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"The Get call requires all parameters and the final variadic parameter, if implemented, to be in the targets. " +
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given targets count: %d, expected targets count: %d", len(targets), len(d.values))
 
-		funcErr = ConcatFuncErrors(funcErr, NewFuncError(text))
+		funcErr = ConcatFuncErrors(funcErr, NewFuncError(errMsg))
 
 		return funcErr
 	}

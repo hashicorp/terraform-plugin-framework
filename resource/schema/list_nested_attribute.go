@@ -278,4 +278,9 @@ func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fws
 	if !a.IsComputed() && a.ListDefaultValue() != nil {
 		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
 	}
+
+	// Only want to check the type for dynamics if no custom type is being used
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.GetType()))
+	}
 }

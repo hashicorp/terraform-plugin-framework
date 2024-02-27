@@ -686,10 +686,10 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
+						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"\"test\" is a collection type that contains a dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},
@@ -709,10 +709,10 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
+						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"\"test\" is a collection type that contains a dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},
@@ -734,10 +734,10 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
+						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"\"test\" is a collection type that contains a dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},
@@ -757,10 +757,10 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
+						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"\"test\" is a collection type that contains a dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},
@@ -783,10 +783,10 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
+						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"\"test\" is a collection type that contains a dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},

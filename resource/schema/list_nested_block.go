@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,9 +19,10 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Block                                = ListNestedBlock{}
-	_ fwxschema.BlockWithListPlanModifiers = ListNestedBlock{}
-	_ fwxschema.BlockWithListValidators    = ListNestedBlock{}
+	_ Block                                    = ListNestedBlock{}
+	_ fwschema.BlockWithValidateImplementation = ListNestedBlock{}
+	_ fwxschema.BlockWithListPlanModifiers     = ListNestedBlock{}
+	_ fwxschema.BlockWithListValidators        = ListNestedBlock{}
 )
 
 // ListNestedBlock represents a block that is a list of objects where
@@ -208,5 +210,16 @@ func (b ListNestedBlock) Type() attr.Type {
 
 	return types.ListType{
 		ElemType: b.NestedObject.Type(),
+	}
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the block to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (b ListNestedBlock) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	// Only want to check the type for dynamics if no custom type is being used
+	if b.CustomType == nil {
+		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, b.Type()))
 	}
 }

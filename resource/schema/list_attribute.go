@@ -268,7 +268,7 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 func checkAttrTypeForDynamics(attrPath path.Path, typ attr.Type) diag.Diagnostic {
 	switch attrType := typ.(type) {
 	case attr.TypeWithDynamicValue:
-		return fwschema.AttributeCollectionWithDynamicTypeDiag(attrPath)
+		return fwschema.CollectionWithDynamicTypeDiag(attrPath)
 	// Lists, maps, sets
 	case attr.TypeWithElementType:
 		return checkAttrTypeForDynamics(attrPath, attrType.ElementType())

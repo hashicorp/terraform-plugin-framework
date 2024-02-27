@@ -4,14 +4,17 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -519,6 +522,158 @@ func TestListNestedBlockType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.block.Type()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListNestedBlockValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block    schema.ListNestedBlock
+		request  fwschema.ValidateImplementationRequest
+		expected *fwschema.ValidateImplementationResponse
+	}{
+		"nestedobject-dynamic": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"test_dyn": schema.DynamicAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"nestedobject-dynamic-nested-collection": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"test_block": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"test_dyn": schema.DynamicAttribute{
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"nestedobject-dynamic-double-nested-collection": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"test_block": schema.SetNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Blocks: map[string]schema.Block{
+									"test_block": schema.ListNestedBlock{
+										NestedObject: schema.NestedBlockObject{
+											Attributes: map[string]schema.Attribute{
+												"test_dyn": schema.DynamicAttribute{
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"nestedobject-dynamic-nested-object": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"test_block": schema.SingleNestedBlock{
+							Attributes: map[string]schema.Attribute{
+								"test_dyn": schema.DynamicAttribute{
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &fwschema.ValidateImplementationResponse{}
+			testCase.block.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

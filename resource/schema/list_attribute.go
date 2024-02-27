@@ -5,13 +5,14 @@ package schema
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -257,13 +258,40 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 	}
 
 	if a.ElementType != nil {
-		_, isDynamic := a.ElementType.(attr.TypeWithDynamicValue)
-		if isDynamic {
+		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.ElementType))
+	}
+}
 
-			resp.Diagnostics.AddError(
-				"Schema Using Dynamic as Element Type",
-				fmt.Sprintf("Attribute %q cannot have an element type that is dynamic. ", req.Path.String())+
-					"This is an issue with the provider and should be reported to the provider developers.")
+// TODO: Not sure if there is a better package for this function, but it definitely needs to go somewhere else. `attr` package?
+//
+// checkAttrTypeForDynamics is a helper that will return a diagnostic if an attr.Type contains any children with a dynamic attr.Type
+func checkAttrTypeForDynamics(attrPath path.Path, typ attr.Type) diag.Diagnostic {
+	switch attrType := typ.(type) {
+	case attr.TypeWithDynamicValue:
+		return fwschema.AttributeCollectionWithDynamicTypeDiag(attrPath)
+	// Lists, maps, sets
+	case attr.TypeWithElementType:
+		return checkAttrTypeForDynamics(attrPath, attrType.ElementType())
+	// Tuples
+	case attr.TypeWithElementTypes:
+		for _, elemType := range attrType.ElementTypes() {
+			diag := checkAttrTypeForDynamics(attrPath, elemType)
+			if diag != nil {
+				return diag
+			}
 		}
+		return nil
+	// Objects
+	case attr.TypeWithAttributeTypes:
+		for _, objAttrType := range attrType.AttributeTypes() {
+			diag := checkAttrTypeForDynamics(attrPath, objAttrType)
+			if diag != nil {
+				return diag
+			}
+		}
+		return nil
+	// Missing or unsupported type
+	default:
+		return nil
 	}
 }

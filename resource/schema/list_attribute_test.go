@@ -617,6 +617,181 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
+		"elementtype-nested-collection": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.ListType{
+					ElemType: types.StringType,
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-double-nested-collection": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.SetType{
+					ElemType: types.MapType{
+						ElemType: types.StringType,
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-nested-tuple": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.TupleType{
+					ElemTypes: []attr.Type{types.StringType, types.BoolType},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-nested-object": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"str":  types.StringType,
+						"bool": types.BoolType,
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-dynamic": {
+			attribute: schema.ListAttribute{
+				Computed:    true,
+				ElementType: types.DynamicType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"elementtype-dynamic-nested-collection": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.ListType{
+					ElemType: types.DynamicType,
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"elementtype-dynamic-double-nested-collection": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.SetType{
+					ElemType: types.MapType{
+						ElemType: types.DynamicType,
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"elementtype-dynamic-nested-tuple": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.TupleType{
+					ElemTypes: []attr.Type{types.StringType, types.DynamicType},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"elementtype-dynamic-nested-object": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				ElementType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"str": types.StringType,
+						"dyn": types.DynamicType,
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection attribute that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
 		"elementtype-missing": {
 			attribute: schema.ListAttribute{
 				Computed: true,

@@ -43,3 +43,19 @@ func AttributeMissingElementTypeDiag(attributePath path.Path) diag.Diagnostic {
 			"One of these fields is required to prevent other unexpected errors or panics.",
 	)
 }
+
+// AttributeCollectionWithDynamicTypeDiag returns an error diagnostic to provider
+// developers when a collection attribute type contains a dynamic type. This is not currently
+// supported in terraform-plugin-framework.
+func AttributeCollectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagnostic {
+	// The diagnostic path is intentionally omitted as it is invalid in this
+	// context. Diagnostic paths are intended to be mapped to actual data,
+	// while this path information must be synthesized.
+	return diag.NewErrorDiagnostic(
+		"Invalid Attribute Implementation",
+		"When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("%q is a collection attribute that contains a dynamic type. ", attributePath)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+	)
+}

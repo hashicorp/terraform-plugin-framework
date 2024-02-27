@@ -85,13 +85,13 @@ func (d ArgumentsData) Get(ctx context.Context, targets ...any) *FuncError {
 		tfValue, tfValueErr := attrValue.ToTerraformValue(ctx)
 
 		if tfValueErr != nil {
-			text := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+			errMsg := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
 				"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 				"Position: %d\n"+
 				"Error: %s",
 				attrValue, position, tfValueErr)
 
-			funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
+			funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), errMsg))
 
 			continue
 		}
@@ -116,22 +116,22 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	var funcErr *FuncError
 
 	if len(d.values) == 0 {
-		text := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
+		errMsg := "Invalid Argument Data Usage: When attempting to fetch argument data during the function call, the provider code incorrectly attempted to read argument data. " +
 			"This is always an issue in the provider code and should be reported to the provider developers.\n\n" +
 			"Function does not have argument data."
 
-		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), errMsg))
 
 		return funcErr
 	}
 
 	if position >= len(d.values) {
-		text := "Invalid Argument Data Position: When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
+		errMsg := "Invalid Argument Data Position: When attempting to fetch argument data during the function call, the provider code attempted to read a non-existent argument position. " +
 			"Function argument positions are 0-based and any final variadic parameter is represented as one argument position with a tuple where each element " +
 			"type matches the parameter data type. This is always an error in the provider code and should be reported to the provider developers.\n\n" +
 			fmt.Sprintf("Given argument position: %d, last argument position: %d", position, len(d.values)-1)
 
-		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), errMsg))
 
 		return funcErr
 	}
@@ -148,11 +148,11 @@ func (d ArgumentsData) GetArgument(ctx context.Context, position int, target any
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		text := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
+		errMsg := fmt.Sprintf("Argument Value Conversion Error: An unexpected error was encountered converting a %T to its equivalent Terraform representation. "+
 			"This is always an error in the provider code and should be reported to the provider developers.\n\n"+
 			"Error: %s", attrValue, err)
 
-		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), text))
+		funcErr = ConcatFuncErrors(funcErr, NewArgumentFuncError(int64(position), errMsg))
 
 		return funcErr
 	}

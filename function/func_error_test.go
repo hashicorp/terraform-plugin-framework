@@ -196,7 +196,7 @@ func TestConcatFuncErrors(t *testing.T) {
 	}
 }
 
-func TestFunctionErrorsFromDiags(t *testing.T) {
+func TestFuncErrorFromDiags(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {

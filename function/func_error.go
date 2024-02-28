@@ -31,7 +31,14 @@ func NewArgumentFuncError(functionArgument int64, text string) *FuncError {
 
 // FuncError is an error type specifically for function errors.
 type FuncError struct {
-	Text             string
+	// Text is a practitioner-oriented description of the problem. This should
+	// contain sufficient detail to provide both general and more specific information
+	// regarding the issue. For example "Error executing function: foo can only contain
+	// letters, numbers, and digits."
+	Text string
+	// FunctionArgument is a zero-based, int64 value that identifies the specific
+	// function argument position that caused the error. Only errors that pertain
+	// to a function argument will include this information.
 	FunctionArgument *int64
 }
 

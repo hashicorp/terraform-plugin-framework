@@ -15,11 +15,24 @@ returned from Terraform CLI at the end of command output:
 $ terraform plan
 # ... other plan output ...
 ╷
-│ Error: Message
+│ Error: Error in function call
 │ 
 │   on example.tf line #:
 │    #: source configuration line
-╵
+│
+│ Call to function "{FUNCTION}" failed: {TEXT}.
+```
+
+```console
+$ terraform plan
+# ... other plan output ...
+╷
+│ Error: Invalid function argument
+│
+│   on example.tf line #:
+│    #: source configuration line
+│
+│ Invalid value for "{PARAMETER_NAME}" parameter: {TEXT}.
 ```
 
 In the framework, you may encounter them in response structs or as returns from

@@ -21,7 +21,7 @@ type ResultData struct {
 }
 
 // Equal returns true if the value is equivalent.
-func (d *ResultData) Equal(o ResultData) bool {
+func (d ResultData) Equal(o ResultData) bool {
 	if d.value == nil {
 		return o.value == nil
 	}
@@ -46,7 +46,7 @@ func (d *ResultData) Set(ctx context.Context, value any) *FuncError {
 }
 
 // Value returns the saved value.
-func (d *ResultData) Value() attr.Value {
+func (d ResultData) Value() attr.Value {
 	return d.value
 }
 

@@ -83,7 +83,7 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // var boolArg *bool // e.g. with AllowNullValue, where Go nil equals Terraform null
     // var boolArg types.Bool // e.g. with AllowUnknownValues or AllowNullValue
 
-    resp.Diagnostics.Append(req.Arguments.Get(ctx, &boolArg)...)
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg))
 
     // boolArg is now populated
     // ... other logic ...

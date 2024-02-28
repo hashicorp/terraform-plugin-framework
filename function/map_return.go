@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -46,7 +45,7 @@ func (r MapReturn) GetType() attr.Type {
 }
 
 // NewResultData returns a new result data based on the type.
-func (r MapReturn) NewResultData(ctx context.Context) (ResultData, diag.Diagnostics) {
+func (r MapReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 	value := basetypes.NewMapUnknown(r.ElementType)
 
 	if r.CustomType == nil {
@@ -55,5 +54,5 @@ func (r MapReturn) NewResultData(ctx context.Context) (ResultData, diag.Diagnost
 
 	valuable, diags := r.CustomType.ValueFromMap(ctx, value)
 
-	return NewResultData(valuable), diags
+	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
 }

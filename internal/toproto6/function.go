@@ -6,10 +6,10 @@ package toproto6
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // Function returns the *tfprotov6.Function for a function.Definition.
@@ -88,9 +88,7 @@ func FunctionReturn(ctx context.Context, fw function.Return) *tfprotov6.Function
 
 // FunctionResultData returns the *tfprotov6.DynamicValue for a given
 // function.ResultData.
-func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov6.DynamicValue, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
+func FunctionResultData(ctx context.Context, data function.ResultData) (*tfprotov6.DynamicValue, *function.FuncError) {
 	attrValue := data.Value()
 
 	if attrValue == nil {
@@ -101,27 +99,21 @@ func FunctionResultData(ctx context.Context, data function.ResultData) (*tfproto
 	tfValue, err := attrValue.ToTerraformValue(ctx)
 
 	if err != nil {
-		diags.AddError(
-			"Unable to Convert Function Return Data",
-			"An unexpected error was encountered when converting the function result data to the protocol type. "+
-				"Please report this to the provider developer:\n\n"+
-				"Unable to convert framework type to tftypes: "+err.Error(),
-		)
+		msg := "Unable to Convert Function Result Data: An unexpected error was encountered when converting the function result data to the protocol type. " +
+			"Please report this to the provider developer:\n\n" +
+			"Unable to convert framework type to tftypes: " + err.Error()
 
-		return nil, diags
+		return nil, function.NewFuncError(msg)
 	}
 
 	dynamicValue, err := tfprotov6.NewDynamicValue(tfType, tfValue)
 
 	if err != nil {
-		diags.AddError(
-			"Unable to Convert Function Return Data",
-			"An unexpected error was encountered when converting the function result data to the protocol type. "+
-				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-				"Unable to create DynamicValue: "+err.Error(),
-		)
+		msg := "Unable to Convert Function Result Data: An unexpected error was encountered when converting the function result data to the protocol type. " +
+			"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
+			"Unable to create DynamicValue: " + err.Error()
 
-		return nil, diags
+		return nil, function.NewFuncError(msg)
 	}
 
 	return &dynamicValue, nil

@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestCallFunctionResponse(t *testing.T) {
@@ -28,25 +28,17 @@ func TestCallFunctionResponse(t *testing.T) {
 			input:    nil,
 			expected: nil,
 		},
-		"diagnostics": {
+		"error": {
 			input: &fwserver.CallFunctionResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewWarningDiagnostic("warning summary", "warning detail"),
-					diag.NewErrorDiagnostic("error summary", "error detail"),
-				},
+				Error: function.ConcatFuncErrors(
+					function.NewFuncError("error summary one: error detail one"),
+					function.NewArgumentFuncError(0, "error summary two: error detail two"),
+				),
 			},
 			expected: &tfprotov6.CallFunctionResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityWarning,
-						Summary:  "warning summary",
-						Detail:   "warning detail",
-					},
-					{
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "error summary",
-						Detail:   "error detail",
-					},
+				Error: &tfprotov6.FunctionError{
+					Text:             "error summary one: error detail one\nerror summary two: error detail two",
+					FunctionArgument: pointer(int64(0)),
 				},
 			},
 		},

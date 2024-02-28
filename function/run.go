@@ -3,10 +3,6 @@
 
 package function
 
-import (
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-)
-
 // RunRequest represents a request for the Function to call its implementation
 // logic. An instance of this request struct is supplied as an argument to the
 // Function type Run method.
@@ -19,9 +15,10 @@ type RunRequest struct {
 // RunResponse represents a response to a RunRequest. An instance of this
 // response struct is supplied as an argument to the Function type Run method.
 type RunResponse struct {
-	// Diagnostics report errors or warnings related to defining the function.
-	// An empty slice indicates success, with no warnings or errors generated.
-	Diagnostics diag.Diagnostics
+	// Error contains errors related to running the function.
+	// A nil error indicates success, with no errors generated.
+	// [ConcatFuncErrors] can be used to combine multiple errors into a single error.
+	Error *FuncError
 
 	// Result is the data to be returned to Terraform matching the function
 	// result definition. This must be set or an error diagnostic is raised. Use

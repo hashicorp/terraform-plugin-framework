@@ -251,23 +251,6 @@ func (s exampleType) Validate(ctx context.Context, in tftypes.Value, path path.P
     // ... further logic ...
 ```
 
-#### AddArgumentError and AddArgumentWarning
-
-When creating diagnostics that affect only a single function argument, the [`AddArgumentError(position int, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddArgumentError) and [`AddArgumentWarning(position int, summary string, detail string)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag#Diagnostics.AddArgumentWarning) append a new error or warning diagnostic pointing specifically at the function argument. This provides additional context to practitioners, such as showing the specific line(s) and value(s) of configuration where possible.
-
-For example:
-
-```go
-func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-    // ... other logic ...
-
-    // Add warning diagnostic associated with first function argument position
-    resp.Diagnostics.AddArgumentWarning(0, "Example Warning Summary", "Example Warning Detail")
-
-    // ... other logic ...
-}
-```
-
 ### Consistent Diagnostic Creation
 
 Create a helper function in your provider code using the diagnostic creation functions available in the [`diag` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/diag) to generate consistent diagnostics for types of errors/warnings. It is also possible to use [custom diagnostics types](#custom-diagnostics-types) to accomplish this same goal.

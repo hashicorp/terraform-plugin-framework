@@ -38,21 +38,6 @@ type Diagnostic interface {
 	Equal(Diagnostic) bool
 }
 
-// DiagnosticWithFunctionArgument is a diagnostic associated with a
-// function argument.
-//
-// This information is used to display contextual source configuration to
-// practitioners.
-type DiagnosticWithFunctionArgument interface {
-	Diagnostic
-
-	// FunctionArgument points to a specific function argument position.
-	//
-	// If present, this enables the display of source configuration context for
-	// supporting implementations such as Terraform CLI commands.
-	FunctionArgument() int
-}
-
 // DiagnosticWithPath is a diagnostic associated with an attribute path.
 //
 // This attribute information is used to display contextual source configuration

@@ -181,7 +181,7 @@ func TestDefinitionParameterName(t *testing.T) {
 			position: 0,
 			expected: "param1",
 		},
-		"parameters-default--last": {
+		"parameters-default-last": {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{},
@@ -192,7 +192,7 @@ func TestDefinitionParameterName(t *testing.T) {
 			position: 2,
 			expected: "param3",
 		},
-		"parameters-default--middle": {
+		"parameters-default-middle": {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{},

@@ -145,6 +145,143 @@ func TestDefinitionParameter(t *testing.T) {
 	}
 }
 
+func TestDefinitionParameterName(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		definition          function.Definition
+		position            int
+		expected            string
+		expectedDiagnostics diag.Diagnostics
+	}{
+		"none": {
+			definition: function.Definition{
+				// no Parameters or VariadicParameter
+			},
+			position: 0,
+			expected: "",
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Parameter Position for Definition",
+					"When determining the parameter for the given argument position, an invalid value was given. "+
+						"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+						"Function does not implement parameters.\n"+
+						"Given position: 0",
+				),
+			},
+		},
+		"parameters-default-first": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.Int64Parameter{},
+					function.StringParameter{},
+				},
+			},
+			position: 0,
+			expected: "param1",
+		},
+		"parameters-default--last": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.Int64Parameter{},
+					function.StringParameter{},
+				},
+			},
+			position: 2,
+			expected: "param3",
+		},
+		"parameters-default--middle": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.Int64Parameter{},
+					function.StringParameter{},
+				},
+			},
+			position: 1,
+			expected: "param2",
+		},
+		"parameters-defined": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						Name: "myspecialparam",
+					},
+				},
+			},
+			position: 0,
+			expected: "myspecialparam",
+		},
+		"parameters-over": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+				},
+			},
+			position: 1,
+			expected: "",
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Parameter Position for Definition",
+					"When determining the parameter for the given argument position, an invalid value was given. "+
+						"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+						"Max argument position: 0\n"+
+						"Given position: 1",
+				),
+			},
+		},
+		"variadicparameter-and-parameters-select-parameter": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+				},
+				VariadicParameter: function.StringParameter{},
+			},
+			position: 0,
+			expected: "param1",
+		},
+		"variadicparameter-and-parameters-select-variadicparameter-default": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+				},
+				VariadicParameter: function.StringParameter{},
+			},
+			position: 1,
+			expected: function.DefaultVariadicParameterName,
+		},
+		"variadicparameter-defined": {
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Name: "myspecialvariadic",
+				},
+			},
+			position: 0,
+			expected: "myspecialvariadic",
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, diags := testCase.definition.ParameterName(context.Background(), testCase.position)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestDefinitionValidateImplementation(t *testing.T) {
 	t.Parallel()
 
@@ -152,9 +289,33 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 		definition function.Definition
 		expected   diag.Diagnostics
 	}{
-		"valid": {
+		"valid-no-params": {
 			definition: function.Definition{
 				Return: function.StringReturn{},
+			},
+		},
+		"valid-only-variadic": {
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{},
+				Return:            function.StringReturn{},
+			},
+		},
+		"valid-param-name-defaults": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{},
+					function.StringParameter{},
+				},
+				Return: function.StringReturn{},
+			},
+		},
+		"valid-param-names-defaults-with-variadic": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{},
+				},
+				VariadicParameter: function.NumberParameter{},
+				Return:            function.StringReturn{},
 			},
 		},
 		"result-missing": {
@@ -165,6 +326,153 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 						"Definition Return field is undefined",
+				),
+			},
+		},
+		"conflicting-param-names": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{
+						Name: "string-param",
+					},
+					function.Float64Parameter{
+						Name: "float-param",
+					},
+					function.Int64Parameter{
+						Name: "param-dup",
+					},
+					function.NumberParameter{
+						Name: "number-param",
+					},
+					function.BoolParameter{
+						Name: "param-dup",
+					},
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameters at position 2 and 4 have the same name \"param-dup\"",
+				),
+			},
+		},
+		"conflicting-param-name-with-default": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{
+						Name: "param2",
+					},
+					function.Float64Parameter{}, // defaults to param2
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameters at position 0 and 1 have the same name \"param2\"",
+				),
+			},
+		},
+		"conflicting-param-names-variadic": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float64Parameter{
+						Name: "float-param",
+					},
+					function.Int64Parameter{
+						Name: "param-dup",
+					},
+					function.NumberParameter{
+						Name: "number-param",
+					},
+				},
+				VariadicParameter: function.BoolParameter{
+					Name: "param-dup",
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameter at position 1 and the variadic parameter have the same name \"param-dup\"",
+				),
+			},
+		},
+		"conflicting-param-names-variadic-multiple": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{
+						Name: "param-dup",
+					},
+					function.Float64Parameter{
+						Name: "float-param",
+					},
+					function.Int64Parameter{
+						Name: "param-dup",
+					},
+					function.NumberParameter{
+						Name: "number-param",
+					},
+					function.BoolParameter{
+						Name: "param-dup",
+					},
+				},
+				VariadicParameter: function.BoolParameter{
+					Name: "param-dup",
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameters at position 0 and 2 have the same name \"param-dup\"",
+				),
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameters at position 0 and 4 have the same name \"param-dup\"",
+				),
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameter at position 0 and the variadic parameter have the same name \"param-dup\"",
+				),
+			},
+		},
+		"conflicting-param-name-with-variadic-default": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float64Parameter{
+						Name: function.DefaultVariadicParameterName,
+					},
+				},
+				VariadicParameter: function.BoolParameter{}, // defaults to varparam
+				Return:            function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter names must be unique. "+
+						"Parameter at position 0 and the variadic parameter have the same name \"varparam\"",
 				),
 			},
 		},

@@ -182,13 +182,7 @@ func TestInt64ParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.Int64Parameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.Int64Parameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.Int64Parameter{

@@ -7,9 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
-// DefaultParameterName is the name given to parameters which do not declare
-// a name. Use this to prevent Terraform errors for missing names.
-const DefaultParameterName = "param"
+const (
+	// DefaultParameterNamePrefix is the prefix used to default the name of parameters which do not declare
+	// a name. Use this to prevent Terraform errors for missing names. This prefix is used with the parameter
+	// position in a function definition to create a unique name (param1, param2, etc.)
+	DefaultParameterNamePrefix = "param"
+
+	// DefaultVariadicParameterName is the default name given to a variadic parameter that does not declare
+	// a name. Use this to prevent Terraform errors for missing names.
+	DefaultVariadicParameterName = "varparam"
+)
 
 // Parameter is the interface for defining function parameters.
 type Parameter interface {

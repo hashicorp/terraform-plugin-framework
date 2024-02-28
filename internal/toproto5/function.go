@@ -19,7 +19,6 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 		Parameters:         make([]*tfprotov5.FunctionParameter, 0, len(fw.Parameters)),
 		Return:             FunctionReturn(ctx, fw.Return),
 		Summary:            fw.Summary,
-		VariadicParameter:  FunctionParameter(ctx, fw.VariadicParameter),
 	}
 
 	if fw.MarkdownDescription != "" {
@@ -30,8 +29,12 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 		proto.DescriptionKind = tfprotov5.StringKindPlain
 	}
 
-	for _, fwParameter := range fw.Parameters {
-		proto.Parameters = append(proto.Parameters, FunctionParameter(ctx, fwParameter))
+	for i, fwParameter := range fw.Parameters {
+		proto.Parameters = append(proto.Parameters, FunctionParameter(ctx, fw, fwParameter, i))
+	}
+
+	if fw.VariadicParameter != nil {
+		proto.VariadicParameter = FunctionParameter(ctx, fw, fw.VariadicParameter, len(fw.Parameters)+1)
 	}
 
 	return proto
@@ -39,23 +42,26 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 
 // FunctionParameter returns the *tfprotov5.FunctionParameter for a
 // function.Parameter.
-func FunctionParameter(ctx context.Context, fw function.Parameter) *tfprotov5.FunctionParameter {
-	if fw == nil {
+func FunctionParameter(ctx context.Context, def function.Definition, param function.Parameter, position int) *tfprotov5.FunctionParameter {
+	if param == nil {
 		return nil
 	}
 
+	// TODO: what should we do with the diags? This should never happen
+	name, _ := def.ParameterName(ctx, position)
+
 	proto := &tfprotov5.FunctionParameter{
-		AllowNullValue:     fw.GetAllowNullValue(),
-		AllowUnknownValues: fw.GetAllowUnknownValues(),
-		Name:               fw.GetName(),
-		Type:               fw.GetType().TerraformType(ctx),
+		AllowNullValue:     param.GetAllowNullValue(),
+		AllowUnknownValues: param.GetAllowUnknownValues(),
+		Name:               name,
+		Type:               param.GetType().TerraformType(ctx),
 	}
 
-	if fw.GetMarkdownDescription() != "" {
-		proto.Description = fw.GetMarkdownDescription()
+	if param.GetMarkdownDescription() != "" {
+		proto.Description = param.GetMarkdownDescription()
 		proto.DescriptionKind = tfprotov5.StringKindMarkdown
-	} else if fw.GetDescription() != "" {
-		proto.Description = fw.GetDescription()
+	} else if param.GetDescription() != "" {
+		proto.Description = param.GetDescription()
 		proto.DescriptionKind = tfprotov5.StringKindPlain
 	}
 

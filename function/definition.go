@@ -85,6 +85,27 @@ func (d Definition) Parameter(ctx context.Context, position int) (Parameter, dia
 	return d.Parameters[position], nil
 }
 
+// ParameterName returns the Parameter name for a given argument position. This will be the return
+// from the `(Parameter).GetName` function or a default value. An error diagnostic is raised if the
+// position is outside the expected arguments.
+func (d Definition) ParameterName(ctx context.Context, position int) (string, diag.Diagnostics) {
+	parameter, diags := d.Parameter(ctx, position)
+	if diags.HasError() {
+		return "", diags
+	}
+
+	definedName := parameter.GetName()
+	if definedName != "" {
+		return definedName, nil
+	}
+
+	if position >= len(d.Parameters) {
+		return DefaultVariadicParameterName, nil
+	}
+
+	return fmt.Sprintf("%s%d", DefaultParameterNamePrefix, position+1), nil
+}
+
 // ValidateImplementation contains logic for validating the provider-defined
 // implementation of the definition to prevent unexpected errors or panics. This
 // logic runs during the GetProviderSchema RPC, or via provider-defined unit
@@ -106,6 +127,42 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 				"Definition return data type is undefined",
 		)
+	}
+
+	paramNames := make(map[string]int, len(d.Parameters))
+	for pos := range d.Parameters {
+		// TODO: what should we do with the diags? This should never happen
+		name, _ := d.ParameterName(ctx, pos)
+
+		conflictPos, exists := paramNames[name]
+		if exists {
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					"Parameter names must be unique. "+
+					fmt.Sprintf("Parameters at position %d and %d have the same name %q", conflictPos, pos, name),
+			)
+			continue
+		}
+
+		paramNames[name] = pos
+	}
+
+	if d.VariadicParameter != nil {
+		// TODO: what should we do with the diags? This should never happen
+		name, _ := d.ParameterName(ctx, len(d.Parameters)+1)
+
+		conflictPos, exists := paramNames[name]
+		if exists {
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					"Parameter names must be unique. "+
+					fmt.Sprintf("Parameter at position %d and the variadic parameter have the same name %q", conflictPos, name),
+			)
+		}
 	}
 
 	return diags

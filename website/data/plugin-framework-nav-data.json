@@ -228,6 +228,10 @@
         ]
       },
       {
+        "title": "Errors",
+        "path": "functions/errors"
+      },
+      {
         "title": "Testing",
         "path": "functions/testing"
       },

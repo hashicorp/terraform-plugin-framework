@@ -9,13 +9,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerCallFunction(t *testing.T) {
@@ -53,34 +54,24 @@ func TestServerCallFunction(t *testing.T) {
 											var arg1 basetypes.Int64Value
 											var arg2 basetypes.StringValue
 
-											resp.Diagnostics.Append(req.Arguments.Get(ctx, &arg0, &arg1, &arg2)...)
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1, &arg2)
 
 											expectedArg0 := basetypes.NewBoolNull()
 											expectedArg1 := basetypes.NewInt64Unknown()
 											expectedArg2 := basetypes.NewStringValue("arg2")
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Diagnostics.AddError(
-													"Unexpected Argument 0 Difference",
-													fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0),
-												)
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Diagnostics.AddError(
-													"Unexpected Argument 1 Difference",
-													fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1),
-												)
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
 											if !arg2.Equal(expectedArg2) {
-												resp.Diagnostics.AddError(
-													"Unexpected Argument 2 Difference",
-													fmt.Sprintf("got: %s, expected: %s", arg2, expectedArg2),
-												)
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 2 Difference: got: %s, expected: %s", arg2, expectedArg2)))
 											}
-
-											resp.Diagnostics.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -125,7 +116,7 @@ func TestServerCallFunction(t *testing.T) {
 											var arg0 basetypes.StringValue
 											var arg1 basetypes.TupleValue
 
-											resp.Diagnostics.Append(req.Arguments.Get(ctx, &arg0, &arg1)...)
+											resp.Error = req.Arguments.Get(ctx, &arg0, &arg1)
 
 											expectedArg0 := basetypes.NewStringValue("arg0")
 											expectedArg1 := basetypes.NewTupleValueMust(
@@ -140,20 +131,14 @@ func TestServerCallFunction(t *testing.T) {
 											)
 
 											if !arg0.Equal(expectedArg0) {
-												resp.Diagnostics.AddError(
-													"Unexpected Argument 0 Difference",
-													fmt.Sprintf("got: %s, expected: %s", arg0, expectedArg0),
-												)
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 0 Difference: got: %s, expected: %s", arg0, expectedArg0)))
 											}
 
 											if !arg1.Equal(expectedArg1) {
-												resp.Diagnostics.AddError(
-													"Unexpected Argument 1 Difference",
-													fmt.Sprintf("got: %s, expected: %s", arg1, expectedArg1),
-												)
+												resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError(fmt.Sprintf("Unexpected Argument 1 Difference: got: %s, expected: %s", arg1, expectedArg1)))
 											}
 
-											resp.Diagnostics.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -174,7 +159,7 @@ func TestServerCallFunction(t *testing.T) {
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},
 		},
-		"response-diagnostics": {
+		"response-function-errors": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.ProviderWithFunctions{
@@ -191,9 +176,8 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Diagnostics.AddWarning("warning summary", "warning detail")
-											resp.Diagnostics.AddError("error summary", "error detail")
-											resp.Diagnostics.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, function.NewFuncError("error summary: error detail"))
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},
@@ -207,17 +191,8 @@ func TestServerCallFunction(t *testing.T) {
 				Name:      "testfunction",
 			},
 			expectedResponse: &tfprotov6.CallFunctionResponse{
-				Diagnostics: []*tfprotov6.Diagnostic{
-					{
-						Severity: tfprotov6.DiagnosticSeverityWarning,
-						Summary:  "warning summary",
-						Detail:   "warning detail",
-					},
-					{
-						Severity: tfprotov6.DiagnosticSeverityError,
-						Summary:  "error summary",
-						Detail:   "error detail",
-					},
+				Error: &tfprotov6.FunctionError{
+					Text: "error summary: error detail",
 				},
 				Result: testNewSingleValueDynamicValue(t, tftypes.NewValue(tftypes.String, "result")),
 			},
@@ -239,7 +214,7 @@ func TestServerCallFunction(t *testing.T) {
 											}
 										},
 										RunMethod: func(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
-											resp.Diagnostics.Append(resp.Result.Set(ctx, basetypes.NewStringValue("result"))...)
+											resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, basetypes.NewStringValue("result")))
 										},
 									}
 								},

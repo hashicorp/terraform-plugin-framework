@@ -1,0 +1,8 @@
+kind: BREAKING CHANGES
+body: 'diag: Removed `DiagnosticWithFunctionArgument` interface. Removed 
+  `NewArgumentErrorDiagnostic()`, `NewArgumentWarningDiagnostic()` and 
+  `WithFunctionArgument()` functions. Removed `AddArgumentError()` and
+  `AddArgumentWarning()` methods from `Diagnostics`.'
+time: 2024-02-27T11:31:28.09588Z
+custom:
+  Issue: "925"

@@ -8,14 +8,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestFunction(t *testing.T) {
@@ -395,24 +395,24 @@ func TestFunctionResultData(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		fw                  function.ResultData
-		expected            *tfprotov5.DynamicValue
-		expectedDiagnostics diag.Diagnostics
+		fw          function.ResultData
+		expected    *tfprotov5.DynamicValue
+		expectedErr *function.FuncError
 	}{
 		"empty": {
-			fw:                  function.ResultData{},
-			expected:            nil,
-			expectedDiagnostics: nil,
+			fw:          function.ResultData{},
+			expected:    nil,
+			expectedErr: nil,
 		},
 		"value-nil": {
-			fw:                  function.NewResultData(nil),
-			expected:            nil,
-			expectedDiagnostics: nil,
+			fw:          function.NewResultData(nil),
+			expected:    nil,
+			expectedErr: nil,
 		},
 		"value": {
-			fw:                  function.NewResultData(basetypes.NewBoolValue(true)),
-			expected:            DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
-			expectedDiagnostics: nil,
+			fw:          function.NewResultData(basetypes.NewBoolValue(true)),
+			expected:    DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			expectedErr: nil,
 		},
 	}
 
@@ -428,7 +428,7 @@ func TestFunctionResultData(t *testing.T) {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedErr); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

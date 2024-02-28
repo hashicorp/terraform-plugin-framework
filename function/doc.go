@@ -15,4 +15,7 @@
 // argument data when called. The [Function] implementations are referenced by a
 // [provider.Provider] type Functions method, which enables the function for
 // practitioner and testing usage.
+//
+// Practitioner feedback is provided by the [FuncError] type, rather than
+// the [diag.Diagnostic] type.
 package function

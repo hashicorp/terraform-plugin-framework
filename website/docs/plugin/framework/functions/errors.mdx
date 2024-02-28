@@ -1,0 +1,162 @@
+---
+page_title: 'Plugin Development - Framework: Function Errors'
+description: |-
+  How to return function errors from the Terraform provider development
+  framework.
+---
+
+# Returning Function Errors
+
+Providers use [`FuncError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncError) to
+surface a practitioner-facing error generated during execution of provider-defined functions. These errors are
+returned from Terraform CLI at the end of command output:
+
+```console
+$ terraform plan
+# ... other plan output ...
+╷
+│ Error: Error in function call
+│ 
+│   on example.tf line #:
+│    #: source configuration line
+│
+│ Call to function "{FUNCTION}" failed: {TEXT}.
+```
+
+```console
+$ terraform plan
+# ... other plan output ...
+╷
+│ Error: Invalid function argument
+│
+│   on example.tf line #:
+│    #: source configuration line
+│
+│ Invalid value for "{PARAMETER_NAME}" parameter: {TEXT}.
+```
+
+In the framework, you may encounter them in response structs or as returns from
+provider-defined function execution.:
+
+```go
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+```
+
+This is the most common form for `FuncError`: a single error whose text
+is the concatenated error text from one or more errors. This approach allows
+your provider to inform practitioners about all relevant errors at the same
+time, allowing practitioners to fix their configuration or environment more
+quickly. You should only concatenate a `FuncError` and never replace or
+remove information it.
+
+The next section will detail the concepts and typical behaviors of
+function error, while the final section will outline the typical methods for
+working with function error, using functionality from the available
+[`function` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function).
+
+## Function Error Concepts
+
+### Text
+
+`Text` is a practitioner-oriented description of the problem. This should
+contain sufficient detail to provide both general and more specific information
+regarding the issue. For example "Error executing function: foo can only contain
+letters, numbers, and digits."
+
+### FunctionArgument
+
+`FunctionArgument` is a zero-based, int64 value that identifies the specific
+function argument position that caused the error. Only errors that pertain
+to a function argument will include this information.
+
+### Working With Existing Function Errors
+
+#### ConcatFuncErrors
+
+When receiving `function.FuncError` from a function or method, such as
+`Run()`, these should typically be concatenated with the
+response function error for the method. This can be accomplished with the
+[`ConcatFuncErrors(in ...*FuncError)` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ConcatFuncErrors).
+
+For example:
+
+```go
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    var boolArg bool
+    var stringArg string
+
+    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Get(ctx, &boolArg, &stringArg))
+
+    // ... other logic ...
+}
+```
+
+This method automatically ignores `nil` function errors.
+
+### Creating Function Errors
+
+To craft the message of a function error, it is recommended to use sufficient
+detail to convey both the cause of the error and as much contextual,
+troubleshooting, and next action information as possible. These details can
+use newlines for easier readability where necessary.
+
+#### NewFuncError
+
+When creating function errors where a `function.FunctionError` is already available,
+such as within a response type, the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError.AddError)
+can be used with the [`NewFuncError(text string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewFuncError) to concatenate a new
+function error.
+
+For example:
+
+```go
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    // ... prior logic ...
+
+    val, err := // operation that may return an error
+
+    if err != nil {
+        resp.Error = ConcatFuncErrors(resp.Error, function.NewFuncError("Error performing operation: " + err.Error()))
+        return
+    }
+
+    // ... further logic ...
+}
+```
+
+#### NewArgumentFuncError
+
+When creating function errors that affect only a single function argument, the [`NewArgumentFuncError(functionArgument int, msg string)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewArgumentFuncError)
+can be used in conjunction with  the [`ConcatFuncErrors(in ...*FuncError)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#NewArgumentFuncError). This provides additional context to practitioners, such as showing the specific line(s) and value(s) of configuration where possible.
+
+For example:
+
+```go
+func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    // ... other logic ...
+
+    // Add function error associated with first function argument position
+    resp.Error = function.ConcatFuncErrors(resp.Error, function.NewArgumentFuncError(0, "Example Error Summary: Example Error Detail"))
+
+    // ... other logic ...
+}
+```
+
+#### FuncErrorFromDiags
+
+A function error is created from diagnostics by using the [`FuncErrorFromDiags(context.Context, diag.Diagnostics)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncErrorFromDiags). The function error will contain the concatenated summary and details of error-level
+diagnostics.
+
+~> **Note**: The [`FuncErrorFromDiags(context.Context, diag.Diagnostics)` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncErrorFromDiags) does not include warning-level diagnostics in the function error. Warning-level diagnostics are logged instead.
+
+For example:
+
+```go
+func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+    // ... other logic ...
+
+    _, diags := // operation that may return diagnostics
+
+    resp.Error = function.ConcatFuncErrors(resp.Error, function.FuncErrorFromDiags(ctx, diags))
+}
+```

@@ -1,3 +1,22 @@
+## 1.6.0 (February 28, 2024)
+
+BREAKING CHANGES:
+
+* function: Changed the framework type for variadic parameters to `types.TupleType`, where each element is the same element type. Provider-defined functions using a `types.List` for retrieving variadic argument data will need to update their code to use `types.Tuple`. ([#923](https://github.com/hashicorp/terraform-plugin-framework/issues/923))
+* function: Altered the `RunResponse` type, replacing `Diagnostics` with `FuncError` ([#925](https://github.com/hashicorp/terraform-plugin-framework/issues/925))
+* diag: Removed `DiagnosticWithFunctionArgument` interface. Removed `NewArgumentErrorDiagnostic()`, `NewArgumentWarningDiagnostic()` and `WithFunctionArgument()` functions. Removed `AddArgumentError()` and `AddArgumentWarning()` methods from `Diagnostics`. ([#925](https://github.com/hashicorp/terraform-plugin-framework/issues/925))
+
+FEATURES:
+
+* resource: Added the `ResourceWithMoveState` interface, which enables state moves across resource types with Terraform 1.8 and later ([#917](https://github.com/hashicorp/terraform-plugin-framework/issues/917))
+
+ENHANCEMENTS:
+
+* privatestate: Added support for `SetKey()` method to fully remove key with `nil` or zero-length value ([#910](https://github.com/hashicorp/terraform-plugin-framework/issues/910))
+* function: Added `FuncError` type, required for `RunResponse` ([#925](https://github.com/hashicorp/terraform-plugin-framework/issues/925))
+* function: Added `NewFuncError()` and `NewArgumentFuncError()` functions, which create a `FuncError` ([#925](https://github.com/hashicorp/terraform-plugin-framework/issues/925))
+* function: Added `ConcatFuncErrors()` and `FuncErrorFromDiags()` helper functions for use when working with `FuncError` ([#925](https://github.com/hashicorp/terraform-plugin-framework/issues/925))
+
 ## 1.5.0 (January 11, 2024)
 
 NOTES:

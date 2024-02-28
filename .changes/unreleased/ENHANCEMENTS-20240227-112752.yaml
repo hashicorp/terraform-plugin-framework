@@ -1,6 +1,0 @@
-kind: ENHANCEMENTS
-body: 'function: Added `ConcatFuncErrors()` and `FuncErrorFromDiags()` helper functions
-  for use when working with `FuncError`'
-time: 2024-02-27T11:27:52.288519Z
-custom:
-  Issue: "925"

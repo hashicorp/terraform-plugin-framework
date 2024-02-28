@@ -37,6 +37,10 @@ type Parameter interface {
 
 	// GetName should return a usage name for the parameter. Parameters are
 	// positional, so this name has no meaning except documentation.
+	//
+	// If the name is returned as an empty string, a default name will be used to prevent Terraform errors for missing names.
+	// The default name will be the prefix "param" with a suffix of the position the parameter is in the function definition. (`param1`, `param2`, etc.)
+	// If the parameter is variadic, the default name will be `varparam`.
 	GetName() string
 
 	// GetType should return the data type for the parameter, which determines

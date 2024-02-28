@@ -5,6 +5,7 @@ package toproto5
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
@@ -30,11 +31,25 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 	}
 
 	for i, fwParameter := range fw.Parameters {
-		proto.Parameters = append(proto.Parameters, FunctionParameter(ctx, fw, fwParameter, i))
+		protoParam := FunctionParameter(ctx, fwParameter)
+
+		// If name is not set, default the param name based on position: "param1", "param2", etc.
+		if protoParam.Name == "" {
+			protoParam.Name = fmt.Sprintf("%s%d", function.DefaultParameterNamePrefix, i+1)
+		}
+
+		proto.Parameters = append(proto.Parameters, protoParam)
 	}
 
 	if fw.VariadicParameter != nil {
-		proto.VariadicParameter = FunctionParameter(ctx, fw, fw.VariadicParameter, len(fw.Parameters)+1)
+		protoParam := FunctionParameter(ctx, fw.VariadicParameter)
+
+		// If name is not set, default the variadic param name
+		if protoParam.Name == "" {
+			protoParam.Name = function.DefaultVariadicParameterName
+		}
+
+		proto.VariadicParameter = protoParam
 	}
 
 	return proto
@@ -42,26 +57,23 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 
 // FunctionParameter returns the *tfprotov5.FunctionParameter for a
 // function.Parameter.
-func FunctionParameter(ctx context.Context, def function.Definition, param function.Parameter, position int) *tfprotov5.FunctionParameter {
-	if param == nil {
+func FunctionParameter(ctx context.Context, fw function.Parameter) *tfprotov5.FunctionParameter {
+	if fw == nil {
 		return nil
 	}
 
-	// TODO: what should we do with the diags? This should never happen
-	name, _ := def.ParameterName(ctx, position)
-
 	proto := &tfprotov5.FunctionParameter{
-		AllowNullValue:     param.GetAllowNullValue(),
-		AllowUnknownValues: param.GetAllowUnknownValues(),
-		Name:               name,
-		Type:               param.GetType().TerraformType(ctx),
+		AllowNullValue:     fw.GetAllowNullValue(),
+		AllowUnknownValues: fw.GetAllowUnknownValues(),
+		Name:               fw.GetName(),
+		Type:               fw.GetType().TerraformType(ctx),
 	}
 
-	if param.GetMarkdownDescription() != "" {
-		proto.Description = param.GetMarkdownDescription()
+	if fw.GetMarkdownDescription() != "" {
+		proto.Description = fw.GetMarkdownDescription()
 		proto.DescriptionKind = tfprotov5.StringKindMarkdown
-	} else if param.GetDescription() != "" {
-		proto.Description = param.GetDescription()
+	} else if fw.GetDescription() != "" {
+		proto.Description = fw.GetDescription()
 		proto.DescriptionKind = tfprotov5.StringKindPlain
 	}
 

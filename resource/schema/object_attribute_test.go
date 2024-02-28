@@ -659,6 +659,40 @@ func TestObjectAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
+		"default-with-invalid-attributetypes": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.StringType,
+				},
+				Computed: true,
+				Default: objectdefault.StaticValue(
+					types.ObjectValueMust(
+						// intentionally invalid attribute types
+						map[string]attr.Type{
+							"invalid": types.BoolType,
+						},
+						map[string]attr.Value{
+							"invalid": types.BoolValue(true),
+						},
+					),
+				),
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" has a default value of type \"types.ObjectType[\\\"invalid\\\":basetypes.BoolType]\", but the schema expects a type of \"types.ObjectType[\\\"test_attr\\\":basetypes.StringType]\". "+
+							"The default value must match the type of the schema.",
+					),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

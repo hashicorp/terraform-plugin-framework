@@ -817,6 +817,42 @@ func TestMapNestedAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
+		"default-with-invalid-elementtype": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+				Computed: true,
+				Default: mapdefault.StaticValue(
+					types.MapValueMust(
+						// intentionally invalid element type
+						types.BoolType,
+						map[string]attr.Value{
+							"testkey": types.BoolValue(true),
+						},
+					),
+				),
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" has a default value of element type \"basetypes.BoolType\", but the schema expects a type of \"types.ObjectType[\\\"test_attr\\\":basetypes.StringType]\". "+
+							"The default value must match the type of the schema.",
+					),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

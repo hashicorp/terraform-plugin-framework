@@ -1,5 +1,0 @@
-kind: BREAKING CHANGES
-body: 'function: Altered the `RunResponse` type, replacing `Diagnostics` with `FuncError`'
-time: 2024-02-27T11:22:29.392126Z
-custom:
-  Issue: "925"

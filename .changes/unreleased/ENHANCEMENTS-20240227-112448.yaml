@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'function: Added `FuncError` type, required for `RunResponse`'
-time: 2024-02-27T11:24:48.711538Z
-custom:
-  Issue: "925"

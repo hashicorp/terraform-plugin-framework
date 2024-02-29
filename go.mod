@@ -2,6 +2,8 @@ module github.com/hashicorp/terraform-plugin-framework
 
 go 1.21
 
+toolchain go1.21.6
+
 require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/terraform-plugin-go v0.22.0

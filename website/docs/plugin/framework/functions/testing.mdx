@@ -172,7 +172,7 @@ func TestEchoFunctionRun(t *testing.T) {
             request: function.RunRequest{
                 Arguments: function.NewArgumentsData(types.StringNull()),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringNull()),
             },
         },
@@ -183,7 +183,7 @@ func TestEchoFunctionRun(t *testing.T) {
             request: function.RunRequest{
                 Arguments: function.NewArgumentsData(types.StringUnknown()),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringUnknown()),
             },
         },
@@ -191,7 +191,7 @@ func TestEchoFunctionRun(t *testing.T) {
             request: function.RunRequest{
                 Arguments: function.NewArgumentsData(types.StringValue("test-value")),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringValue("test-value")),
             },
         },
@@ -202,7 +202,7 @@ func TestEchoFunctionRun(t *testing.T) {
             request: function.RunRequest{
                 Arguments: function.NewArgumentsData(types.StringValue()),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Error: function.NewArgumentFuncError(0, "error summary: error detail"),
                 Result: function.NewResultData(types.StringUnknown()),
             },

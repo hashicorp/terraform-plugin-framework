@@ -182,13 +182,7 @@ func TestMapParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.MapParameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.MapParameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.MapParameter{

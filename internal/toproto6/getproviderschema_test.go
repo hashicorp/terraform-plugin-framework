@@ -1148,15 +1148,15 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"testfunction": {
 						Parameters: []*tfprotov6.FunctionParameter{
 							{
-								Name: function.DefaultParameterName,
+								Name: "param1",
 								Type: tftypes.Bool,
 							},
 							{
-								Name: function.DefaultParameterName,
+								Name: "param2",
 								Type: tftypes.Number,
 							},
 							{
-								Name: function.DefaultParameterName,
+								Name: "param3",
 								Type: tftypes.String,
 							},
 						},
@@ -1230,7 +1230,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 							Type: tftypes.String,
 						},
 						VariadicParameter: &tfprotov6.FunctionParameter{
-							Name: function.DefaultParameterName,
+							Name: function.DefaultVariadicParameterName,
 							Type: tftypes.String,
 						},
 					},

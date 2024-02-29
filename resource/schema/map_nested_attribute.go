@@ -293,6 +293,10 @@ func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwsc
 
 		resp.Diagnostics.Append(defaultResp.Diagnostics...)
 
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
 		if a.CustomType == nil && a.NestedObject.CustomType == nil && !a.NestedObject.Type().Equal(defaultResp.PlanValue.ElementType(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultElementTypeMismatchDiag(req.Path, a.NestedObject.Type(), defaultResp.PlanValue.ElementType(ctx)))
 		}

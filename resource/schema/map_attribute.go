@@ -272,6 +272,10 @@ func (a MapAttribute) ValidateImplementation(ctx context.Context, req fwschema.V
 
 		resp.Diagnostics.Append(defaultResp.Diagnostics...)
 
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
 		if a.ElementType != nil && !a.ElementType.Equal(defaultResp.PlanValue.ElementType(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultElementTypeMismatchDiag(req.Path, a.ElementType, defaultResp.PlanValue.ElementType(ctx)))
 		}

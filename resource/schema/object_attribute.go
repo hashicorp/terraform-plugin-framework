@@ -271,6 +271,10 @@ func (a ObjectAttribute) ValidateImplementation(ctx context.Context, req fwschem
 
 		resp.Diagnostics.Append(defaultResp.Diagnostics...)
 
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
 		if a.AttributeTypes != nil && !a.GetType().Equal(defaultResp.PlanValue.Type(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultTypeMismatchDiag(req.Path, a.GetType(), defaultResp.PlanValue.Type(ctx)))
 		}

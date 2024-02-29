@@ -313,6 +313,10 @@ func (a SingleNestedAttribute) ValidateImplementation(ctx context.Context, req f
 
 		resp.Diagnostics.Append(defaultResp.Diagnostics...)
 
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
 		if a.CustomType == nil && !a.GetType().Equal(defaultResp.PlanValue.Type(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultTypeMismatchDiag(req.Path, a.GetType(), defaultResp.PlanValue.Type(ctx)))
 		}

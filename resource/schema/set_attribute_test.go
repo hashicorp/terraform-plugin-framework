@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -593,6 +594,27 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 				Path: path.Root("test"),
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"default-with-error-diagnostic": {
+			attribute: schema.SetAttribute{
+				Computed: true,
+				Default: testdefaults.Set{
+					DefaultSetMethod: func(ctx context.Context, req defaults.SetRequest, resp *defaults.SetResponse) {
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					// Only the Default error should be returned, not type validation errors.
+					diag.NewErrorDiagnostic("error summary", "error detail"),
+				},
+			},
 		},
 		"default-with-invalid-elementtype": {
 			attribute: schema.SetAttribute{

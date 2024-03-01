@@ -200,7 +200,7 @@ func TestEchoFunctionRun(t *testing.T) {
         // it did.
         "value-invalid": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringValue()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringValue("")}),
             },
             expected: function.RunResponse{
                 Error: function.NewArgumentFuncError(0, "error summary: error detail"),

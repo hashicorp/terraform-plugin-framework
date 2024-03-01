@@ -275,14 +275,14 @@ func (a ListNestedAttribute) ListValidators() []validator.List {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	// Only want to check the type for dynamics if no custom type is being used
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.GetType()))
+	}
+
 	if a.ListDefaultValue() != nil {
 		if !a.IsComputed() {
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
-		}
-
-		// Only want to check the type for dynamics if no custom type is being used
-		if a.CustomType == nil {
-			resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.GetType()))
 		}
 
 		// Validate Default implementation. This is safe unless the framework

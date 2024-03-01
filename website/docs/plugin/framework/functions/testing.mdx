@@ -181,7 +181,7 @@ func TestEchoFunctionRun(t *testing.T) {
         // this test case shows how the function would be expected to behave.
         "unknown": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringUnknown()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringUnknown()}),
             },
             expected: function.RunResponse{
                 Result: function.NewResultData(types.StringUnknown()),

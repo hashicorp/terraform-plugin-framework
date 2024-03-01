@@ -216,7 +216,7 @@ func TestEchoFunctionRun(t *testing.T) {
             t.Parallel()
 
             got := function.RunResponse{
-                Result: function.NewResultData(basetypes.StringValue{}),
+                Result: function.NewResultData(types.StringUnknown()),
             }
 
             provider.EchoFunction{}.Run(context.Background(), testCase.request, &got)

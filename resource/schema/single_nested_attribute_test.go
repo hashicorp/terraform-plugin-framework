@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -756,6 +757,66 @@ func TestSingleNestedAttributeValidateImplementation(t *testing.T) {
 				Path: path.Root("test"),
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"default-with-error-diagnostic": {
+			attribute: schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"test_attr": schema.StringAttribute{
+						Computed: true,
+					},
+				},
+				Computed: true,
+				Default: testdefaults.Object{
+					DefaultObjectMethod: func(ctx context.Context, req defaults.ObjectRequest, resp *defaults.ObjectResponse) {
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					// Only the Default error should be returned, not type validation errors.
+					diag.NewErrorDiagnostic("error summary", "error detail"),
+				},
+			},
+		},
+		"default-with-invalid-attributetypes": {
+			attribute: schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"test_attr": schema.StringAttribute{
+						Computed: true,
+					},
+				},
+				Computed: true,
+				Default: objectdefault.StaticValue(
+					types.ObjectValueMust(
+						map[string]attr.Type{
+							"invalid": types.BoolType,
+						},
+						map[string]attr.Value{
+							"invalid": types.BoolValue(true),
+						},
+					),
+				),
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" has a default value of type \"types.ObjectType[\\\"invalid\\\":basetypes.BoolType]\", but the schema expects a type of \"types.ObjectType[\\\"test_attr\\\":basetypes.StringType]\". "+
+							"The default value must match the type of the schema.",
+					),
+				},
+			},
 		},
 	}
 

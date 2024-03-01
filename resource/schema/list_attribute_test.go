@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -605,6 +606,57 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 				Path: path.Root("test"),
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"default-with-error-diagnostic": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				Default: testdefaults.List{
+					DefaultListMethod: func(ctx context.Context, req defaults.ListRequest, resp *defaults.ListResponse) {
+						resp.Diagnostics.AddError("error summary", "error detail")
+					},
+				},
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					// Only the Default error should be returned, not type validation errors.
+					diag.NewErrorDiagnostic("error summary", "error detail"),
+				},
+			},
+		},
+		"default-with-invalid-elementtype": {
+			attribute: schema.ListAttribute{
+				Computed: true,
+				Default: listdefault.StaticValue(
+					types.ListValueMust(
+						// intentionally invalid element type
+						types.BoolType,
+						[]attr.Value{
+							types.BoolValue(true),
+						},
+					),
+				),
+				ElementType: types.StringType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" has a default value of element type \"basetypes.BoolType\", but the schema expects a type of \"basetypes.StringType\". "+
+							"The default value must match the type of the schema.",
+					),
+				},
+			},
 		},
 		"elementtype": {
 			attribute: schema.ListAttribute{

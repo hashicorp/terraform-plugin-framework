@@ -294,4 +294,31 @@ func (a SingleNestedAttribute) ValidateImplementation(ctx context.Context, req f
 	if !a.IsComputed() && a.ObjectDefaultValue() != nil {
 		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
 	}
+
+	if a.ObjectDefaultValue() != nil {
+		if !a.IsComputed() {
+			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+		}
+
+		// Validate Default implementation. This is safe unless the framework
+		// ever allows more dynamic Default implementations at which the
+		// implementation would be required to be validated at runtime.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		defaultReq := defaults.ObjectRequest{
+			Path: req.Path,
+		}
+		defaultResp := &defaults.ObjectResponse{}
+
+		a.ObjectDefaultValue().DefaultObject(ctx, defaultReq, defaultResp)
+
+		resp.Diagnostics.Append(defaultResp.Diagnostics...)
+
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
+		if a.CustomType == nil && !a.GetType().Equal(defaultResp.PlanValue.Type(ctx)) {
+			resp.Diagnostics.Append(fwschema.AttributeDefaultTypeMismatchDiag(req.Path, a.GetType(), defaultResp.PlanValue.Type(ctx)))
+		}
+	}
 }

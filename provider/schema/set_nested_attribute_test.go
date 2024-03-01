@@ -4,14 +4,17 @@
 package schema_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -591,6 +594,58 @@ func TestSetNestedAttributeSetValidators(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.SetValidators()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetNestedAttributeValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SetNestedAttribute
+		request   fwschema.ValidateImplementationRequest
+		expected  *fwschema.ValidateImplementationResponse
+	}{
+		"nestedobject-dynamic": {
+			attribute: schema.SetNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_dyn": schema.DynamicAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &fwschema.ValidateImplementationResponse{}
+			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

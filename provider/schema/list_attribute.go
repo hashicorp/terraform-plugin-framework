@@ -203,4 +203,8 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 	if a.CustomType == nil && a.ElementType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
+
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	}
 }

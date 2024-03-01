@@ -206,4 +206,8 @@ func (a MapAttribute) ValidateImplementation(ctx context.Context, req fwschema.V
 	if a.CustomType == nil && a.ElementType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
+
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	}
 }

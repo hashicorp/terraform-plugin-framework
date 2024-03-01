@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -220,4 +221,14 @@ func (a MapNestedAttribute) IsSensitive() bool {
 // MapValidators returns the Validators field value.
 func (a MapNestedAttribute) MapValidators() []validator.Map {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	}
 }

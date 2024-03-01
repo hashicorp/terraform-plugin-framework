@@ -64,19 +64,3 @@ func AttributeDefaultTypeMismatchDiag(attributePath path.Path, expectedType attr
 			"The default value must match the type of the schema.",
 	)
 }
-
-// CollectionWithDynamicTypeDiag returns an error diagnostic to provider
-// developers when a collection type contains a dynamic type. This is not currently
-// supported in terraform-plugin-framework.
-func CollectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagnostic {
-	// The diagnostic path is intentionally omitted as it is invalid in this
-	// context. Diagnostic paths are intended to be mapped to actual data,
-	// while this path information must be synthesized.
-	return diag.NewErrorDiagnostic(
-		"Invalid Schema Implementation",
-		"When validating the schema, an implementation issue was found. "+
-			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q is a collection type that contains a dynamic type. ", attributePath)+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-	)
-}

@@ -182,13 +182,7 @@ func TestDynamicParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.DynamicParameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.DynamicParameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.DynamicParameter{

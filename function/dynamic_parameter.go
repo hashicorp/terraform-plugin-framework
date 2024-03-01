@@ -85,11 +85,7 @@ func (p DynamicParameter) GetMarkdownDescription() string {
 
 // GetName returns the parameter name.
 func (p DynamicParameter) GetName() string {
-	if p.Name != "" {
-		return p.Name
-	}
-
-	return DefaultParameterName
+	return p.Name
 }
 
 // GetType returns the parameter data type.

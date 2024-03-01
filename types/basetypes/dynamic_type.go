@@ -37,6 +37,9 @@ func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePath
 }
 
 // Equal returns true if the given type is equivalent.
+//
+// Dynamic types do not contain a reference to the underlying `attr.Value` type, so this equality check
+// only asserts that both types are DynamicType.
 func (t DynamicType) Equal(o attr.Type) bool {
 	_, ok := o.(DynamicType)
 

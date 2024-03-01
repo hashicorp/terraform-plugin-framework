@@ -149,8 +149,10 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		return target, diags
 	}
 
-	// If the attr.Type has a dynamic value, then we need to use the tftypes.Value
-	// to determine the attr.Type for the reflection logic below.
+	// If the attr.Type contains a dynamic value, then we need to use the `val` parameter
+	// to determine the correct `attr.Type` for the reflection logic below.
+	//
+	// This mutates the `typ` parameter based on the underlying `tftypes.Value`
 	dynTyp, ok := typ.(attr.TypeWithDynamicValue)
 	if ok {
 		typ = dynTyp.DetermineAttrType(val.Type())

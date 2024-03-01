@@ -17,7 +17,7 @@ var (
 )
 
 // DynamicValuable extends attr.Value for dynamic value types. Implement this interface
-// to create a custom DynamicType value type.
+// to create a custom Dynamic value type.
 type DynamicValuable interface {
 	attr.Value
 

@@ -60,8 +60,11 @@ type BoolParameter struct {
 
 	// Name is a short usage name for the parameter, such as "data". This name
 	// is used in documentation, such as generating a function signature,
-	// however its usage may be extended in the future. If no name is provided,
-	// this will default to "param".
+	// however its usage may be extended in the future.
+	//
+	// If no name is provided, this will default to "param" with a suffix of the
+	// position the parameter is in the function definition. ("param1", "param2", etc.)
+	// If the parameter is variadic, the default name will be "varparam".
 	//
 	// This must be a valid Terraform identifier, such as starting with an
 	// alphabetical character and followed by alphanumeric or underscore
@@ -91,11 +94,7 @@ func (p BoolParameter) GetMarkdownDescription() string {
 
 // GetName returns the parameter name.
 func (p BoolParameter) GetName() string {
-	if p.Name != "" {
-		return p.Name
-	}
-
-	return DefaultParameterName
+	return p.Name
 }
 
 // GetType returns the parameter data type.

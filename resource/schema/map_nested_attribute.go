@@ -275,7 +275,30 @@ func (a MapNestedAttribute) MapValidators() []validator.Map {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
-	if !a.IsComputed() && a.MapDefaultValue() != nil {
-		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	if a.MapDefaultValue() != nil {
+		if !a.IsComputed() {
+			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+		}
+
+		// Validate Default implementation. This is safe unless the framework
+		// ever allows more dynamic Default implementations at which the
+		// implementation would be required to be validated at runtime.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		defaultReq := defaults.MapRequest{
+			Path: req.Path,
+		}
+		defaultResp := &defaults.MapResponse{}
+
+		a.MapDefaultValue().DefaultMap(ctx, defaultReq, defaultResp)
+
+		resp.Diagnostics.Append(defaultResp.Diagnostics...)
+
+		if defaultResp.Diagnostics.HasError() {
+			return
+		}
+
+		if a.CustomType == nil && a.NestedObject.CustomType == nil && !a.NestedObject.Type().Equal(defaultResp.PlanValue.ElementType(ctx)) {
+			resp.Diagnostics.Append(fwschema.AttributeDefaultElementTypeMismatchDiag(req.Path, a.NestedObject.Type(), defaultResp.PlanValue.ElementType(ctx)))
+		}
 	}
 }

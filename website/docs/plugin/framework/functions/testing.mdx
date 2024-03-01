@@ -170,9 +170,9 @@ func TestEchoFunctionRun(t *testing.T) {
         // this test case shows how the function would be expected to behave.
         "null": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringNull()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringNull()}),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringNull()),
             },
         },
@@ -181,17 +181,17 @@ func TestEchoFunctionRun(t *testing.T) {
         // this test case shows how the function would be expected to behave.
         "unknown": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringUnknown()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringUnknown()}),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringUnknown()),
             },
         },
         "value-valid": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringValue("test-value")),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringValue("test-value")}),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Result: function.NewResultData(types.StringValue("test-value")),
             },
         },
@@ -200,9 +200,9 @@ func TestEchoFunctionRun(t *testing.T) {
         // it did.
         "value-invalid": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringValue()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringValue("")}),
             },
-            Expected: function.RunResponse{
+            expected: function.RunResponse{
                 Error: function.NewArgumentFuncError(0, "error summary: error detail"),
                 Result: function.NewResultData(types.StringUnknown()),
             },
@@ -215,7 +215,9 @@ func TestEchoFunctionRun(t *testing.T) {
         t.Run(name, func(t *testing.T) {
             t.Parallel()
 
-            got := function.RunResponse{}
+            got := function.RunResponse{
+                Result: function.NewResultData(types.StringUnknown()),
+            }
 
             provider.EchoFunction{}.Run(context.Background(), testCase.request, &got)
 

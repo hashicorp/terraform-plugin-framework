@@ -441,9 +441,11 @@ func TestFunctionParameter(t *testing.T) {
 			},
 		},
 		"type-dynamic": {
-			fw: function.DynamicParameter{},
+			fw: function.DynamicParameter{
+				Name: "dynamic",
+			},
 			expected: &tfprotov5.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "dynamic",
 				Type: tftypes.DynamicPseudoType,
 			},
 		},

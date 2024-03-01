@@ -253,6 +253,10 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
+	if a.ElementType != nil {
+		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.ElementType))
+	}
+
 	if a.ListDefaultValue() != nil {
 		if !a.IsComputed() {
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
@@ -278,10 +282,6 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 		if a.ElementType != nil && !a.ElementType.Equal(defaultResp.PlanValue.ElementType(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultElementTypeMismatchDiag(req.Path, a.ElementType, defaultResp.PlanValue.ElementType(ctx)))
 		}
-	}
-
-	if a.ElementType != nil {
-		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.ElementType))
 	}
 }
 

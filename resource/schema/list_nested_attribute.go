@@ -280,6 +280,11 @@ func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fws
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
 		}
 
+		// Only want to check the type for dynamics if no custom type is being used
+		if a.CustomType == nil {
+			resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.GetType()))
+		}
+
 		// Validate Default implementation. This is safe unless the framework
 		// ever allows more dynamic Default implementations at which the
 		// implementation would be required to be validated at runtime.
@@ -300,10 +305,5 @@ func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fws
 		if a.CustomType == nil && a.NestedObject.CustomType == nil && !a.NestedObject.Type().Equal(defaultResp.PlanValue.ElementType(ctx)) {
 			resp.Diagnostics.Append(fwschema.AttributeDefaultElementTypeMismatchDiag(req.Path, a.NestedObject.Type(), defaultResp.PlanValue.ElementType(ctx)))
 		}
-	}
-
-	// Only want to check the type for dynamics if no custom type is being used
-	if a.CustomType == nil {
-		resp.Diagnostics.Append(checkAttrTypeForDynamics(req.Path, a.GetType()))
 	}
 }

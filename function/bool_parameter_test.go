@@ -182,13 +182,7 @@ func TestBoolParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.BoolParameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.BoolParameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.BoolParameter{

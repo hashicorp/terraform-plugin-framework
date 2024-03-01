@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'function: Updated the default parameter name to include the position of the
+  parameter (i.e. `param1`, `param2`, etc.). Variadic parameters will default to `varparam`.'
+time: 2024-02-28T15:21:55.182389-05:00
+custom:
+  Issue: "926"

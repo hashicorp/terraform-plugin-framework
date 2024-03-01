@@ -47,11 +47,11 @@ Each [parameter type](/terraform/plugin/framework/functions/parameters), whether
 
 | Field Name | Description |
 |---|---|
-| `Name` | Single word or abbreviation of parameter for function signature generation, defaults to `param`. |
+| `Name` | Single word or abbreviation of parameter for function signature generation. If name is not provided, will default to the prefix "param" with a suffix of the position the parameter is in the function definition (e.g., `param1`, `param2`). If the parameter is variadic, the default name will be `varparam`. |
 | `Description` | Documentation about the parameter and its expected values in plaintext format. |
 | `MarkdownDescription` | Documentation about the parameter and its expected values in Markdown format. |
 
-The name is only for documentation purposes and helpful when there is a need to disambiguate between multiple parameters, such as the words `cidr` and `ip` in a generated function signature like `cidr_contains_ip(cidr string, ip string) bool`.
+The name must be unique in the context of the [function definition](/terraform/plugin/framework/functions/implementation#definition-method). It is used for documentation purposes and displayed in error diagnostics presented to practitioners. The name should delineate the purpose of the parameter, especially to disambiguate between multiple parameters, such as the words `cidr` and `ip` in a generated function signature like `cidr_contains_ip(cidr string, ip string) bool`.
 
 If there are no description formatting differences, set only one of `Description` or `MarkdownDescription`. When Terraform has not sent a preference for the description formatting, the framework will return `MarkdownDescription` if both are defined.
 

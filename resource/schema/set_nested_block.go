@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,9 +19,10 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Block                               = SetNestedBlock{}
-	_ fwxschema.BlockWithSetPlanModifiers = SetNestedBlock{}
-	_ fwxschema.BlockWithSetValidators    = SetNestedBlock{}
+	_ Block                                    = SetNestedBlock{}
+	_ fwschema.BlockWithValidateImplementation = SetNestedBlock{}
+	_ fwxschema.BlockWithSetPlanModifiers      = SetNestedBlock{}
+	_ fwxschema.BlockWithSetValidators         = SetNestedBlock{}
 )
 
 // SetNestedBlock represents a block that is a set of objects where
@@ -208,5 +210,15 @@ func (b SetNestedBlock) Type() attr.Type {
 
 	return types.SetType{
 		ElemType: b.NestedObject.Type(),
+	}
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the block to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (b SetNestedBlock) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if b.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, b.Type()))
 	}
 }

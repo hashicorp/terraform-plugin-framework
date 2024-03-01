@@ -462,6 +462,27 @@ func TestMapAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
+		"elementtype-dynamic": {
+			attribute: schema.MapAttribute{
+				Computed:    true,
+				ElementType: types.DynamicType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a collection type that contains a dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
 		"elementtype-missing": {
 			attribute: schema.MapAttribute{
 				Computed: true,

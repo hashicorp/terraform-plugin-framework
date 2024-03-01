@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -17,8 +18,9 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ NestedAttribute                       = ListNestedAttribute{}
-	_ fwxschema.AttributeWithListValidators = ListNestedAttribute{}
+	_ NestedAttribute                              = ListNestedAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = ListNestedAttribute{}
+	_ fwxschema.AttributeWithListValidators        = ListNestedAttribute{}
 )
 
 // ListNestedAttribute represents an attribute that is a list of objects where
@@ -226,4 +228,14 @@ func (a ListNestedAttribute) IsSensitive() bool {
 // ListValidators returns the Validators field value.
 func (a ListNestedAttribute) ListValidators() []validator.List {
 	return a.Validators
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	}
 }

@@ -254,6 +254,10 @@ func (a MapAttribute) ValidateImplementation(ctx context.Context, req fwschema.V
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	}
+
 	if a.MapDefaultValue() != nil {
 		if !a.IsComputed() {
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))

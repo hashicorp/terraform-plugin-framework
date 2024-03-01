@@ -189,7 +189,7 @@ func TestEchoFunctionRun(t *testing.T) {
         },
         "value-valid": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringValue("test-value")),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringValue("test-value")}),
             },
             expected: function.RunResponse{
                 Result: function.NewResultData(types.StringValue("test-value")),

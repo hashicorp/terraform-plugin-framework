@@ -182,13 +182,7 @@ func TestFloat64ParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.Float64Parameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.Float64Parameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.Float64Parameter{

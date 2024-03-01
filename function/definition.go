@@ -108,6 +108,48 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 		)
 	}
 
+	paramNames := make(map[string]int, len(d.Parameters))
+	for pos, param := range d.Parameters {
+		name := param.GetName()
+		// If name is not set, default the param name based on position: "param1", "param2", etc.
+		if name == "" {
+			name = fmt.Sprintf("%s%d", DefaultParameterNamePrefix, pos+1)
+		}
+
+		conflictPos, exists := paramNames[name]
+		if exists {
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					"Parameter names must be unique. "+
+					fmt.Sprintf("Parameters at position %d and %d have the same name %q", conflictPos, pos, name),
+			)
+			continue
+		}
+
+		paramNames[name] = pos
+	}
+
+	if d.VariadicParameter != nil {
+		name := d.VariadicParameter.GetName()
+		// If name is not set, default the variadic param name
+		if name == "" {
+			name = DefaultVariadicParameterName
+		}
+
+		conflictPos, exists := paramNames[name]
+		if exists {
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					"Parameter names must be unique. "+
+					fmt.Sprintf("Parameter at position %d and the variadic parameter have the same name %q", conflictPos, name),
+			)
+		}
+	}
+
 	return diags
 }
 

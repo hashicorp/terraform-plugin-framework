@@ -21,6 +21,7 @@ import (
 // when configRaw contains a null value at the same path.
 func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) diag.Diagnostics {
 	var diags diag.Diagnostics
+	var err error
 
 	configData := Data{
 		Description:    DataDescriptionConfiguration,
@@ -28,8 +29,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 		TerraformValue: configRaw,
 	}
 
-	// Errors are handled as richer diag.Diagnostics instead.
-	d.TerraformValue, _ = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
+	d.TerraformValue, err = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
 		fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, tfTypePath, d.Schema)
 
 		diags.Append(fwPathDiags...)
@@ -302,6 +302,16 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 
 		return tfTypeValue, nil
 	})
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+	if err != nil {
+		diags.Append(diag.NewErrorDiagnostic(
+			"Error Handling Schema Defaults",
+			"An unexpected error occurred while handling schema default values. "+
+				"Please report the following to the provider developer:\n\n"+
+				"Error: "+err.Error(),
+		))
+	}
 
 	return diags
 }

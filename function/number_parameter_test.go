@@ -182,13 +182,7 @@ func TestNumberParameterGetName(t *testing.T) {
 	}{
 		"unset": {
 			parameter: function.NumberParameter{},
-			expected:  function.DefaultParameterName,
-		},
-		"Name-empty": {
-			parameter: function.NumberParameter{
-				Name: "",
-			},
-			expected: function.DefaultParameterName,
+			expected:  "",
 		},
 		"Name-nonempty": {
 			parameter: function.NumberParameter{

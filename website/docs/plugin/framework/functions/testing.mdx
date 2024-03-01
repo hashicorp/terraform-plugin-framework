@@ -170,7 +170,7 @@ func TestEchoFunctionRun(t *testing.T) {
         // this test case shows how the function would be expected to behave.
         "null": {
             request: function.RunRequest{
-                Arguments: function.NewArgumentsData(types.StringNull()),
+                Arguments: function.NewArgumentsData([]attr.Value{types.StringNull()}),
             },
             expected: function.RunResponse{
                 Result: function.NewResultData(types.StringNull()),

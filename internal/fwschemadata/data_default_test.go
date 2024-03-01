@@ -1496,6 +1496,104 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"list-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									// intentionally incorrect element type
+									types.BoolType,
+									[]attr.Value{
+										types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{
+							ElementType: tftypes.String,
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_attribute": tftypes.List{
+							ElementType: tftypes.String,
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_attribute": tftypes.NewValue(tftypes.List{
+						ElementType: tftypes.String,
+					}, nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list_attribute": testschema.AttributeWithListDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									// intentionally incorrect element type
+									types.BoolType,
+									[]attr.Value{
+										types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_attribute": tftypes.List{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_attribute": tftypes.NewValue(tftypes.List{
+							ElementType: tftypes.String,
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"list_attribute\"): can't use tftypes.List[tftypes.Bool] as tftypes.List[tftypes.String]",
+				),
+			},
+		},
 		"list-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -1961,6 +2059,104 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"map-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									// intentionally incorrect element type
+									types.BoolType,
+									map[string]attr.Value{
+										"b": types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{
+							ElementType: tftypes.String,
+						}, map[string]tftypes.Value{
+							"a": tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_attribute": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_attribute": tftypes.NewValue(tftypes.Map{
+						ElementType: tftypes.String,
+					}, nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map_attribute": testschema.AttributeWithMapDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									// intentionally incorrect element type
+									types.BoolType,
+									map[string]attr.Value{
+										"b": types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_attribute": tftypes.Map{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_attribute": tftypes.NewValue(tftypes.Map{
+							ElementType: tftypes.String,
+						}, map[string]tftypes.Value{
+							"a": tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"map_attribute\"): can't use tftypes.Map[tftypes.Bool] as tftypes.Map[tftypes.String]",
+				),
+			},
+		},
 		"map-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -2407,6 +2603,13 @@ func TestDataDefault(t *testing.T) {
 											fmt.Sprintf("expected %s, got: %s", path.Root("object_attribute"), req.Path),
 										)
 									}
+
+									// Response value type must conform to the schema or an error will be returned.
+									resp.PlanValue = types.ObjectNull(
+										map[string]attr.Type{
+											"test_attribute": types.StringType,
+										},
+									)
 								},
 							},
 						},
@@ -2793,6 +2996,104 @@ func TestDataDefault(t *testing.T) {
 							"a": tftypes.NewValue(tftypes.String, "two"),
 						}),
 					},
+				),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"object-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional:       true,
+							AttributeTypes: map[string]attr.Type{"a": types.StringType},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									// intentionally invalid attribute types
+									map[string]attr.Type{"invalid": types.BoolType},
+									map[string]attr.Value{
+										"invalid": types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+						}, map[string]tftypes.Value{
+							"a": tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"object_attribute": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"object_attribute": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+					}, nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object_attribute": testschema.AttributeWithObjectDefaultValue{
+							Optional:       true,
+							AttributeTypes: map[string]attr.Type{"a": types.StringType},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									// intentionally invalid attribute types
+									map[string]attr.Type{"invalid": types.BoolType},
+									map[string]attr.Value{
+										"invalid": types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object_attribute": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object_attribute": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{"a": tftypes.String},
+						}, map[string]tftypes.Value{
+							"a": tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"object_attribute\"): can't use tftypes.Object[\"invalid\":tftypes.Bool] as tftypes.Object[\"a\":tftypes.String]",
 				),
 			},
 		},
@@ -3258,6 +3559,104 @@ func TestDataDefault(t *testing.T) {
 							tftypes.NewValue(tftypes.String, "two"),
 						}),
 					},
+				),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"set-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									// intentionally invalid element type
+									types.BoolType,
+									[]attr.Value{
+										types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{
+							ElementType: tftypes.String,
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_attribute": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_attribute": tftypes.NewValue(tftypes.Set{
+						ElementType: tftypes.String,
+					}, nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set_attribute": testschema.AttributeWithSetDefaultValue{
+							Optional:    true,
+							ElementType: types.StringType,
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									// intentionally invalid element type
+									types.BoolType,
+									[]attr.Value{
+										types.BoolValue(true),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_attribute": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_attribute": tftypes.NewValue(tftypes.Set{
+							ElementType: tftypes.String,
+						}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "one"),
+						}),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"set_attribute\"): can't use tftypes.Set[tftypes.Bool] as tftypes.Set[tftypes.String]",
 				),
 			},
 		},
@@ -4167,6 +4566,168 @@ func TestDataDefault(t *testing.T) {
 							},
 						),
 					},
+				),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"list-nested-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									[]attr.Value{
+										types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"list_nested": tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"list_nested": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"list_nested": testschema.NestedAttributeWithListDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: listdefault.StaticValue(
+								types.ListValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									[]attr.Value{
+										types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_nested": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_nested": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"list_nested\"): can't use tftypes.List[tftypes.String] as tftypes.List[tftypes.Object[\"string_attribute\":tftypes.String]]",
 				),
 			},
 		},
@@ -5363,6 +5924,168 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"map-nested-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									map[string]attr.Value{
+										"test-key": types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"map_nested": tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"map_nested": tftypes.NewValue(
+						tftypes.Map{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"map_nested": testschema.NestedAttributeWithMapDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: mapdefault.StaticValue(
+								types.MapValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									map[string]attr.Value{
+										"test-key": types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map_nested": tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map_nested": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"test-key": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"map_nested\"): can't use tftypes.Map[tftypes.String] as tftypes.Map[tftypes.Object[\"string_attribute\":tftypes.String]]",
+				),
+			},
+		},
 		"map-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -6556,6 +7279,168 @@ func TestDataDefault(t *testing.T) {
 				),
 			},
 		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"set-nested-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									[]attr.Value{
+										types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"set_nested": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"set_nested": tftypes.NewValue(
+						tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"set_nested": testschema.NestedAttributeWithSetDefaultValue{
+							Computed: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							Default: setdefault.StaticValue(
+								types.SetValueMust(
+									// intentionally invalid element type
+									types.StringType,
+									[]attr.Value{
+										types.StringValue("invalid"),
+									},
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set_nested": tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set_nested": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"string_attribute": tftypes.String,
+									},
+								},
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"string_attribute": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"set_nested\"): can't use tftypes.Set[tftypes.String] as tftypes.Set[tftypes.Object[\"string_attribute\":tftypes.String]]",
+				),
+			},
+		},
 		"set-nested-attribute-null-unmodified-default-nil": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionState,
@@ -7599,6 +8484,134 @@ func TestDataDefault(t *testing.T) {
 							},
 						),
 					},
+				),
+			},
+		},
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/930
+		"single-nested-attribute-null-invalid-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Computed: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									// intentionally invalid attribute types
+									map[string]attr.Type{
+										"invalid": types.BoolType,
+									},
+									map[string]attr.Value{
+										"invalid": types.BoolValue(true),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"single_nested": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+					},
+				},
+				map[string]tftypes.Value{
+					"single_nested": tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"string_attribute": tftypes.String,
+							},
+						},
+						nil,
+					),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: schema.Schema{
+					Attributes: map[string]schema.Attribute{
+						"single_nested": testschema.NestedAttributeWithObjectDefaultValue{
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"string_attribute": schema.StringAttribute{
+									Computed: true,
+								},
+							},
+							Default: objectdefault.StaticValue(
+								types.ObjectValueMust(
+									// intentionally invalid attribute types
+									map[string]attr.Type{
+										"invalid": types.BoolType,
+									},
+									map[string]attr.Value{
+										"invalid": types.BoolValue(true),
+									}),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"single_nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"single_nested": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"string_attribute": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"string_attribute": tftypes.NewValue(tftypes.String, "one"),
+							},
+						),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Error Handling Schema Defaults",
+					"An unexpected error occurred while handling schema default values. "+
+						"Please report the following to the provider developer:\n\n"+
+						"Error: AttributeName(\"single_nested\"): can't use tftypes.Object[\"invalid\":tftypes.Bool] as tftypes.Object[\"string_attribute\":tftypes.String]",
 				),
 			},
 		},

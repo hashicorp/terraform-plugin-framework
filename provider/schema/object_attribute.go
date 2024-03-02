@@ -205,4 +205,8 @@ func (a ObjectAttribute) ValidateImplementation(ctx context.Context, req fwschem
 	if a.AttributeTypes == nil && a.CustomType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingAttributeTypesDiag(req.Path))
 	}
+
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticStructuralType(req.Path, a.GetType()))
+	}
 }

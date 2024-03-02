@@ -253,6 +253,10 @@ func (a ObjectAttribute) ValidateImplementation(ctx context.Context, req fwschem
 		resp.Diagnostics.Append(fwschema.AttributeMissingAttributeTypesDiag(req.Path))
 	}
 
+	if a.CustomType == nil {
+		resp.Diagnostics.Append(fwschema.ValidateStaticStructuralType(req.Path, a.GetType()))
+	}
+
 	if a.ObjectDefaultValue() != nil {
 		if !a.IsComputed() {
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))

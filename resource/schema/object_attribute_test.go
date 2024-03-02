@@ -717,6 +717,52 @@ func TestObjectAttributeValidateImplementation(t *testing.T) {
 				},
 			},
 		},
+		"attributetypes-dynamic": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.DynamicType,
+					"test_list": types.ListType{
+						ElemType: types.StringType,
+					},
+					"test_obj": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"test_attr": types.DynamicType,
+						},
+					},
+				},
+				Computed: true,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"attributetypes-nested-collection-dynamic": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.ListType{
+						ElemType: types.DynamicType,
+					},
+				},
+				Computed: true,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

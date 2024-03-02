@@ -11,6 +11,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
+// ValidateStaticStructuralType will return diagnostics if an attr.Type is a structural type (object or tuple) that contains
+// any collection types with dynamic types, which are not supported by the framework type system.
+//
+// Unsupported collection types include:
+//   - Lists that contain a dynamic type
+//   - Maps that contain a dynamic type
+//   - Sets that contain a dynamic type
+func ValidateStaticStructuralType(attrPath path.Path, typ attr.Type) diag.Diagnostic {
+	switch attrType := typ.(type) {
+	// Dynamic types in an object are allowed
+	case attr.TypeWithDynamicValue:
+		return nil
+	// Lists, maps, sets
+	case attr.TypeWithElementType:
+		return ValidateStaticCollectionType(attrPath, attrType.ElementType())
+	// Tuples
+	case attr.TypeWithElementTypes:
+		for _, elemType := range attrType.ElementTypes() {
+			diag := ValidateStaticStructuralType(attrPath, elemType)
+			if diag != nil {
+				return diag
+			}
+		}
+		return nil
+	// Objects
+	case attr.TypeWithAttributeTypes:
+		for _, objAttrType := range attrType.AttributeTypes() {
+			diag := ValidateStaticStructuralType(attrPath, objAttrType)
+			if diag != nil {
+				return diag
+			}
+		}
+		return nil
+	// Missing or unsupported type
+	default:
+		return nil
+	}
+}
+
 // ValidateStaticCollectionType will return diagnostics if an attr.Type is a collection type that contains
 // any dynamic types, which are not supported by the framework type system.
 //
@@ -20,6 +59,7 @@ import (
 //   - Sets that contain a dynamic type
 func ValidateStaticCollectionType(attrPath path.Path, typ attr.Type) diag.Diagnostic {
 	switch attrType := typ.(type) {
+	// Dynamic types in a collection are not allowed, return diagnostic
 	case attr.TypeWithDynamicValue:
 		return collectionWithDynamicTypeDiag(attrPath)
 	// Lists, maps, sets
@@ -57,7 +97,7 @@ func collectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagnostic {
 		"Invalid Schema Implementation",
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q is a collection type that contains a dynamic type. ", attributePath)+
+			fmt.Sprintf("%q is an attribute that contains a collection type with a nested dynamic type. ", attributePath)+
 			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 	)
 }

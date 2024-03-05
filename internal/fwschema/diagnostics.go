@@ -6,6 +6,7 @@ package fwschema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -41,5 +42,25 @@ func AttributeMissingElementTypeDiag(attributePath path.Path) diag.Diagnostic {
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 			fmt.Sprintf("%q is missing the CustomType or ElementType field on a collection Attribute. ", attributePath)+
 			"One of these fields is required to prevent other unexpected errors or panics.",
+	)
+}
+
+func AttributeDefaultElementTypeMismatchDiag(attributePath path.Path, expectedElementType attr.Type, actualElementType attr.Type) diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Attribute Implementation",
+		"When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("%q has a default value of element type %q, but the schema expects a type of %q. ", attributePath, actualElementType, expectedElementType)+
+			"The default value must match the type of the schema.",
+	)
+}
+
+func AttributeDefaultTypeMismatchDiag(attributePath path.Path, expectedType attr.Type, actualType attr.Type) diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Attribute Implementation",
+		"When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("%q has a default value of type %q, but the schema expects a type of %q. ", attributePath, actualType, expectedType)+
+			"The default value must match the type of the schema.",
 	)
 }

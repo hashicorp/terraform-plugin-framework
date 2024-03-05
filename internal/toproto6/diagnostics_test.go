@@ -8,11 +8,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestDiagnosticSeverity(t *testing.T) {
@@ -89,26 +90,6 @@ func TestDiagnostics(t *testing.T) {
 					Detail:   "two detail",
 					Severity: tfprotov6.DiagnosticSeverityWarning,
 					Summary:  "two summary",
-				},
-			},
-		},
-		"DiagnosticWithFunctionArgument": {
-			diags: diag.Diagnostics{
-				diag.NewArgumentErrorDiagnostic(1, "one summary", "one detail"),
-				diag.NewArgumentWarningDiagnostic(2, "two summary", "two detail"),
-			},
-			expected: []*tfprotov6.Diagnostic{
-				{
-					Detail:           "one detail",
-					FunctionArgument: pointer(int64(1)),
-					Severity:         tfprotov6.DiagnosticSeverityError,
-					Summary:          "one summary",
-				},
-				{
-					Detail:           "two detail",
-					FunctionArgument: pointer(int64(2)),
-					Severity:         tfprotov6.DiagnosticSeverityWarning,
-					Summary:          "two summary",
 				},
 			},
 		},

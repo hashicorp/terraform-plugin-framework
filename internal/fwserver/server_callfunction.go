@@ -6,7 +6,6 @@ package fwserver
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
@@ -22,8 +21,8 @@ type CallFunctionRequest struct {
 // CallFunctionResponse is the framework server response for the
 // CallFunction RPC.
 type CallFunctionResponse struct {
-	Diagnostics diag.Diagnostics
-	Result      function.ResultData
+	Error  *function.FuncError
+	Result function.ResultData
 }
 
 // CallFunction implements the framework server CallFunction RPC.
@@ -32,11 +31,11 @@ func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, res
 		return
 	}
 
-	resultData, diags := req.FunctionDefinition.Return.NewResultData(ctx)
+	resultData, err := req.FunctionDefinition.Return.NewResultData(ctx)
 
-	resp.Diagnostics.Append(diags...)
+	resp.Error = function.ConcatFuncErrors(resp.Error, err)
 
-	if resp.Diagnostics.HasError() {
+	if resp.Error != nil {
 		return
 	}
 
@@ -51,6 +50,7 @@ func (s *Server) CallFunction(ctx context.Context, req *CallFunctionRequest, res
 	req.Function.Run(ctx, runReq, &runResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Run")
 
-	resp.Diagnostics = runResp.Diagnostics
+	resp.Error = function.ConcatFuncErrors(resp.Error, runResp.Error)
+
 	resp.Result = runResp.Result
 }

@@ -6,11 +6,13 @@ package proto6server
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // CallFunction satisfies the tfprotov6.ProviderServer interface.
@@ -20,27 +22,30 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov6.CallFunct
 
 	fwResp := &fwserver.CallFunctionResponse{}
 
-	function, diags := s.FrameworkServer.Function(ctx, protoReq.Name)
+	serverFunction, err := s.FrameworkServer.Function(ctx, protoReq.Name)
 
-	fwResp.Diagnostics.Append(diags...)
+	fwResp.Error = err
 
-	if fwResp.Diagnostics.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	functionDefinition, diags := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
+	functionDefinition, err := s.FrameworkServer.FunctionDefinition(ctx, protoReq.Name)
 
-	fwResp.Diagnostics.Append(diags...)
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, err)
 
-	if fwResp.Diagnostics.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, function, functionDefinition)
+	fwReq, diags := fromproto6.CallFunctionRequest(ctx, protoReq, serverFunction, functionDefinition)
 
-	fwResp.Diagnostics.Append(diags...)
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, function.FuncErrorFromDiags(ctx, diags))
 
-	if fwResp.Diagnostics.HasError() {
+	if fwResp.Error != nil {
+		//nolint:nilerr // error is assigned to fwResp.Error
 		return toproto6.CallFunctionResponse(ctx, fwResp), nil
 	}
 

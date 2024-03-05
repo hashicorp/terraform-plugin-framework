@@ -14,26 +14,25 @@ import (
 )
 
 // Function returns the Function for a given name.
-func (s *Server) Function(ctx context.Context, name string) (function.Function, diag.Diagnostics) {
+func (s *Server) Function(ctx context.Context, name string) (function.Function, *function.FuncError) {
 	functionFuncs, diags := s.FunctionFuncs(ctx)
+
+	funcErr := function.FuncErrorFromDiags(ctx, diags)
 
 	functionFunc, ok := functionFuncs[name]
 
 	if !ok {
-		diags.AddError(
-			"Function Not Found",
-			fmt.Sprintf("No function named %q was found in the provider.", name),
-		)
+		funcErr = function.ConcatFuncErrors(funcErr, function.NewFuncError(fmt.Sprintf("Function Not Found: No function named %q was found in the provider.", name)))
 
-		return nil, diags
+		return nil, funcErr
 	}
 
-	return functionFunc(), diags
+	return functionFunc(), nil
 }
 
 // FunctionDefinition returns the Function Definition for the given name and
 // caches the result for later Function operations.
-func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, diag.Diagnostics) {
+func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.Definition, *function.FuncError) {
 	s.functionDefinitionsMutex.RLock()
 	functionDefinition, ok := s.functionDefinitions[name]
 	s.functionDefinitionsMutex.RUnlock()
@@ -42,14 +41,10 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 		return functionDefinition, nil
 	}
 
-	var diags diag.Diagnostics
+	functionImpl, funcErr := s.Function(ctx, name)
 
-	functionImpl, functionDiags := s.Function(ctx, name)
-
-	diags.Append(functionDiags...)
-
-	if diags.HasError() {
-		return function.Definition{}, diags
+	if funcErr != nil {
+		return function.Definition{}, funcErr
 	}
 
 	definitionReq := function.DefinitionRequest{}
@@ -59,10 +54,10 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 	functionImpl.Definition(ctx, definitionReq, &definitionResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Function Definition method", map[string]interface{}{logging.KeyFunctionName: name})
 
-	diags.Append(definitionResp.Diagnostics...)
+	funcErr = function.ConcatFuncErrors(funcErr, function.FuncErrorFromDiags(ctx, definitionResp.Diagnostics))
 
-	if diags.HasError() {
-		return definitionResp.Definition, diags
+	if funcErr != nil {
+		return definitionResp.Definition, funcErr
 	}
 
 	s.functionDefinitionsMutex.Lock()
@@ -75,7 +70,7 @@ func (s *Server) FunctionDefinition(ctx context.Context, name string) (function.
 
 	s.functionDefinitionsMutex.Unlock()
 
-	return definitionResp.Definition, diags
+	return definitionResp.Definition, funcErr
 }
 
 // FunctionDefinitions returns a map of Function Definitions for the

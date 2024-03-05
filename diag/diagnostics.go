@@ -13,18 +13,6 @@ import (
 // or consistent.
 type Diagnostics []Diagnostic
 
-// AddArgumentError adds a generic function argument error diagnostic to the
-// collection.
-func (diags *Diagnostics) AddArgumentError(position int, summary string, detail string) {
-	diags.Append(NewArgumentErrorDiagnostic(position, summary, detail))
-}
-
-// AddArgumentWarning adds a function argument warning diagnostic to the
-// collection.
-func (diags *Diagnostics) AddArgumentWarning(position int, summary string, detail string) {
-	diags.Append(NewArgumentWarningDiagnostic(position, summary, detail))
-}
-
 // AddAttributeError adds a generic attribute error diagnostic to the collection.
 func (diags *Diagnostics) AddAttributeError(path path.Path, summary string, detail string) {
 	diags.Append(NewAttributeErrorDiagnostic(path, summary, detail))
@@ -55,12 +43,7 @@ func (diags *Diagnostics) Append(in ...Diagnostic) {
 		if diags.Contains(diag) {
 			continue
 		}
-
-		if diags == nil {
-			*diags = Diagnostics{diag}
-		} else {
-			*diags = append(*diags, diag)
-		}
+		*diags = append(*diags, diag)
 	}
 }
 

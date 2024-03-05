@@ -42,6 +42,14 @@ func resourceExample() *schema.Resource {
 In the Framework, you set default values with the `Default` field on your attribute's definition.
 
 ```go
+import (
+  "context"
+
+  "github.com/hashicorp/terraform-plugin-framework/resource"
+  "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+  "github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+)
+
 func (r *resourceExample) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         /* ... */

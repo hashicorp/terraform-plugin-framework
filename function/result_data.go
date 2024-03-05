@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	fwreflect "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
@@ -32,20 +31,18 @@ func (d ResultData) Equal(o ResultData) bool {
 
 // Set saves the result data. The value type must be acceptable for the data
 // type in the result definition.
-func (d *ResultData) Set(ctx context.Context, value any) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+func (d *ResultData) Set(ctx context.Context, value any) *FuncError {
 	reflectValue, reflectDiags := fwreflect.FromValue(ctx, d.value.Type(ctx), value, path.Empty())
 
-	diags.Append(reflectDiags...)
+	funcErr := FuncErrorFromDiags(ctx, reflectDiags)
 
-	if diags.HasError() {
-		return diags
+	if funcErr != nil {
+		return funcErr
 	}
 
 	d.value = reflectValue
 
-	return diags
+	return nil
 }
 
 // Value returns the saved value.

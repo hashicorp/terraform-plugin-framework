@@ -8,14 +8,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestFunction(t *testing.T) {
@@ -69,26 +69,108 @@ func TestFunction(t *testing.T) {
 		"parameters": {
 			fw: function.Definition{
 				Parameters: []function.Parameter{
-					function.BoolParameter{},
-					function.Int64Parameter{},
-					function.StringParameter{},
+					function.BoolParameter{
+						Name: "bool",
+					},
+					function.Int64Parameter{
+						Name: "int64",
+					},
+					function.StringParameter{
+						Name: "string",
+					},
 				},
 				Return: function.StringReturn{},
 			},
 			expected: &tfprotov6.Function{
 				Parameters: []*tfprotov6.FunctionParameter{
 					{
-						Name: function.DefaultParameterName,
+						Name: "bool",
 						Type: tftypes.Bool,
 					},
 					{
-						Name: function.DefaultParameterName,
+						Name: "int64",
 						Type: tftypes.Number,
 					},
 					{
-						Name: function.DefaultParameterName,
+						Name: "string",
 						Type: tftypes.String,
 					},
+				},
+				Return: &tfprotov6.FunctionReturn{
+					Type: tftypes.String,
+				},
+			},
+		},
+		"parameters-with-variadic": {
+			fw: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						Name: "bool",
+					},
+					function.Int64Parameter{
+						Name: "int64",
+					},
+					function.StringParameter{
+						Name: "string",
+					},
+				},
+				VariadicParameter: function.Float64Parameter{
+					Name: "variadic_float64",
+				},
+				Return: function.StringReturn{},
+			},
+			expected: &tfprotov6.Function{
+				Parameters: []*tfprotov6.FunctionParameter{
+					{
+						Name: "bool",
+						Type: tftypes.Bool,
+					},
+					{
+						Name: "int64",
+						Type: tftypes.Number,
+					},
+					{
+						Name: "string",
+						Type: tftypes.String,
+					},
+				},
+				VariadicParameter: &tfprotov6.FunctionParameter{
+					Name: "variadic_float64",
+					Type: tftypes.Number,
+				},
+				Return: &tfprotov6.FunctionReturn{
+					Type: tftypes.String,
+				},
+			},
+		},
+		"parameters-defaults": {
+			fw: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.Int64Parameter{},
+					function.StringParameter{},
+				},
+				VariadicParameter: function.Float64Parameter{},
+				Return:            function.StringReturn{},
+			},
+			expected: &tfprotov6.Function{
+				Parameters: []*tfprotov6.FunctionParameter{
+					{
+						Name: "param1",
+						Type: tftypes.Bool,
+					},
+					{
+						Name: "param2",
+						Type: tftypes.Number,
+					},
+					{
+						Name: "param3",
+						Type: tftypes.String,
+					},
+				},
+				VariadicParameter: &tfprotov6.FunctionParameter{
+					Name: function.DefaultVariadicParameterName,
+					Type: tftypes.Number,
 				},
 				Return: &tfprotov6.FunctionReturn{
 					Type: tftypes.String,
@@ -130,7 +212,7 @@ func TestFunction(t *testing.T) {
 					Type: tftypes.String,
 				},
 				VariadicParameter: &tfprotov6.FunctionParameter{
-					Name: function.DefaultParameterName,
+					Name: function.DefaultVariadicParameterName,
 					Type: tftypes.String,
 				},
 			},
@@ -197,43 +279,47 @@ func TestFunctionParameter(t *testing.T) {
 		},
 		"allownullvalue": {
 			fw: function.BoolParameter{
+				Name:           "bool",
 				AllowNullValue: true,
 			},
 			expected: &tfprotov6.FunctionParameter{
 				AllowNullValue: true,
-				Name:           function.DefaultParameterName,
+				Name:           "bool",
 				Type:           tftypes.Bool,
 			},
 		},
-		"allowunknownvalue": {
+		"allowunknownvalues": {
 			fw: function.BoolParameter{
+				Name:               "bool",
 				AllowUnknownValues: true,
 			},
 			expected: &tfprotov6.FunctionParameter{
 				AllowUnknownValues: true,
-				Name:               function.DefaultParameterName,
+				Name:               "bool",
 				Type:               tftypes.Bool,
 			},
 		},
 		"description": {
 			fw: function.BoolParameter{
+				Name:        "bool",
 				Description: "test description",
 			},
 			expected: &tfprotov6.FunctionParameter{
 				Description:     "test description",
 				DescriptionKind: tfprotov6.StringKindPlain,
-				Name:            function.DefaultParameterName,
+				Name:            "bool",
 				Type:            tftypes.Bool,
 			},
 		},
 		"description-markdown": {
 			fw: function.BoolParameter{
+				Name:                "bool",
 				MarkdownDescription: "test description",
 			},
 			expected: &tfprotov6.FunctionParameter{
 				Description:     "test description",
 				DescriptionKind: tfprotov6.StringKindMarkdown,
-				Name:            function.DefaultParameterName,
+				Name:            "bool",
 				Type:            tftypes.Bool,
 			},
 		},
@@ -246,33 +332,47 @@ func TestFunctionParameter(t *testing.T) {
 				Type: tftypes.Bool,
 			},
 		},
-		"type-bool": {
+		"name-empty": {
 			fw: function.BoolParameter{},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "", // default is applied by the toproto6.Function method
+				Type: tftypes.Bool,
+			},
+		},
+		"type-bool": {
+			fw: function.BoolParameter{
+				Name: "bool",
+			},
+			expected: &tfprotov6.FunctionParameter{
+				Name: "bool",
 				Type: tftypes.Bool,
 			},
 		},
 		"type-float64": {
-			fw: function.Float64Parameter{},
+			fw: function.Float64Parameter{
+				Name: "float64",
+			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "float64",
 				Type: tftypes.Number,
 			},
 		},
 		"type-int64": {
-			fw: function.Int64Parameter{},
+			fw: function.Int64Parameter{
+				Name: "int64",
+			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "int64",
 				Type: tftypes.Number,
 			},
 		},
 		"type-list": {
 			fw: function.ListParameter{
+				Name:        "list",
 				ElementType: basetypes.StringType{},
 			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "list",
 				Type: tftypes.List{
 					ElementType: tftypes.String,
 				},
@@ -280,24 +380,28 @@ func TestFunctionParameter(t *testing.T) {
 		},
 		"type-map": {
 			fw: function.MapParameter{
+				Name:        "map",
 				ElementType: basetypes.StringType{},
 			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "map",
 				Type: tftypes.Map{
 					ElementType: tftypes.String,
 				},
 			},
 		},
 		"type-number": {
-			fw: function.NumberParameter{},
+			fw: function.NumberParameter{
+				Name: "number",
+			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "number",
 				Type: tftypes.Number,
 			},
 		},
 		"type-object": {
 			fw: function.ObjectParameter{
+				Name: "object",
 				AttributeTypes: map[string]attr.Type{
 					"bool":   basetypes.BoolType{},
 					"int64":  basetypes.Int64Type{},
@@ -305,7 +409,7 @@ func TestFunctionParameter(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "object",
 				Type: tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"bool":   tftypes.Bool,
@@ -317,19 +421,22 @@ func TestFunctionParameter(t *testing.T) {
 		},
 		"type-set": {
 			fw: function.SetParameter{
+				Name:        "set",
 				ElementType: basetypes.StringType{},
 			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "set",
 				Type: tftypes.Set{
 					ElementType: tftypes.String,
 				},
 			},
 		},
 		"type-string": {
-			fw: function.StringParameter{},
+			fw: function.StringParameter{
+				Name: "string",
+			},
 			expected: &tfprotov6.FunctionParameter{
-				Name: function.DefaultParameterName,
+				Name: "string",
 				Type: tftypes.String,
 			},
 		},
@@ -388,24 +495,24 @@ func TestFunctionResultData(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		fw                  function.ResultData
-		expected            *tfprotov6.DynamicValue
-		expectedDiagnostics diag.Diagnostics
+		fw          function.ResultData
+		expected    *tfprotov6.DynamicValue
+		expectedErr *function.FuncError
 	}{
 		"empty": {
-			fw:                  function.ResultData{},
-			expected:            nil,
-			expectedDiagnostics: nil,
+			fw:          function.ResultData{},
+			expected:    nil,
+			expectedErr: nil,
 		},
 		"value-nil": {
-			fw:                  function.NewResultData(nil),
-			expected:            nil,
-			expectedDiagnostics: nil,
+			fw:          function.NewResultData(nil),
+			expected:    nil,
+			expectedErr: nil,
 		},
 		"value": {
-			fw:                  function.NewResultData(basetypes.NewBoolValue(true)),
-			expected:            DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
-			expectedDiagnostics: nil,
+			fw:          function.NewResultData(basetypes.NewBoolValue(true)),
+			expected:    DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			expectedErr: nil,
 		},
 	}
 
@@ -421,7 +528,7 @@ func TestFunctionResultData(t *testing.T) {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedErr); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

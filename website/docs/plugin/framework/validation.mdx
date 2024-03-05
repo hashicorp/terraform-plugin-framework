@@ -264,7 +264,7 @@ func (t computeInstanceIdentifierType) Validate(ctx context.Context, tfValue tft
         diags.AddAttributeError(
             path,
             "Compute Instance Type Validation Error",
-            fmt.Sprintf("Expected String value, received %T with value: %v", in, in),
+            fmt.Sprintf("Expected String value, received %T with value: %v", tfValue, tfValue),
         )
         return diags
     }

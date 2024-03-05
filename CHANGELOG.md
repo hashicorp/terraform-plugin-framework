@@ -1,3 +1,15 @@
+## 1.6.1 (March 05, 2024)
+
+NOTES:
+
+* all: The `v1.6.0` release updated this Go module to Go 1.21 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.21 release notes](https://go.dev/doc/go1.21) before upgrading. Any consumers building on earlier Go versions may experience errors ([#937](https://github.com/hashicorp/terraform-plugin-framework/issues/937))
+
+BUG FIXES:
+
+* resource/schema: Ensured invalid attribute default value errors are raised ([#930](https://github.com/hashicorp/terraform-plugin-framework/issues/930))
+* function: Added implementation validation to `function.Definition` to ensure all parameter names (including the variadic parameter) are unique. ([#926](https://github.com/hashicorp/terraform-plugin-framework/issues/926))
+* function: Updated the default parameter name to include the position of the parameter (i.e. `param1`, `param2`, etc.). Variadic parameters will default to `varparam`. ([#926](https://github.com/hashicorp/terraform-plugin-framework/issues/926))
+
 ## 1.6.0 (February 28, 2024)
 
 BREAKING CHANGES:

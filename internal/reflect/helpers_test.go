@@ -4,10 +4,73 @@
 package reflect
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
+
+type SimpleStruct struct {
+	Field1 string `tfsdk:"field1"`
+	Field2 int    `tfsdk:"field2"`
+	Field3 bool   `tfsdk:"field3"`
+}
+
+type ComplexStruct struct {
+	SimpleStruct
+	Field4 string `tfsdk:"field4"`
+}
+
+func TestGetStructTags(t *testing.T) {
+	t.Parallel()
+	ctx := context.TODO()
+	tests := []struct {
+		name          string
+		in            interface{}
+		expectedTags  map[string]int
+		expectedError string
+	}{
+		{
+			name: "SimpleStruct",
+			in:   SimpleStruct{},
+			expectedTags: map[string]int{
+				"field1": 0,
+				"field2": 1,
+				"field3": 2,
+			},
+			expectedError: "",
+		},
+		{
+			name: "ComplexStruct",
+			in:   ComplexStruct{},
+			expectedTags: map[string]int{
+				"field1": 0,
+				"field2": 1,
+				"field3": 2,
+				"field4": 1,
+			},
+			expectedError: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tags, err := getStructTags(ctx, reflect.ValueOf(tc.in), path.Empty())
+			if tc.expectedError != "" {
+				t.Errorf("Expected Error: %q, got: %q", tc.expectedError, err)
+			} else {
+				for i := range tc.expectedTags {
+					_, ok := tags[i]
+					if !ok {
+						t.Errorf("Expected Tag: %q", i)
+					}
+				}
+			}
+		})
+	}
+}
 
 func TestTrueReflectValue(t *testing.T) {
 	t.Parallel()

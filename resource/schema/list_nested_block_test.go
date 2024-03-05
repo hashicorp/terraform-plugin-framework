@@ -558,7 +558,7 @@ func TestListNestedBlockValidateImplementation(t *testing.T) {
 						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
+							"\"test\" is a block that contains a collection type with a nested dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},

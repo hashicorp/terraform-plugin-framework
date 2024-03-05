@@ -251,8 +251,8 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
-	if a.CustomType == nil {
-		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	if a.CustomType == nil && fwschema.CollectionTypeContainsDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwschema.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 
 	if a.ListDefaultValue() != nil {

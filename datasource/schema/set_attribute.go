@@ -209,7 +209,7 @@ func (a SetAttribute) ValidateImplementation(ctx context.Context, req fwschema.V
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
-	if a.CustomType == nil {
-		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	if a.CustomType == nil && fwschema.CollectionTypeContainsDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwschema.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 }

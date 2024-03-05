@@ -270,8 +270,8 @@ func (a SetNestedAttribute) SetValidators() []validator.Set {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (a SetNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
-	if a.CustomType == nil {
-		resp.Diagnostics.Append(fwschema.ValidateStaticCollectionType(req.Path, a.GetType()))
+	if a.CustomType == nil && fwschema.CollectionTypeContainsDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwschema.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 
 	if a.SetDefaultValue() != nil {

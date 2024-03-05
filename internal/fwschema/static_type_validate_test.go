@@ -8,27 +8,28 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestValidateStaticStructuralType(t *testing.T) {
+func TestStructuralTypeContainsDynamic(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		attrTyp  attr.Type
-		expected diag.Diagnostic
+		expected bool
 	}{
 		"nil": {
-			attrTyp: nil,
+			attrTyp:  nil,
+			expected: false,
 		},
 		"dynamic": {
-			attrTyp: types.DynamicType,
+			attrTyp:  types.DynamicType,
+			expected: false,
 		},
 		"primitive": {
-			attrTyp: types.StringType,
+			attrTyp:  types.StringType,
+			expected: false,
 		},
 		"obj-list-missing": {
 			attrTyp: types.ObjectType{
@@ -36,6 +37,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					"list": types.ListType{},
 				},
 			},
+			expected: false,
 		},
 		"obj-list-static": {
 			attrTyp: types.ObjectType{
@@ -45,6 +47,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-list-list-static": {
 			attrTyp: types.ObjectType{
@@ -56,6 +59,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-list-obj-static": {
 			attrTyp: types.ObjectType{
@@ -70,6 +74,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-list-tuple-static": {
 			attrTyp: types.ObjectType{
@@ -84,6 +89,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-list-dynamic": {
 			attrTyp: types.ObjectType{
@@ -93,13 +99,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-list-list-dynamic": {
 			attrTyp: types.ObjectType{
@@ -111,13 +111,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-list-obj-dynamic": {
 			attrTyp: types.ObjectType{
@@ -132,13 +126,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-list-tuple-dynamic": {
 			attrTyp: types.ObjectType{
@@ -153,13 +141,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-map-missing": {
 			attrTyp: types.ObjectType{
@@ -167,6 +149,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					"map": types.MapType{},
 				},
 			},
+			expected: false,
 		},
 		"obj-map-static": {
 			attrTyp: types.ObjectType{
@@ -176,6 +159,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-map-map-static": {
 			attrTyp: types.ObjectType{
@@ -187,6 +171,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-map-obj-static": {
 			attrTyp: types.ObjectType{
@@ -201,6 +186,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-map-tuple-static": {
 			attrTyp: types.ObjectType{
@@ -215,6 +201,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-map-dynamic": {
 			attrTyp: types.ObjectType{
@@ -224,13 +211,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-map-map-dynamic": {
 			attrTyp: types.ObjectType{
@@ -242,13 +223,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-map-obj-dynamic": {
 			attrTyp: types.ObjectType{
@@ -263,13 +238,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-map-tuple-dynamic": {
 			attrTyp: types.ObjectType{
@@ -284,13 +253,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-set-missing": {
 			attrTyp: types.ObjectType{
@@ -298,6 +261,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					"set": types.SetType{},
 				},
 			},
+			expected: false,
 		},
 		"obj-set-static": {
 			attrTyp: types.ObjectType{
@@ -307,6 +271,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-set-set-static": {
 			attrTyp: types.ObjectType{
@@ -318,6 +283,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-set-obj-static": {
 			attrTyp: types.ObjectType{
@@ -332,6 +298,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-set-tuple-static": {
 			attrTyp: types.ObjectType{
@@ -346,6 +313,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"obj-set-dynamic": {
 			attrTyp: types.ObjectType{
@@ -355,13 +323,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-set-set-dynamic": {
 			attrTyp: types.ObjectType{
@@ -373,13 +335,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-set-obj-dynamic": {
 			attrTyp: types.ObjectType{
@@ -394,13 +350,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"obj-set-tuple-dynamic": {
 			attrTyp: types.ObjectType{
@@ -415,13 +365,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 	}
 	for name, testCase := range testCases {
@@ -429,7 +373,7 @@ func TestValidateStaticStructuralType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fwschema.ValidateStaticStructuralType(path.Root("test"), testCase.attrTyp)
+			got := fwschema.StructuralTypeContainsDynamic(testCase.attrTyp)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -437,26 +381,30 @@ func TestValidateStaticStructuralType(t *testing.T) {
 		})
 	}
 }
-func TestValidateStaticCollectionType(t *testing.T) {
+func TestCollectionTypeContainsDynamic(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		attrTyp  attr.Type
-		expected diag.Diagnostic
+		expected bool
 	}{
 		"nil": {
-			attrTyp: nil,
+			attrTyp:  nil,
+			expected: false,
 		},
 		"primitive": {
-			attrTyp: types.StringType,
+			attrTyp:  types.StringType,
+			expected: false,
 		},
 		"list-missing": {
-			attrTyp: types.ListType{},
+			attrTyp:  types.ListType{},
+			expected: false,
 		},
 		"list-static": {
 			attrTyp: types.ListType{
 				ElemType: types.StringType,
 			},
+			expected: false,
 		},
 		"list-list-static": {
 			attrTyp: types.ListType{
@@ -464,6 +412,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.StringType,
 				},
 			},
+			expected: false,
 		},
 		"list-obj-static": {
 			attrTyp: types.ListType{
@@ -474,6 +423,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"list-tuple-static": {
 			attrTyp: types.ListType{
@@ -484,18 +434,13 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"list-dynamic": {
 			attrTyp: types.ListType{
 				ElemType: types.DynamicType,
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"list-list-dynamic": {
 			attrTyp: types.ListType{
@@ -503,13 +448,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.DynamicType,
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"list-obj-dynamic": {
 			attrTyp: types.ListType{
@@ -520,13 +459,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"list-tuple-dynamic": {
 			attrTyp: types.ListType{
@@ -537,21 +470,17 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"map-missing": {
-			attrTyp: types.MapType{},
+			attrTyp:  types.MapType{},
+			expected: false,
 		},
 		"map-static": {
 			attrTyp: types.MapType{
 				ElemType: types.StringType,
 			},
+			expected: false,
 		},
 		"map-map-static": {
 			attrTyp: types.MapType{
@@ -559,6 +488,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.StringType,
 				},
 			},
+			expected: false,
 		},
 		"map-obj-static": {
 			attrTyp: types.MapType{
@@ -569,6 +499,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"map-tuple-static": {
 			attrTyp: types.MapType{
@@ -579,18 +510,13 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"map-dynamic": {
 			attrTyp: types.MapType{
 				ElemType: types.DynamicType,
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"map-map-dynamic": {
 			attrTyp: types.MapType{
@@ -598,13 +524,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.DynamicType,
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"map-obj-dynamic": {
 			attrTyp: types.MapType{
@@ -615,13 +535,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"map-tuple-dynamic": {
 			attrTyp: types.MapType{
@@ -632,21 +546,17 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"set-missing": {
-			attrTyp: types.SetType{},
+			attrTyp:  types.SetType{},
+			expected: false,
 		},
 		"set-static": {
 			attrTyp: types.SetType{
 				ElemType: types.StringType,
 			},
+			expected: false,
 		},
 		"set-set-static": {
 			attrTyp: types.SetType{
@@ -654,6 +564,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.StringType,
 				},
 			},
+			expected: false,
 		},
 		"set-obj-static": {
 			attrTyp: types.SetType{
@@ -664,6 +575,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"set-tuple-static": {
 			attrTyp: types.SetType{
@@ -674,18 +586,13 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
+			expected: false,
 		},
 		"set-dynamic": {
 			attrTyp: types.SetType{
 				ElemType: types.DynamicType,
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"set-set-dynamic": {
 			attrTyp: types.SetType{
@@ -693,13 +600,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					ElemType: types.DynamicType,
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"set-obj-dynamic": {
 			attrTyp: types.SetType{
@@ -710,13 +611,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 		"set-tuple-dynamic": {
 			attrTyp: types.SetType{
@@ -727,13 +622,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 					},
 				},
 			},
-			expected: diag.NewErrorDiagnostic(
-				"Invalid Schema Implementation",
-				"When validating the schema, an implementation issue was found. "+
-					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-					"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
-			),
+			expected: true,
 		},
 	}
 	for name, testCase := range testCases {
@@ -741,7 +630,7 @@ func TestValidateStaticCollectionType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fwschema.ValidateStaticCollectionType(path.Root("test"), testCase.attrTyp)
+			got := fwschema.CollectionTypeContainsDynamic(testCase.attrTyp)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

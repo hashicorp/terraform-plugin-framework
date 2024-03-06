@@ -121,7 +121,7 @@ func (p ObjectParameter) GetType() attr.Type {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p ObjectParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
-	if p.CustomType == nil && fwschema.StructuralTypeContainsDynamic(p.GetType()) {
+	if p.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(p.GetType()) {
 		resp.Diagnostics.Append(fwschema.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
 	}
 }

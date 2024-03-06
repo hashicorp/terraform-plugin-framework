@@ -253,7 +253,7 @@ func (a ObjectAttribute) ValidateImplementation(ctx context.Context, req fwschem
 		resp.Diagnostics.Append(fwschema.AttributeMissingAttributeTypesDiag(req.Path))
 	}
 
-	if a.CustomType == nil && fwschema.StructuralTypeContainsDynamic(a.GetType()) {
+	if a.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwschema.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 

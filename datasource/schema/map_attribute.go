@@ -214,7 +214,7 @@ func (a MapAttribute) ValidateImplementation(ctx context.Context, req fwschema.V
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
-	if a.CustomType == nil && fwschema.CollectionTypeContainsDynamic(a.GetType()) {
+	if a.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwschema.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 }

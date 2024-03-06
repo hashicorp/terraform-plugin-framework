@@ -11,27 +11,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-// TODO: Both of these functions should likely move to a different package, but not sure which? attr?
+// TODO: This function should likely move to a different package, but not sure which? attr?
 
-// StructuralTypeContainsDynamic will return true if an attr.Type is a structural type (object or tuple) that contains
-// any collection types with dynamic types, which are not supported by the framework type system.
+// TypeContainsCollectionWithDynamic will return true if an attr.Type is a complex type that either is or contains any
+// collection types with dynamic types, which are not supported by the framework type system. Primitives or invalid
+// types (missing) will return false.
 //
 // Unsupported collection types include:
 //   - Lists that contain a dynamic type
 //   - Maps that contain a dynamic type
 //   - Sets that contain a dynamic type
-func StructuralTypeContainsDynamic(typ attr.Type) bool {
+func TypeContainsCollectionWithDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
-	// Dynamic types in structural types (object or tuple) are allowed
+	// We haven't run into a collection type yet, so it's valid for this to be a dynamic type
 	case attr.TypeWithDynamicValue:
 		return false
 	// Lists, maps, sets
 	case attr.TypeWithElementType:
-		return CollectionTypeContainsDynamic(attrType.ElementType())
+		// We found a collection, need to ensure there are no dynamics from this point on.
+		return containsDynamic(attrType.ElementType())
 	// Tuples
 	case attr.TypeWithElementTypes:
 		for _, elemType := range attrType.ElementTypes() {
-			hasDynamic := StructuralTypeContainsDynamic(elemType)
+			hasDynamic := TypeContainsCollectionWithDynamic(elemType)
 			if hasDynamic {
 				return true
 			}
@@ -40,37 +42,31 @@ func StructuralTypeContainsDynamic(typ attr.Type) bool {
 	// Objects
 	case attr.TypeWithAttributeTypes:
 		for _, objAttrType := range attrType.AttributeTypes() {
-			hasDynamic := StructuralTypeContainsDynamic(objAttrType)
+			hasDynamic := TypeContainsCollectionWithDynamic(objAttrType)
 			if hasDynamic {
 				return true
 			}
 		}
 		return false
-	// Missing or unsupported type
+	// Primitives, missing types, etc.
 	default:
 		return false
 	}
 }
 
-// CollectionTypeContainsDynamic will return true if an attr.Type is a collection type that contains
-// any dynamic types, which are not supported by the framework type system.
-//
-// Unsupported collection types include:
-//   - Lists that contain a dynamic type
-//   - Maps that contain a dynamic type
-//   - Sets that contain a dynamic type
-func CollectionTypeContainsDynamic(typ attr.Type) bool {
+// containsDynamic is a helper that ensures that no nested types contain a dynamic type.
+func containsDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
 	// Found a dynamic!
 	case attr.TypeWithDynamicValue:
 		return true
 	// Lists, maps, sets
 	case attr.TypeWithElementType:
-		return CollectionTypeContainsDynamic(attrType.ElementType())
+		return containsDynamic(attrType.ElementType())
 	// Tuples
 	case attr.TypeWithElementTypes:
 		for _, elemType := range attrType.ElementTypes() {
-			hasDynamic := CollectionTypeContainsDynamic(elemType)
+			hasDynamic := containsDynamic(elemType)
 			if hasDynamic {
 				return true
 			}
@@ -79,13 +75,13 @@ func CollectionTypeContainsDynamic(typ attr.Type) bool {
 	// Objects
 	case attr.TypeWithAttributeTypes:
 		for _, objAttrType := range attrType.AttributeTypes() {
-			hasDynamic := CollectionTypeContainsDynamic(objAttrType)
+			hasDynamic := containsDynamic(objAttrType)
 			if hasDynamic {
 				return true
 			}
 		}
 		return false
-	// Missing or unsupported type
+	// Primitives, missing types, etc.
 	default:
 		return false
 	}

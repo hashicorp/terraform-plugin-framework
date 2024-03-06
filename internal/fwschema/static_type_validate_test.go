@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestStructuralTypeContainsDynamic(t *testing.T) {
+func TestTypeContainsCollectionWithDynamic(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -367,35 +367,6 @@ func TestStructuralTypeContainsDynamic(t *testing.T) {
 			},
 			expected: true,
 		},
-	}
-	for name, testCase := range testCases {
-		name, testCase := name, testCase
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := fwschema.StructuralTypeContainsDynamic(testCase.attrTyp)
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-func TestCollectionTypeContainsDynamic(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attrTyp  attr.Type
-		expected bool
-	}{
-		"nil": {
-			attrTyp:  nil,
-			expected: false,
-		},
-		"primitive": {
-			attrTyp:  types.StringType,
-			expected: false,
-		},
 		"list-missing": {
 			attrTyp:  types.ListType{},
 			expected: false,
@@ -630,7 +601,7 @@ func TestCollectionTypeContainsDynamic(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fwschema.CollectionTypeContainsDynamic(testCase.attrTyp)
+			got := fwschema.TypeContainsCollectionWithDynamic(testCase.attrTyp)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

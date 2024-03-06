@@ -66,7 +66,7 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) 
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p ListReturn) ValidateImplementation(ctx context.Context, req ValidateReturnImplementationRequest, resp *ValidateReturnImplementationResponse) {
-	if p.CustomType == nil && fwschema.CollectionTypeContainsDynamic(p.GetType()) {
+	if p.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(p.GetType()) {
 		resp.Diagnostics.Append(fwschema.ReturnCollectionWithDynamicTypeDiag())
 	}
 }

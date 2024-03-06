@@ -218,7 +218,7 @@ func (b ListNestedBlock) Type() attr.Type {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (b ListNestedBlock) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
-	if b.CustomType == nil && fwschema.CollectionTypeContainsDynamic(b.Type()) {
+	if b.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(b.Type()) {
 		resp.Diagnostics.Append(fwschema.BlockCollectionWithDynamicTypeDiag(req.Path))
 	}
 }

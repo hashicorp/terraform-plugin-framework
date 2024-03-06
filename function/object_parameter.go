@@ -4,12 +4,18 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var _ Parameter = ObjectParameter{}
+var (
+	_ Parameter                           = ObjectParameter{}
+	_ ParameterWithValidateImplementation = ObjectParameter{}
+)
 
 // ObjectParameter represents a function parameter that is a mapping of
 // defined attribute names to values. Either the AttributeTypes or CustomType
@@ -107,5 +113,15 @@ func (p ObjectParameter) GetType() attr.Type {
 
 	return basetypes.ObjectType{
 		AttrTypes: p.AttributeTypes,
+	}
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the parameter to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (p ObjectParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
+	if p.CustomType == nil && fwschema.StructuralTypeContainsDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwschema.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
 	}
 }

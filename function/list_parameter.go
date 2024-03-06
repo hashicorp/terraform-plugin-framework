@@ -4,12 +4,18 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var _ Parameter = ListParameter{}
+var (
+	_ Parameter                           = ListParameter{}
+	_ ParameterWithValidateImplementation = ListParameter{}
+)
 
 // ListParameter represents a function parameter that is an ordered list of a
 // single element type. Either the ElementType or CustomType field must be set.
@@ -105,5 +111,15 @@ func (p ListParameter) GetType() attr.Type {
 
 	return basetypes.ListType{
 		ElemType: p.ElementType,
+	}
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the parameter to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (p ListParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
+	if p.CustomType == nil && fwschema.CollectionTypeContainsDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwschema.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
 	}
 }

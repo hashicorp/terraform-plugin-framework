@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestDefinitionParameter(t *testing.T) {
@@ -189,6 +190,62 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 						"Definition Return field is undefined",
+				),
+			},
+		},
+		"param-dynamic-in-collection": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.MapParameter{
+						ElementType: types.DynamicType,
+					},
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter at position 0 contains a collection type with a nested dynamic type. "+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+				),
+			},
+		},
+		"variadic-param-dynamic-in-collection": {
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{},
+					function.StringParameter{},
+				},
+				VariadicParameter: function.SetParameter{
+					ElementType: types.DynamicType,
+				},
+				Return: function.StringReturn{},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Parameter at position 2 contains a collection type with a nested dynamic type. "+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+				),
+			},
+		},
+		"result-dynamic-in-collection": {
+			definition: function.Definition{
+				Return: function.ListReturn{
+					ElementType: types.DynamicType,
+				},
+			},
+			expected: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Function Definition",
+					"When validating the function definition, an implementation issue was found. "+
+						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+						"Return contains a collection type with a nested dynamic type. "+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 				),
 			},
 		},

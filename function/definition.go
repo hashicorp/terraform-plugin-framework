@@ -106,10 +106,28 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 				"Definition return data type is undefined",
 		)
+	} else if returnWithValidateImplementation, ok := d.Return.(ReturnWithValidateImplementation); ok {
+		req := ValidateReturnImplementationRequest{}
+		resp := &ValidateReturnImplementationResponse{}
+
+		returnWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+		diags.Append(resp.Diagnostics...)
 	}
 
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
+		if paramWithValidateImplementation, ok := param.(ParameterWithValidateImplementation); ok {
+			req := ValidateParameterImplementationRequest{
+				FunctionArgument: int64(pos),
+			}
+			resp := &ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
+		}
+
 		name := param.GetName()
 		// If name is not set, default the param name based on position: "param1", "param2", etc.
 		if name == "" {
@@ -132,6 +150,17 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 	}
 
 	if d.VariadicParameter != nil {
+		if paramWithValidateImplementation, ok := d.VariadicParameter.(ParameterWithValidateImplementation); ok {
+			req := ValidateParameterImplementationRequest{
+				FunctionArgument: int64(len(d.Parameters)),
+			}
+			resp := &ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
+		}
+
 		name := d.VariadicParameter.GetName()
 		// If name is not set, default the variadic param name
 		if name == "" {

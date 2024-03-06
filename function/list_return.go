@@ -7,11 +7,15 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var _ Return = ListReturn{}
+var (
+	_ Return                           = ListReturn{}
+	_ ReturnWithValidateImplementation = ListReturn{}
+)
 
 // ListReturn represents a function return that is an ordered collection of a
 // single element type. Either the ElementType or CustomType field must be set.
@@ -55,4 +59,14 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) 
 	valuable, diags := r.CustomType.ValueFromList(ctx, value)
 
 	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the Return to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (p ListReturn) ValidateImplementation(ctx context.Context, req ValidateReturnImplementationRequest, resp *ValidateReturnImplementationResponse) {
+	if p.CustomType == nil && fwschema.CollectionTypeContainsDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwschema.ReturnCollectionWithDynamicTypeDiag())
+	}
 }

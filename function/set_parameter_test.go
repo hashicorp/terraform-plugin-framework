@@ -4,12 +4,15 @@
 package function_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -245,6 +248,69 @@ func TestSetParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetParameterValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		param    function.SetParameter
+		request  function.ValidateParameterImplementationRequest
+		expected *function.ValidateParameterImplementationResponse
+	}{
+		"customtype": {
+			param: function.SetParameter{
+				CustomType: testtypes.SetType{},
+			},
+			request: function.ValidateParameterImplementationRequest{
+				FunctionArgument: 0,
+			},
+			expected: &function.ValidateParameterImplementationResponse{},
+		},
+		"elementtype": {
+			param: function.SetParameter{
+				ElementType: types.StringType,
+			},
+			request: function.ValidateParameterImplementationRequest{
+				FunctionArgument: 0,
+			},
+			expected: &function.ValidateParameterImplementationResponse{},
+		},
+		"elementtype-dynamic": {
+			param: function.SetParameter{
+				ElementType: types.DynamicType,
+			},
+			request: function.ValidateParameterImplementationRequest{
+				FunctionArgument: 0,
+			},
+			expected: &function.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter at position 0 contains a collection type with a nested dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &function.ValidateParameterImplementationResponse{}
+			testCase.param.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

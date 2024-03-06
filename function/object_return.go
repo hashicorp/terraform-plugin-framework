@@ -7,11 +7,15 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var _ Return = ObjectReturn{}
+var (
+	_ Return                           = ObjectReturn{}
+	_ ReturnWithValidateImplementation = ObjectReturn{}
+)
 
 // ObjectReturn represents a function return that is mapping of defined
 // attribute names to values. When setting the value for this return, use
@@ -51,4 +55,14 @@ func (r ObjectReturn) NewResultData(ctx context.Context) (ResultData, *FuncError
 	valuable, diags := r.CustomType.ValueFromObject(ctx, value)
 
 	return NewResultData(valuable), FuncErrorFromDiags(ctx, diags)
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the Return to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (p ObjectReturn) ValidateImplementation(ctx context.Context, req ValidateReturnImplementationRequest, resp *ValidateReturnImplementationResponse) {
+	if p.CustomType == nil && fwschema.StructuralTypeContainsDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwschema.ReturnCollectionWithDynamicTypeDiag())
+	}
 }

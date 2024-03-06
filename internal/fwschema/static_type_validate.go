@@ -120,3 +120,13 @@ func ParameterCollectionWithDynamicTypeDiag(argument int64) diag.Diagnostic {
 			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 	)
 }
+
+func ReturnCollectionWithDynamicTypeDiag() diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Function Definition",
+		"When validating the function definition, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			"Return contains a collection type with a nested dynamic type. "+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+	)
+}

@@ -4,12 +4,18 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var _ Parameter = MapParameter{}
+var (
+	_ Parameter                           = MapParameter{}
+	_ ParameterWithValidateImplementation = MapParameter{}
+)
 
 // MapParameter represents a function parameter that is a mapping of a single
 // element type. Either the ElementType or CustomType field must be set.
@@ -105,5 +111,15 @@ func (p MapParameter) GetType() attr.Type {
 
 	return basetypes.MapType{
 		ElemType: p.ElementType,
+	}
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the parameter to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (p MapParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
+	if p.CustomType == nil && fwschema.CollectionTypeContainsDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwschema.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
 	}
 }

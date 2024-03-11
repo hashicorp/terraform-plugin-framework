@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -66,7 +66,7 @@ func (r ListReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) 
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p ListReturn) ValidateImplementation(ctx context.Context, req ValidateReturnImplementationRequest, resp *ValidateReturnImplementationResponse) {
-	if p.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwschema.ReturnCollectionWithDynamicTypeDiag())
+	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
 	}
 }

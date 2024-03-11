@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package fwschema
+package fwtype
 
 import (
 	"fmt"
@@ -11,9 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-// TODO: This function should likely move to a different package, but not sure which? attr?
-
-// TypeContainsCollectionWithDynamic will return true if an attr.Type is a complex type that either is or contains any
+// ContainsCollectionWithDynamic will return true if an attr.Type is a complex type that either is or contains any
 // collection types with dynamic types, which are not supported by the framework type system. Primitives or invalid
 // types (missing) will return false.
 //
@@ -21,7 +19,7 @@ import (
 //   - Lists that contain a dynamic type
 //   - Maps that contain a dynamic type
 //   - Sets that contain a dynamic type
-func TypeContainsCollectionWithDynamic(typ attr.Type) bool {
+func ContainsCollectionWithDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
 	// We haven't run into a collection type yet, so it's valid for this to be a dynamic type
 	case attr.TypeWithDynamicValue:
@@ -33,7 +31,7 @@ func TypeContainsCollectionWithDynamic(typ attr.Type) bool {
 	// Tuples
 	case attr.TypeWithElementTypes:
 		for _, elemType := range attrType.ElementTypes() {
-			hasDynamic := TypeContainsCollectionWithDynamic(elemType)
+			hasDynamic := ContainsCollectionWithDynamic(elemType)
 			if hasDynamic {
 				return true
 			}
@@ -42,7 +40,7 @@ func TypeContainsCollectionWithDynamic(typ attr.Type) bool {
 	// Objects
 	case attr.TypeWithAttributeTypes:
 		for _, objAttrType := range attrType.AttributeTypes() {
-			hasDynamic := TypeContainsCollectionWithDynamic(objAttrType)
+			hasDynamic := ContainsCollectionWithDynamic(objAttrType)
 			if hasDynamic {
 				return true
 			}

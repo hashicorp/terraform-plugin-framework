@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -121,7 +121,7 @@ func (p ObjectParameter) GetType() attr.Type {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p ObjectParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
-	if p.CustomType == nil && fwschema.TypeContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwschema.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
+	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
+		resp.Diagnostics.Append(fwtype.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
 	}
 }

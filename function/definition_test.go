@@ -233,7 +233,7 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				),
 			},
 		},
-		"result-dynamic-in-collection": {
+		"return-dynamic-in-collection": {
 			definition: function.Definition{
 				Return: function.ListReturn{
 					ElementType: types.DynamicType,

@@ -21,7 +21,8 @@ var _ Parameter = DynamicParameter{}
 //   - If CustomType is set, use its associated value type.
 //   - Otherwise, use the [types.Dynamic] value type.
 //
-// TODO: describe how this may be represented in config
+// The concrete value type for a dynamic is determined at runtime by Terraform,
+// if defined in the configuration.
 type DynamicParameter struct {
 	// AllowNullValue when enabled denotes that a null argument value can be
 	// passed to the function. When disabled, Terraform returns an error if the

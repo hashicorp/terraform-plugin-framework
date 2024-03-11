@@ -14,7 +14,9 @@ import (
 var _ Return = DynamicReturn{}
 
 // DynamicReturn represents a function return that is a dynamic, rather
-// than a static type.
+// than a static type. Static types are always preferable over dynamic
+// types in Terraform as practitioners will receive less helpful configuration
+// assistance from validation error diagnostics and editor integrations.
 //
 // When setting the value for this return:
 //

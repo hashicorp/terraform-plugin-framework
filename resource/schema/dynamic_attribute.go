@@ -34,11 +34,12 @@ var (
 // retrieving the value for this attribute, use types.Dynamic as the value type
 // unless the CustomType field is set.
 //
-// TODO: describe some of the rules about dynamic types being determined (literals vs. other schema attributes)
+// The concrete value type for a dynamic is determined at runtime in this order:
+//  1. By Terraform, if defined in the configuration (if Required or Optional).
+//  2. By the provider (if Computed).
 //
-// TODO: describe how this may be represented in config
-//
-// TODO: describe how dynamic attributes are referenced
+// Once the concrete value type has been determined, it must remain consistent between
+// plan and apply or Terraform will return an error.
 type DynamicAttribute struct {
 	// CustomType enables the use of a custom attribute type in place of the
 	// default basetypes.DynamicType. When retrieving data, the basetypes.DynamicValuable

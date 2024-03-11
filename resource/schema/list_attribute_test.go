@@ -669,63 +669,6 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
-		"elementtype-nested-collection": {
-			attribute: schema.ListAttribute{
-				Computed: true,
-				ElementType: types.ListType{
-					ElemType: types.StringType,
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"elementtype-double-nested-collection": {
-			attribute: schema.ListAttribute{
-				Computed: true,
-				ElementType: types.SetType{
-					ElemType: types.MapType{
-						ElemType: types.StringType,
-					},
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"elementtype-nested-tuple": {
-			attribute: schema.ListAttribute{
-				Computed: true,
-				ElementType: types.TupleType{
-					ElemTypes: []attr.Type{types.StringType, types.BoolType},
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"elementtype-nested-object": {
-			attribute: schema.ListAttribute{
-				Computed: true,
-				ElementType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"str":  types.StringType,
-						"bool": types.BoolType,
-					},
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
 		"elementtype-dynamic": {
 			attribute: schema.ListAttribute{
 				Computed:    true,

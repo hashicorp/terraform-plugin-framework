@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'function: Added `ReturnWithValidateImplementation` interface to enable `Return`
+  definition validation during GetProviderSchema RPC'
+time: 2024-03-11T18:16:44.467849-04:00
+custom:
+  Issue: "147"

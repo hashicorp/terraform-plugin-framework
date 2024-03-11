@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/dynamicdefault: New package with `StaticValue` implementation
+  for dynamic schema-based default values'
+time: 2024-03-11T18:08:59.479664-04:00
+custom:
+  Issue: "147"

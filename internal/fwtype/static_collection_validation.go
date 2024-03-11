@@ -12,8 +12,8 @@ import (
 )
 
 // ContainsCollectionWithDynamic will return true if an attr.Type is a complex type that either is or contains any
-// collection types with dynamic types, which are not supported by the framework type system. Primitives or invalid
-// types (missing) will return false.
+// collection types with dynamic types, which are not supported by the framework type system. Primitives, invalid
+// types (missingType), or nil will return false.
 //
 // Unsupported collection types include:
 //   - Lists that contain a dynamic type
@@ -52,7 +52,7 @@ func ContainsCollectionWithDynamic(typ attr.Type) bool {
 	}
 }
 
-// containsDynamic is a helper that ensures that no nested types contain a dynamic type.
+// containsDynamic will return true if `typ` is a dynamic type or has any nested types that contain a dynamic type.
 func containsDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
 	// Found a dynamic!

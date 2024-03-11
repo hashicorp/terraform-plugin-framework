@@ -58,11 +58,6 @@ func TestDynamicTypeValueFromTerraform(t *testing.T) {
 		expected    attr.Value
 		expectedErr string
 	}{
-		// TODO: is it possible to receive a DynamicPseudoType with a known value from terraform-plugin-go or Terraform core? I don't think so
-		// - tftypes.NewValue() does allow you to create known values with DynamicPseudoType, but I'm not sure if that is really possible in normal
-		// 	 Terraform operations.
-		// - (tfprotov6.DynamicValue).Unmarshal only uses DynamicPseudoType for "dynamic" marked values from Terraform. I believe this only happens
-		// 	 with null and unknown values where the schema is DynamicPseudoType.
 		"dynamic-bool-to-dynamic": {
 			input:       tftypes.NewValue(tftypes.DynamicPseudoType, true),
 			expectedErr: "ambiguous known value for `tftypes.DynamicPseudoType` detected",

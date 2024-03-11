@@ -6,6 +6,7 @@ package basetypes
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -22,17 +23,23 @@ type DynamicTypable interface {
 
 var _ DynamicTypable = DynamicType{}
 
-// TODO: doc
+// DynamicType is the base framework type for a dynamic. Static types are always
+// preferable over dynamic types in Terraform as practitioners will receive less
+// helpful configuration assistance from validation error diagnostics and editor
+// integrations.
+//
+// DynamicValue is the associated value type and, when known, contains a concrete
+// value of another framework type. (StringValue, ListValue, ObjectValue, MapValue, etc.)
 type DynamicType struct{}
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the type.
 func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
 	// However, it is possible for a dynamic type to have an underlying value of a list, set, map, object, or tuple
-	// that will have corresponding path steps.
+	// that will have corresponding path steps for an element type.
 	//
 	// Since the dynamic type has no reference to the underlying value, we just return the dynamic type which can be used
-	// to grab the attr.Value from `(DynamicType).ValueFromTerraform`.
+	// to determine the correct attr.Value from `(DynamicType).ValueFromTerraform`.
 	return t, nil
 }
 
@@ -73,7 +80,7 @@ func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 	}
 
 	// MAINTAINER NOTE: It should not be possible for Terraform core to send a known value of `tftypes.DynamicPseudoType`.
-	// This check prevents an infinite recursion when attempting to create a dynamic value.
+	// This check prevents an infinite recursion that would result if this scenario occurs when attempting to create a dynamic value.
 	if in.Type().Is(tftypes.DynamicPseudoType) {
 		return nil, errors.New("ambiguous known value for `tftypes.DynamicPseudoType` detected")
 	}
@@ -92,7 +99,7 @@ func (t DynamicType) ValueType(_ context.Context) attr.Value {
 	return DynamicValue{}
 }
 
-// TODO: move this somewhere else?
+// DetermineAttrType returns the appropriate attr.Type equivalent for a given tftypes.Type
 func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 	// Primitive types
 	if in.Is(tftypes.Bool) {
@@ -154,6 +161,5 @@ func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 		return TupleType{ElemTypes: elemTypes}
 	}
 
-	// TODO: I think it'd probably be best to return an error from this?
-	panic("need to handle this")
+	panic(fmt.Sprintf("unsupported tftypes.Type detected: %T", in))
 }

@@ -39,36 +39,38 @@ type DynamicValuableWithSemanticEquals interface {
 	DynamicSemanticEquals(context.Context, DynamicValuable) (bool, diag.Diagnostics)
 }
 
-// TODO: doc
+// NewDynamicValue creates a Dynamic with a known value. Access the value via the Dynamic
+// type UnderlyingValue method. The concrete value type returned to Terraform from this value
+// will be determined by the provided `(attr.Value).ToTerraformValue` function.
 func NewDynamicValue(value attr.Value) DynamicValue {
-	// TODO: validate that a known value is passed here?
-	// TODO: validate that DynamicValue is NOT passed here?
-	// 		- Treat like the object/list/map/set creation functions and return an error?
-	// 		- If value == DynamicValue, throw error
-	// 		- Introduce *Must function?
 	return DynamicValue{
 		value: value,
 		state: attr.ValueStateKnown,
 	}
 }
 
-// TODO: doc
+// NewDynamicNull creates a Dynamic with a null value. The concrete value type returned to Terraform
+// from this value will be tftypes.DynamicPseudoType.
 func NewDynamicNull() DynamicValue {
 	return DynamicValue{
 		state: attr.ValueStateNull,
 	}
 }
 
-// TODO: doc
+// NewDynamicUnknown creates a Dynamic with an unknown value. The concrete value type returned to Terraform
+// from this value will be tftypes.DynamicPseudoType.
 func NewDynamicUnknown() DynamicValue {
 	return DynamicValue{
 		state: attr.ValueStateUnknown,
 	}
 }
 
-// TODO: docs
+// DynamicValue represents a dynamic value. Static types are always
+// preferable over dynamic types in Terraform as practitioners will receive less
+// helpful configuration assistance from validation error diagnostics and editor
+// integrations.
 type DynamicValue struct {
-	// TODO: doc
+	// value contains the known value, if not null or unknown.
 	value attr.Value
 
 	// state represents whether the value is null, unknown, or known. The
@@ -78,13 +80,11 @@ type DynamicValue struct {
 
 // Type returns DynamicType.
 func (v DynamicValue) Type(ctx context.Context) attr.Type {
-	// TODO: implement
 	return DynamicType{}
 }
 
 // ToTerraformValue returns the equivalent tftypes.Value for the DynamicValue.
 func (v DynamicValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	// TODO: should we check for a nil `v.value`?
 	switch v.state {
 	case attr.ValueStateKnown:
 		return v.value.ToTerraformValue(ctx)
@@ -112,7 +112,6 @@ func (v DynamicValue) Equal(o attr.Value) bool {
 		return true
 	}
 
-	// TODO: should we check for a nil `v.value`?
 	return v.value.Equal(other.value)
 }
 
@@ -137,7 +136,6 @@ func (v DynamicValue) String() string {
 		return attr.NullValueString
 	}
 
-	// TODO: should we check for a nil `v.value`?
 	return v.value.String()
 }
 
@@ -146,8 +144,8 @@ func (v DynamicValue) ToDynamicValue(ctx context.Context) (DynamicValue, diag.Di
 	return v, nil
 }
 
-// UnderlyingValue returns the underlying value in the DynamicValue.
-// TODO: document that it will be nil if no underlying type or value
+// UnderlyingValue returns the concrete underlying value in the DynamicValue.
+// Will return nil if DynamicValue is null or unknown.
 func (v DynamicValue) UnderlyingValue() attr.Value {
 	return v.value
 }

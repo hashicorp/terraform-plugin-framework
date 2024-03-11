@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'function: Added implementation validation to `function.Definition` to ensure
-  all parameter names (including the variadic parameter) are unique.'
-time: 2024-02-28T15:19:59.843244-05:00
-custom:
-  Issue: "926"

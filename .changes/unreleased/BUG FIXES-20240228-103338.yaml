@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: 'resource/schema: Ensured invalid attribute default value errors are raised'
-time: 2024-02-28T10:33:38.517635-05:00
-custom:
-  Issue: "930"

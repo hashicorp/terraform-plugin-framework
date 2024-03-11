@@ -120,6 +120,6 @@ func (p ListParameter) GetType() attr.Type {
 // should never include false positives.
 func (p ListParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
 	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwtype.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument))
+		resp.Diagnostics.Append(fwtype.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument, req.Name))
 	}
 }

@@ -105,12 +105,12 @@ func BlockCollectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagnostic
 	)
 }
 
-func ParameterCollectionWithDynamicTypeDiag(argument int64) diag.Diagnostic {
+func ParameterCollectionWithDynamicTypeDiag(argument int64, name string) diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		"Invalid Function Definition",
 		"When validating the function definition, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("Parameter at position %d contains a collection type with a nested dynamic type. ", argument)+
+			fmt.Sprintf("Parameter %q at position %d contains a collection type with a nested dynamic type. ", name, argument)+
 			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 	)
 }

@@ -117,8 +117,15 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
+		name := param.GetName()
+		// If name is not set, default the param name based on position: "param1", "param2", etc.
+		if name == "" {
+			name = fmt.Sprintf("%s%d", DefaultParameterNamePrefix, pos+1)
+		}
+
 		if paramWithValidateImplementation, ok := param.(ParameterWithValidateImplementation); ok {
 			req := ValidateParameterImplementationRequest{
+				Name:             name,
 				FunctionArgument: int64(pos),
 			}
 			resp := &ValidateParameterImplementationResponse{}
@@ -126,12 +133,6 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
 
 			diags.Append(resp.Diagnostics...)
-		}
-
-		name := param.GetName()
-		// If name is not set, default the param name based on position: "param1", "param2", etc.
-		if name == "" {
-			name = fmt.Sprintf("%s%d", DefaultParameterNamePrefix, pos+1)
 		}
 
 		conflictPos, exists := paramNames[name]
@@ -150,8 +151,15 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 	}
 
 	if d.VariadicParameter != nil {
+		name := d.VariadicParameter.GetName()
+		// If name is not set, default the variadic param name
+		if name == "" {
+			name = DefaultVariadicParameterName
+		}
+
 		if paramWithValidateImplementation, ok := d.VariadicParameter.(ParameterWithValidateImplementation); ok {
 			req := ValidateParameterImplementationRequest{
+				Name:             name,
 				FunctionArgument: int64(len(d.Parameters)),
 			}
 			resp := &ValidateParameterImplementationResponse{}
@@ -159,12 +167,6 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
 
 			diags.Append(resp.Diagnostics...)
-		}
-
-		name := d.VariadicParameter.GetName()
-		// If name is not set, default the variadic param name
-		if name == "" {
-			name = DefaultVariadicParameterName
 		}
 
 		conflictPos, exists := paramNames[name]

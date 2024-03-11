@@ -207,7 +207,7 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"Invalid Function Definition",
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter at position 0 contains a collection type with a nested dynamic type. "+
+						"Parameter \"param1\" at position 0 contains a collection type with a nested dynamic type. "+
 						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 				),
 			},
@@ -228,7 +228,7 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"Invalid Function Definition",
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter at position 2 contains a collection type with a nested dynamic type. "+
+						"Parameter \"varparam\" at position 2 contains a collection type with a nested dynamic type. "+
 						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 				),
 			},

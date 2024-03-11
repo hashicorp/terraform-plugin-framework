@@ -284,9 +284,11 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 		},
 		"elementtype-dynamic": {
 			param: function.MapParameter{
+				Name:        "testparam",
 				ElementType: types.DynamicType,
 			},
 			request: function.ValidateParameterImplementationRequest{
+				Name:             "testparam",
 				FunctionArgument: 0,
 			},
 			expected: &function.ValidateParameterImplementationResponse{
@@ -295,7 +297,7 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Parameter at position 0 contains a collection type with a nested dynamic type. "+
+							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},

@@ -75,6 +75,9 @@ type ParameterWithValidateImplementation interface {
 type ValidateParameterImplementationRequest struct {
 	// FunctionArgument is the positional function argument for reporting diagnostics.
 	FunctionArgument int64
+
+	// Name is the provider-defined parameter name or the default parameter name for reporting diagnostics.
+	Name string
 }
 
 // ValidateParameterImplementationResponse contains the returned data from a

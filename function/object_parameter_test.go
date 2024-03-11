@@ -313,6 +313,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 		},
 		"attributetypes-nested-collection-dynamic": {
 			param: function.ObjectParameter{
+				Name: "testparam",
 				AttributeTypes: map[string]attr.Type{
 					"test_attr": types.ListType{
 						ElemType: types.DynamicType,
@@ -320,6 +321,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 				},
 			},
 			request: function.ValidateParameterImplementationRequest{
+				Name:             "testparam",
 				FunctionArgument: 0,
 			},
 			expected: &function.ValidateParameterImplementationResponse{
@@ -328,7 +330,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Parameter at position 0 contains a collection type with a nested dynamic type. "+
+							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},

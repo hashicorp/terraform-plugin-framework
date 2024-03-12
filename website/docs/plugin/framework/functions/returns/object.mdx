@@ -21,7 +21,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Return: function.ObjectReturn{
-            AttributeTypes: map[string]attr.Value{
+            AttributeTypes: map[string]attr.Type{
                 "attr1": types.StringType,
                 "attr2": types.Int64Type,
             },
@@ -57,7 +57,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Return: function.ObjectReturn{
-            AttributeTypes: map[string]attr.Value{
+            AttributeTypes: map[string]attr.Type{
                 "attr1": types.StringType,
                 "attr2": types.Int64Type,
             },

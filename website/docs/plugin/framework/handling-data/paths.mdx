@@ -85,17 +85,18 @@ This pattern can be extended to as many calls as necessary. The different framew
 
 The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for attribute implementations. Attribute types that cannot be traversed further are shown with N/A (not applicable).
 
-| Attribute Type            | Child Path Method |
-| ------------------------- | ----------------- |
-| `schema.BoolAttribute`    | N/A               |
-| `schema.Float64Attribute` | N/A               |
-| `schema.Int64Attribute`   | N/A               |
-| `schema.ListAttribute`    | `AtListIndex()`   |
-| `schema.MapAttribute`     | `AtMapKey()`      |
-| `schema.NumberAttribute`  | N/A               |
-| `schema.ObjectAttribute`  | `AtName()`        |
-| `schema.SetAttribute`     | `AtSetValue()`    |
-| `schema.StringAttribute`  | N/A               |
+| Attribute Type            | Child Path Method                                                                                      |
+|---------------------------|--------------------------------------------------------------------------------------------------------|
+| `schema.BoolAttribute`    | N/A                                                                                                    |
+| `schema.DynamicAttribute` | Based on underlying value, see [Building Dynamic Attribute Paths](#building-dynamic-attribute-paths)   |
+| `schema.Float64Attribute` | N/A                                                                                                    |
+| `schema.Int64Attribute`   | N/A                                                                                                    |
+| `schema.ListAttribute`    | `AtListIndex()`                                                                                        |
+| `schema.MapAttribute`     | `AtMapKey()`                                                                                           |
+| `schema.NumberAttribute`  | N/A                                                                                                    |
+| `schema.ObjectAttribute`  | `AtName()`                                                                                             |
+| `schema.SetAttribute`     | `AtSetValue()`                                                                                         |
+| `schema.StringAttribute`  | N/A                                                                                                    |
 
 Given following schema example:
 
@@ -528,4 +529,67 @@ The path which matches the `nested_block_string_attribute` string value in the o
 
 ```go
 path.Root("root_single_block").AtName("nested_single_block").AtName("nested_block_string_attribute")
+```
+
+### Building Dynamic Attribute Paths
+
+It's recommended when building a path for a [dynamic attribute](/terraform/plugin/framework/handling-data/attributes/dynamic) that you always target the root dynamic attribute.
+
+```go
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_dynamic_attribute": schema.DynamicAttribute{
+			Required: true,
+		},
+	},
+}
+```
+
+The path which matches the dynamic value associated with the `root_dynamic_attribute` attribute is:
+
+```go
+path.Root("root_dynamic_attribute")
+```
+
+#### Child Paths in Dynamic Attribute
+
+Since a dynamic attribute can store any value, that means it's possible to build a path that references a child in a dynamic value (with the child path methods defined [here](#building-attribute-paths)).
+
+Given the following schema example:
+
+```go
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_dynamic_attribute": schema.DynamicAttribute{
+			Required: true,
+		},
+	},
+}
+```
+
+And the following config:
+```hcl
+resource "examplecloud_thing" "example" {
+  root_dynamic_attribute = tolist(["one", "two"])
+}
+```
+
+The path which matches the second string value (`"two"`) associated with the dynamic list value of the `root_dynamic_attribute` attribute is:
+
+```go
+path.Root("root_dynamic_attribute").AtListIndex(1)
+```
+
+If you attempt to use the same path, using `AtListIndex()`, with the following config, you'll receive an error diagnostic:
+```hcl
+resource "examplecloud_thing" "example" {
+  root_dynamic_attribute = {
+    attr1 = "not a list!"
+  }
+}
+```
+
+Since the correct child method depends on the underlying value, which in a dynamic attribute can be **any** value type, it's recommended to build paths matching the root dynamic attribute:
+```go
+path.Root("root_dynamic_attribute")
 ```

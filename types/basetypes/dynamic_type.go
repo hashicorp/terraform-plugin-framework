@@ -71,11 +71,21 @@ func (t DynamicType) ValueFromDynamic(ctx context.Context, v DynamicValue) (Dyna
 // ValueFromTerraform returns an attr.Value given a tftypes.Value. This is meant to convert
 // the tftypes.Value into a more convenient Go type for the provider to consume the data with.
 func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.IsKnown() {
+	if in.Type() == nil {
+		return NewDynamicNull(), nil
+	}
+
+	// For dynamic values, it's possible the incoming value is unknown but the concrete type itself is known. In this
+	// situation, we can't return a dynamic unknown as we will lose that concrete type information. If the type here
+	// is not dynamic, then we use the concrete `(attr.Type).ValueFromTerraform` below to produce the unknown value.
+	if !in.IsKnown() && in.Type().Is(tftypes.DynamicPseudoType) {
 		return NewDynamicUnknown(), nil
 	}
 
-	if in.IsNull() {
+	// For dynamic values, it's possible the incoming value is null but the concrete type itself is known. In this
+	// situation, we can't return a dynamic null as we will lose that concrete type information. If the type here
+	// is not dynamic, then we use the concrete `(attr.Type).ValueFromTerraform` below to produce the null value.
+	if in.IsNull() && in.Type().Is(tftypes.DynamicPseudoType) {
 		return NewDynamicNull(), nil
 	}
 

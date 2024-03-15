@@ -115,12 +115,12 @@ func (v DynamicValue) Equal(o attr.Value) bool {
 	return v.value.Equal(other.value)
 }
 
-// IsNull returns true if the underlying value in the DynamicValue represents a null value.
+// IsNull returns true if the DynamicValue represents a null value.
 func (v DynamicValue) IsNull() bool {
 	return v.state == attr.ValueStateNull
 }
 
-// IsUnknown returns true if the underlying value in the DynamicValue represents an unknown value.
+// IsUnknown returns true if the DynamicValue represents an unknown value.
 func (v DynamicValue) IsUnknown() bool {
 	return v.state == attr.ValueStateUnknown
 }
@@ -144,8 +144,9 @@ func (v DynamicValue) ToDynamicValue(ctx context.Context) (DynamicValue, diag.Di
 	return v, nil
 }
 
-// UnderlyingValue returns the concrete underlying value in the DynamicValue.
-// Will return nil if DynamicValue is null or unknown.
+// UnderlyingValue returns the concrete underlying value in the DynamicValue. This will return `nil`
+// if DynamicValue is null or unknown. A known DynamicValue can still have an underlying value that is in null
+// or unknown state, in the scenario that the underlying value type has been refined by Terraform.
 func (v DynamicValue) UnderlyingValue() attr.Value {
 	return v.value
 }

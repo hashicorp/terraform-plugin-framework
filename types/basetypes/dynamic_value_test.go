@@ -91,6 +91,16 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 			input:    NewDynamicUnknown(),
 			expected: tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 		},
+		// For dynamic values, it's possible the underlying type is known but the underlying value itself is null/unknown. In this
+		// situation, the type information must be preserved when returned back to Terraform.
+		"null-value-known-type": {
+			input:    NewDynamicValue(NewBoolNull()),
+			expected: tftypes.NewValue(tftypes.Bool, nil),
+		},
+		"unknown-value-known-type": {
+			input:    NewDynamicValue(NewListUnknown(StringType{})),
+			expected: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

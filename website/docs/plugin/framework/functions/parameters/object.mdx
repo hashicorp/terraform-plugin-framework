@@ -8,12 +8,15 @@ description: >-
 
 Object function parameters expect a single structure mapping explicit attribute names to type definitions from a practitioner configuration. Values are accessible in function logic by a Go structure type annotated with `tfsdk` field tags or the [framework object type](/terraform/plugin/framework/handling-data/types/object).
 
-In this Terraform configuration example, a object parameter is set to the mapped values of `attr1` to `"value1"` and `attr2` to `123`:
+Configurations must include all object attributes or a configuration error is raised. Configurations explicitly setting object attribute values to `null` will prevent this type of configuration error while leaving that object attribute value unset. The `AllowNullValue` setting does not need to be enabled for object attribute `null` values to work in this manner.
+
+In this Terraform configuration example, a object parameter is set to the mapped values of `attr1` to `"value1"`, `attr2` to `123`, and `attr3` to `null`:
 
 ```hcl
 provider::example::example({
-    attr1 = "value1",
-    attr2 = 123,
+    attr1 = "value1"
+    attr2 = 123
+    attr3 = null
 })
 ```
 
@@ -34,6 +37,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
                 AttributeTypes: map[string]attr.Type{
                     "attr1": types.StringType,
                     "attr2": types.Int64Type,
+                    "attr3": types.BoolType,
                 },
                 // ... potentially other ObjectParameter fields ...
             },
@@ -92,6 +96,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
                 AttributeTypes: map[string]attr.Type{
                     "attr1": types.StringType,
                     "attr2": types.Int64Type,
+                    "attr3": types.BoolType,
                 },
             },
         },
@@ -102,11 +107,13 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     var objectArg struct{
         Attr1 *string `tfsdk:"attr1"`
         Attr2 *int64  `tfsdk:"attr2"`
+        Attr3 *bool   `tfsdk:"attr3"`
     }
     // e.g. with AllowNullValues
     // var objectArg *struct{
     //    Attr1 *string `tfsdk:"attr1"`
     //    Attr2 *int64  `tfsdk:"attr2"`
+    //    Attr3 *bool   `tfsdk:"attr3"`
     // }
     // var objectArg types.Object // e.g. with AllowUnknownValues or AllowNullValues
 

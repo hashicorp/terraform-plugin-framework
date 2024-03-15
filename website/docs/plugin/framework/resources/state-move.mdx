@@ -37,9 +37,9 @@ The framework implementation does the following:
 
 ## Implementation
 
-Implement the [`resource.ResourceWithMoveState` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithMoveState) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). That interface requires the `StateMove` method, which enables individual source resource criteria and logic for each source resource type to support.
+Implement the [`resource.ResourceWithMoveState` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ResourceWithMoveState) for the [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource). That interface requires the `MoveState` method, which enables individual source resource criteria and logic for each source resource type to support.
 
-This example shows a `Resource` with the necessary `StateMove` method to implement the `ResourceWithMoveState` interface:
+This example shows a `Resource` with the necessary `MoveState` method to implement the `ResourceWithMoveState` interface:
 
 ```go
 // Other Resource methods are omitted in this example

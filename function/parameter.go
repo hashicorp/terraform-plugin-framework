@@ -73,8 +73,9 @@ type ParameterWithValidateImplementation interface {
 // definition. ValidateParameterImplementationResponse is the type used for
 // responses.
 type ValidateParameterImplementationRequest struct {
-	// FunctionArgument is the positional function argument for reporting diagnostics.
-	FunctionArgument int64
+	// ParameterPosition is the position of the parameter in the function definition for reporting diagnostics.
+	// A parameter without a position (i.e. `nil`) is the variadic parameter.
+	ParameterPosition *int64
 
 	// Name is the provider-defined parameter name or the default parameter name for reporting diagnostics.
 	Name string

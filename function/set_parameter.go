@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -120,6 +121,13 @@ func (p SetParameter) GetType() attr.Type {
 // should never include false positives.
 func (p SetParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
 	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwtype.ParameterCollectionWithDynamicTypeDiag(req.FunctionArgument, req.Name))
+		var diag diag.Diagnostic
+		if req.ParameterPosition != nil {
+			diag = fwtype.ParameterCollectionWithDynamicTypeDiag(*req.ParameterPosition, req.Name)
+		} else {
+			diag = fwtype.VariadicParameterCollectionWithDynamicTypeDiag(req.Name)
+		}
+
+		resp.Diagnostics.Append(diag)
 	}
 }

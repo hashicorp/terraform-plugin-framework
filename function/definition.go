@@ -117,6 +117,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
+		parameterPosition := int64(pos)
 		name := param.GetName()
 		// If name is not set, default the param name based on position: "param1", "param2", etc.
 		if name == "" {
@@ -125,8 +126,8 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 
 		if paramWithValidateImplementation, ok := param.(ParameterWithValidateImplementation); ok {
 			req := ValidateParameterImplementationRequest{
-				Name:             name,
-				FunctionArgument: int64(pos),
+				Name:              name,
+				ParameterPosition: &parameterPosition,
 			}
 			resp := &ValidateParameterImplementationResponse{}
 
@@ -159,8 +160,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 
 		if paramWithValidateImplementation, ok := d.VariadicParameter.(ParameterWithValidateImplementation); ok {
 			req := ValidateParameterImplementationRequest{
-				Name:             name,
-				FunctionArgument: int64(len(d.Parameters)),
+				Name: name,
 			}
 			resp := &ValidateParameterImplementationResponse{}
 

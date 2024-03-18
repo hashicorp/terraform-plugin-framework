@@ -116,6 +116,16 @@ func ParameterCollectionWithDynamicTypeDiag(argument int64, name string) diag.Di
 	)
 }
 
+func VariadicParameterCollectionWithDynamicTypeDiag(name string) diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Function Definition",
+		"When validating the function definition, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("Variadic parameter %q contains a collection type with a nested dynamic type. ", name)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+	)
+}
+
 func ReturnCollectionWithDynamicTypeDiag() diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		"Invalid Function Definition",

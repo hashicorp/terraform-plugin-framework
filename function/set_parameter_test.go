@@ -269,7 +269,7 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 				CustomType: testtypes.SetType{},
 			},
 			request: function.ValidateParameterImplementationRequest{
-				FunctionArgument: 0,
+				ParameterPosition: pointer(int64(0)),
 			},
 			expected: &function.ValidateParameterImplementationResponse{},
 		},
@@ -278,7 +278,7 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 				ElementType: types.StringType,
 			},
 			request: function.ValidateParameterImplementationRequest{
-				FunctionArgument: 0,
+				ParameterPosition: pointer(int64(0)),
 			},
 			expected: &function.ValidateParameterImplementationResponse{},
 		},
@@ -288,8 +288,8 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 				ElementType: types.DynamicType,
 			},
 			request: function.ValidateParameterImplementationRequest{
-				Name:             "testparam",
-				FunctionArgument: 0,
+				Name:              "testparam",
+				ParameterPosition: pointer(int64(0)),
 			},
 			expected: &function.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
@@ -298,6 +298,26 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type. "+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+					),
+				},
+			},
+		},
+		"elementtype-dynamic-variadic": {
+			param: function.SetParameter{
+				Name:        "testparam",
+				ElementType: types.DynamicType,
+			},
+			request: function.ValidateParameterImplementationRequest{
+				Name: "testparam",
+			},
+			expected: &function.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type. "+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
 					),
 				},

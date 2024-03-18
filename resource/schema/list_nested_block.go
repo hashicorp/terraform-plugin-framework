@@ -62,7 +62,7 @@ type ListNestedBlock struct {
 	// blocks. This field must be set.
 	//
 	// Nested attributes that contain a dynamic type (i.e. DynamicAttribute) are not supported.
-	// If underlying dynamic values are required, replace this attribute definition with
+	// If underlying dynamic values are required, replace this block definition with
 	// DynamicAttribute instead.
 	NestedObject NestedBlockObject
 

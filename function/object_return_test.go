@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -75,15 +76,15 @@ func TestObjectReturnValidateImplementation(t *testing.T) {
 
 	testCases := map[string]struct {
 		returnDef function.ObjectReturn
-		request   function.ValidateReturnImplementationRequest
-		expected  *function.ValidateReturnImplementationResponse
+		request   fwfunction.ValidateReturnImplementationRequest
+		expected  *fwfunction.ValidateReturnImplementationResponse
 	}{
 		"customtype": {
 			returnDef: function.ObjectReturn{
 				CustomType: testtypes.ObjectType{},
 			},
-			request:  function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{},
+			request:  fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{},
 		},
 		"attributetypes": {
 			returnDef: function.ObjectReturn{
@@ -91,8 +92,8 @@ func TestObjectReturnValidateImplementation(t *testing.T) {
 					"test_attr": types.StringType,
 				},
 			},
-			request:  function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{},
+			request:  fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{},
 		},
 		"attributetypes-dynamic": {
 			returnDef: function.ObjectReturn{
@@ -108,8 +109,8 @@ func TestObjectReturnValidateImplementation(t *testing.T) {
 					},
 				},
 			},
-			request:  function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{},
+			request:  fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{},
 		},
 		"attributetypes-nested-collection-dynamic": {
 			returnDef: function.ObjectReturn{
@@ -119,8 +120,8 @@ func TestObjectReturnValidateImplementation(t *testing.T) {
 					},
 				},
 			},
-			request: function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{
+			request: fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid Function Definition",
@@ -141,7 +142,7 @@ func TestObjectReturnValidateImplementation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := &function.ValidateReturnImplementationResponse{}
+			got := &fwfunction.ValidateReturnImplementationResponse{}
 			testCase.returnDef.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {

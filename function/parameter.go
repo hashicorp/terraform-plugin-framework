@@ -4,10 +4,7 @@
 package function
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 const (
@@ -51,43 +48,4 @@ type Parameter interface {
 	// during a function call and the argument data type received by the
 	// Function type Run method.
 	GetType() attr.Type
-}
-
-// ParameterWithValidateImplementation is an optional interface on
-// Parameter which enables validation of the provider-defined implementation
-// for the Parameter. This logic runs during the GetProviderSchema RPC, or via
-// provider-defined unit testing, to ensure the provider's definition is valid
-// before further usage could cause other unexpected errors or panics.
-type ParameterWithValidateImplementation interface {
-	Parameter
-
-	// ValidateImplementation should contain the logic which validates
-	// the Parameter implementation. Since this logic can prevent the provider
-	// from being usable, it should be very targeted and defensive against
-	// false positives.
-	ValidateImplementation(context.Context, ValidateParameterImplementationRequest, *ValidateParameterImplementationResponse)
-}
-
-// ValidateParameterImplementationRequest contains the information available
-// during a ValidateImplementation call to validate the Parameter
-// definition. ValidateParameterImplementationResponse is the type used for
-// responses.
-type ValidateParameterImplementationRequest struct {
-	// ParameterPosition is the position of the parameter in the function definition for reporting diagnostics.
-	// A parameter without a position (i.e. `nil`) is the variadic parameter.
-	ParameterPosition *int64
-
-	// Name is the provider-defined parameter name or the default parameter name for reporting diagnostics.
-	Name string
-}
-
-// ValidateParameterImplementationResponse contains the returned data from a
-// ValidateImplementation method call to validate the Parameter
-// implementation. ValidateParameterImplementationRequest is the type used for
-// requests.
-type ValidateParameterImplementationResponse struct {
-	// Diagnostics report errors or warnings related to validating the
-	// definition of the Parameter. An empty slice indicates success, with no
-	// warnings or errors generated.
-	Diagnostics diag.Diagnostics
 }

@@ -7,14 +7,15 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Return                           = SetReturn{}
-	_ ReturnWithValidateImplementation = SetReturn{}
+	_ Return                                      = SetReturn{}
+	_ fwfunction.ReturnWithValidateImplementation = SetReturn{}
 )
 
 // SetReturn represents a function return that is an unordered collection of a
@@ -69,7 +70,7 @@ func (r SetReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 // provider-defined implementation of the Return to prevent unexpected
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
-func (p SetReturn) ValidateImplementation(ctx context.Context, req ValidateReturnImplementationRequest, resp *ValidateReturnImplementationResponse) {
+func (p SetReturn) ValidateImplementation(ctx context.Context, req fwfunction.ValidateReturnImplementationRequest, resp *fwfunction.ValidateReturnImplementationResponse) {
 	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
 		resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
 	}

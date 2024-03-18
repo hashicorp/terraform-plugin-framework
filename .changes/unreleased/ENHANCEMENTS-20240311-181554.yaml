@@ -1,6 +1,0 @@
-kind: ENHANCEMENTS
-body: 'function: Added `ParameterWithValidateImplementation` interface to enable `Parameter`
-  definition validation during GetProviderSchema RPC'
-time: 2024-03-11T18:15:54.840978-04:00
-custom:
-  Issue: "147"

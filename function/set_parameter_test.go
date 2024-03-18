@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -261,37 +262,37 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 
 	testCases := map[string]struct {
 		param    function.SetParameter
-		request  function.ValidateParameterImplementationRequest
-		expected *function.ValidateParameterImplementationResponse
+		request  fwfunction.ValidateParameterImplementationRequest
+		expected *fwfunction.ValidateParameterImplementationResponse
 	}{
 		"customtype": {
 			param: function.SetParameter{
 				CustomType: testtypes.SetType{},
 			},
-			request: function.ValidateParameterImplementationRequest{
+			request: fwfunction.ValidateParameterImplementationRequest{
 				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
 		},
 		"elementtype": {
 			param: function.SetParameter{
 				ElementType: types.StringType,
 			},
-			request: function.ValidateParameterImplementationRequest{
+			request: fwfunction.ValidateParameterImplementationRequest{
 				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
 		},
 		"elementtype-dynamic": {
 			param: function.SetParameter{
 				Name:        "testparam",
 				ElementType: types.DynamicType,
 			},
-			request: function.ValidateParameterImplementationRequest{
+			request: fwfunction.ValidateParameterImplementationRequest{
 				Name:              "testparam",
 				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{
+			expected: &fwfunction.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid Function Definition",
@@ -309,10 +310,10 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 				Name:        "testparam",
 				ElementType: types.DynamicType,
 			},
-			request: function.ValidateParameterImplementationRequest{
+			request: fwfunction.ValidateParameterImplementationRequest{
 				Name: "testparam",
 			},
-			expected: &function.ValidateParameterImplementationResponse{
+			expected: &fwfunction.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid Function Definition",
@@ -333,7 +334,7 @@ func TestSetParameterValidateImplementation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := &function.ValidateParameterImplementationResponse{}
+			got := &fwfunction.ValidateParameterImplementationResponse{}
 			testCase.param.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {

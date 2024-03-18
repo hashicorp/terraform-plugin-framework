@@ -8,14 +8,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Parameter                           = MapParameter{}
-	_ ParameterWithValidateImplementation = MapParameter{}
+	_ Parameter                                      = MapParameter{}
+	_ fwfunction.ParameterWithValidateImplementation = MapParameter{}
 )
 
 // MapParameter represents a function parameter that is a mapping of a single
@@ -123,7 +124,7 @@ func (p MapParameter) GetType() attr.Type {
 // provider-defined implementation of the parameter to prevent unexpected
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
-func (p MapParameter) ValidateImplementation(ctx context.Context, req ValidateParameterImplementationRequest, resp *ValidateParameterImplementationResponse) {
+func (p MapParameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
 	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
 		var diag diag.Diagnostic
 		if req.ParameterPosition != nil {

@@ -21,8 +21,7 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 		expected *planmodifier.DynamicResponse
 	}{
 		"null-state": {
-			// when we first create the resource, use the unknown
-			// value
+			// when we first create the resource, use the unknown value
 			request: planmodifier.DynamicRequest{
 				StateValue:  types.DynamicNull(),
 				PlanValue:   types.DynamicUnknown(),
@@ -47,10 +46,7 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 		"known-plan": {
 			// this would really only happen if we had a plan
 			// modifier setting the value before this plan modifier
-			// got to it
-			//
-			// but we still want to preserve that value, in this
-			// case
+			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicValue(types.StringValue("test")),
@@ -63,10 +59,7 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 		"known-plan-null": {
 			// this would really only happen if we had a plan
 			// modifier setting the value before this plan modifier
-			// got to it
-			//
-			// but we still want to preserve that value, in this
-			// case
+			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicNull(),
@@ -79,10 +72,7 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 		"known-underlying-plan-value-null": {
 			// this would really only happen if we had a plan
 			// modifier setting the value before this plan modifier
-			// got to it
-			//
-			// but we still want to preserve that value, in this
-			// case
+			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicValue(types.StringNull()),
@@ -93,8 +83,7 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 			},
 		},
 		"non-null-state-unknown-plan": {
-			// this is the situation we want to preserve the state
-			// in
+			// this is the situation we want to preserve the state in
 			request: planmodifier.DynamicRequest{
 				StateValue:  types.DynamicValue(types.StringValue("test")),
 				PlanValue:   types.DynamicUnknown(),

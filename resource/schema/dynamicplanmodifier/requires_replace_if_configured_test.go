@@ -135,6 +135,19 @@ func TestRequiresReplaceIfConfiguredModifierPlanModifyDynamic(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"planvalue-statevalue-different-unconfigured-underlying-value": {
+			request: planmodifier.DynamicRequest{
+				ConfigValue: types.DynamicValue(types.StringNull()),
+				Plan:        testPlan(types.DynamicValue(types.StringValue("other"))),
+				PlanValue:   types.DynamicValue(types.StringValue("other")),
+				State:       testState(types.DynamicValue(types.StringValue("test"))),
+				StateValue:  types.DynamicValue(types.StringValue("test")),
+			},
+			expected: &planmodifier.DynamicResponse{
+				PlanValue:       types.DynamicValue(types.StringValue("other")),
+				RequiresReplace: false,
+			},
+		},
 		"planvalue-statevalue-equal": {
 			request: planmodifier.DynamicRequest{
 				ConfigValue: types.DynamicValue(types.StringValue("test")),

@@ -37,17 +37,20 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 // PlanModifyDynamic implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyDynamic(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
 	// Do nothing if there is no state value.
-	if req.StateValue.IsNull() {
+	// This requires checking if the underlying value is also null.
+	if req.StateValue.IsNull() || req.StateValue.UnderlyingValue().IsNull() {
 		return
 	}
 
 	// Do nothing if there is a known planned value.
-	if !req.PlanValue.IsUnknown() {
+	// This requires checking if the underlying value is also known.
+	if !req.PlanValue.IsUnknown() && (req.PlanValue.IsNull() || !req.PlanValue.UnderlyingValue().IsUnknown()) {
 		return
 	}
 
 	// Do nothing if there is an unknown configuration value, otherwise interpolation gets messed up.
-	if req.ConfigValue.IsUnknown() {
+	// This requires checking if the underlying value is also unknown.
+	if req.ConfigValue.IsUnknown() || (!req.ConfigValue.IsNull() && req.ConfigValue.UnderlyingValue().IsUnknown()) {
 		return
 	}
 

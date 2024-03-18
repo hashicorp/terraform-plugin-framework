@@ -34,6 +34,30 @@ func ValueSemanticEqualityDynamic(ctx context.Context, req ValueSemanticEquality
 		},
 	)
 
+	// The prior dynamic value has alredy been checked for null or unknown, however, we also
+	// need to check the underlying value for null or unknown.
+	priorValue, diags := priorValuable.ToDynamicValue(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if priorValue.UnderlyingValue() == nil || priorValue.UnderlyingValue().IsNull() || priorValue.UnderlyingValue().IsUnknown() {
+		return
+	}
+
+	// The proposed new dynamic value has alredy been checked for null or unknown, however, we also
+	// need to check the underlying value for null or unknown.
+	proposedValue, diags := proposedNewValuable.ToDynamicValue(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if proposedValue.UnderlyingValue() == nil || proposedValue.UnderlyingValue().IsNull() || proposedValue.UnderlyingValue().IsUnknown() {
+		return
+	}
+
 	usePriorValue, diags := proposedNewValuable.DynamicSemanticEquals(ctx, priorValuable)
 
 	logging.FrameworkTrace(

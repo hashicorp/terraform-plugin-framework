@@ -386,6 +386,38 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"deprecation-message-known-dynamic": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:               types.DynamicType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"Attribute Deprecated",
+						"Use something else instead.",
+					),
+				},
+			},
+		},
 		"deprecation-message-null": {
 			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -410,6 +442,30 @@ func TestAttributeValidate(t *testing.T) {
 			},
 			resp: ValidateAttributeResponse{},
 		},
+		"deprecation-message-dynamic-underlying-value-null": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil), // underlying type is String
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:               types.DynamicType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
 		"deprecation-message-unknown": {
 			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -425,6 +481,30 @@ func TestAttributeValidate(t *testing.T) {
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.Attribute{
 								Type:               types.StringType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"deprecation-message-dynamic-underlying-value-unknown": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // underlying type is String
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:               types.DynamicType,
 								Optional:           true,
 								DeprecationMessage: "Use something else instead.",
 							},

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // TransformDefaults walks the schema and applies schema defined default values
@@ -51,7 +52,22 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 
 		// Do not transform if rawConfig value is not null.
 		if !configValue.IsNull() {
-			return tfTypeValue, nil
+			// Dynamic values need to perform more logic to check the config value for null-ness
+			dynValuable, ok := configValue.(basetypes.DynamicValuable)
+			if !ok {
+				return tfTypeValue, nil
+			}
+
+			dynConfigVal, dynDiags := dynValuable.ToDynamicValue(ctx)
+			if dynDiags.HasError() {
+				return tfTypeValue, nil
+			}
+
+			// For dynamic values, it's possible to be known when only the type is known.
+			// The underlying value can still be null, so check for that here
+			if !dynConfigVal.IsUnknown() && !dynConfigVal.UnderlyingValue().IsNull() {
+				return tfTypeValue, nil
+			}
 		}
 
 		attrAtPath, err := d.Schema.AttributeAtTerraformPath(ctx, tfTypePath)

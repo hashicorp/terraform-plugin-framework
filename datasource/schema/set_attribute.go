@@ -43,6 +43,8 @@ var (
 type SetAttribute struct {
 	// ElementType is the type for all elements of the set. This field must be
 	// set.
+	//
+	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the

@@ -35,6 +35,10 @@ type ValidateParameterImplementationRequest struct {
 	ParameterPosition *int64
 
 	// Name is the provider-defined parameter name or the default parameter name for reporting diagnostics.
+	//
+	// MAINTAINER NOTE: Since parameter names are not required currently and can be defaulted by internal framework logic,
+	// we accept the Name in this validate request, rather than using `(function.Parameter).GetName()` for diagnostics, which
+	// could be empty.
 	Name string
 }
 

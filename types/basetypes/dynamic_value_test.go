@@ -5,7 +5,9 @@ package basetypes
 
 import (
 	"context"
+	"errors"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -17,8 +19,9 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		input    DynamicValue
-		expected tftypes.Value
+		input         DynamicValue
+		expected      tftypes.Value
+		expectedError error
 	}{
 		"known-primitive": {
 			input:    NewDynamicValue(NewStringValue("test")),
@@ -83,6 +86,14 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 				},
 			),
 		},
+		"known-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			expected:      tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+			expectedError: errors.New("invalid Dynamic state in ToTerraformValue: DynamicValue is known but the underlying value is unset"),
+		},
 		"null": {
 			input:    NewDynamicNull(),
 			expected: tftypes.NewValue(tftypes.DynamicPseudoType, nil),
@@ -91,12 +102,14 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 			input:    NewDynamicUnknown(),
 			expected: tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 		},
-		// For dynamic values, it's possible the underlying type is known but the underlying value itself is null/unknown. In this
+		// For dynamic values, it's possible the underlying type is known but the underlying value itself is null. In this
 		// situation, the type information must be preserved when returned back to Terraform.
 		"null-value-known-type": {
 			input:    NewDynamicValue(NewBoolNull()),
 			expected: tftypes.NewValue(tftypes.Bool, nil),
 		},
+		// For dynamic values, it's possible the underlying type is known but the underlying value itself is unknown. In this
+		// situation, the type information must be preserved when returned back to Terraform.
 		"unknown-value-known-type": {
 			input:    NewDynamicValue(NewListUnknown(StringType{})),
 			expected: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
@@ -110,8 +123,13 @@ func TestDynamicValueToTerraformValue(t *testing.T) {
 
 			got, err := test.input.ToTerraformValue(ctx)
 			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-				return
+				if test.expectedError == nil {
+					t.Fatalf("expected no error, got: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), test.expectedError.Error()) {
+					t.Fatalf("expected error %q, got: %s", test.expectedError, err)
+				}
 			}
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {
@@ -306,6 +324,22 @@ func TestDynamicValueEqual(t *testing.T) {
 			candidate:   NewStringNull(),
 			expectation: false,
 		},
+		"known-underlying-value-unset-input": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			candidate:   NewDynamicNull(),
+			expectation: false,
+		},
+		"known-underlying-value-unset-candidate": {
+			input: NewDynamicNull(),
+			candidate: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			expectation: false,
+		},
 	}
 
 	for name, test := range tests {
@@ -316,6 +350,87 @@ func TestDynamicValueEqual(t *testing.T) {
 			got := test.input.Equal(test.candidate)
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %v, got %v", test.expectation, got)
+			}
+		})
+	}
+}
+func TestDynamicValueString(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       DynamicValue
+		expectation string
+	}
+	tests := map[string]testCase{
+		"known-primitive": {
+			input:       NewDynamicValue(NewStringValue("hello world")),
+			expectation: `"hello world"`,
+		},
+		"known-collection": {
+			input: NewDynamicValue(NewListValueMust(
+				StringType{},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: `["hello","world"]`,
+		},
+		"known-tuple": {
+			input: NewDynamicValue(NewTupleValueMust(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: `["hello","world"]`,
+		},
+		"known-structural": {
+			input: NewDynamicValue(NewObjectValueMust(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+				map[string]attr.Value{
+					"alpha": NewStringValue("hello"),
+					"beta":  NewStringValue("world"),
+				},
+			)),
+			expectation: `{"alpha":"hello","beta":"world"}`,
+		},
+		"known-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			expectation: "<unset>",
+		},
+		"unknown": {
+			input:       NewDynamicUnknown(),
+			expectation: "<unknown>",
+		},
+		"null": {
+			input:       NewDynamicNull(),
+			expectation: "<null>",
+		},
+		"zero-value": {
+			input:       DynamicValue{},
+			expectation: "<null>",
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.String()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %q, got %q", test.expectation, got)
 			}
 		})
 	}

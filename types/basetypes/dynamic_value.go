@@ -5,6 +5,7 @@ package basetypes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -87,6 +88,11 @@ func (v DynamicValue) Type(ctx context.Context) attr.Type {
 func (v DynamicValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	switch v.state {
 	case attr.ValueStateKnown:
+		if v.value == nil {
+			return tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+				errors.New("invalid Dynamic state in ToTerraformValue: DynamicValue is known but the underlying value is unset")
+		}
+
 		return v.value.ToTerraformValue(ctx)
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.DynamicPseudoType, nil), nil
@@ -112,6 +118,11 @@ func (v DynamicValue) Equal(o attr.Value) bool {
 		return true
 	}
 
+	// Prevent panic and force inequality if either underlying value is nil
+	if v.value == nil || other.value == nil {
+		return false
+	}
+
 	return v.value.Equal(other.value)
 }
 
@@ -134,6 +145,10 @@ func (v DynamicValue) String() string {
 
 	if v.IsNull() {
 		return attr.NullValueString
+	}
+
+	if v.value == nil {
+		return attr.UnsetValueString
 	}
 
 	return v.value.String()

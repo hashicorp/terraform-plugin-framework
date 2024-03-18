@@ -91,8 +91,9 @@ func AttributeCollectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagno
 		"Invalid Schema Implementation",
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q is an attribute that contains a collection type with a nested dynamic type. ", attributePath)+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+			fmt.Sprintf("%q is an attribute that contains a collection type with a nested dynamic type.\n\n", attributePath)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+			fmt.Sprintf("If underlying dynamic values are required, replace the %q attribute definition with DynamicAttribute instead.", attributePath),
 	)
 }
 
@@ -101,8 +102,9 @@ func BlockCollectionWithDynamicTypeDiag(attributePath path.Path) diag.Diagnostic
 		"Invalid Schema Implementation",
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q is a block that contains a collection type with a nested dynamic type. ", attributePath)+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+			fmt.Sprintf("%q is a block that contains a collection type with a nested dynamic type.\n\n", attributePath)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+			fmt.Sprintf("If underlying dynamic values are required, replace the %q block definition with a DynamicAttribute.", attributePath),
 	)
 }
 
@@ -111,8 +113,9 @@ func ParameterCollectionWithDynamicTypeDiag(argument int64, name string) diag.Di
 		"Invalid Function Definition",
 		"When validating the function definition, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("Parameter %q at position %d contains a collection type with a nested dynamic type. ", name, argument)+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+			fmt.Sprintf("Parameter %q at position %d contains a collection type with a nested dynamic type.\n\n", name, argument)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+			fmt.Sprintf("If underlying dynamic values are required, replace the %q parameter definition with DynamicParameter instead.", name),
 	)
 }
 
@@ -121,8 +124,9 @@ func VariadicParameterCollectionWithDynamicTypeDiag(name string) diag.Diagnostic
 		"Invalid Function Definition",
 		"When validating the function definition, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("Variadic parameter %q contains a collection type with a nested dynamic type. ", name)+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+			fmt.Sprintf("Variadic parameter %q contains a collection type with a nested dynamic type.\n\n", name)+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+			"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
 	)
 }
 
@@ -131,7 +135,8 @@ func ReturnCollectionWithDynamicTypeDiag() diag.Diagnostic {
 		"Invalid Function Definition",
 		"When validating the function definition, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			"Return contains a collection type with a nested dynamic type. "+
-			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+			"Return contains a collection type with a nested dynamic type.\n\n"+
+			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+			"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
 	)
 }

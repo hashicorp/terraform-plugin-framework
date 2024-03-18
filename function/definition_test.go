@@ -207,8 +207,9 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"Invalid Function Definition",
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter \"param1\" at position 0 contains a collection type with a nested dynamic type. "+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+						"Parameter \"param1\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+						"If underlying dynamic values are required, replace the \"param1\" parameter definition with DynamicParameter instead.",
 				),
 			},
 		},
@@ -228,8 +229,9 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"Invalid Function Definition",
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Variadic parameter \"varparam\" contains a collection type with a nested dynamic type. "+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+						"Variadic parameter \"varparam\" contains a collection type with a nested dynamic type.\n\n"+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+						"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
 				),
 			},
 		},
@@ -244,8 +246,9 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					"Invalid Function Definition",
 					"When validating the function definition, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Return contains a collection type with a nested dynamic type. "+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+						"Return contains a collection type with a nested dynamic type.\n\n"+
+						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+						"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
 				),
 			},
 		},

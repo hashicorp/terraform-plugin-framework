@@ -61,7 +61,7 @@ type SetNestedBlock struct {
 	//
 	// Nested attributes that contain a dynamic type (i.e. DynamicAttribute) are not supported.
 	// If underlying dynamic values are required, replace this block definition with
-	// DynamicAttribute instead.
+	// a DynamicAttribute.
 	NestedObject NestedBlockObject
 
 	// CustomType enables the use of a custom attribute type in place of the

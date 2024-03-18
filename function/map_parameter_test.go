@@ -297,8 +297,9 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"testparam\" parameter definition with DynamicParameter instead.",
 					),
 				},
 			},
@@ -317,8 +318,9 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
 					),
 				},
 			},

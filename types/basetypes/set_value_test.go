@@ -871,6 +871,21 @@ func TestSetValueEqual(t *testing.T) {
 			input:    nil,
 			expected: false,
 		},
+		"zero-null": {
+			receiver: SetValue{},
+			input:    NewSetNull(StringType{}),
+			expected: false,
+		},
+		"zero-zero": {
+			receiver: SetValue{},
+			input:    SetValue{},
+			expected: false,
+		},
+		"null-zero": {
+			receiver: NewSetNull(StringType{}),
+			input:    SetValue{},
+			expected: false,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

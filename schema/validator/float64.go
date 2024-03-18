@@ -39,8 +39,8 @@ type Float64Request struct {
 
 // Float64Response is a response to a Float64Request.
 type Float64Response struct {
-	// Diagnostics report errors or warnings related to validating the data
-	// source configuration. An empty slice indicates success, with no warnings
+	// Diagnostics report errors or warnings related to validating the data source, provider, or resource
+	// configuration. An empty slice indicates success, with no warnings
 	// or errors generated.
 	Diagnostics diag.Diagnostics
 }

@@ -4237,7 +4237,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4267,7 +4267,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4396,7 +4396,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4426,7 +4426,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4449,7 +4449,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4479,7 +4479,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},

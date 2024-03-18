@@ -418,9 +418,9 @@ func TestDynamicAttributeDynamicDefaultValue(t *testing.T) {
 		},
 		"default": {
 			attribute: schema.DynamicAttribute{
-				Default: dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("test-value"))),
+				Default: dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("test-value"))),
 			},
-			expected: dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("test-value"))),
+			expected: dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("test-value"))),
 		},
 	}
 
@@ -527,7 +527,7 @@ func TestDynamicAttributeValidateImplementation(t *testing.T) {
 		},
 		"default-without-computed": {
 			attribute: schema.DynamicAttribute{
-				Default: dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("test"))),
+				Default: dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("test"))),
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -546,7 +546,7 @@ func TestDynamicAttributeValidateImplementation(t *testing.T) {
 		"default-with-computed": {
 			attribute: schema.DynamicAttribute{
 				Computed: true,
-				Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("test"))),
+				Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("test"))),
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",

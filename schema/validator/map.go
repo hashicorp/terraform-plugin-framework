@@ -39,8 +39,8 @@ type MapRequest struct {
 
 // MapResponse is a response to a MapRequest.
 type MapResponse struct {
-	// Diagnostics report errors or warnings related to validating the data
-	// source configuration. An empty slice indicates success, with no warnings
+	// Diagnostics report errors or warnings related to validating the data source, provider, or resource
+	// configuration. An empty slice indicates success, with no warnings
 	// or errors generated.
 	Diagnostics diag.Diagnostics
 }

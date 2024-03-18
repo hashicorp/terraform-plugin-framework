@@ -15,18 +15,18 @@ import (
 type String interface {
 	Describer
 
-	// DefaultString should String the default value.
+	// DefaultString should set the default value.
 	DefaultString(context.Context, StringRequest, *StringResponse)
 }
 
 type StringRequest struct {
-	// Path contains the path of the attribute for Stringting the
+	// Path contains the path of the attribute for setting the
 	// default value. Use this path for any response diagnostics.
 	Path path.Path
 }
 
 type StringResponse struct {
-	// Diagnostics report errors or warnings related to Stringting the
+	// Diagnostics report errors or warnings related to setting the
 	// default value resource configuration. An empty slice
 	// indicates success, with no warnings or errors generated.
 	Diagnostics diag.Diagnostics

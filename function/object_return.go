@@ -24,6 +24,8 @@ var (
 type ObjectReturn struct {
 	// AttributeTypes is the mapping of underlying attribute names to attribute
 	// types. This field must be set.
+	//
+	// Attribute types that contain a collection with a nested dynamic type (i.e. types.List[types.Dynamic]) are not supported.
 	AttributeTypes map[string]attr.Type
 
 	// CustomType enables the use of a custom data type in place of the

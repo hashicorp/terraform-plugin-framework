@@ -28,6 +28,8 @@ var (
 type MapReturn struct {
 	// ElementType is the type for all elements of the map. This field must be
 	// set.
+	//
+	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom data type in place of the

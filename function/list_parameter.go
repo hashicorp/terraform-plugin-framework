@@ -34,6 +34,8 @@ var (
 type ListParameter struct {
 	// ElementType is the type for all elements of the list. This field must be
 	// set.
+	//
+	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
 	ElementType attr.Type
 
 	// AllowNullValue when enabled denotes that a null argument value can be

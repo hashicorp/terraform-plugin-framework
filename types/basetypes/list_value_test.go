@@ -579,6 +579,21 @@ func TestListValueEqual(t *testing.T) {
 			input:    nil,
 			expected: false,
 		},
+		"zero-null": {
+			receiver: ListValue{},
+			input:    NewListNull(StringType{}),
+			expected: false,
+		},
+		"zero-zero": {
+			receiver: ListValue{},
+			input:    ListValue{},
+			expected: false,
+		},
+		"null-zero": {
+			receiver: NewListNull(StringType{}),
+			input:    ListValue{},
+			expected: false,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

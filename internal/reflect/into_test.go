@@ -39,17 +39,6 @@ func TestInto_Slices(t *testing.T) {
 			target:   make([]string, 0),
 			expected: []string{"hello", "world"},
 		},
-		"dynamic-list-to-go-slice": {
-			typ: types.DynamicType,
-			value: tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello"),
-				tftypes.NewValue(tftypes.String, "world"),
-			}),
-			target:   make([]string, 0),
-			expected: []string{"hello", "world"},
-		},
 		"set-to-go-slice": {
 			typ: types.SetType{ElemType: types.StringType},
 			value: tftypes.NewValue(tftypes.Set{
@@ -61,30 +50,8 @@ func TestInto_Slices(t *testing.T) {
 			target:   make([]string, 0),
 			expected: []string{"hello", "world"},
 		},
-		"dynamic-set-to-go-slice": {
-			typ: types.DynamicType,
-			value: tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello"),
-				tftypes.NewValue(tftypes.String, "world"),
-			}),
-			target:   make([]string, 0),
-			expected: []string{"hello", "world"},
-		},
 		"tuple-to-go-slice": {
 			typ: types.TupleType{ElemTypes: []attr.Type{types.StringType, types.StringType}},
-			value: tftypes.NewValue(tftypes.Tuple{
-				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello"),
-				tftypes.NewValue(tftypes.String, "world"),
-			}),
-			target:   make([]string, 0),
-			expected: []string{"hello", "world"},
-		},
-		"dynamic-tuple-to-go-slice": {
-			typ: types.DynamicType,
 			value: tftypes.NewValue(tftypes.Tuple{
 				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
 			}, []tftypes.Value{
@@ -182,19 +149,63 @@ func TestInto_Slices(t *testing.T) {
 				),
 			},
 		},
-		"dynamic-list-to-incompatible-type": {
-			typ:      types.DynamicType,
-			value:    tftypes.NewValue(tftypes.String, "hello"),
+		"dynamic-list-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
 			target:   make([]string, 0),
 			expected: make([]string, 0),
 			expectedDiags: diag.Diagnostics{
-				diag.WithPath(
+				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
-					refl.DiagIntoIncompatibleType{
-						Val:        tftypes.NewValue(tftypes.String, "hello"),
-						TargetType: reflect.TypeOf([]string{}),
-						Err:        errors.New("can't unmarshal tftypes.String into *[]tftypes.Value expected []tftypes.Value"),
-					},
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
+				),
+			},
+		},
+		"dynamic-set-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
+				),
+			},
+		},
+		"dynamic-tuple-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
 				),
 			},
 		},

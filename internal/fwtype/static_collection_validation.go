@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // ContainsCollectionWithDynamic will return true if an attr.Type is a complex type that either is or contains any
@@ -22,7 +23,7 @@ import (
 func ContainsCollectionWithDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
 	// We haven't run into a collection type yet, so it's valid for this to be a dynamic type
-	case attr.TypeWithDynamicValue:
+	case basetypes.DynamicTypable:
 		return false
 	// Lists, maps, sets
 	case attr.TypeWithElementType:
@@ -56,7 +57,7 @@ func ContainsCollectionWithDynamic(typ attr.Type) bool {
 func containsDynamic(typ attr.Type) bool {
 	switch attrType := typ.(type) {
 	// Found a dynamic!
-	case attr.TypeWithDynamicValue:
+	case basetypes.DynamicTypable:
 		return true
 	// Lists, maps, sets
 	case attr.TypeWithElementType:

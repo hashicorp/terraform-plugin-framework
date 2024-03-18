@@ -92,15 +92,6 @@ type TypeWithElementTypes interface {
 	ElementTypes() []Type
 }
 
-// TypeWithDynamicValue extends the Type interface to include information about how a dynamic type
-// determines it's concrete value type at runtime.
-type TypeWithDynamicValue interface {
-	Type
-
-	// DetermineAttrType returns a corresponding attr.Type based on the tftypes.Type representation.
-	DetermineAttrType(tftypes.Type) Type
-}
-
 // TypeWithPlaintextDescription extends the Type interface to include a
 // Description method, used to bundle extra information to include in attribute
 // descriptions with the Type. It expects the description to be written as

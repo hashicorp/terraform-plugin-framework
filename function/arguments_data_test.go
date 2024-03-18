@@ -5,6 +5,7 @@ package function_test
 
 import (
 	"context"
+	"math/big"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -245,10 +246,8 @@ func TestArgumentsDataGet(t *testing.T) {
 				),
 			},
 		},
-		"reflection": {
+		"dynamic-framework-type": {
 			argumentsData: function.NewArgumentsData([]attr.Value{
-				basetypes.NewBoolNull(),
-				basetypes.NewStringValue("test"),
 				basetypes.NewDynamicValue(basetypes.NewStringValue("dynamic_test")),
 				basetypes.NewDynamicValue(basetypes.NewListValueMust(
 					basetypes.StringType{},
@@ -260,16 +259,59 @@ func TestArgumentsDataGet(t *testing.T) {
 				)),
 			}),
 			targets: []any{
+				new(basetypes.DynamicValue),
+				new(basetypes.DynamicValue),
+			},
+			expected: []any{
+				pointer(basetypes.NewDynamicValue(basetypes.NewStringValue("dynamic_test"))),
+				pointer(basetypes.NewDynamicValue(basetypes.NewListValueMust(
+					basetypes.StringType{},
+					[]attr.Value{
+						basetypes.NewStringValue("hello"),
+						basetypes.NewStringValue("dynamic"),
+						basetypes.NewStringValue("world"),
+					},
+				))),
+			},
+		},
+		"dynamic-framework-type-variadic": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.DynamicType{},
+						basetypes.DynamicType{},
+						basetypes.DynamicType{},
+					},
+					[]attr.Value{
+						basetypes.NewDynamicValue(basetypes.NewStringValue("test1")),
+						basetypes.NewDynamicValue(basetypes.NewNumberValue(big.NewFloat(1.23))),
+						basetypes.NewDynamicValue(basetypes.NewBoolValue(true)),
+					},
+				),
+			}),
+			targets: []any{
+				new([]basetypes.DynamicValue),
+			},
+			expected: []any{
+				pointer([]basetypes.DynamicValue{
+					basetypes.NewDynamicValue(basetypes.NewStringValue("test1")),
+					basetypes.NewDynamicValue(basetypes.NewNumberValue(big.NewFloat(1.23))),
+					basetypes.NewDynamicValue(basetypes.NewBoolValue(true)),
+				}),
+			},
+		},
+		"reflection": {
+			argumentsData: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolNull(),
+				basetypes.NewStringValue("test"),
+			}),
+			targets: []any{
 				new(*bool),
 				new(string),
-				new(string),
-				new([]string),
 			},
 			expected: []any{
 				pointer((*bool)(nil)),
 				pointer("test"),
-				pointer("dynamic_test"),
-				pointer([]string{"hello", "dynamic", "world"}),
 			},
 		},
 		"reflection-variadic": {
@@ -334,6 +376,9 @@ func TestArgumentsDataGet(t *testing.T) {
 					return *v
 				}),
 				cmp.Transformer("TupleValue", func(v *basetypes.TupleValue) basetypes.TupleValue {
+					return *v
+				}),
+				cmp.Transformer("DynamicValue", func(v *basetypes.DynamicValue) basetypes.DynamicValue {
 					return *v
 				}),
 			}

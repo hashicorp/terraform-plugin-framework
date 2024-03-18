@@ -26,6 +26,8 @@ type ObjectReturn struct {
 	// types. This field must be set.
 	//
 	// Attribute types that contain a collection with a nested dynamic type (i.e. types.List[types.Dynamic]) are not supported.
+	// If underlying dynamic collection values are required, replace this return definition with
+	// DynamicReturn instead.
 	AttributeTypes map[string]attr.Type
 
 	// CustomType enables the use of a custom data type in place of the

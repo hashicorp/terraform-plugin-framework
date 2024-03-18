@@ -30,6 +30,8 @@ type SetReturn struct {
 	// set.
 	//
 	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
+	// If underlying dynamic values are required, replace this return definition with
+	// DynamicReturn instead.
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom data type in place of the

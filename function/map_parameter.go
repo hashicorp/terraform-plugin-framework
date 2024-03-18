@@ -36,6 +36,8 @@ type MapParameter struct {
 	// set.
 	//
 	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
+	// If underlying dynamic values are required, replace this parameter definition with
+	// DynamicParameter instead.
 	ElementType attr.Type
 
 	// AllowNullValue when enabled denotes that a null argument value can be

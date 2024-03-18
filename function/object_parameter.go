@@ -38,6 +38,8 @@ type ObjectParameter struct {
 	// types. This field must be set.
 	//
 	// Attribute types that contain a collection with a nested dynamic type (i.e. types.List[types.Dynamic]) are not supported.
+	// If underlying dynamic collection values are required, replace this parameter definition with
+	// DynamicParameter instead.
 	AttributeTypes map[string]attr.Type
 
 	// AllowNullValue when enabled denotes that a null argument value can be

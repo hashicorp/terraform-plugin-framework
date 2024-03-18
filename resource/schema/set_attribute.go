@@ -50,6 +50,8 @@ type SetAttribute struct {
 	// set.
 	//
 	// Element types that contain a dynamic type (i.e. types.Dynamic) are not supported.
+	// If underlying dynamic values are required, replace this attribute definition with
+	// DynamicAttribute instead.
 	ElementType attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the

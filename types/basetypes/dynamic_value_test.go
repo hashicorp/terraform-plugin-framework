@@ -15,6 +15,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestNewDynamicValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    attr.Value
+		expected DynamicValue
+	}{
+		"nil": {
+			input:    nil,
+			expected: NewDynamicNull(),
+		},
+		"known": {
+			input:    NewStringValue("hello world"),
+			expected: NewDynamicValue(NewStringValue("hello world")),
+		},
+		// This represents when Terraform knows what the type will be, but the value is null.
+		"known-underlying-value-null": {
+			input:    NewStringNull(),
+			expected: NewDynamicValue(NewStringNull()),
+		},
+		// This represents when Terraform knows what the type will be, but doesn't yet know the value.
+		"known-underlying-value-unknown": {
+			input:    NewStringUnknown(),
+			expected: NewDynamicValue(NewStringUnknown()),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewDynamicValue(testCase.input)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestDynamicValueToTerraformValue(t *testing.T) {
 	t.Parallel()
 

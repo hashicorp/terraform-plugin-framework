@@ -44,6 +44,10 @@ type DynamicValuableWithSemanticEquals interface {
 // type UnderlyingValue method. The concrete value type returned to Terraform from this value
 // will be determined by the provided `(attr.Value).ToTerraformValue` function.
 func NewDynamicValue(value attr.Value) DynamicValue {
+	if value == nil {
+		return NewDynamicNull()
+	}
+
 	return DynamicValue{
 		value: value,
 		state: attr.ValueStateKnown,

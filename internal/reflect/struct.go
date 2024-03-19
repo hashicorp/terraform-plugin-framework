@@ -9,11 +9,12 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Struct builds a new struct using the data in `object`, as long as `object`
@@ -226,6 +227,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfObjVal, path)...)
 
@@ -242,6 +244,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		AttributeTypes: objTypes,
 	}, objValues)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 

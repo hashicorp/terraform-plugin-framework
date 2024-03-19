@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ArgumentsData returns the ArgumentsData for a given []*tfprotov6.DynamicValue
@@ -112,11 +113,12 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 		// which will always be incorrect in the context of functions.
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/589
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/893
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if attrTypeWithValidate, ok := parameterType.(xattr.TypeWithValidate); ok {
 			logging.FrameworkTrace(ctx, "Parameter type implements TypeWithValidate")
-			logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
+			logging.FrameworkTrace(ctx, "Calling provider defined Type ValidateAttribute")
 			diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, path.Empty())...)
-			logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
+			logging.FrameworkTrace(ctx, "Called provider defined Type ValidateAttribute")
 
 			if diags.HasError() {
 				continue

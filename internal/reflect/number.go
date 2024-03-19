@@ -179,6 +179,7 @@ func FromInt(ctx context.Context, typ attr.Type, val int64, path path.Path) (att
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
@@ -206,6 +207,7 @@ func FromUint(ctx context.Context, typ attr.Type, val uint64, path path.Path) (a
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
@@ -233,6 +235,7 @@ func FromFloat(ctx context.Context, typ attr.Type, val float64, path path.Path) 
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
@@ -260,6 +263,7 @@ func FromBigFloat(ctx context.Context, typ attr.Type, val *big.Float, path path.
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 
@@ -288,6 +292,7 @@ func FromBigInt(ctx context.Context, typ attr.Type, val *big.Int, path path.Path
 	}
 	tfNum := tftypes.NewValue(tftypes.Number, fl)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfNum, path)...)
 

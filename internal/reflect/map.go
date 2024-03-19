@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Map creates a map value that matches the type of `target`, and populates it
@@ -103,6 +104,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 	if val.IsNil() {
 		tfVal := tftypes.NewValue(tfType, nil)
 
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -148,6 +150,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path.AtMapKey(key.String()))...)
 
@@ -166,6 +169,7 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 

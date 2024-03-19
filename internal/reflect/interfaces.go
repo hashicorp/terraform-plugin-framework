@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Unknownable is an interface for types that can be explicitly set to known or
@@ -74,6 +75,7 @@ func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path p
 	if val.GetUnknown(ctx) {
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), tftypes.UnknownValue)
 
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -95,6 +97,7 @@ func FromUnknownable(ctx context.Context, typ attr.Type, val Unknownable, path p
 
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -168,6 +171,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path path.Pa
 	if val.GetNull(ctx) {
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -189,6 +193,7 @@ func FromNullable(ctx context.Context, typ attr.Type, val Nullable, path path.Pa
 
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), val.GetValue(ctx))
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -260,6 +265,7 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 	}
 	tfVal := tftypes.NewValue(typ.TerraformType(ctx), raw)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
 
@@ -283,6 +289,7 @@ func FromValueCreator(ctx context.Context, typ attr.Type, val tftypes.ValueCreat
 func NewAttributeValue(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, val, path)...)
 
@@ -334,6 +341,7 @@ func FromAttributeValue(ctx context.Context, typ attr.Type, val attr.Value, path
 		return nil, diags
 	}
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		tfVal, err := val.ToTerraformValue(ctx)
 		if err != nil {

@@ -8,11 +8,12 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Primitive builds a string or boolean, depending on the type of `target`, and
@@ -68,6 +69,7 @@ func FromString(ctx context.Context, typ attr.Type, val string, path path.Path) 
 	}
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfStr, path)...)
 
@@ -95,6 +97,7 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path path.Path) (att
 	}
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
 		diags.Append(typeWithValidate.Validate(ctx, tfBool, path)...)
 

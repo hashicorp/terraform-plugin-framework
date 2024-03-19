@@ -6,14 +6,18 @@ package xattr
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // TypeWithValidate extends the attr.Type interface to include a Validate
 // method, used to bundle consistent validation logic with the Type.
+//
+// Deprecated: Use the value type-specific AttributeWithValidate and
+// ParameterWithValidate interfaces in the validation package instead.
 type TypeWithValidate interface {
 	attr.Type
 

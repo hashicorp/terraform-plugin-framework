@@ -243,42 +243,52 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.MapParameter{
+						Name:        "map_with_dynamic",
 						ElementType: types.DynamicType,
 					},
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter \"param1\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the \"param1\" parameter definition with DynamicParameter instead.",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter \"map_with_dynamic\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"map_with_dynamic\" parameter definition with DynamicParameter instead.",
+					),
+				},
 			},
 		},
 		"variadic-param-dynamic-in-collection": {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
-					function.StringParameter{},
-					function.StringParameter{},
+					function.StringParameter{
+						Name: "string_param1",
+					},
+					function.StringParameter{
+						Name: "string_param2",
+					},
 				},
 				VariadicParameter: function.SetParameter{
+					Name:        "set_with_dynamic",
 					ElementType: types.DynamicType,
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Variadic parameter \"varparam\" contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Variadic parameter \"set_with_dynamic\" contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
+					),
+				},
 			},
 		},
 		"return-dynamic-in-collection": {
@@ -287,74 +297,17 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 					ElementType: types.DynamicType,
 				},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Return contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
-				),
-			},
-		},
-		"param-dynamic-in-collection": {
-			definition: function.Definition{
-				Parameters: []function.Parameter{
-					function.MapParameter{
-						ElementType: types.DynamicType,
-					},
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Return contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
+					),
 				},
-				Return: function.StringReturn{},
-			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter \"param1\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the \"param1\" parameter definition with DynamicParameter instead.",
-				),
-			},
-		},
-		"variadic-param-dynamic-in-collection": {
-			definition: function.Definition{
-				Parameters: []function.Parameter{
-					function.StringParameter{},
-					function.StringParameter{},
-				},
-				VariadicParameter: function.SetParameter{
-					ElementType: types.DynamicType,
-				},
-				Return: function.StringReturn{},
-			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Variadic parameter \"varparam\" contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
-				),
-			},
-		},
-		"return-dynamic-in-collection": {
-			definition: function.Definition{
-				Return: function.ListReturn{
-					ElementType: types.DynamicType,
-				},
-			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Return contains a collection type with a nested dynamic type.\n\n"+
-						"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-						"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
-				),
 			},
 		},
 		"conflicting-param-names": {

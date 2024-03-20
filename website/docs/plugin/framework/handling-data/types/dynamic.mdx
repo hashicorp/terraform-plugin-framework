@@ -100,6 +100,12 @@ If a dynamic value is known, a [Go type switch](https://go.dev/tour/methods/16) 
 	}
 ```
 
+<Tip>
+
+[Float64](/terraform/plugin/framework/handling-data/types/float64) and [Int64](/terraform/plugin/framework/handling-data/types/int64) framework types will never appear in the underlying value as both are represented as the Terraform type [`number`](/terraform/language/expressions/types#number).
+
+</Tip>
+
 The type of the underlying value is determined at runtime by Terraform if the value is from configuration. Developers dealing with dynamic data will need to have extensive knowledge of the [Terraform type system](/terraform/language/expressions/types) to properly handle all potential practitioner configuration scenarios.
 
 Refer to the [Dynamic Data](/terraform/plugin/framework/handling-data/dynamic-data) documentation for more information.

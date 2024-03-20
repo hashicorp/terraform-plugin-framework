@@ -18,7 +18,7 @@ Dynamic data handling uses the [framework dynamic type](/terraform/plugin/framew
 
 Using dynamic data has a negative impact on practitioner experience when using Terraform and downstream tooling, like practitioner configuration editor integrations. Dynamics do not change how [Terraform's static type system](/terraform/language/expressions/types) behaves and all data consistency rules are applied the same as static types. Provider developers should understand all the below [considerations](#considerations) when creating a provider with a dynamic type.
 
-It's recommended that provider developers only use dynamics when using one or more static types is not a suitable alternative.
+Only use a dynamic type when there is not a suitable static type alternative.
 
 ## Considerations
 

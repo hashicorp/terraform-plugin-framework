@@ -98,7 +98,7 @@ func (s *Server) FunctionDefinitions(ctx context.Context) (map[string]function.D
 			continue
 		}
 
-		validateDiags := definitionResp.Definition.ValidateImplementation(ctx)
+		validateDiags := definitionResp.Definition.ValidateImplementation(ctx, name)
 
 		diags.Append(validateDiags...)
 

@@ -89,7 +89,7 @@ func (d Definition) Parameter(ctx context.Context, position int) (Parameter, dia
 // implementation of the definition to prevent unexpected errors or panics. This
 // logic runs during the GetProviderSchema RPC, or via provider-defined unit
 // testing, and should never include false positives.
-func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics {
+func (d Definition) ValidateImplementation(ctx context.Context, funcName string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if d.Return == nil {
@@ -97,14 +97,14 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 			"Invalid Function Definition",
 			"When validating the function definition, an implementation issue was found. "+
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-				"Definition Return field is undefined",
+				fmt.Sprintf("Function %q - Definition Return field is undefined", funcName),
 		)
 	} else if d.Return.GetType() == nil {
 		diags.AddError(
 			"Invalid Function Definition",
 			"When validating the function definition, an implementation issue was found. "+
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-				"Definition return data type is undefined",
+				fmt.Sprintf("Function %q - Definition return data type is undefined", funcName),
 		)
 	}
 
@@ -117,7 +117,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"Invalid Function Definition",
 				"When validating the function definition, an implementation issue was found. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Parameter at position %d does not have a name", pos),
+					fmt.Sprintf("Function %q - Parameter at position %d does not have a name", funcName, pos),
 			)
 		}
 
@@ -128,7 +128,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"When validating the function definition, an implementation issue was found. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					"Parameter names must be unique. "+
-					fmt.Sprintf("Parameters at position %d and %d have the same name %q", conflictPos, pos, name),
+					fmt.Sprintf("Function %q - Parameters at position %d and %d have the same name %q", funcName, conflictPos, pos, name),
 			)
 			continue
 		}
@@ -144,7 +144,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"Invalid Function Definition",
 				"When validating the function definition, an implementation issue was found. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-					"The variadic parameter does not have a name",
+					fmt.Sprintf("Function %q - The variadic parameter does not have a name", funcName),
 			)
 		}
 
@@ -155,7 +155,7 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 				"When validating the function definition, an implementation issue was found. "+
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					"Parameter names must be unique. "+
-					fmt.Sprintf("Parameter at position %d and the variadic parameter have the same name %q", conflictPos, name),
+					fmt.Sprintf("Function %q - Parameter at position %d and the variadic parameter have the same name %q", funcName, conflictPos, name),
 			)
 		}
 	}

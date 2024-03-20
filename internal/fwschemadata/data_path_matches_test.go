@@ -1373,6 +1373,99 @@ func TestDataPathMatches(t *testing.T) {
 				),
 			},
 		},
+		"AttributeNameExact-match-dynamic-attribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
+						Type: types.DynamicType,
+					},
+				},
+			},
+			tfTypeValue: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.DynamicPseudoType,
+					},
+				},
+				map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "test-value"),
+				},
+			),
+			expression: path.MatchRoot("test"),
+			expected: path.Paths{
+				path.Root("test"),
+			},
+		},
+		"AttributeNameExact-mismatch-dynamic-attribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
+						Type: types.DynamicType,
+					},
+				},
+			},
+			tfTypeValue: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.DynamicPseudoType,
+					},
+				},
+				map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.String, "test-value"),
+				},
+			),
+			expression: path.MatchRoot("not-test"),
+			expected:   nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
+						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
+						"Please report this to the provider developers.\n\n"+
+						"Path Expression: not-test",
+				),
+			},
+		},
+		// Path match expressions that step into dynamic attributes are not valid
+		"AttributeNameExact-ElementKeyIntAny-invalid-on-dynamic-attribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test": testschema.Attribute{
+						Type: types.DynamicType,
+					},
+				},
+			},
+			tfTypeValue: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.DynamicPseudoType,
+					},
+				},
+				map[string]tftypes.Value{
+					"test": tftypes.NewValue(
+						tftypes.List{
+							ElementType: tftypes.String,
+						},
+						[]tftypes.Value{
+							tftypes.NewValue(tftypes.String, "test-value1"),
+							tftypes.NewValue(tftypes.String, "test-value2"),
+							tftypes.NewValue(tftypes.String, "test-value3"),
+						},
+					),
+				},
+			),
+			expression: path.MatchRoot("test").AtAnyListIndex(),
+			expected:   nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Invalid Path Expression for Schema",
+					"The Terraform Provider unexpectedly provided a path expression that does not match the current schema. "+
+						"This can happen if the path expression does not correctly follow the schema in structure or types. "+
+						"Please report this to the provider developers.\n\n"+
+						"Path Expression: test[*]",
+				),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

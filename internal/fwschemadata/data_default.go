@@ -31,6 +31,35 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 	}
 
 	d.TerraformValue, err = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
+		// Skip the root of the data, only applying defaults to attributes
+		if len(tfTypePath.Steps()) < 1 {
+			return tfTypeValue, nil
+		}
+
+		attrAtPath, err := d.Schema.AttributeAtTerraformPath(ctx, tfTypePath)
+
+		if err != nil {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
+				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not setting default")
+				return tfTypeValue, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathIsBlock) {
+				// ignore blocks, they do not have a computed field
+				logging.FrameworkTrace(ctx, "attribute is a block, not setting default")
+				return tfTypeValue, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) {
+				// ignore attributes/elements inside schema.DynamicAttribute, they have no schema of their own
+				logging.FrameworkTrace(ctx, "attribute is inside of a dynamic attribute, not setting default")
+				return tfTypeValue, nil
+			}
+
+			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
+		}
+
 		fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, tfTypePath, d.Schema)
 
 		diags.Append(fwPathDiags...)
@@ -68,24 +97,6 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			if !dynConfigVal.IsUnknown() && !dynConfigVal.UnderlyingValue().IsNull() {
 				return tfTypeValue, nil
 			}
-		}
-
-		attrAtPath, err := d.Schema.AttributeAtTerraformPath(ctx, tfTypePath)
-
-		if err != nil {
-			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
-				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not setting default")
-				return tfTypeValue, nil
-			}
-
-			if errors.Is(err, fwschema.ErrPathIsBlock) {
-				// ignore blocks, they do not have a computed field
-				logging.FrameworkTrace(ctx, "attribute is a block, not setting default")
-				return tfTypeValue, nil
-			}
-
-			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 
 		switch a := attrAtPath.(type) {

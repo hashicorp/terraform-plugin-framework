@@ -430,11 +430,12 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("test").AtSetValue(types.StringValue("othervalue")),
 			expected: false,
 		},
+		// This is the expected correct path to access a dynamic attribute (at the root only)
 		"DynamicType-WithAttributeName": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
@@ -455,7 +456,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
@@ -472,15 +473,13 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("other"),
 			expected: false,
 		},
+		// This test passes because the underlying `(Data).PathExists` function uses the TerraformValue and not the Schema.
+		// Framework dynamic attributes don't allow you to step into them with paths.
 		"DynamicType-WithAttributeName.WithAttributeName": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"nested": tftypes.String,
-							},
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Object{
@@ -507,11 +506,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"nested": tftypes.String,
-							},
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Object{
@@ -538,7 +533,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
@@ -555,13 +550,13 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("test").AtName("other"),
 			expected: false,
 		},
+		// This test passes because the underlying `(Data).PathExists` function uses the TerraformValue and not the Schema.
+		// Framework dynamic attributes don't allow you to step into them with paths.
 		"DynamicType-WithAttributeName.WithElementKeyInt": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.List{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.List{
@@ -586,9 +581,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.List{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.List{
@@ -613,7 +606,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
@@ -630,13 +623,13 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("test").AtListIndex(0),
 			expected: false,
 		},
+		// This test passes because the underlying `(Data).PathExists` function uses the TerraformValue and not the Schema.
+		// Framework dynamic attributes don't allow you to step into them with paths.
 		"DynamicType-WithAttributeName.WithElementKeyString": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Map{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
@@ -661,9 +654,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Map{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Map{
@@ -688,7 +679,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),
@@ -705,13 +696,13 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("test").AtMapKey("other"),
 			expected: false,
 		},
+		// This test passes because the underlying `(Data).PathExists` function uses the TerraformValue and not the Schema.
+		// Framework dynamic attributes don't allow you to step into them with paths.
 		"DynamicType-WithAttributeName.WithElementKeyValue-StringValue": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Set{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Set{
@@ -732,13 +723,13 @@ func TestDataPathExists(t *testing.T) {
 			path:     path.Root("test").AtSetValue(types.StringValue("testvalue")),
 			expected: true,
 		},
+		// This test passes because the underlying `(Data).PathExists` function uses the TerraformValue and not the Schema.
+		// Framework dynamic attributes don't allow you to step into them with paths.
 		"DynamicType-WithAttributeName.WithElementKeyValue-DynamicValue": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Set{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Set{
@@ -763,9 +754,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Set{
-							ElementType: tftypes.String,
-						},
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.Set{
@@ -790,7 +779,7 @@ func TestDataPathExists(t *testing.T) {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.String,
+						"test": tftypes.DynamicPseudoType,
 					},
 				}, map[string]tftypes.Value{
 					"test": tftypes.NewValue(tftypes.String, "testvalue"),

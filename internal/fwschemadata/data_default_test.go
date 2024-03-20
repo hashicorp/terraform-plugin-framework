@@ -4301,7 +4301,16 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								// Default transform walk will visit both of these elements and skip
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
 					},
 				),
 			},
@@ -4331,7 +4340,15 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
 					},
 				),
 			},
@@ -4396,7 +4413,14 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
+							Default: dynamicdefault.StaticValue(
+								types.DynamicValue(
+									types.ListValueMust(types.StringType, []attr.Value{
+										types.StringValue("three"),
+										types.StringValue("four"),
+									}),
+								),
+							),
 						},
 					},
 				},
@@ -4407,7 +4431,16 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								// Default transform walk will visit both of these elements and skip
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
 					},
 				),
 			},
@@ -4437,7 +4470,15 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"dynamic_attribute": tftypes.NewValue(tftypes.String, "two"),
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "three"),
+								tftypes.NewValue(tftypes.String, "four"),
+							},
+						),
 					},
 				),
 			},

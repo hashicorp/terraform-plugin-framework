@@ -7282,6 +7282,36 @@ func TestDataGet(t *testing.T) {
 				Dynamic: types.DynamicNull(),
 			},
 		},
+		"DynamicType-types.dynamic-underlying-value-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.String, nil), // Terraform knows the type, but the underlying value is null
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicValue(types.StringNull()),
+			},
+		},
 		"DynamicType-types.dynamic-unknown": {
 			data: fwschemadata.Data{
 				Schema: testschema.Schema{
@@ -7310,6 +7340,36 @@ func TestDataGet(t *testing.T) {
 				Dynamic types.Dynamic `tfsdk:"dynamic"`
 			}{
 				Dynamic: types.DynamicUnknown(),
+			},
+		},
+		"DynamicType-types.dynamic-underlying-value-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Terraform knows the type, but the underlying value is unknown
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicValue(types.BoolUnknown()),
 			},
 		},
 		"DynamicType-types.dynamic-stringvalue": {

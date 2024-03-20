@@ -5,6 +5,7 @@ package schema_test
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -35,24 +36,28 @@ func TestDynamicAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 		expectedError error
 	}{
 		"AttributeName": {
-			attribute: schema.DynamicAttribute{},
-			step:      tftypes.AttributeName("test"),
-			expected:  types.DynamicType,
+			attribute:     schema.DynamicAttribute{},
+			step:          tftypes.AttributeName("test"),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.DynamicType"),
 		},
 		"ElementKeyInt": {
-			attribute: schema.DynamicAttribute{},
-			step:      tftypes.ElementKeyInt(1),
-			expected:  types.DynamicType,
+			attribute:     schema.DynamicAttribute{},
+			step:          tftypes.ElementKeyInt(1),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.DynamicType"),
 		},
 		"ElementKeyString": {
-			attribute: schema.DynamicAttribute{},
-			step:      tftypes.ElementKeyString("test"),
-			expected:  types.DynamicType,
+			attribute:     schema.DynamicAttribute{},
+			step:          tftypes.ElementKeyString("test"),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.DynamicType"),
 		},
 		"ElementKeyValue": {
-			attribute: schema.DynamicAttribute{},
-			step:      tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
-			expected:  types.DynamicType,
+			attribute:     schema.DynamicAttribute{},
+			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.DynamicType"),
 		},
 	}
 

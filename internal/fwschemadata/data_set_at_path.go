@@ -161,24 +161,6 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 		parentType := parentAttrType.TerraformType(ctx)
 		var childValue interface{}
 
-		// If the parent type from the schema is DynamicPseudoType, we need to use the type from the concrete value (if available)
-		if parentType.Is(tftypes.DynamicPseudoType) {
-			valueType := parentValue.Type()
-
-			// If the value is also DynamicPseudoType (i.e, null or unknown), we cannot perform an upsert
-			if valueType.Is(tftypes.DynamicPseudoType) {
-				diags.AddAttributeError(
-					parentPath,
-					d.Description.Title()+" Write Error",
-					"An unexpected error was encountered trying to write an attribute to the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"Parent value is tftypes.DynamicPseudoType, which cannot be upserted to.",
-				)
-				return nil, diags
-			}
-
-			parentType = valueType
-		}
-
 		if !parentValue.IsKnown() {
 			childValue = tftypes.UnknownValue
 		}

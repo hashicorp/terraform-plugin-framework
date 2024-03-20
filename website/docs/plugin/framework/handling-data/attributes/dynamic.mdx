@@ -26,15 +26,15 @@ resource "examplecloud_thing" "example" {
 }
 ```
 
-In this example, the same dynamic attribute is set to the ordered list collection values `one` and `two`:
+In this example, the same dynamic attribute is set to a tuple (not a list) of string values `one` and `two`:
 
 ```hcl
 resource "examplecloud_thing" "example" {
-  example_attribute = tolist(["one", "two"])
+  example_attribute = ["one", "two"]
 }
 ```
 
-In this example, the same dynamic attribute is set to the mapped values of `attr1` to `"value1"` and `attr2` to `123`:
+In this example, the same dynamic attribute is set to an object type with mapped values of `attr1` to `"value1"` and `attr2` to `123`:
 
 ```hcl
 resource "examplecloud_thing" "example" {

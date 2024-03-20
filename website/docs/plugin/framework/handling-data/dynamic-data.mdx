@@ -122,6 +122,53 @@ An example of handling every possible Terraform type that could be provided to a
 
 When writing test configurations and debugging provider issues, developers will also want to understand how Terraform represents [complex type literals](/terraform/language/expressions/type-constraints#complex-type-literals). For example, Terraform does not provide any way to directly represent lists, maps, or sets.
 
+
+### Handling Underlying Null and Unknown Values
+
+With dynamic data, in addition to typical [null](/terraform/plugin/framework/handling-data/terraform-concepts#null-values) and [unknown](/terraform/plugin/framework/handling-data/terraform-concepts#unknown-values) value handling, provider developers will need to implement additional logic to determine if an underlying value for a dynamic is null or unknown.
+
+#### Underlying Null
+
+In the configuration below, Terraform knows the underlying value type, `string`, but the underlying string value is null:
+
+```hcl
+resource "examplecloud_thing" "example" {
+  example_attribute = var.null_string
+}
+
+variable "null_string" {
+  type    = string
+  default = null
+}
+```
+
+This will result in a known dynamic value, with an underlying value that is a null [string type](/terraform/plugin/framework/handling-data/types/string). This can be detected utilizing the [`(types.Dynamic).IsUnderlyingValueNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsUnderlyingValueNull) method. An equivalent framework value to this scenario would be:
+
+```go
+dynValWithNullString := types.DynamicValue(types.StringNull())
+```
+
+#### Underlying Unknown
+
+In the configuration below, Terraform knows the underlying value type of [`random_shuffle.result`](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/shuffle#result), a `list(string)`, but the underlying list value is unknown:
+
+```hcl
+resource "random_shuffle" "example" {
+  input        = ["one", "two"]
+  result_count = 2
+}
+
+resource "examplecloud_thing" "this" {
+  example_attribute = random_shuffle.example.result
+}
+```
+
+This will result in a known dynamic value, with an underlying value that is an unknown [list of string types](/terraform/plugin/framework/handling-data/types/list). This can be detected utilizing the [`(types.Dynamic).IsUnderlyingValueUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsUnderlyingValueUnknown) method. An equivalent framework value to this scenario would be:
+
+```go
+dynValWithUnknownList := types.DynamicValue(types.ListUnknown(types.StringType))
+```
+
 ### Understanding Type Consistency
 
 For [managed resources](/terraform/plugin/framework/resources), Terraform core implements [data consistency rules](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) between configuration, plan, and state data. With [dynamic attributes](/terraform/plugin/framework/handling-data/attributes/dynamic), these consistency rules are also applied to the **type** of data.

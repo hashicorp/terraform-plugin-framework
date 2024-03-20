@@ -45,7 +45,9 @@ Review the [attribute documentation](/terraform/plugin/framework/handling-data/a
 Access `types.Dynamic` information via the following methods:
 
 * [`(types.Dynamic).IsNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsNull): Returns true if the dynamic value is null.
+* [`(types.Dynamic).IsUnderlyingValueNull() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsUnderlyingValueNull): Returns true if the dynamic value is known but the underlying value is null. See the [Dynamic Data section](/terraform/plugin/framework/handling-data/dynamic-data#handling-underlying-null-and-unknown-values) for more information about null underlying values.
 * [`(types.Dynamic).IsUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsUnknown): Returns true if the dynamic value is unknown.
+* [`(types.Dynamic).IsUnderlyingValueUnknown() bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.IsUnderlyingValueUnknown): Returns true if the dynamic value is known but the underlying value is unknown. See the [Dynamic Data section](/terraform/plugin/framework/handling-data/dynamic-data#handling-underlying-null-and-unknown-values) for more information about unknown underlying values.
 * [`(types.Dynamic).UnderlyingValue() attr.Value`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/basetypes#DynamicValue.UnderlyingValue): Returns the underlying value of the dynamic container, will be `nil` if null or unknown.
 
 In this example, a dynamic value is checked for being null or unknown value first, before accessing its known value:
@@ -100,7 +102,7 @@ If a dynamic value is known, a [Go type switch](https://go.dev/tour/methods/16) 
 
 The type of the underlying value is determined at runtime by Terraform if the value is from configuration. Developers dealing with dynamic data will need to have extensive knowledge of the [Terraform type system](/terraform/language/expressions/types) to properly handle all potential practitioner configuration scenarios.
 
-Refer to the [Dynamic Data Handling](/terraform/plugin/framework/handling-data/terraform-concepts#dynamic-data-handling-caveats) documentation for more information.
+Refer to the [Dynamic Data](/terraform/plugin/framework/handling-data/dynamic-data) documentation for more information.
 
 ## Setting Values
 

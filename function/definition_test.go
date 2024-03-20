@@ -151,25 +151,28 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 
 	testCases := map[string]struct {
 		definition function.Definition
-		expected   diag.Diagnostics
+		expected   function.DefinitionValidateResponse
 	}{
 		"valid-no-params": {
 			definition: function.Definition{
 				Return: function.StringReturn{},
 			},
+			expected: function.DefinitionValidateResponse{},
 		},
 		"missing-variadic-param-name": {
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{},
 				Return:            function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - The variadic parameter does not have a name",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - The variadic parameter does not have a name",
+					),
+				},
 			},
 		},
 		"missing-param-names": {
@@ -180,19 +183,21 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - Parameter at position 0 does not have a name",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - Parameter at position 1 does not have a name",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - Parameter at position 0 does not have a name",
+					),
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - Parameter at position 1 does not have a name",
+					),
+				},
 			},
 		},
 		"missing-param-names-with-variadic": {
@@ -203,30 +208,34 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				VariadicParameter: function.NumberParameter{},
 				Return:            function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - Parameter at position 0 does not have a name",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - The variadic parameter does not have a name",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - Parameter at position 0 does not have a name",
+					),
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - The variadic parameter does not have a name",
+					),
+				},
 			},
 		},
 		"result-missing": {
 			definition: function.Definition{},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Function \"test-function\" - Definition Return field is undefined",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"test-function\" - Definition Return field is undefined",
+					),
+				},
 			},
 		},
 		"conflicting-param-names": {
@@ -250,14 +259,16 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter names must be unique. "+
-						"Function \"test-function\" - Parameters at position 2 and 4 have the same name \"param-dup\"",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter names must be unique. "+
+							"Function \"test-function\" - Parameters at position 2 and 4 have the same name \"param-dup\"",
+					),
+				},
 			},
 		},
 		"conflicting-param-names-variadic": {
@@ -278,14 +289,16 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter names must be unique. "+
-						"Function \"test-function\" - Parameter at position 1 and the variadic parameter have the same name \"param-dup\"",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter names must be unique. "+
+							"Function \"test-function\" - Parameter at position 1 and the variadic parameter have the same name \"param-dup\"",
+					),
+				},
 			},
 		},
 		"conflicting-param-names-variadic-multiple": {
@@ -312,28 +325,30 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 				},
 				Return: function.StringReturn{},
 			},
-			expected: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter names must be unique. "+
-						"Function \"test-function\" - Parameters at position 0 and 2 have the same name \"param-dup\"",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter names must be unique. "+
-						"Function \"test-function\" - Parameters at position 0 and 4 have the same name \"param-dup\"",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Function Definition",
-					"When validating the function definition, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"Parameter names must be unique. "+
-						"Function \"test-function\" - Parameter at position 0 and the variadic parameter have the same name \"param-dup\"",
-				),
+			expected: function.DefinitionValidateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter names must be unique. "+
+							"Function \"test-function\" - Parameters at position 0 and 2 have the same name \"param-dup\"",
+					),
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter names must be unique. "+
+							"Function \"test-function\" - Parameters at position 0 and 4 have the same name \"param-dup\"",
+					),
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter names must be unique. "+
+							"Function \"test-function\" - Parameter at position 0 and the variadic parameter have the same name \"param-dup\"",
+					),
+				},
 			},
 		},
 	}
@@ -344,7 +359,9 @@ func TestDefinitionValidateImplementation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.definition.ValidateImplementation(context.Background(), "test-function")
+			got := function.DefinitionValidateResponse{}
+
+			testCase.definition.ValidateImplementation(context.Background(), function.DefinitionValidateRequest{FuncName: "test-function"}, &got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

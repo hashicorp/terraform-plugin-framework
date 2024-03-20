@@ -98,11 +98,17 @@ func (s *Server) FunctionDefinitions(ctx context.Context) (map[string]function.D
 			continue
 		}
 
-		validateDiags := definitionResp.Definition.ValidateImplementation(ctx, name)
+		validateReq := function.DefinitionValidateRequest{
+			FuncName: name,
+		}
 
-		diags.Append(validateDiags...)
+		validateResp := function.DefinitionValidateResponse{}
 
-		if validateDiags.HasError() {
+		definitionResp.Definition.ValidateImplementation(ctx, validateReq, &validateResp)
+
+		diags.Append(validateResp.Diagnostics...)
+
+		if validateResp.Diagnostics.HasError() {
 			continue
 		}
 

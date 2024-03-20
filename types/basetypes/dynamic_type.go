@@ -32,9 +32,10 @@ var _ DynamicTypable = DynamicType{}
 // value of another framework type. (StringValue, ListValue, ObjectValue, MapValue, etc.)
 type DynamicType struct{}
 
-// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
-// When working with dynamics, we should always use DynamicValue to determine underlying type information.
+// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the type.
 func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
+	// When working with dynamics, we should always use DynamicValue to determine underlying type information.
 	return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, t.String())
 }
 

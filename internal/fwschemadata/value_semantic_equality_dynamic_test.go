@@ -70,6 +70,82 @@ func TestValueSemanticEqualityDynamic(t *testing.T) {
 				},
 			},
 		},
+		"DynamicValuableWithSemanticEquals-false-underlying-prior-value-null": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringNull()),
+					SemanticEquals: true, // semantic equality won't be called because underlying prior value is null
+				},
+				ProposedNewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("new")),
+					SemanticEquals: true, // semantic equality won't be called because underlying prior value is null
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("new")),
+					SemanticEquals: false,
+				},
+			},
+		},
+		"DynamicValuableWithSemanticEquals-false-underlying-prior-value-unknown": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringUnknown()),
+					SemanticEquals: true, // semantic equality won't be called because underlying prior value is unknown
+				},
+				ProposedNewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("new")),
+					SemanticEquals: true, // semantic equality won't be called because underlying prior value is unknown
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("new")),
+					SemanticEquals: false,
+				},
+			},
+		},
+		"DynamicValuableWithSemanticEquals-false-underlying-proposed-value-null": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("prior")),
+					SemanticEquals: true, // semantic equality won't be called because underlying proposed value is null
+				},
+				ProposedNewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringNull()),
+					SemanticEquals: true, // semantic equality won't be called because underlying proposed value is null
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringNull()),
+					SemanticEquals: false,
+				},
+			},
+		},
+		"DynamicValuableWithSemanticEquals-false-underlying-proposed-value-unknown": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringValue("prior")),
+					SemanticEquals: true, // semantic equality won't be called because underlying proposed value is unknown
+				},
+				ProposedNewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringUnknown()),
+					SemanticEquals: true, // semantic equality won't be called because underlying proposed value is unknown
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue:   types.DynamicValue(types.StringUnknown()),
+					SemanticEquals: false,
+				},
+			},
+		},
 		"DynamicValuableWithSemanticEquals-diagnostics": {
 			request: fwschemadata.ValueSemanticEqualityRequest{
 				Path: path.Root("test"),

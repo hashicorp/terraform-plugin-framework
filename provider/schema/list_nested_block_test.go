@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -497,6 +498,32 @@ func TestListNestedBlockValidateImplementation(t *testing.T) {
 		request  fwschema.ValidateImplementationRequest
 		expected *fwschema.ValidateImplementationResponse
 	}{
+		"customtype": {
+			block: schema.ListNestedBlock{
+				CustomType: testtypes.ListType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"nestedobject": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
 		"nestedobject-dynamic": {
 			block: schema.ListNestedBlock{
 				NestedObject: schema.NestedBlockObject{
@@ -517,8 +544,9 @@ func TestListNestedBlockValidateImplementation(t *testing.T) {
 						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a block that contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"\"test\" is a block that contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"test\" block definition with a DynamicAttribute.",
 					),
 				},
 			},

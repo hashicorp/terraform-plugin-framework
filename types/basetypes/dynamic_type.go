@@ -15,7 +15,7 @@ import (
 
 // DynamicTypable extends attr.Type for dynamic types. Implement this interface to create a custom DynamicType type.
 type DynamicTypable interface {
-	attr.TypeWithDynamicValue
+	attr.Type
 
 	// ValueFromDynamic should convert the DynamicValue to a DynamicValuable type.
 	ValueFromDynamic(context.Context, DynamicValue) (DynamicValuable, diag.Diagnostics)
@@ -32,15 +32,10 @@ var _ DynamicTypable = DynamicType{}
 // value of another framework type. (StringValue, ListValue, ObjectValue, MapValue, etc.)
 type DynamicType struct{}
 
-// ApplyTerraform5AttributePathStep applies the given AttributePathStep to the type.
+// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
+// When working with dynamics, we should always use DynamicValue to determine underlying type information.
 func (t DynamicType) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	// MAINTAINER NOTE: Based on dynamic type alone, there is no alternative type information to return related to a path step.
-	// However, it is possible for a dynamic type to have an underlying value of a list, set, map, object, or tuple
-	// that will have corresponding path steps for an element type.
-	//
-	// Since the dynamic type has no reference to the underlying value, we just return the dynamic type which can be used
-	// to determine the correct attr.Value from `(DynamicType).ValueFromTerraform`.
-	return t, nil
+	return nil, fmt.Errorf("cannot apply AttributePathStep %T to %s", step, t.String())
 }
 
 // Equal returns true if the given type is equivalent.
@@ -71,11 +66,21 @@ func (t DynamicType) ValueFromDynamic(ctx context.Context, v DynamicValue) (Dyna
 // ValueFromTerraform returns an attr.Value given a tftypes.Value. This is meant to convert
 // the tftypes.Value into a more convenient Go type for the provider to consume the data with.
 func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	if !in.IsKnown() {
+	if in.Type() == nil {
+		return NewDynamicNull(), nil
+	}
+
+	// For dynamic values, it's possible the incoming value is unknown but the concrete type itself is known. In this
+	// situation, we can't return a dynamic unknown as we will lose that concrete type information. If the type here
+	// is not dynamic, then we use the concrete `(attr.Type).ValueFromTerraform` below to produce the unknown value.
+	if !in.IsKnown() && in.Type().Is(tftypes.DynamicPseudoType) {
 		return NewDynamicUnknown(), nil
 	}
 
-	if in.IsNull() {
+	// For dynamic values, it's possible the incoming value is null but the concrete type itself is known. In this
+	// situation, we can't return a dynamic null as we will lose that concrete type information. If the type here
+	// is not dynamic, then we use the concrete `(attr.Type).ValueFromTerraform` below to produce the null value.
+	if in.IsNull() && in.Type().Is(tftypes.DynamicPseudoType) {
 		return NewDynamicNull(), nil
 	}
 
@@ -85,7 +90,11 @@ func (t DynamicType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return nil, errors.New("ambiguous known value for `tftypes.DynamicPseudoType` detected")
 	}
 
-	attrType := t.DetermineAttrType(in.Type())
+	attrType, err := tftypeToFrameworkType(in.Type())
+	if err != nil {
+		return nil, err
+	}
+
 	val, err := attrType.ValueFromTerraform(ctx, in)
 	if err != nil {
 		return nil, err
@@ -99,21 +108,25 @@ func (t DynamicType) ValueType(_ context.Context) attr.Value {
 	return DynamicValue{}
 }
 
-// DetermineAttrType returns the appropriate attr.Type equivalent for a given tftypes.Type
-func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
+// tftypeToFrameworkType is a helper function that returns the framework type equivalent for a given Terraform type.
+//
+// Custom dynamic type implementations shouldn't need to override this method, but if needed, they can implement similar logic
+// in their `ValueFromTerraform` implementation.
+func tftypeToFrameworkType(in tftypes.Type) (attr.Type, error) {
 	// Primitive types
 	if in.Is(tftypes.Bool) {
-		return BoolType{}
+		return BoolType{}, nil
 	}
 	if in.Is(tftypes.Number) {
-		return NumberType{}
+		return NumberType{}, nil
 	}
 	if in.Is(tftypes.String) {
-		return StringType{}
+		return StringType{}, nil
 	}
+
 	if in.Is(tftypes.DynamicPseudoType) {
 		// Null and Unknown values that do not have a type determined will have a type of DynamicPseudoType
-		return DynamicType{}
+		return DynamicType{}, nil
 	}
 
 	// Collection types
@@ -121,22 +134,33 @@ func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		l := in.(tftypes.List)
 
-		elemType := t.DetermineAttrType(l.ElementType)
-		return ListType{ElemType: elemType}
+		elemType, err := tftypeToFrameworkType(l.ElementType)
+		if err != nil {
+			return nil, err
+		}
+		return ListType{ElemType: elemType}, nil
 	}
 	if in.Is(tftypes.Map{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		m := in.(tftypes.Map)
 
-		elemType := t.DetermineAttrType(m.ElementType)
-		return MapType{ElemType: elemType}
+		elemType, err := tftypeToFrameworkType(m.ElementType)
+		if err != nil {
+			return nil, err
+		}
+
+		return MapType{ElemType: elemType}, nil
 	}
 	if in.Is(tftypes.Set{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
 		s := in.(tftypes.Set)
 
-		elemType := t.DetermineAttrType(s.ElementType)
-		return SetType{ElemType: elemType}
+		elemType, err := tftypeToFrameworkType(s.ElementType)
+		if err != nil {
+			return nil, err
+		}
+
+		return SetType{ElemType: elemType}, nil
 	}
 
 	// Structural types
@@ -146,9 +170,13 @@ func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 
 		attrTypes := make(map[string]attr.Type, len(o.AttributeTypes))
 		for name, tfType := range o.AttributeTypes {
-			attrTypes[name] = t.DetermineAttrType(tfType)
+			t, err := tftypeToFrameworkType(tfType)
+			if err != nil {
+				return nil, err
+			}
+			attrTypes[name] = t
 		}
-		return ObjectType{AttrTypes: attrTypes}
+		return ObjectType{AttrTypes: attrTypes}, nil
 	}
 	if in.Is(tftypes.Tuple{}) {
 		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
@@ -156,10 +184,14 @@ func (t DynamicType) DetermineAttrType(in tftypes.Type) attr.Type {
 
 		elemTypes := make([]attr.Type, len(tup.ElementTypes))
 		for i, tfType := range tup.ElementTypes {
-			elemTypes[i] = t.DetermineAttrType(tfType)
+			t, err := tftypeToFrameworkType(tfType)
+			if err != nil {
+				return nil, err
+			}
+			elemTypes[i] = t
 		}
-		return TupleType{ElemTypes: elemTypes}
+		return TupleType{ElemTypes: elemTypes}, nil
 	}
 
-	panic(fmt.Sprintf("unsupported tftypes.Type detected: %T", in))
+	return nil, fmt.Errorf("unsupported tftypes.Type detected: %T", in)
 }

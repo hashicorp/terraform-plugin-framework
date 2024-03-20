@@ -59,6 +59,10 @@ var (
 type ListNestedAttribute struct {
 	// NestedObject is the underlying object that contains nested attributes.
 	// This field must be set.
+	//
+	// Nested attributes that contain a dynamic type (i.e. DynamicAttribute) are not supported.
+	// If underlying dynamic values are required, replace this attribute definition with
+	// DynamicAttribute instead.
 	NestedObject NestedAttributeObject
 
 	// CustomType enables the use of a custom attribute type in place of the

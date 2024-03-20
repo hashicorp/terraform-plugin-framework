@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestStaticDynamicDefaultDynamic(t *testing.T) {
+func TestStaticValueDefaultDynamic(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -37,7 +37,7 @@ func TestStaticDynamicDefaultDynamic(t *testing.T) {
 
 			resp := &defaults.DynamicResponse{}
 
-			dynamicdefault.StaticDynamic(testCase.defaultVal).DefaultDynamic(context.Background(), defaults.DynamicRequest{}, resp)
+			dynamicdefault.StaticValue(testCase.defaultVal).DefaultDynamic(context.Background(), defaults.DynamicRequest{}, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

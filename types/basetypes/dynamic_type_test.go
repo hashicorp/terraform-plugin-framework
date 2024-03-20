@@ -58,6 +58,10 @@ func TestDynamicTypeValueFromTerraform(t *testing.T) {
 		expected    attr.Value
 		expectedErr string
 	}{
+		"nil-type-to-dynamic": {
+			input:    tftypes.Value{},
+			expected: NewDynamicNull(),
+		},
 		"dynamic-bool-to-dynamic": {
 			input:       tftypes.NewValue(tftypes.DynamicPseudoType, true),
 			expectedErr: "ambiguous known value for `tftypes.DynamicPseudoType` detected",
@@ -69,6 +73,14 @@ func TestDynamicTypeValueFromTerraform(t *testing.T) {
 		"unknown-to-dynamic": {
 			input:    tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 			expected: NewDynamicUnknown(),
+		},
+		"null-value-known-type-to-dynamic": {
+			input:    tftypes.NewValue(tftypes.Bool, nil),
+			expected: NewDynamicValue(NewBoolNull()),
+		},
+		"unknown-value-known-type-to-dynamic": {
+			input:    tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
+			expected: NewDynamicValue(NewListUnknown(StringType{})),
 		},
 		"bool-to-dynamic": {
 			input:    tftypes.NewValue(tftypes.Bool, true),
@@ -413,10 +425,18 @@ func TestDynamicTypeValueFromTerraform(t *testing.T) {
 				t.Errorf("Unexpected diff (-expected, +got): %s", diff)
 			}
 			if test.expected != nil && test.expected.IsNull() != test.input.IsNull() {
-				t.Errorf("Expected null-ness match: expected %t, got %t", test.expected.IsNull(), test.input.IsNull())
+				// It's possible for a known dynamic value to have an null underlying value
+				dynVal := test.expected.(DynamicValue) //nolint: forcetypeassert
+				if dynVal.IsUnderlyingValueNull() != test.input.IsNull() {
+					t.Errorf("Expected null-ness match: expected %t, got %t", test.expected.IsNull(), test.input.IsNull())
+				}
 			}
 			if test.expected != nil && test.expected.IsUnknown() != !test.input.IsKnown() {
-				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
+				// It's possible for a known dynamic value to have an unknown underlying value
+				dynVal := test.expected.(DynamicValue) //nolint: forcetypeassert
+				if dynVal.IsUnderlyingValueUnknown() != !test.input.IsKnown() {
+					t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
+				}
 			}
 		})
 	}

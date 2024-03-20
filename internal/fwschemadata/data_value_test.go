@@ -1745,6 +1745,33 @@ func TestDataValueAtPath(t *testing.T) {
 			path:     path.Root("test"),
 			expected: types.DynamicNull(),
 		},
+		"WithAttributeName-Dynamic-underlying-value-null": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, nil), // A concrete type! :O
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			expected: types.DynamicValue(types.StringNull()),
+		},
 		"WithAttributeName-Dynamic-unknown": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -1771,6 +1798,33 @@ func TestDataValueAtPath(t *testing.T) {
 			},
 			path:     path.Root("test"),
 			expected: types.DynamicUnknown(),
+		},
+		"WithAttributeName-Dynamic-underlying-value-unknown": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // A concrete type! :O
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			expected: types.DynamicValue(types.NumberUnknown()),
 		},
 		"WithAttributeName-Dynamic-value": {
 			data: fwschemadata.Data{
@@ -1799,65 +1853,9 @@ func TestDataValueAtPath(t *testing.T) {
 			path:     path.Root("test"),
 			expected: types.DynamicValue(types.StringValue("value")),
 		},
-		"WithAttributeName-Dynamic-null-WithElementKeyInt": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test":  tftypes.DynamicPseudoType,
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtListIndex(0),
-			expected: types.DynamicNull(),
-		},
-		"WithAttributeName-Dynamic-List-null-WithElementKeyInt": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.List{
-							ElementType: tftypes.String,
-						},
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.List{
-						ElementType: tftypes.String,
-					}, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtListIndex(0),
-			expected: types.DynamicNull(),
-		},
-		"WithAttributeName-Dynamic-List-WithElementKeyInt": {
+		// MAINTAINER NOTE: Paths currently cannot target values inside of dynamic types, even if the underlying data matches the path.
+		// If we enable this functionality in the future, this test should be updated to correctly grab the data.
+		"WithAttributeName-Dynamic-List-WithElementKeyInt-Error": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
@@ -1889,36 +1887,19 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtListIndex(0),
-			expected: types.DynamicValue(types.StringValue("value")),
-		},
-		"WithAttributeName-Dynamic-null-WithElementKeyString": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test":  tftypes.DynamicPseudoType,
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtListIndex(0),
+					"Data Read Error",
+					"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Error: path leads to element or attribute nested in a schema.DynamicAttribute",
+				),
 			},
-			path:     path.Root("test").AtMapKey("sub_test"),
-			expected: types.DynamicNull(),
 		},
-		"WithAttributeName-Dynamic-Map-WithElementKeyString": {
+		// MAINTAINER NOTE: Paths currently cannot target values inside of dynamic types, even if the underlying data matches the path.
+		// If we enable this functionality in the future, this test should be updated to correctly grab the data.
+		"WithAttributeName-Dynamic-Map-WithElementKeyString-Error": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
@@ -1950,101 +1931,19 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtMapKey("sub_test"),
-			expected: types.DynamicValue(types.StringValue("value")),
-		},
-		"WithAttributeName-Dynamic-Map-WithElementKeyString-nonexistent": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Map{
-						ElementType: tftypes.String,
-					}, map[string]tftypes.Value{
-						"sub_test": tftypes.NewValue(tftypes.String, "value"),
-					}),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtMapKey("sub_test"),
+					"Data Read Error",
+					"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Error: path leads to element or attribute nested in a schema.DynamicAttribute",
+				),
 			},
-			path:     path.Root("test").AtMapKey("other"),
-			expected: types.DynamicNull(),
 		},
-		"WithAttributeName-Dynamic-null-WithElementKeyValue": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test":  tftypes.DynamicPseudoType,
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtSetValue(types.StringValue("value")),
-			expected: types.DynamicNull(),
-		},
-		"WithAttributeName-Dynamic-Set-WithElementKeyValue-At-StringValue": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test":  tftypes.DynamicPseudoType,
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Set{
-						ElementType: tftypes.String,
-					}, []tftypes.Value{
-						tftypes.NewValue(tftypes.String, "value"),
-						tftypes.NewValue(tftypes.String, "othervalue"),
-					}),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtSetValue(types.StringValue("value")),
-			expected: types.DynamicValue(types.StringValue("value")),
-		},
-		"WithAttributeName-Dynamic-Set-WithElementKeyValue-At-DynamicValue": {
+		// MAINTAINER NOTE: Paths currently cannot target values inside of dynamic types, even if the underlying data matches the path.
+		// If we enable this functionality in the future, this test should be updated to correctly grab the data.
+		"WithAttributeName-Dynamic-Set-WithElementKeyValue-At-DynamicValue-Error": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
@@ -2074,71 +1973,19 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtSetValue(types.DynamicValue(types.StringValue("value"))),
-			expected: types.DynamicValue(types.StringValue("value")),
-		},
-		"WithAttributeName-Dynamic-null-WithAttributeName": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test":  tftypes.DynamicPseudoType,
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test":  tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtSetValue(types.DynamicValue(types.StringValue("value"))),
+					"Data Read Error",
+					"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Error: path leads to element or attribute nested in a schema.DynamicAttribute",
+				),
 			},
-			path:     path.Root("test").AtName("sub_test"),
-			expected: types.DynamicNull(),
 		},
-		"WithAttributeName-Dynamic-Object-null-WithAttributeName": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"test": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"sub_test": tftypes.String,
-							},
-						},
-						"other": tftypes.Bool,
-					},
-				}, map[string]tftypes.Value{
-					"test": tftypes.NewValue(tftypes.Object{
-						AttributeTypes: map[string]tftypes.Type{
-							"sub_test": tftypes.String,
-						},
-					}, nil),
-					"other": tftypes.NewValue(tftypes.Bool, nil),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"test": testschema.Attribute{
-							Type:     types.DynamicType,
-							Required: true,
-						},
-						"other": testschema.Attribute{
-							Type:     types.BoolType,
-							Optional: true,
-						},
-					},
-				},
-			},
-			path:     path.Root("test").AtName("sub_test"),
-			expected: types.DynamicNull(),
-		},
-		"WithAttributeName-Dynamic-Object-WithAttributeName": {
+		// MAINTAINER NOTE: Paths currently cannot target values inside of dynamic types, even if the underlying data matches the path.
+		// If we enable this functionality in the future, this test should be updated to correctly grab the data.
+		"WithAttributeName-Dynamic-Object-WithAttributeName-Error": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
@@ -2173,7 +2020,15 @@ func TestDataValueAtPath(t *testing.T) {
 				},
 			},
 			path:     path.Root("test").AtName("sub_test"),
-			expected: types.DynamicValue(types.StringValue("value")),
+			expected: nil,
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("sub_test"),
+					"Data Read Error",
+					"An unexpected error was encountered trying to retrieve type information at a given path. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Error: path leads to element or attribute nested in a schema.DynamicAttribute",
+				),
+			},
 		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{

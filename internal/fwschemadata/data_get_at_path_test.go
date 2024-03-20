@@ -6561,6 +6561,31 @@ func TestDataGetAtPath(t *testing.T) {
 			target:   new(types.Dynamic),
 			expected: pointer(types.DynamicNull()),
 		},
+		"DynamicType-types.dynamic-underlying-value-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.Bool, nil), // Terraform knows the type, but the underlying value is null
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.BoolNull())),
+		},
 		"DynamicType-types.dynamic-unknown": {
 			data: fwschemadata.Data{
 				Schema: testschema.Schema{
@@ -6585,6 +6610,31 @@ func TestDataGetAtPath(t *testing.T) {
 			path:     path.Root("dynamic"),
 			target:   new(types.Dynamic),
 			expected: pointer(types.DynamicUnknown()),
+		},
+		"DynamicType-types.dynamic-underlying-value-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Terraform knows the type, but the underlying value is unknown
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.StringUnknown())),
 		},
 		"DynamicType-types.dynamic-stringvalue": {
 			data: fwschemadata.Data{

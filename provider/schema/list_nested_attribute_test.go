@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -610,6 +611,33 @@ func TestListNestedAttributeValidateImplementation(t *testing.T) {
 		request   fwschema.ValidateImplementationRequest
 		expected  *fwschema.ValidateImplementationResponse
 	}{
+		"customtype": {
+			attribute: schema.ListNestedAttribute{
+				Optional:   true,
+				CustomType: testtypes.ListType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"nestedobject": {
+			attribute: schema.ListNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
 		"nestedobject-dynamic": {
 			attribute: schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -630,8 +658,9 @@ func TestListNestedAttributeValidateImplementation(t *testing.T) {
 						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is an attribute that contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
 					),
 				},
 			},

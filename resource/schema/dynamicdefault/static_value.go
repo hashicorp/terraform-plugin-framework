@@ -11,32 +11,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// StaticDynamic returns a static dynamic value default handler.
+// StaticValue returns a static dynamic value default handler.
 //
-// Use StaticDynamic if a static default value for a dynamic value should be set.
-func StaticDynamic(defaultVal types.Dynamic) defaults.Dynamic {
-	return staticDynamicDefault{
+// Use StaticValue if a static default value for a dynamic value should be set.
+func StaticValue(defaultVal types.Dynamic) defaults.Dynamic {
+	return staticValueDefault{
 		defaultVal: defaultVal,
 	}
 }
 
-// staticDynamicDefault is static value default handler that
+// staticValueDefault is static value default handler that
 // sets a value on a dynamic attribute.
-type staticDynamicDefault struct {
+type staticValueDefault struct {
 	defaultVal types.Dynamic
 }
 
 // Description returns a human-readable description of the default value handler.
-func (d staticDynamicDefault) Description(_ context.Context) string {
+func (d staticValueDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("value defaults to %s", d.defaultVal)
 }
 
 // MarkdownDescription returns a markdown description of the default value handler.
-func (d staticDynamicDefault) MarkdownDescription(_ context.Context) string {
+func (d staticValueDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("value defaults to `%s`", d.defaultVal)
 }
 
 // DefaultDynamic implements the static default value logic.
-func (d staticDynamicDefault) DefaultDynamic(_ context.Context, req defaults.DynamicRequest, resp *defaults.DynamicResponse) {
+func (d staticValueDefault) DefaultDynamic(_ context.Context, req defaults.DynamicRequest, resp *defaults.DynamicResponse) {
 	resp.PlanValue = d.defaultVal
 }

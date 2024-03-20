@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -269,17 +270,17 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 
 	testCases := map[string]struct {
 		param    function.ObjectParameter
-		request  function.ValidateParameterImplementationRequest
-		expected *function.ValidateParameterImplementationResponse
+		request  fwfunction.ValidateParameterImplementationRequest
+		expected *fwfunction.ValidateParameterImplementationResponse
 	}{
 		"customtype": {
 			param: function.ObjectParameter{
 				CustomType: testtypes.ObjectType{},
 			},
-			request: function.ValidateParameterImplementationRequest{
-				FunctionArgument: 0,
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
 		},
 		"attributetypes": {
 			param: function.ObjectParameter{
@@ -287,10 +288,10 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 					"test_attr": types.StringType,
 				},
 			},
-			request: function.ValidateParameterImplementationRequest{
-				FunctionArgument: 0,
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
 		},
 		"attributetypes-dynamic": {
 			param: function.ObjectParameter{
@@ -306,10 +307,10 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 					},
 				},
 			},
-			request: function.ValidateParameterImplementationRequest{
-				FunctionArgument: 0,
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
 		},
 		"attributetypes-nested-collection-dynamic": {
 			param: function.ObjectParameter{
@@ -320,18 +321,44 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 					},
 				},
 			},
-			request: function.ValidateParameterImplementationRequest{
-				Name:             "testparam",
-				FunctionArgument: 0,
+			request: fwfunction.ValidateParameterImplementationRequest{
+				Name:              "testparam",
+				ParameterPosition: pointer(int64(0)),
 			},
-			expected: &function.ValidateParameterImplementationResponse{
+			expected: &fwfunction.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"Parameter \"testparam\" at position 0 contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"testparam\" parameter definition with DynamicParameter instead.",
+					),
+				},
+			},
+		},
+		"attributetypes-nested-collection-dynamic-variadic": {
+			param: function.ObjectParameter{
+				Name: "testparam",
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.ListType{
+						ElemType: types.DynamicType,
+					},
+				},
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				Name: "testparam",
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
 					),
 				},
 			},
@@ -344,7 +371,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := &function.ValidateParameterImplementationResponse{}
+			got := &fwfunction.ValidateParameterImplementationResponse{}
 			testCase.param.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {

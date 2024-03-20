@@ -1132,6 +1132,65 @@ func TestDataReifyNullCollectionBlocks(t *testing.T) {
 				),
 			},
 		},
+		// Dynamic attributes that contain underlying list values should be skipped
+		"dynamic-attribute-with-list-unmodified": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "hello"),
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "hello"),
+							},
+						),
+					},
+				),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

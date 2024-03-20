@@ -4237,7 +4237,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4267,7 +4267,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4301,7 +4301,16 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								// Default transform walk will visit both of these elements and skip
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
 					},
 				),
 			},
@@ -4312,6 +4321,67 @@ func TestDataDefault(t *testing.T) {
 			},
 				map[string]tftypes.Value{
 					"dynamic_attribute": tftypes.NewValue(tftypes.DynamicPseudoType, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"dynamic-attribute-known-type-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dynamic_attribute": tftypes.DynamicPseudoType,
+				},
+			},
+				map[string]tftypes.Value{
+					"dynamic_attribute": tftypes.NewValue(tftypes.String, nil), // value in rawConfig, type is known as String
 				},
 			),
 			expected: &fwschemadata.Data{
@@ -4343,7 +4413,84 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default: dynamicdefault.StaticValue(
+								types.DynamicValue(
+									types.ListValueMust(types.StringType, []attr.Value{
+										types.StringValue("three"),
+										types.StringValue("four"),
+									}),
+								),
+							),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								// Default transform walk will visit both of these elements and skip
+								tftypes.NewValue(tftypes.String, "one"),
+								tftypes.NewValue(tftypes.String, "two"),
+							},
+						),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dynamic_attribute": tftypes.DynamicPseudoType,
+				},
+			},
+				map[string]tftypes.Value{
+					"dynamic_attribute": tftypes.NewValue(tftypes.DynamicPseudoType, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
+							Computed: true,
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "three"),
+								tftypes.NewValue(tftypes.String, "four"),
+							},
+						),
+					},
+				),
+			},
+		},
+		"dynamic-attribute-known-type-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
+							Computed: true,
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4364,7 +4511,7 @@ func TestDataDefault(t *testing.T) {
 				},
 			},
 				map[string]tftypes.Value{
-					"dynamic_attribute": tftypes.NewValue(tftypes.DynamicPseudoType, nil), // value in rawConfig
+					"dynamic_attribute": tftypes.NewValue(tftypes.String, nil), // value in rawConfig, type is known as String
 				},
 			),
 			expected: &fwschemadata.Data{
@@ -4373,7 +4520,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
 							Computed: true,
-							Default:  dynamicdefault.StaticDynamic(types.DynamicValue(types.StringValue("two"))),
+							Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("two"))),
 						},
 					},
 				},
@@ -4418,6 +4565,59 @@ func TestDataDefault(t *testing.T) {
 			},
 				map[string]tftypes.Value{
 					"dynamic_attribute": tftypes.NewValue(tftypes.DynamicPseudoType, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+					},
+				),
+			},
+		},
+		"dynamic-attribute-known-type-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic_attribute": testschema.AttributeWithDynamicDefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic_attribute": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic_attribute": tftypes.NewValue(tftypes.String, "one"),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dynamic_attribute": tftypes.DynamicPseudoType,
+				},
+			},
+				map[string]tftypes.Value{
+					"dynamic_attribute": tftypes.NewValue(tftypes.String, nil), // value in rawConfig, type is known as String
 				},
 			),
 			expected: &fwschemadata.Data{

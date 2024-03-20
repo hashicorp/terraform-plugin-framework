@@ -302,6 +302,44 @@ func TestListValueToTerraformValue(t *testing.T) {
 			input:       NewListNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 		},
+		// In the scenario where Terraform has refined a dynamic type to a list but the element type is not known, it's possible
+		// to receive a list with a dynamic element type.
+		//
+		// An example configuration that demonstrates this scenario, where "dynamic_attr" is a schema.DynamicAttribute:
+		//
+		//		resource "examplecloud_thing" "this" {
+		//			dynamic_attr = tolist([])
+		//		}
+		//
+		// And the resulting state value:
+		//
+		//		"dynamic_attr": {
+		//			"value": [],
+		//			"type": [
+		//				"list",
+		//				"dynamic"
+		//			]
+		//		}
+		//
+		"known-empty-dynamic-element-type": {
+			input: NewListValueMust(
+				DynamicType{},
+				[]attr.Value{},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.DynamicPseudoType}, []tftypes.Value{}),
+		},
+		"unknown-dynamic-element-type": {
+			input: NewListUnknown(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.DynamicPseudoType}, tftypes.UnknownValue),
+		},
+		"null-dynamic-element-type": {
+			input: NewListNull(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.DynamicPseudoType}, nil),
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

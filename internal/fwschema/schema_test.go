@@ -5,14 +5,18 @@ package fwschema_test
 
 import (
 	"context"
+	"errors"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSchemaBlockPathExpressions(t *testing.T) {
@@ -184,6 +188,362 @@ func TestSchemaBlockPathExpressions(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSchemaAttributeAtTerraformPath(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		schema        fwschema.Schema
+		path          *tftypes.AttributePath
+		expected      fwschema.Attribute
+		expectedError error
+	}{
+		"empty": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{},
+			},
+			path:          tftypes.NewAttributePath(),
+			expected:      nil,
+			expectedError: errors.New("unexpected type testschema.Schema"),
+		},
+		"string-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: testschema.Attribute{
+				Required: true,
+				Type:     types.StringType,
+			},
+		},
+		"string-attribute-ErrInvalidStep": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: errors.New("ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType"),
+		},
+		"dynamic-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.DynamicType,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: testschema.Attribute{
+				Required: true,
+				Type:     types.DynamicType,
+			},
+		},
+		"dynamic-attribute-ErrPathInsideDynamicAttribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.DynamicType,
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: fwschema.ErrPathInsideDynamicAttribute,
+		},
+		"object-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: testschema.Attribute{
+				Required: true,
+				Type: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"dynamic": types.DynamicType,
+					},
+				},
+			},
+		},
+		"object-attribute-dynamic-type-ErrPathInsideAtomicAttribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithAttributeName("dynamic"),
+			expected:      nil,
+			expectedError: fwschema.ErrPathInsideAtomicAttribute,
+		},
+		"object-attribute-dynamic-type-ErrPathInsideDynamicAttribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithAttributeName("dynamic").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: fwschema.ErrPathInsideDynamicAttribute,
+		},
+		"block-ErrPathIsBlock": {
+			schema: testschema.Schema{
+				Blocks: map[string]fwschema.Block{
+					"test_block": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"test_attribute": testschema.Attribute{
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeList,
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_block"),
+			expected:      nil,
+			expectedError: fwschema.ErrPathIsBlock,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := fwschema.SchemaAttributeAtTerraformPath(context.Background(), testCase.schema, testCase.path)
+
+			if err != nil {
+				if testCase.expectedError == nil {
+					t.Fatalf("expected no error, got: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), testCase.expectedError.Error()) {
+					t.Fatalf("expected error %q, got: %s", testCase.expectedError, err)
+				}
+			}
+
+			if err == nil && testCase.expectedError != nil {
+				t.Fatalf("got no error, expected: %s", testCase.expectedError)
+			}
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("Unexpected result (+wanted, -got): %s", diff)
+			}
+		})
+	}
+}
+
+func TestSchemaTypeAtTerraformPath(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		schema        fwschema.Schema
+		path          *tftypes.AttributePath
+		expected      attr.Type
+		expectedError error
+	}{
+		"empty": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{},
+			},
+			path:     tftypes.NewAttributePath(),
+			expected: types.ObjectType{},
+		},
+		"string-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: types.StringType,
+		},
+		"string-attribute-ErrInvalidStep": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.StringType,
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: errors.New("ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType"),
+		},
+		"dynamic-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.DynamicType,
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: types.DynamicType,
+		},
+		"dynamic-attribute-ErrPathInsideDynamicAttribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type:     types.DynamicType,
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: fwschema.ErrPathInsideDynamicAttribute,
+		},
+		"object-attribute-exact": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test_attribute"),
+			expected: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"dynamic": types.DynamicType,
+				},
+			},
+		},
+		"object-attribute-dynamic-type": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path:     tftypes.NewAttributePath().WithAttributeName("test_attribute").WithAttributeName("dynamic"),
+			expected: types.DynamicType,
+		},
+		"object-attribute-dynamic-type-ErrPathInsideDynamicAttribute": {
+			schema: testschema.Schema{
+				Attributes: map[string]fwschema.Attribute{
+					"test_attribute": testschema.Attribute{
+						Required: true,
+						Type: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"dynamic": types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			path:          tftypes.NewAttributePath().WithAttributeName("test_attribute").WithAttributeName("dynamic").WithElementKeyInt(0),
+			expected:      nil,
+			expectedError: fwschema.ErrPathInsideDynamicAttribute,
+		},
+		"block": {
+			schema: testschema.Schema{
+				Blocks: map[string]fwschema.Block{
+					"test_block": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"test_attribute": testschema.Attribute{
+									Optional: true,
+									Type:     types.StringType,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeList,
+					},
+				},
+			},
+			path: tftypes.NewAttributePath().WithAttributeName("test_block"),
+			expected: types.ListType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test_attribute": types.StringType,
+					},
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := fwschema.SchemaTypeAtTerraformPath(context.Background(), testCase.schema, testCase.path)
+
+			if err != nil {
+				if testCase.expectedError == nil {
+					t.Fatalf("expected no error, got: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), testCase.expectedError.Error()) {
+					t.Fatalf("expected error %q, got: %s", testCase.expectedError, err)
+				}
+			}
+
+			if err == nil && testCase.expectedError != nil {
+				t.Fatalf("got no error, expected: %s", testCase.expectedError)
+			}
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("Unexpected result (+wanted, -got): %s", diff)
 			}
 		})
 	}

@@ -22,7 +22,8 @@ import (
 func RequiresReplaceIfConfigured() planmodifier.Dynamic {
 	return RequiresReplaceIf(
 		func(_ context.Context, req planmodifier.DynamicRequest, resp *RequiresReplaceIfFuncResponse) {
-			if req.ConfigValue.IsNull() {
+			// This requires checking if the underlying value is also null.
+			if req.ConfigValue.IsNull() || req.ConfigValue.IsUnderlyingValueNull() {
 				return
 			}
 

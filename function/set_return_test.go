@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -67,36 +68,37 @@ func TestSetReturnValidateImplementation(t *testing.T) {
 
 	testCases := map[string]struct {
 		returnDef function.SetReturn
-		request   function.ValidateReturnImplementationRequest
-		expected  *function.ValidateReturnImplementationResponse
+		request   fwfunction.ValidateReturnImplementationRequest
+		expected  *fwfunction.ValidateReturnImplementationResponse
 	}{
 		"customtype": {
 			returnDef: function.SetReturn{
 				CustomType: testtypes.SetType{},
 			},
-			request:  function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{},
+			request:  fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{},
 		},
 		"elementtype": {
 			returnDef: function.SetReturn{
 				ElementType: types.StringType,
 			},
-			request:  function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{},
+			request:  fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{},
 		},
 		"elementtype-dynamic": {
 			returnDef: function.SetReturn{
 				ElementType: types.DynamicType,
 			},
-			request: function.ValidateReturnImplementationRequest{},
-			expected: &function.ValidateReturnImplementationResponse{
+			request: fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Return contains a collection type with a nested dynamic type. "+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework.",
+							"Return contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
 					),
 				},
 			},
@@ -109,7 +111,7 @@ func TestSetReturnValidateImplementation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := &function.ValidateReturnImplementationResponse{}
+			got := &fwfunction.ValidateReturnImplementationResponse{}
 			testCase.returnDef.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {

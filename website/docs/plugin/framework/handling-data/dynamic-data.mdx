@@ -8,13 +8,19 @@ description: >-
 
 <Note>
 
-Dynamic data handling information is only relevant when utilizing a [dynamic attribute](/terraform/plugin/framework/handling-data/attributes/dynamic), [dynamic parameter](/terraform/plugin/framework/functions/parameters/dynamic) or [dynamic return](/terraform/plugin/framework/functions/returns/dynamic).
-
 Static types should always be preferred over dynamic types, when possible.
 
 </Note>
 
-Dynamic data handling uses the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic) to communicate to Terraform that the value type of an [attribute](/terraform/plugin/framework/handling-data/attributes/dynamic), [function parameter](/terraform/plugin/framework/functions/parameters/dynamic), or [function return](/terraform/plugin/framework/functions/returns/dynamic), will be determined at runtime. This allows a provider developer to handle multiple value types of data with a single attribute/parameter/return.
+Dynamic data handling uses the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic) to communicate to Terraform that the value type of a specific field will be determined at runtime. This allows a provider developer to handle multiple value types of data with a single attribute, parameter, or return.
+
+Dynamic data can be defined with:
+- [Dynamic attribute](/terraform/plugin/framework/handling-data/attributes/dynamic)
+- A [dynamic](/terraform/plugin/framework/handling-data/types/dynamic) attribute type in an [object attribute](/terraform/plugin/framework/handling-data/attributes/object)
+- [Dynamic function parameter](/terraform/plugin/framework/functions/parameters/dynamic)
+- [Dynamic function return](/terraform/plugin/framework/functions/returns/dynamic)
+- A [dynamic](/terraform/plugin/framework/handling-data/types/dynamic) attribute type in an [object parameter](/terraform/plugin/framework/functions/parameters/object)
+- A [dynamic](/terraform/plugin/framework/handling-data/types/dynamic) attribute type in an [object return](/terraform/plugin/framework/functions/returns/object)
 
 Using dynamic data has a negative impact on practitioner experience when using Terraform and downstream tooling, like practitioner configuration editor integrations. Dynamics do not change how [Terraform's static type system](/terraform/language/expressions/types) behaves and all data consistency rules are applied the same as static types. Provider developers should understand all the below [considerations](#considerations) when creating a provider with a dynamic type.
 

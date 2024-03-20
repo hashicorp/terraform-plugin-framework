@@ -109,7 +109,7 @@ Refer to the [Dynamic Data](/terraform/plugin/framework/handling-data/dynamic-da
 Call one of the following to create a `types.Dynamic` value:
 
 * [`types.DynamicNull()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#DynamicNull): A null dynamic value.
-* [`types.DynamicUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#DynamicUnknown): An unknown dynamic value.
+* [`types.DynamicUnknown()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#DynamicUnknown): An unknown dynamic value where the final static type is not known. Use `types.DynamicValue()` with an unknown value if the final static type is known.
 * [`types.DynamicValue(attr.Value)`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#DynamicValue): A known dynamic value, with an underlying value determined by the `attr.Value` input.
 
 In this example, a known dynamic value is created, where the underlying value is a known string value:

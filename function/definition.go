@@ -142,6 +142,18 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 			diags.Append(resp.Diagnostics...)
 		}
 
+		if paramWithValidateImplementation, ok := param.(fwfunction.ParameterWithValidateImplementation); ok {
+			req := fwfunction.ValidateParameterImplementationRequest{
+				Name:              name,
+				ParameterPosition: &parameterPosition,
+			}
+			resp := &fwfunction.ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
+		}
+
 		conflictPos, exists := paramNames[name]
 		if exists && name != "" {
 			diags.AddError(
@@ -167,6 +179,17 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					fmt.Sprintf("Function %q - The variadic parameter does not have a name", req.FuncName),
 			)
+		}
+
+		if paramWithValidateImplementation, ok := d.VariadicParameter.(fwfunction.ParameterWithValidateImplementation); ok {
+			req := fwfunction.ValidateParameterImplementationRequest{
+				Name: name,
+			}
+			resp := &fwfunction.ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
 		}
 
 		if paramWithValidateImplementation, ok := d.VariadicParameter.(fwfunction.ParameterWithValidateImplementation); ok {

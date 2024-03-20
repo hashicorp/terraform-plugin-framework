@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/function"
@@ -18,8 +21,6 @@ import (
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // TODO: DynamicPseudoType support
@@ -1072,15 +1073,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{
 							{
-								Name: "param1",
 								Type: tftypes.Bool,
 							},
 							{
-								Name: "param2",
 								Type: tftypes.Number,
 							},
 							{
-								Name: "param3",
 								Type: tftypes.String,
 							},
 						},
@@ -1154,7 +1152,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 							Type: tftypes.String,
 						},
 						VariadicParameter: &tfprotov5.FunctionParameter{
-							Name: function.DefaultVariadicParameterName,
 							Type: tftypes.String,
 						},
 					},

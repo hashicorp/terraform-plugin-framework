@@ -111,13 +111,18 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
 		name := param.GetName()
-		// If name is not set, default the param name based on position: "param1", "param2", etc.
+		// If name is not set, add an error diagnostic, parameter names are mandatory.
 		if name == "" {
-			name = fmt.Sprintf("%s%d", DefaultParameterNamePrefix, pos+1)
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Parameter at position %d does not have a name", pos),
+			)
 		}
 
 		conflictPos, exists := paramNames[name]
-		if exists {
+		if exists && name != "" {
 			diags.AddError(
 				"Invalid Function Definition",
 				"When validating the function definition, an implementation issue was found. "+
@@ -133,13 +138,18 @@ func (d Definition) ValidateImplementation(ctx context.Context) diag.Diagnostics
 
 	if d.VariadicParameter != nil {
 		name := d.VariadicParameter.GetName()
-		// If name is not set, default the variadic param name
+		// If name is not set, add an error diagnostic, parameter names are mandatory.
 		if name == "" {
-			name = DefaultVariadicParameterName
+			diags.AddError(
+				"Invalid Function Definition",
+				"When validating the function definition, an implementation issue was found. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					"The variadic parameter does not have a name",
+			)
 		}
 
 		conflictPos, exists := paramNames[name]
-		if exists {
+		if exists && name != "" {
 			diags.AddError(
 				"Invalid Function Definition",
 				"When validating the function definition, an implementation issue was found. "+

@@ -69,6 +69,10 @@ func (fe *FuncError) Equal(other *FuncError) bool {
 
 // Error returns the error text.
 func (fe *FuncError) Error() string {
+	if fe == nil {
+		return ""
+	}
+
 	return fe.Text
 }
 

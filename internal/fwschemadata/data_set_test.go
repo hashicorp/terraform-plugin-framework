@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
@@ -60,6 +61,84 @@ func TestDataSet(t *testing.T) {
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
 		},
+		"write-dynamic": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"dyn_attr": tftypes.DynamicPseudoType,
+					},
+				}, map[string]tftypes.Value{
+					"dyn_attr": tftypes.NewValue(tftypes.String, "oldvalue"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dyn_attr": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				DynAttr types.Dynamic `tfsdk:"dyn_attr"`
+			}{
+				DynAttr: types.DynamicValue(types.StringValue("newvalue")),
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dyn_attr": tftypes.DynamicPseudoType,
+				},
+			}, map[string]tftypes.Value{
+				"dyn_attr": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+		},
+		"write-dynamic-different-types": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"dyn_attr": tftypes.DynamicPseudoType,
+					},
+				}, map[string]tftypes.Value{
+					"dyn_attr": tftypes.NewValue(tftypes.String, "oldvalue"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dyn_attr": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				DynAttr types.Dynamic `tfsdk:"dyn_attr"`
+			}{
+				DynAttr: types.DynamicValue(
+					types.SetValueMust(
+						types.Float64Type,
+						[]attr.Value{
+							types.Float64Value(1.23),
+							types.Float64Value(4.56),
+						},
+					),
+				),
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dyn_attr": tftypes.DynamicPseudoType,
+				},
+			}, map[string]tftypes.Value{
+				"dyn_attr": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Number,
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(tftypes.Number, 1.23),
+						tftypes.NewValue(tftypes.Number, 4.56),
+					},
+				),
+			}),
+		},
 		"overwrite": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
@@ -83,6 +162,31 @@ func TestDataSet(t *testing.T) {
 				},
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+		},
+		"overwrite-dynamic": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.Value{},
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dyn_attr": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: struct {
+				DynAttr types.Dynamic `tfsdk:"dyn_attr"`
+			}{
+				DynAttr: types.DynamicValue(types.BoolValue(true)),
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"dyn_attr": tftypes.DynamicPseudoType,
+				},
+			}, map[string]tftypes.Value{
+				"dyn_attr": tftypes.NewValue(tftypes.Bool, true),
 			}),
 		},
 		"multiple-attributes": {

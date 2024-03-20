@@ -252,6 +252,35 @@ func TestDataValidPathExpression(t *testing.T) {
 			expression: path.MatchRoot("test").AtSetValue(types.StringValue("test-value")),
 			expected:   false,
 		},
+		"AttributeNameExact-match-dynamic-attribute": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Required: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+			},
+			expression: path.MatchRoot("test"),
+			expected:   true,
+		},
+		// Stepping into a dynamic attribute will return an error, which will result in a mismatch
+		"AttributeNameExact-mismatch-dynamic-attribute-invalid-step": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Required: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+			},
+			expression: path.MatchRoot("test").AtListIndex(0),
+			expected:   false,
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -6536,6 +6536,299 @@ func TestDataGetAtPath(t *testing.T) {
 			target:   new(string),
 			expected: pointer("test"),
 		},
+		"DynamicType-types.dynamic-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicNull()),
+		},
+		"DynamicType-types.dynamic-underlying-value-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.Bool, nil), // Terraform knows the type, but the underlying value is null
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.BoolNull())),
+		},
+		"DynamicType-types.dynamic-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicUnknown()),
+		},
+		"DynamicType-types.dynamic-underlying-value-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Terraform knows the type, but the underlying value is unknown
+					},
+				),
+			},
+			path:     path.Root("dynamic"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.StringUnknown())),
+		},
+		"DynamicType-types.dynamic-stringvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string": tftypes.NewValue(tftypes.String, "test"),
+					},
+				),
+			},
+			path:     path.Root("string"),
+			target:   new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.StringValue("test"))),
+		},
+		"DynamicType-types.dynamic-listvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list": tftypes.List{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "test1"),
+								tftypes.NewValue(tftypes.String, "test2"),
+							},
+						),
+					},
+				),
+			},
+			path:   path.Root("list"),
+			target: new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.ListValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("test1"),
+					types.StringValue("test2"),
+				},
+			))),
+		},
+		"DynamicType-types.dynamic-mapvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map": tftypes.Map{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.String,
+							},
+							map[string]tftypes.Value{
+								"key1": tftypes.NewValue(tftypes.String, "value1"),
+								"key2": tftypes.NewValue(tftypes.String, "value2"),
+							},
+						),
+					},
+				),
+			},
+			path:   path.Root("map"),
+			target: new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.MapValueMust(
+				types.StringType,
+				map[string]attr.Value{
+					"key1": types.StringValue("value1"),
+					"key2": types.StringValue("value2"),
+				},
+			))),
+		},
+		"DynamicType-types.dynamic-objectvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_string": tftypes.NewValue(tftypes.String, "test1"),
+							},
+						),
+					},
+				),
+			},
+			path:   path.Root("object"),
+			target: new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"nested_string": types.StringType,
+				},
+				map[string]attr.Value{
+					"nested_string": types.StringValue("test1"),
+				},
+			))),
+		},
+		"DynamicType-types.dynamic-setvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "test1"),
+								tftypes.NewValue(tftypes.String, "test2"),
+							},
+						),
+					},
+				),
+			},
+			path:   path.Root("set"),
+			target: new(types.Dynamic),
+			expected: pointer(types.DynamicValue(types.SetValueMust(
+				types.StringType,
+				[]attr.Value{
+					types.StringValue("test1"),
+					types.StringValue("test2"),
+				},
+			))),
+		},
 	}
 
 	for name, tc := range testCases {
@@ -6582,6 +6875,9 @@ func TestDataGetAtPath(t *testing.T) {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 				cmp.Comparer(func(i, j *types.String) bool {
+					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
+				}),
+				cmp.Comparer(func(i, j *types.Dynamic) bool {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 			}

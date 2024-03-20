@@ -209,6 +209,19 @@ func (s SetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 
 	switch s.state {
 	case attr.ValueStateKnown:
+		// MAINTAINER NOTE:
+		// SetValue does not support DynamicType as an element type. It is not explicitly prevented from being created with the
+		// Framework type system, but the Framework-supported SetAttribute, SetNestedAttribute, and SetNestedBlock all prevent DynamicType
+		// from being used as an element type.
+		//
+		// In the future, if we ever need to support a set of dynamic element types, this tftypes.Set creation logic will need to be modified to ensure
+		// that known values contain the exact same concrete element type, specifically with unknown and null values. Dynamic values will return the correct concrete
+		// element type for known values from `elem.ToTerraformValue`, but unknown and null values will be tftypes.DynamicPseudoType, causing an error due to multiple element
+		// types in a tftypes.Set.
+		//
+		// Unknown and null element types of tftypes.DynamicPseudoType must be recreated as the concrete element type unknown/null value. This can be done by checking `s.elements`
+		// for a single concrete type (i.e. not tftypes.DynamicPseudoType), and using that concrete type to create unknown and null dynamic values later.
+		//
 		vals := make([]tftypes.Value, 0, len(s.elements))
 
 		for _, elem := range s.elements {

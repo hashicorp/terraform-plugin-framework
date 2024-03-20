@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// TODO: DynamicPseudoType support
-// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/147
 // TODO: Tuple type support
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/54
 func TestGetProviderSchemaResponse(t *testing.T) {
@@ -886,6 +884,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									Name:     "test_attribute",
 									Required: true,
 									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov6.Function{},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"data-source-attribute-type-dynamic": {
+			input: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.DynamicAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{
+					"test_data_source": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.DynamicPseudoType,
 								},
 							},
 						},
@@ -1888,6 +1916,33 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 								Name:     "test_attribute",
 								Required: true,
 								Type:     tftypes.String,
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"provider-attribute-type-dynamic": {
+			input: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.DynamicAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name:     "test_attribute",
+								Required: true,
+								Type:     tftypes.DynamicPseudoType,
 							},
 						},
 					},
@@ -3494,6 +3549,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									Name:     "test_attribute",
 									Required: true,
 									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"resource-attribute-type-dynamic": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.DynamicAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:         map[string]*tfprotov6.Function{},
+				ResourceSchemas: map[string]*tfprotov6.Schema{
+					"test_resource": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.DynamicPseudoType,
 								},
 							},
 						},

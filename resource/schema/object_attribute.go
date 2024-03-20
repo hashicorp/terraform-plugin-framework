@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -51,6 +52,10 @@ var (
 type ObjectAttribute struct {
 	// AttributeTypes is the mapping of underlying attribute names to attribute
 	// types. This field must be set.
+	//
+	// Attribute types that contain a collection with a nested dynamic type (i.e. types.List[types.Dynamic]) are not supported.
+	// If underlying dynamic collection values are required, replace this attribute definition with
+	// DynamicAttribute instead.
 	AttributeTypes map[string]attr.Type
 
 	// CustomType enables the use of a custom attribute type in place of the
@@ -251,6 +256,10 @@ func (a ObjectAttribute) ObjectValidators() []validator.Object {
 func (a ObjectAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.AttributeTypes == nil && a.CustomType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingAttributeTypesDiag(req.Path))
+	}
+
+	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 
 	if a.ObjectDefaultValue() != nil {

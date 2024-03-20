@@ -79,6 +79,8 @@ func ValueSemanticEquality(ctx context.Context, req ValueSemanticEqualityRequest
 		ValueSemanticEqualitySet(ctx, req, resp)
 	case basetypes.StringValuable:
 		ValueSemanticEqualityString(ctx, req, resp)
+	case basetypes.DynamicValuable:
+		ValueSemanticEqualityDynamic(ctx, req, resp)
 	}
 
 	if resp.NewValue.Equal(req.PriorValue) {

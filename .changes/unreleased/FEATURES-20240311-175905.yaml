@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'types/basetypes: Added `DynamicType` and `DynamicValue` implementations for
+  dynamic value handling'
+time: 2024-03-11T17:59:05.67474-04:00
+custom:
+  Issue: "147"

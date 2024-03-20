@@ -128,6 +128,43 @@ func TestFromValue_go_types(t *testing.T) {
 				),
 			},
 		},
+		"go-struct-with-dynamic-values": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"dynamic_attr": types.DynamicType,
+					"dynamic_list": types.DynamicType,
+				},
+			},
+			value: struct {
+				DynamicAttr types.Dynamic `tfsdk:"dynamic_attr"`
+				DynamicList types.Dynamic `tfsdk:"dynamic_list"`
+			}{
+				DynamicAttr: types.DynamicValue(types.StringValue("hello world")),
+				DynamicList: types.DynamicValue(types.ListValueMust(
+					types.BoolType,
+					[]attr.Value{
+						types.BoolValue(true),
+						types.BoolValue(false),
+					},
+				)),
+			},
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"dynamic_attr": types.DynamicType,
+					"dynamic_list": types.DynamicType,
+				},
+				map[string]attr.Value{
+					"dynamic_attr": types.DynamicValue(types.StringValue("hello world")),
+					"dynamic_list": types.DynamicValue(types.ListValueMust(
+						types.BoolType,
+						[]attr.Value{
+							types.BoolValue(true),
+							types.BoolValue(false),
+						},
+					)),
+				},
+			),
+		},
 	}
 	for name, testCase := range testCases {
 		name, testCase := name, testCase

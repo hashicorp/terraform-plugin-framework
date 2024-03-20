@@ -305,6 +305,44 @@ func TestMapValueToTerraformValue(t *testing.T) {
 			input:       NewMapNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
 		},
+		// In the scenario where Terraform has refined a dynamic type to a map but the element type is not known, it's possible
+		// to receive a map with a dynamic element type.
+		//
+		// An example configuration that demonstrates this scenario, where "dynamic_attr" is a schema.DynamicAttribute:
+		//
+		//		resource "examplecloud_thing" "this" {
+		//			dynamic_attr = tomap({})
+		//		}
+		//
+		// And the resulting state value:
+		//
+		//		"dynamic_attr": {
+		//			"value": {},
+		//			"type": [
+		//				"map",
+		//				"dynamic"
+		//			]
+		//		}
+		//
+		"known-empty-dynamic-element-type": {
+			input: NewMapValueMust(
+				DynamicType{},
+				map[string]attr.Value{},
+			),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.DynamicPseudoType}, map[string]tftypes.Value{}),
+		},
+		"unknown-dynamic-element-type": {
+			input: NewMapUnknown(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.DynamicPseudoType}, tftypes.UnknownValue),
+		},
+		"null-dynamic-element-type": {
+			input: NewMapNull(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.Map{ElementType: tftypes.DynamicPseudoType}, nil),
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

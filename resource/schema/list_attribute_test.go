@@ -669,6 +669,28 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
+		"elementtype-dynamic": {
+			attribute: schema.ListAttribute{
+				Computed:    true,
+				ElementType: types.DynamicType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
+							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
+							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
+					),
+				},
+			},
+		},
 		"elementtype-missing": {
 			attribute: schema.ListAttribute{
 				Computed: true,

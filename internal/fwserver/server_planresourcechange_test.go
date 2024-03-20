@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
@@ -62,6 +63,38 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			},
 			// non-nil computed values should be left alone
 			"string-value-optional-computed": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			// values should be left alone
+			"dynamic-value": schema.DynamicAttribute{
+				Required: true,
+			},
+			// nil, uncomputed values should be left alone
+			"dynamic-nil": schema.DynamicAttribute{
+				Optional: true,
+			},
+			// nil computed values should be turned into unknown
+			"dynamic-nil-computed": schema.DynamicAttribute{
+				Computed: true,
+			},
+			// underlying nil computed values should be turned into unknown, preserving the original type
+			"dynamic-underlying-string-nil-computed": schema.DynamicAttribute{
+				Computed: true,
+			},
+			// nil computed values should be turned into unknown
+			"dynamic-nil-optional-computed": schema.DynamicAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			// non-nil computed values should be left alone
+			"dynamic-value-optional-computed": schema.DynamicAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			// non-nil computed values should be left alone
+			// each element of this dynamic value will be visited, then skipped
+			"dynamic-value-with-underlying-list-optional-computed": schema.DynamicAttribute{
 				Optional: true,
 				Computed: true,
 			},
@@ -155,11 +188,26 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 		},
 	}
 	input := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
-		"string-value":                   tftypes.NewValue(tftypes.String, "hello, world"),
-		"string-nil":                     tftypes.NewValue(tftypes.String, nil),
-		"string-nil-computed":            tftypes.NewValue(tftypes.String, nil),
-		"string-nil-optional-computed":   tftypes.NewValue(tftypes.String, nil),
-		"string-value-optional-computed": tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-value":                           tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil":                             tftypes.NewValue(tftypes.String, nil),
+		"string-nil-computed":                    tftypes.NewValue(tftypes.String, nil),
+		"string-nil-optional-computed":           tftypes.NewValue(tftypes.String, nil),
+		"string-value-optional-computed":         tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value":                          tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil":                            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-nil-computed":                   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-underlying-string-nil-computed": tftypes.NewValue(tftypes.String, nil),
+		"dynamic-nil-optional-computed":          tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-value-optional-computed":        tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value-with-underlying-list-optional-computed": tftypes.NewValue(
+			tftypes.List{
+				ElementType: tftypes.Bool,
+			},
+			[]tftypes.Value{
+				tftypes.NewValue(tftypes.Bool, true),
+				tftypes.NewValue(tftypes.Bool, false),
+			},
+		),
 		"object-nil-optional-computed": tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"string-nil": tftypes.String,
@@ -218,11 +266,26 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 		}),
 	})
 	expected := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
-		"string-value":                   tftypes.NewValue(tftypes.String, "hello, world"),
-		"string-nil":                     tftypes.NewValue(tftypes.String, nil),
-		"string-nil-computed":            tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-		"string-nil-optional-computed":   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-		"string-value-optional-computed": tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-value":                           tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil":                             tftypes.NewValue(tftypes.String, nil),
+		"string-nil-computed":                    tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"string-nil-optional-computed":           tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"string-value-optional-computed":         tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value":                          tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil":                            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-nil-computed":                   tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+		"dynamic-underlying-string-nil-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Preserves the underlying string type
+		"dynamic-nil-optional-computed":          tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+		"dynamic-value-optional-computed":        tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value-with-underlying-list-optional-computed": tftypes.NewValue(
+			tftypes.List{
+				ElementType: tftypes.Bool,
+			},
+			[]tftypes.Value{
+				tftypes.NewValue(tftypes.Bool, true),
+				tftypes.NewValue(tftypes.Bool, false),
+			},
+		),
 		"object-nil-optional-computed": tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"string-nil": tftypes.String,
@@ -376,6 +439,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_set":                     tftypes.Set{ElementType: tftypes.String},
 			"test_computed_string":                  tftypes.String,
 			"test_computed_string_custom_type":      tftypes.String,
+			"test_computed_dynamic":                 tftypes.DynamicPseudoType,
 			"test_computed_nested_list":             tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
 			"test_computed_nested_list_attribute":   tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
 			"test_computed_nested_map":              tftypes.Map{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}}},
@@ -394,6 +458,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_configured_set":                   tftypes.Set{ElementType: tftypes.String},
 			"test_configured_string":                tftypes.String,
 			"test_configured_string_custom_type":    tftypes.String,
+			"test_configured_dynamic":               tftypes.DynamicPseudoType,
 			"test_configured_nested_list": tftypes.List{
 				ElementType: tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
@@ -533,6 +598,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Computed:   true,
 				CustomType: testtypes.StringTypeWithSemanticEquals{},
 				Default:    stringdefault.StaticString("one"),
+			},
+			"test_computed_dynamic": schema.DynamicAttribute{
+				Computed: true,
+				Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("hello world!"))),
 			},
 			"test_computed_nested_list": schema.ListAttribute{
 				Computed: true,
@@ -724,6 +793,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Computed:   true,
 				CustomType: testtypes.StringTypeWithSemanticEquals{},
 				Default:    stringdefault.StaticString("one"),
+			},
+			"test_configured_dynamic": schema.DynamicAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  dynamicdefault.StaticValue(types.DynamicValue(types.StringValue("hello world!"))),
 			},
 			"test_configured_nested_list": schema.ListNestedAttribute{
 				Optional: true,
@@ -1273,6 +1347,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -1414,6 +1489,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -1645,6 +1721,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -1786,6 +1863,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2022,6 +2100,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "hello world!"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -2198,6 +2277,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -3512,6 +3592,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -3653,6 +3734,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -3886,6 +3968,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -4027,6 +4110,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -4260,6 +4344,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, "two"),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "two"),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "two"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -4436,6 +4521,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "state-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "state-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "state-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -4687,6 +4773,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
 						"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
 						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
+						"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "hello world!"),
 						"test_computed_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{
@@ -4863,6 +4950,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						),
 						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
 						"test_configured_nested_list": tftypes.NewValue(
 							tftypes.List{
 								ElementType: tftypes.Object{

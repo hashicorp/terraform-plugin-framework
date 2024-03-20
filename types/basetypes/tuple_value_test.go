@@ -658,50 +658,62 @@ func TestTupleValueToTerraformValue(t *testing.T) {
 	tests := map[string]testCase{
 		"known": {
 			input: NewTupleValueMust(
-				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 				[]attr.Value{
 					NewStringValue("hello"),
 					NewBoolValue(true),
+					NewDynamicValue(NewStringValue("world")),
+					NewDynamicValue(NewBoolValue(false)),
 				},
 			),
-			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType, tftypes.DynamicPseudoType}}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.Bool, true),
+				tftypes.NewValue(tftypes.String, "world"),
+				tftypes.NewValue(tftypes.Bool, false),
 			}),
 		},
 		"known-partial-unknown": {
 			input: NewTupleValueMust(
-				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 				[]attr.Value{
 					NewStringValue("hello"),
 					NewBoolUnknown(),
+					NewDynamicValue(NewStringValue("world")),
+					NewDynamicUnknown(),
 				},
 			),
-			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType, tftypes.DynamicPseudoType}}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, "hello"),
 				tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+				tftypes.NewValue(tftypes.String, "world"),
+				tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 			}),
 		},
 		"known-partial-null": {
 			input: NewTupleValueMust(
-				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
 				[]attr.Value{
 					NewStringNull(),
 					NewBoolValue(true),
+					NewDynamicValue(NewStringValue("world")),
+					NewDynamicNull(),
 				},
 			),
-			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, []tftypes.Value{
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType, tftypes.DynamicPseudoType}}, []tftypes.Value{
 				tftypes.NewValue(tftypes.String, nil),
 				tftypes.NewValue(tftypes.Bool, true),
+				tftypes.NewValue(tftypes.String, "world"),
+				tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 			}),
 		},
 		"unknown": {
-			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
-			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, tftypes.UnknownValue),
+			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType}}, tftypes.UnknownValue),
 		},
 		"null": {
-			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
-			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, nil),
+			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType}}, nil),
 		},
 	}
 	for name, test := range tests {

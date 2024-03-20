@@ -149,6 +149,66 @@ func TestInto_Slices(t *testing.T) {
 				),
 			},
 		},
+		"dynamic-list-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.List{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
+				),
+			},
+		},
+		"dynamic-set-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.Set{
+				ElementType: tftypes.String,
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
+				),
+			},
+		},
+		"dynamic-tuple-to-go-slice-unsupported": {
+			typ: types.DynamicType,
+			value: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.String},
+			}, []tftypes.Value{
+				tftypes.NewValue(tftypes.String, "hello"),
+				tftypes.NewValue(tftypes.String, "world"),
+			}),
+			target:   make([]string, 0),
+			expected: make([]string, 0),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Empty(),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Reflection for dynamic types is currently not supported. Use the corresponding `types` package type or a custom type that handles dynamic values.\n\n"+
+						"Path: \nTarget Type: []string\nSuggested `types` Type: basetypes.DynamicValue",
+				),
+			},
+		},
 	}
 	for name, testCase := range testCases {
 		name, testCase := name, testCase

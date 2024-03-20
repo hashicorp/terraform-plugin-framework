@@ -16,6 +16,7 @@ Function definitions support the following parameter types:
 - [Primitive](#primitive-parameter-types): Parameter that accepts a single value, such as a boolean, number, or string.
 - [Collection](#collection-parameter-types): Parameter that accepts multiple values of a single element type, such as a list, map, or set.
 - [Object](#object-parameter-type): Parameter that accepts a structure of explicit attribute names.
+- [Dynamic](#dynamic-parameter-type): Parameter that accepts any value type.
 
 ### Primitive Parameter Types
 
@@ -29,7 +30,7 @@ Parameter types that accepts a single data value, such as a boolean, number, or 
 | [Number](/terraform/plugin/framework/functions/parameters/number) | Arbitrary precision (generally over 64-bit, up to 512-bit) number |
 | [String](/terraform/plugin/framework/functions/parameters/string) | Collection of UTF-8 encoded characters |
 
-#### Collection Parameter Types
+### Collection Parameter Types
 
 Parameter types that accepts multiple values of a single element type, such as a list, map, or set.
 
@@ -39,13 +40,27 @@ Parameter types that accepts multiple values of a single element type, such as a
 | [Map](/terraform/plugin/framework/functions/parameters/map) | Mapping of arbitrary string keys to values of single element type |
 | [Set](/terraform/plugin/framework/functions/parameters/set) | Unordered, unique collection of single element type |
 
-#### Object Parameter Type
+### Object Parameter Type
 
 Parameter type that accepts a structure of explicit attribute names.
 
 | Parameter Type | Use Case |
 |----------------|----------|
 | [Object](/terraform/plugin/framework/functions/parameters/object) | Single structure mapping explicit attribute names |
+
+### Dynamic Parameter Type
+
+<Note>
+
+Dynamic value handling is an advanced use case. Prefer static parameter types when possible unless absolutely necessary for your use case.
+
+</Note>
+
+Parameter that accepts any value type, determined by Terraform at runtime.
+
+| Parameter Type | Use Case |
+|----------------|----------|
+| [Dynamic](/terraform/plugin/framework/functions/parameters/dynamic) | Accept any value type of data, determined at runtime. |
 
 ## Parameter Naming
 

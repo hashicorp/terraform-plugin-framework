@@ -1509,6 +1509,42 @@ func TestDataSetAtPath(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
 			}),
 		},
+		"overwrite-Dynamic": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, "originalvalue"),
+					"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test"),
+			val:  "newvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test":  tftypes.String,
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test":  tftypes.NewValue(tftypes.String, "newvalue"),
+				"other": tftypes.NewValue(tftypes.String, "should be untouched"),
+			}),
+		},
 		"write-root": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2480,6 +2516,39 @@ func TestDataSetAtPath(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"test":  tftypes.NewValue(tftypes.String, "newvalue"),
 				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+		},
+		"write-Dynamic": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.DynamicPseudoType,
+						"other": tftypes.DynamicPseudoType,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.DynamicType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test"),
+			val:  "newvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test":  tftypes.DynamicPseudoType,
+					"other": tftypes.DynamicPseudoType,
+				},
+			}, map[string]tftypes.Value{
+				"test":  tftypes.NewValue(tftypes.String, "newvalue"),
+				"other": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 			}),
 		},
 		"AttrTypeWithValidateError": {

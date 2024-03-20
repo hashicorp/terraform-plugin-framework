@@ -127,17 +127,40 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		AttributeValidateSet(ctx, attributeWithValidators, req, resp)
 	case fwxschema.AttributeWithStringValidators:
 		AttributeValidateString(ctx, attributeWithValidators, req, resp)
+	case fwxschema.AttributeWithDynamicValidators:
+		AttributeValidateDynamic(ctx, attributeWithValidators, req, resp)
 	}
 
 	AttributeValidateNestedAttributes(ctx, a, req, resp)
 
 	// Show deprecation warnings only for known values.
 	if a.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
-		resp.Diagnostics.AddAttributeWarning(
-			req.AttributePath,
-			"Attribute Deprecated",
-			a.GetDeprecationMessage(),
-		)
+		// Dynamic values need to perform more logic to check the config value for null/unknown-ness
+		dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
+		if !ok {
+			resp.Diagnostics.AddAttributeWarning(
+				req.AttributePath,
+				"Attribute Deprecated",
+				a.GetDeprecationMessage(),
+			)
+			return
+		}
+
+		dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
+		resp.Diagnostics.Append(diags...)
+		if diags.HasError() {
+			return
+		}
+
+		// For dynamic values, it's possible to be known when only the type is known.
+		// The underlying value can still be null or unknown, so check for that here
+		if !dynamicConfigVal.IsUnderlyingValueNull() && !dynamicConfigVal.IsUnderlyingValueUnknown() {
+			resp.Diagnostics.AddAttributeWarning(
+				req.AttributePath,
+				"Attribute Deprecated",
+				a.GetDeprecationMessage(),
+			)
+		}
 	}
 }
 
@@ -717,6 +740,71 @@ func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeW
 		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined validator.String",
+			map[string]interface{}{
+				logging.KeyDescription: attributeValidator.Description(ctx),
+			},
+		)
+
+		resp.Diagnostics.Append(validateResp.Diagnostics...)
+	}
+}
+
+// AttributeValidateDynamic performs all types.Dynamic validation.
+func AttributeValidateDynamic(ctx context.Context, attribute fwxschema.AttributeWithDynamicValidators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.DynamicValuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(basetypes.DynamicValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Dynamic Attribute Validator Value Type",
+			"An unexpected value type was encountered while attempting to perform Dynamic attribute validation. "+
+				"The value type must implement the basetypes.DynamicValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToDynamicValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	validateReq := validator.DynamicRequest{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+	}
+
+	for _, attributeValidator := range attribute.DynamicValidators() {
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		validateResp := &validator.DynamicResponse{}
+
+		logging.FrameworkTrace(
+			ctx,
+			"Calling provider defined validator.Dynamic",
+			map[string]interface{}{
+				logging.KeyDescription: attributeValidator.Description(ctx),
+			},
+		)
+
+		attributeValidator.ValidateDynamic(ctx, validateReq, validateResp)
+
+		logging.FrameworkTrace(
+			ctx,
+			"Called provider defined validator.Dynamic",
 			map[string]interface{}{
 				logging.KeyDescription: attributeValidator.Description(ctx),
 			},

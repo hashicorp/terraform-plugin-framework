@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 )
 
 // Definition is a function definition. Always set at least the Result field.
@@ -106,10 +107,18 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 				"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 				fmt.Sprintf("Function %q - Definition return data type is undefined", req.FuncName),
 		)
+	} else if returnWithValidateImplementation, ok := d.Return.(fwfunction.ReturnWithValidateImplementation); ok {
+		req := fwfunction.ValidateReturnImplementationRequest{}
+		resp := &fwfunction.ValidateReturnImplementationResponse{}
+
+		returnWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+		diags.Append(resp.Diagnostics...)
 	}
 
 	paramNames := make(map[string]int, len(d.Parameters))
 	for pos, param := range d.Parameters {
+		parameterPosition := int64(pos)
 		name := param.GetName()
 		// If name is not set, add an error diagnostic, parameter names are mandatory.
 		if name == "" {
@@ -119,6 +128,18 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					fmt.Sprintf("Function %q - Parameter at position %d does not have a name", req.FuncName, pos),
 			)
+		}
+
+		if paramWithValidateImplementation, ok := param.(fwfunction.ParameterWithValidateImplementation); ok {
+			req := fwfunction.ValidateParameterImplementationRequest{
+				Name:              name,
+				ParameterPosition: &parameterPosition,
+			}
+			resp := &fwfunction.ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
 		}
 
 		conflictPos, exists := paramNames[name]
@@ -146,6 +167,17 @@ func (d Definition) ValidateImplementation(ctx context.Context, req DefinitionVa
 					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 					fmt.Sprintf("Function %q - The variadic parameter does not have a name", req.FuncName),
 			)
+		}
+
+		if paramWithValidateImplementation, ok := d.VariadicParameter.(fwfunction.ParameterWithValidateImplementation); ok {
+			req := fwfunction.ValidateParameterImplementationRequest{
+				Name: name,
+			}
+			resp := &fwfunction.ValidateParameterImplementationResponse{}
+
+			paramWithValidateImplementation.ValidateImplementation(ctx, req, resp)
+
+			diags.Append(resp.Diagnostics...)
 		}
 
 		conflictPos, exists := paramNames[name]

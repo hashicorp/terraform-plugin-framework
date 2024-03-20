@@ -66,6 +66,6 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // hardcoded value for example brevity
     result := 123
 
-    resp.Error = function.ConcatFuncErrors(resp.Error, req.Arguments.Set(ctx, &result))
+    resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, &result))
 }
 ```

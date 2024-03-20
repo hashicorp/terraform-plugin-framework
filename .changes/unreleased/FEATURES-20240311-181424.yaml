@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'schema/validator: New `Dynamic` interface for dynamic value schema validation'
+time: 2024-03-11T18:14:24.809064-04:00
+custom:
+  Issue: "147"

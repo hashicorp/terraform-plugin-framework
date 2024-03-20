@@ -7252,6 +7252,344 @@ func TestDataGet(t *testing.T) {
 				String: "test",
 			},
 		},
+		"DynamicType-types.dynamic-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicNull(),
+			},
+		},
+		"DynamicType-types.dynamic-underlying-value-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.String, nil), // Terraform knows the type, but the underlying value is null
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicValue(types.StringNull()),
+			},
+		},
+		"DynamicType-types.dynamic-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicUnknown(),
+			},
+		},
+		"DynamicType-types.dynamic-underlying-value-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"dynamic": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"dynamic": tftypes.DynamicPseudoType,
+						},
+					},
+					map[string]tftypes.Value{
+						"dynamic": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Terraform knows the type, but the underlying value is unknown
+					},
+				),
+			},
+			target: new(struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}),
+			expected: &struct {
+				Dynamic types.Dynamic `tfsdk:"dynamic"`
+			}{
+				Dynamic: types.DynamicValue(types.BoolUnknown()),
+			},
+		},
+		"DynamicType-types.dynamic-stringvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"string": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"string": tftypes.String,
+						},
+					},
+					map[string]tftypes.Value{
+						"string": tftypes.NewValue(tftypes.String, "test"),
+					},
+				),
+			},
+			target: new(struct {
+				String types.Dynamic `tfsdk:"string"`
+			}),
+			expected: &struct {
+				String types.Dynamic `tfsdk:"string"`
+			}{
+				String: types.DynamicValue(types.StringValue("test")),
+			},
+		},
+		"DynamicType-types.dynamic-listvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"list": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list": tftypes.List{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "test1"),
+								tftypes.NewValue(tftypes.String, "test2"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				List types.Dynamic `tfsdk:"list"`
+			}),
+			expected: &struct {
+				List types.Dynamic `tfsdk:"list"`
+			}{
+				List: types.DynamicValue(types.ListValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test1"),
+						types.StringValue("test2"),
+					},
+				)),
+			},
+		},
+		"DynamicType-types.dynamic-mapvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"map": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"map": tftypes.Map{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"map": tftypes.NewValue(
+							tftypes.Map{
+								ElementType: tftypes.String,
+							},
+							map[string]tftypes.Value{
+								"key1": tftypes.NewValue(tftypes.String, "value1"),
+								"key2": tftypes.NewValue(tftypes.String, "value2"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Map types.Dynamic `tfsdk:"map"`
+			}),
+			expected: &struct {
+				Map types.Dynamic `tfsdk:"map"`
+			}{
+				Map: types.DynamicValue(types.MapValueMust(
+					types.StringType,
+					map[string]attr.Value{
+						"key1": types.StringValue("value1"),
+						"key2": types.StringValue("value2"),
+					},
+				)),
+			},
+		},
+		"DynamicType-types.dynamic-objectvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"object": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"object": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"object": tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_string": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_string": tftypes.NewValue(tftypes.String, "test1"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Object types.Dynamic `tfsdk:"object"`
+			}),
+			expected: &struct {
+				Object types.Dynamic `tfsdk:"object"`
+			}{
+				Object: types.DynamicValue(types.ObjectValueMust(
+					map[string]attr.Type{
+						"nested_string": types.StringType,
+					},
+					map[string]attr.Value{
+						"nested_string": types.StringValue("test1"),
+					},
+				)),
+			},
+		},
+		"DynamicType-types.dynamic-setvalue": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"set": testschema.Attribute{
+							Optional: true,
+							Type:     types.DynamicType,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"set": tftypes.Set{
+								ElementType: tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"set": tftypes.NewValue(
+							tftypes.Set{
+								ElementType: tftypes.String,
+							},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.String, "test1"),
+								tftypes.NewValue(tftypes.String, "test2"),
+							},
+						),
+					},
+				),
+			},
+			target: new(struct {
+				Set types.Dynamic `tfsdk:"set"`
+			}),
+			expected: &struct {
+				Set types.Dynamic `tfsdk:"set"`
+			}{
+				Set: types.DynamicValue(types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("test1"),
+						types.StringValue("test2"),
+					},
+				)),
+			},
+		},
 	}
 
 	for name, tc := range testCases {

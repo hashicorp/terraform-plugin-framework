@@ -85,17 +85,18 @@ This pattern can be extended to as many calls as necessary. The different framew
 
 The following table shows the different [`path.Path` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/path#Path) methods associated with building paths for attribute implementations. Attribute types that cannot be traversed further are shown with N/A (not applicable).
 
-| Attribute Type            | Child Path Method |
-| ------------------------- | ----------------- |
-| `schema.BoolAttribute`    | N/A               |
-| `schema.Float64Attribute` | N/A               |
-| `schema.Int64Attribute`   | N/A               |
-| `schema.ListAttribute`    | `AtListIndex()`   |
-| `schema.MapAttribute`     | `AtMapKey()`      |
-| `schema.NumberAttribute`  | N/A               |
-| `schema.ObjectAttribute`  | `AtName()`        |
-| `schema.SetAttribute`     | `AtSetValue()`    |
-| `schema.StringAttribute`  | N/A               |
+| Attribute Type            | Child Path Method                                                                                      |
+|---------------------------|--------------------------------------------------------------------------------------------------------|
+| `schema.BoolAttribute`    | N/A                                                                                                    |
+| `schema.DynamicAttribute` | N/A                                                                                                    |
+| `schema.Float64Attribute` | N/A                                                                                                    |
+| `schema.Int64Attribute`   | N/A                                                                                                    |
+| `schema.ListAttribute`    | `AtListIndex()`                                                                                        |
+| `schema.MapAttribute`     | `AtMapKey()`                                                                                           |
+| `schema.NumberAttribute`  | N/A                                                                                                    |
+| `schema.ObjectAttribute`  | `AtName()`                                                                                             |
+| `schema.SetAttribute`     | `AtSetValue()`                                                                                         |
+| `schema.StringAttribute`  | N/A                                                                                                    |
 
 Given following schema example:
 
@@ -528,4 +529,26 @@ The path which matches the `nested_block_string_attribute` string value in the o
 
 ```go
 path.Root("root_single_block").AtName("nested_single_block").AtName("nested_block_string_attribute")
+```
+
+### Building Dynamic Attribute Paths
+
+An attribute that implements `schema.DynamicAttribute` does not have a statically defined type, as the underlying value type is determined at runtime. When building paths for dynamic values, always target the root dynamic attribute.
+
+Given the following schema example:
+
+```go
+schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"root_dynamic_attribute": schema.DynamicAttribute{
+			Required: true,
+		},
+	},
+}
+```
+
+The path which matches the dynamic value associated with the `root_dynamic_attribute` attribute is:
+
+```go
+path.Root("root_dynamic_attribute")
 ```

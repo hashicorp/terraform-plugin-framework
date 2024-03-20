@@ -88,7 +88,7 @@ The following table shows the different [`path.Path` type](https://pkg.go.dev/gi
 | Attribute Type            | Child Path Method                                                                                      |
 |---------------------------|--------------------------------------------------------------------------------------------------------|
 | `schema.BoolAttribute`    | N/A                                                                                                    |
-| `schema.DynamicAttribute` | Based on underlying value, see [Building Dynamic Attribute Paths](#building-dynamic-attribute-paths)   |
+| `schema.DynamicAttribute` | N/A                                                                                                    |
 | `schema.Float64Attribute` | N/A                                                                                                    |
 | `schema.Int64Attribute`   | N/A                                                                                                    |
 | `schema.ListAttribute`    | `AtListIndex()`                                                                                        |
@@ -533,27 +533,7 @@ path.Root("root_single_block").AtName("nested_single_block").AtName("nested_bloc
 
 ### Building Dynamic Attribute Paths
 
-It's recommended when building a path for a [dynamic attribute](/terraform/plugin/framework/handling-data/attributes/dynamic) that you always target the root dynamic attribute.
-
-```go
-schema.Schema{
-	Attributes: map[string]schema.Attribute{
-		"root_dynamic_attribute": schema.DynamicAttribute{
-			Required: true,
-		},
-	},
-}
-```
-
-The path which matches the dynamic value associated with the `root_dynamic_attribute` attribute is:
-
-```go
-path.Root("root_dynamic_attribute")
-```
-
-#### Child Paths in Dynamic Attribute
-
-Since a dynamic attribute can store any value, that means it's possible to build a path that references a child in a dynamic value (with the child path methods defined [here](#building-attribute-paths)).
+An attribute that implements `schema.DynamicAttribute` does not have a statically defined type, as the underlying value type is determined at runtime. When building paths for dynamic values, always target the root dynamic attribute.
 
 Given the following schema example:
 
@@ -567,29 +547,8 @@ schema.Schema{
 }
 ```
 
-And the following config:
-```hcl
-resource "examplecloud_thing" "example" {
-  root_dynamic_attribute = tolist(["one", "two"])
-}
-```
+The path which matches the dynamic value associated with the `root_dynamic_attribute` attribute is:
 
-The path which matches the second string value (`"two"`) associated with the dynamic list value of the `root_dynamic_attribute` attribute is:
-
-```go
-path.Root("root_dynamic_attribute").AtListIndex(1)
-```
-
-If you attempt to use the same path, using `AtListIndex()`, with the following config, you'll receive an error diagnostic:
-```hcl
-resource "examplecloud_thing" "example" {
-  root_dynamic_attribute = {
-    attr1 = "not a list!"
-  }
-}
-```
-
-Since the correct child method depends on the underlying value, which in a dynamic attribute can be **any** value type, it's recommended to build paths matching the root dynamic attribute:
 ```go
 path.Root("root_dynamic_attribute")
 ```

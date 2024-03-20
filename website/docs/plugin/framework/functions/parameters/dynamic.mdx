@@ -24,13 +24,13 @@ In this Terraform configuration example, a dynamic parameter is set to the boole
 provider::example::example(true)
 ```
 
-In this example, the same dynamic parameter is set to the ordered list collection values `one` and `two`:
+In this example, the same dynamic parameter is set to a tuple (not a list) of string values `one` and `two`:
 
 ```hcl
-provider::example::example(tolist(["one", "two"]))
+provider::example::example(["one", "two"])
 ```
 
-In this example, the same dynamic parameter is set to the mapped values of `attr1` to `"value1"` and `attr2` to `123`:
+In this example, the same dynamic parameter is set to an object type with mapped values of `attr1` to `"value1"` and `attr2` to `123`:
 
 ```hcl
 provider::example::example({

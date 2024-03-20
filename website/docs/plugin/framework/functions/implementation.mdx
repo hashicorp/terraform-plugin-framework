@@ -152,8 +152,14 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
     resp.Definition = function.Definition{
         // ... other fields ...
         Parameters: []function.Parameter{
-            function.BoolParameter{},
-            function.StringParameter{},
+            function.BoolParameter{
+                Name: "bool_param",
+                // ... other fields ...
+            },
+            function.StringParameter{
+                Name: "string_param",
+                // ... other fields ...
+            },
         },
     }
 }
@@ -177,8 +183,14 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
     resp.Definition = function.Definition{
         // ... other fields ...
         Parameters: []function.Parameter{
-            function.BoolParameter{},
-            function.StringParameter{},
+            function.BoolParameter{
+                Name: "bool_param",
+                // ... other fields ...
+            },
+            function.StringParameter{
+                Name: "string_param",
+                // ... other fields ...
+            },
         },
     }
 }
@@ -205,10 +217,14 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
     resp.Definition = function.Definition{
         // ... other fields ...
         Parameters: []function.Parameter{
-            function.BoolParameter{},
+            function.BoolParameter{
+                Name: "bool_param",
+                // ... other fields ...
+            },
         },
         VariadicParameter: function.StringParameter{
             Name: "variadic_param",
+			// ... other fields ...
         },
     }
 }
@@ -232,12 +248,19 @@ func (f *ExampleFunction) Definition(ctx context.Context, req function.Definitio
     resp.Definition = function.Definition{
         // ... other fields ...
         Parameters: []function.Parameter{
-            function.BoolParameter{},
-            function.Int64Parameter{},
+            function.BoolParameter{
+                Name: "bool_param",
+                // ... other fields ...
+            },
+            function.Int64Parameter{
+                Name: "int64_param",
+                // ... other fields ...
+            },
         },
         VariadicParameter: function.StringParameter{
             Name: "variadic_param",
-        },
+            // ... other fields ...
+		},
     }
 }
 

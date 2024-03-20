@@ -26,6 +26,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         // ... other Definition fields ...
         Parameters: []function.Parameter{
             function.BoolParameter{
+                Name: "example",
                 // ... potentially other BoolParameter fields ...
             },
         },
@@ -73,7 +74,9 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Parameters: []function.Parameter{
-            function.BoolParameter{},
+            function.BoolParameter{
+                Name: "bool_param",
+            },
         },
     }
 }

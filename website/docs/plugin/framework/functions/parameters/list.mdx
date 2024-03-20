@@ -29,6 +29,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         Parameters: []function.Parameter{
             function.ListParameter{
                 ElementType: types.StringType,
+                Name: "list_param",
                 // ... potentially other ListParameter fields ...
             },
         },
@@ -83,6 +84,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         Parameters: []function.Parameter{
             function.ListParameter{
                 ElementType: types.StringType,
+                Name: "list_param",
             },
         },
     }

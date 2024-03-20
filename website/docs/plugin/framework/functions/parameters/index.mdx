@@ -46,3 +46,36 @@ Parameter type that accepts a structure of explicit attribute names.
 | Parameter Type | Use Case |
 |----------------|----------|
 | [Object](/terraform/plugin/framework/functions/parameters/object) | Single structure mapping explicit attribute names |
+
+## Parameter Naming
+
+All parameter types have a `Name` field that is **required**.
+
+### Missing Parameter Names
+
+Attempting to use unnamed parameters will generate runtime errors of the following form:
+
+```shell
+│ Error: Failed to load plugin schemas
+│
+│ Error while loading schemas for plugin components: Failed to obtain provider schema: Could not load the schema for provider registry.terraform.io/cloud_provider/cloud_resource: failed to
+│ retrieve schema from provider "registry.terraform.io/cloud_provider/cloud_resource": Invalid Function Definition: When validating the function definition, an implementation issue was
+│ found. This is always an issue with the provider and should be reported to the provider developers.
+│
+│ Function "example_function" - Parameter at position 0 does not have a name.
+```
+
+### Parameter Errors
+
+Parameter names are used in runtime errors to highlight which parameter is causing the issue. For example, using a value that is incompatible with the parameter type will generate an error message such as the following:
+
+```shell
+│ Error: Invalid function argument
+│
+│   on resource.tf line 10, in resource "example_resource" "example":
+│   10:   configurable_attribute = provider::example::example_function("string")
+│     ├────────────────
+│     │ while calling provider::example::example_function(bool_param)
+│
+│ Invalid value for "bool_param" parameter: a bool is required.
+```

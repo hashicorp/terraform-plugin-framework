@@ -58,11 +58,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
 }
 ```
 
-<Note>
-
-Dynamic values are not currently supported as the element type of a [collection parameter type](/terraform/plugin/framework/functions/parameters#collection-parameter-types).
-
-</Note>
+Dynamic values are not supported as the element type of a [collection type](/terraform/plugin/framework/handling-data/types#collection-types) or within [collection parameter types](/terraform/plugin/framework/functions/parameters#collection-parameter-types).
 
 If the dynamic value should be a value type of an [object parameter type](/terraform/plugin/framework/functions/parameters#object-parameter-type), set the `AttributeTypes` map value according to the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic). Refer to the object parameter type documentation for additional details.
 

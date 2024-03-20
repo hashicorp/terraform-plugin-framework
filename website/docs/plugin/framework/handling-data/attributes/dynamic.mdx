@@ -72,11 +72,7 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 ```
 
-<Note>
-
-Dynamic values are not currently supported as the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types).
-
-</Note>
+Dynamic values are not supported as the element type of a [collection type](/terraform/plugin/framework/handling-data/types#collection-types) or within [collection attribute types](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types).
 
 If the dynamic value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [dynamic type](/terraform/plugin/framework/handling-data/types/dynamic). Refer to the object attribute type documentation for additional details.
 

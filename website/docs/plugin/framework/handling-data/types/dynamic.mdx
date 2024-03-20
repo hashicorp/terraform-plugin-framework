@@ -30,11 +30,7 @@ Use one of the following attribute types to directly add a dynamic value to a [s
 | [Provider](/terraform/plugin/framework/provider) | [`schema.DynamicAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#DynamicAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.DynamicAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#DynamicAttribute) |
 
-<Note>
-
-Dynamic values are not currently supported as the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types).
-
-</Note>
+Dynamic values are not supported as the element type of a [collection type](/terraform/plugin/framework/handling-data/types#collection-types) or within [collection attribute types](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types).
 
 If the dynamic value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttrTypes` map value to `types.DynamicType` or the appropriate [custom type](#extending).
 

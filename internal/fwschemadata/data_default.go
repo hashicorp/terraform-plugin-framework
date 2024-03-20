@@ -94,7 +94,7 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 
 			// For dynamic values, it's possible to be known when only the type is known.
 			// The underlying value can still be null, so check for that here
-			if !dynConfigVal.IsUnknown() && !dynConfigVal.UnderlyingValue().IsNull() {
+			if !dynConfigVal.IsUnderlyingValueNull() {
 				return tfTypeValue, nil
 			}
 		}

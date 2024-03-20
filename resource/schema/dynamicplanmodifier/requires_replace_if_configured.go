@@ -23,7 +23,7 @@ func RequiresReplaceIfConfigured() planmodifier.Dynamic {
 	return RequiresReplaceIf(
 		func(_ context.Context, req planmodifier.DynamicRequest, resp *RequiresReplaceIfFuncResponse) {
 			// This requires checking if the underlying value is also null.
-			if req.ConfigValue.IsNull() || (!req.ConfigValue.IsUnknown() && req.ConfigValue.UnderlyingValue().IsNull()) {
+			if req.ConfigValue.IsNull() || req.ConfigValue.IsUnderlyingValueNull() {
 				return
 			}
 

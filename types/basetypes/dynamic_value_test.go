@@ -396,6 +396,7 @@ func TestDynamicValueEqual(t *testing.T) {
 		})
 	}
 }
+
 func TestDynamicValueString(t *testing.T) {
 	t.Parallel()
 
@@ -473,6 +474,316 @@ func TestDynamicValueString(t *testing.T) {
 			got := test.input.String()
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestDynamicValueIsUnderlyingValueNull(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       DynamicValue
+		expectation bool
+	}
+	tests := map[string]testCase{
+		"known-primitive": {
+			input:       NewDynamicValue(NewStringValue("hello world")),
+			expectation: false,
+		},
+		"known-primitive-underlying-value-null": {
+			input:       NewDynamicValue(NewStringNull()),
+			expectation: true,
+		},
+		"known-primitive-underlying-value-unknown": {
+			input:       NewDynamicValue(NewStringUnknown()),
+			expectation: false,
+		},
+		"known-collection": {
+			input: NewDynamicValue(NewListValueMust(
+				StringType{},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-collection-underlying-value-null": {
+			input: NewDynamicValue(NewListNull(
+				StringType{},
+			)),
+			expectation: true,
+		},
+		"known-collection-underlying-value-unknown": {
+			input: NewDynamicValue(NewListUnknown(
+				StringType{},
+			)),
+			expectation: false,
+		},
+		"known-tuple": {
+			input: NewDynamicValue(NewTupleValueMust(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-tuple-underlying-value-null": {
+			input: NewDynamicValue(NewTupleNull(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+			)),
+			expectation: true,
+		},
+		"known-tuple-underlying-value-unknown": {
+			input: NewDynamicValue(NewTupleUnknown(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+			)),
+			expectation: false,
+		},
+		"known-structural": {
+			input: NewDynamicValue(NewObjectValueMust(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+				map[string]attr.Value{
+					"alpha": NewStringValue("hello"),
+					"beta":  NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-structural-underlying-value-null": {
+			input: NewDynamicValue(NewObjectNull(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+			)),
+			expectation: true,
+		},
+		"known-structural-underlying-value-unknown": {
+			input: NewDynamicValue(NewObjectUnknown(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+			)),
+			expectation: false,
+		},
+		"known-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			expectation: false,
+		},
+		"null-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateNull,
+			},
+			expectation: false,
+		},
+		"unknown-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateUnknown,
+			},
+			expectation: false,
+		},
+		"unknown": {
+			input: NewDynamicUnknown(),
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+		"null": {
+			input: NewDynamicNull(),
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+		"zero-value": {
+			input: DynamicValue{},
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.IsUnderlyingValueNull()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %t, got %t", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestDynamicValueIsUnderlyingValueUnknown(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input       DynamicValue
+		expectation bool
+	}
+	tests := map[string]testCase{
+		"known-primitive": {
+			input:       NewDynamicValue(NewStringValue("hello world")),
+			expectation: false,
+		},
+		"known-primitive-underlying-value-null": {
+			input:       NewDynamicValue(NewStringNull()),
+			expectation: false,
+		},
+		"known-primitive-underlying-value-unknown": {
+			input:       NewDynamicValue(NewStringUnknown()),
+			expectation: true,
+		},
+		"known-collection": {
+			input: NewDynamicValue(NewListValueMust(
+				StringType{},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-collection-underlying-value-null": {
+			input: NewDynamicValue(NewListNull(
+				StringType{},
+			)),
+			expectation: false,
+		},
+		"known-collection-underlying-value-unknown": {
+			input: NewDynamicValue(NewListUnknown(
+				StringType{},
+			)),
+			expectation: true,
+		},
+		"known-tuple": {
+			input: NewDynamicValue(NewTupleValueMust(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+				[]attr.Value{
+					NewStringValue("hello"),
+					NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-tuple-underlying-value-null": {
+			input: NewDynamicValue(NewTupleNull(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+			)),
+			expectation: false,
+		},
+		"known-tuple-underlying-value-unknown": {
+			input: NewDynamicValue(NewTupleUnknown(
+				[]attr.Type{
+					StringType{},
+					StringType{},
+				},
+			)),
+			expectation: true,
+		},
+		"known-structural": {
+			input: NewDynamicValue(NewObjectValueMust(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+				map[string]attr.Value{
+					"alpha": NewStringValue("hello"),
+					"beta":  NewStringValue("world"),
+				},
+			)),
+			expectation: false,
+		},
+		"known-structural-underlying-value-null": {
+			input: NewDynamicValue(NewObjectNull(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+			)),
+			expectation: false,
+		},
+		"known-structural-underlying-value-unknown": {
+			input: NewDynamicValue(NewObjectUnknown(
+				map[string]attr.Type{
+					"alpha": StringType{},
+					"beta":  StringType{},
+				},
+			)),
+			expectation: true,
+		},
+		"known-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateKnown,
+			},
+			expectation: false,
+		},
+		"null-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateNull,
+			},
+			expectation: false,
+		},
+		"unknown-nil-underlying-value": {
+			input: DynamicValue{
+				value: nil, // Should not panic
+				state: attr.ValueStateUnknown,
+			},
+			expectation: false,
+		},
+		"unknown": {
+			input: NewDynamicUnknown(),
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+		"null": {
+			input: NewDynamicNull(),
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+		"zero-value": {
+			input: DynamicValue{},
+			// There is no underlying value, so it's not null
+			expectation: false,
+		},
+	}
+
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := test.input.IsUnderlyingValueUnknown()
+			if !cmp.Equal(got, test.expectation) {
+				t.Errorf("Expected %t, got %t", test.expectation, got)
 			}
 		})
 	}

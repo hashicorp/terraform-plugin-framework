@@ -42,7 +42,7 @@ func ValueSemanticEqualityDynamic(ctx context.Context, req ValueSemanticEquality
 		return
 	}
 
-	if priorValue.UnderlyingValue() == nil || priorValue.UnderlyingValue().IsNull() || priorValue.UnderlyingValue().IsUnknown() {
+	if priorValue.IsUnderlyingValueNull() || priorValue.IsUnderlyingValueUnknown() {
 		return
 	}
 
@@ -54,7 +54,7 @@ func ValueSemanticEqualityDynamic(ctx context.Context, req ValueSemanticEquality
 		return
 	}
 
-	if proposedValue.UnderlyingValue() == nil || proposedValue.UnderlyingValue().IsNull() || proposedValue.UnderlyingValue().IsUnknown() {
+	if proposedValue.IsUnderlyingValueNull() || proposedValue.IsUnderlyingValueUnknown() {
 		return
 	}
 

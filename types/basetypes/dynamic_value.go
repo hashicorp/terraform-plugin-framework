@@ -164,8 +164,34 @@ func (v DynamicValue) ToDynamicValue(ctx context.Context) (DynamicValue, diag.Di
 }
 
 // UnderlyingValue returns the concrete underlying value in the DynamicValue. This will return `nil`
-// if DynamicValue is null or unknown. A known DynamicValue can still have an underlying value that is in null
-// or unknown state, in the scenario that the underlying value type has been refined by Terraform.
+// if DynamicValue is null or unknown.
+//
+// A known DynamicValue can have an underlying value that is in null or unknown state in the
+// scenario that the underlying value type has been refined by Terraform.
 func (v DynamicValue) UnderlyingValue() attr.Value {
 	return v.value
+}
+
+// IsUnderlyingValueNull is a helper method that return true only in the case where the underlying value has a
+// known type but the value is null. This method will return false if the underlying type is not known.
+//
+// IsNull should be used to determine if the dynamic value does not have a known type and the value is null.
+//
+// An example of a known type with a null underlying value would be:
+//
+//	types.DynamicValue(types.StringNull())
+func (v DynamicValue) IsUnderlyingValueNull() bool {
+	return v.value != nil && v.value.IsNull()
+}
+
+// IsUnderlyingValueUnknown is a helper method that return true only in the case where the underlying value has a
+// known type but the value is unknown. This method will return false if the underlying type is not known.
+//
+// IsUnknown should be used to determine if the dynamic value does not have a known type and the value is unknown.
+//
+// An example of a known type with an unknown underlying value would be:
+//
+//	types.DynamicValue(types.StringUnknown())
+func (v DynamicValue) IsUnderlyingValueUnknown() bool {
+	return v.value != nil && v.value.IsUnknown()
 }

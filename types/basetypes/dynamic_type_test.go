@@ -427,14 +427,14 @@ func TestDynamicTypeValueFromTerraform(t *testing.T) {
 			if test.expected != nil && test.expected.IsNull() != test.input.IsNull() {
 				// It's possible for a known dynamic value to have an null underlying value
 				dynVal := test.expected.(DynamicValue) //nolint: forcetypeassert
-				if dynVal.UnderlyingValue() != nil && dynVal.UnderlyingValue().IsNull() != test.input.IsNull() {
+				if dynVal.IsUnderlyingValueNull() != test.input.IsNull() {
 					t.Errorf("Expected null-ness match: expected %t, got %t", test.expected.IsNull(), test.input.IsNull())
 				}
 			}
 			if test.expected != nil && test.expected.IsUnknown() != !test.input.IsKnown() {
 				// It's possible for a known dynamic value to have an unknown underlying value
 				dynVal := test.expected.(DynamicValue) //nolint: forcetypeassert
-				if dynVal.UnderlyingValue() != nil && dynVal.UnderlyingValue().IsUnknown() != !test.input.IsKnown() {
+				if dynVal.IsUnderlyingValueUnknown() != !test.input.IsKnown() {
 					t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
 				}
 			}

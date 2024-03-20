@@ -135,7 +135,7 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 
 	// Show deprecation warnings only for known values.
 	if a.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
-		// Dynamic values need to perform more logic to check the config value for null-ness
+		// Dynamic values need to perform more logic to check the config value for null/unknown-ness
 		dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
 		if !ok {
 			resp.Diagnostics.AddAttributeWarning(
@@ -153,9 +153,8 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		}
 
 		// For dynamic values, it's possible to be known when only the type is known.
-		// The underlying value can still be null, so check for that here
-		underlyingConfigVal := dynamicConfigVal.UnderlyingValue()
-		if underlyingConfigVal != nil && !underlyingConfigVal.IsNull() && !underlyingConfigVal.IsUnknown() {
+		// The underlying value can still be null or unknown, so check for that here
+		if !dynamicConfigVal.IsUnderlyingValueNull() && !dynamicConfigVal.IsUnderlyingValueUnknown() {
 			resp.Diagnostics.AddAttributeWarning(
 				req.AttributePath,
 				"Attribute Deprecated",

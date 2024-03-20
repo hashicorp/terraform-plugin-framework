@@ -65,6 +65,12 @@ If the dynamic value should be a value type of an [object parameter type](/terra
 
 ### Allow Null Values
 
+<Highlight>
+
+A known dynamic value with an underlying value that contains nulls (such as a list with null element values) will always be sent to the function logic, regardless of the `AllowNullValue` setting. Data handling must always account for this situation.
+
+</Highlight>
+
 By default, Terraform will not pass null values to the function logic. Use the `AllowNullValue` field to explicitly allow null values, if there is a meaningful distinction that should occur in function logic.
 
 ### Allow Unknown Values

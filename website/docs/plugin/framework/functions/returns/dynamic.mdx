@@ -1,28 +1,35 @@
 ---
-page_title: 'Plugin Development - Framework: List Function Return'
+page_title: 'Plugin Development - Framework: Dynamic Function Return'
 description: >-
-  Learn the list function return type in the provider development framework.
+  Learn the dynamic function return type in the provider development framework.
 ---
 
-# List Function Return
+# Dynamic Function Return
 
-List function return expects an ordered collection of single element type value from function logic. Set values in function logic with a Go slice of an appropriate type to match the element type `[]T` or the [framework list type](/terraform/plugin/framework/handling-data/types/list).
+<Tip>
+
+Static types should always be preferred over dynamic types, when possible.
+
+Developers creating a function with a dynamic return will need to have extensive knowledge of the [Terraform type system](/terraform/language/expressions/types) to understand how the value type returned can impact practitioner configuration.
+
+Refer to [Dynamic Data - Considerations](/terraform/plugin/framework/handling-data/dynamic-data#considerations) for more information.
+
+</Tip>
+
+Dynamic function return can be **any** value type from function logic. Set values in function logic with the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic).
 
 ## Function Definition
 
-Use the [`function.ListReturn` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ListReturn) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method).
+Use the [`function.DynamicReturn` type](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#DynamicReturn) in the [function definition](/terraform/plugin/framework/functions/implementation#definition-method).
 
-The `ElementType` field must be defined, which represents the single [framework value type](/terraform/plugin/framework/handling-data/types) of every element of the list. An element type may itself contain further collection or object types, if necessary.
-
-In this example, a function definition includes a list of string return:
+In this example, a function definition includes a dynamic return:
 
 ```go
 func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
     resp.Definition = function.Definition{
         // ... other Definition fields ...
-        Return: function.ListReturn{
-            ElementType: types.StringType,
-            // ... potentially other ListReturn fields ...
+        Return: function.DynamicReturn{
+            // ... potentially other DynamicReturn fields ...
         },
     }
 }
@@ -45,17 +52,15 @@ The [function implementation](/terraform/plugin/framework/functions/implementati
 When setting the value for this return:
 
 * If `CustomType` is set, use its associated value type.
-* Otherwise, use a Go slice of an appropriate type to match the element type `[]T` or [framework list type](/terraform/plugin/framework/handling-data/types/list).
+* Otherwise, use the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic).
 
-In this example, a function defines a list of string return and sets its value:
+In this example, a function defines a dynamic return and sets its value to a string:
 
 ```go
 func (f ExampleFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
     resp.Definition = function.Definition{
         // ... other Definition fields ...
-        Return: function.ListReturn{
-            ElementType: types.StringType,
-        },
+        Return: function.DynamicReturn{},
     }
 }
 
@@ -63,8 +68,10 @@ func (f ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp 
     // ... other logic ...
 
     // hardcoded value for example brevity
-    result := []string{"one", "two"}
+    result := types.DynamicValue(types.StringValue("hello world!"))
 
     resp.Error = function.ConcatFuncErrors(resp.Error, resp.Result.Set(ctx, &result))
 }
 ```
+
+For more detail on working with dynamic values, see the [framework dynamic type](/terraform/plugin/framework/handling-data/types/dynamic) documentation.

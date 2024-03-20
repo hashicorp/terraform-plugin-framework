@@ -149,17 +149,18 @@ func (f *ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp
 
 ```
 
+In these Terraform configuration examples, the function variadic argument will receive the following value types:
 
 ```hcl
-# Function variadic argument will receive `[]types.Dynamic{}`
+# []types.Dynamic{}
 provider::example::example()
 
-# Function variadic argument will receive `[]types.Dynamic{types.String}`
+# []types.Dynamic{types.String}
 provider::example::example("hello world")
 
-# Function variadic argument will receive `[]types.Dynamic{types.Bool, types.Number}`
+# []types.Dynamic{types.Bool, types.Number}
 provider::example::example(true, 1)
 
-# Function variadic argument will receive `[]types.Dynamic{types.String, types.List[types.String]}`
-provider::example::example("hello", tolist(["one", "two"]))
+# []types.Dynamic{types.String, types.Tuple[types.String, types.String], types.List[types.String]}
+provider::example::example("hello", ["one", "two"], tolist(["one", "two"]))
 ```

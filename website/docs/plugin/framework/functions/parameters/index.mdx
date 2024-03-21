@@ -70,7 +70,7 @@ All parameter types have a `Name` field that is **required**.
 
 Attempting to use unnamed parameters will generate runtime errors of the following form:
 
-```shell
+```text
 │ Error: Failed to load plugin schemas
 │
 │ Error while loading schemas for plugin components: Failed to obtain provider schema: Could not load the schema for provider registry.terraform.io/cloud_provider/cloud_resource: failed to
@@ -84,7 +84,7 @@ Attempting to use unnamed parameters will generate runtime errors of the followi
 
 Parameter names are used in runtime errors to highlight which parameter is causing the issue. For example, using a value that is incompatible with the parameter type will generate an error message such as the following:
 
-```shell
+```text
 │ Error: Invalid function argument
 │
 │   on resource.tf line 10, in resource "example_resource" "example":

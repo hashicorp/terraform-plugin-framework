@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestDataSetAtPath(t *testing.T) {
@@ -2610,6 +2611,64 @@ func TestDataSetAtPath(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Root("name")),
 			},
+		},
+		"AttrTypeWithValidateAttributeError": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "originalname"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     testtypes.StringTypeWithValidateAttributeError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("name"),
+			val:  "newname",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "originalname"),
+			}),
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
+		},
+		"AttrTypeWithValidateAttributeWarning": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "originalname"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     testtypes.StringTypeWithValidateAttributeWarning{},
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("name"),
+			val:  "newname",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "newname"),
+			}),
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("name"))},
 		},
 	}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
 
 // SetAtPath sets the attribute at `path` using the supplied Go value.
@@ -51,6 +52,8 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 		return diags
 	}
 
+	// MAINTAINER NOTE: The call to reflect.FromValue() checks for whether the type implements
+	// xattr.TypeWithValidate and calls Validate() if the type assertion succeeds.
 	newVal, newValDiags := reflect.FromValue(ctx, attrType, val, path)
 	diags.Append(newValDiags...)
 
@@ -70,15 +73,40 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 		return diags
 	}
 
-	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
-		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkTrace(ctx, "Calling provider defined Type ValidateAttribute")
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
-		logging.FrameworkTrace(ctx, "Called provider defined Type ValidateAttribute")
+	switch t := newVal.(type) {
+	case validation.ValidateableAttribute:
+		resp := validation.ValidateAttributeResponse{}
+
+		logging.FrameworkTrace(ctx, "Value implements ValidateableAttribute")
+		logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateAttribute")
+
+		t.ValidateAttribute(ctx,
+			validation.ValidateAttributeRequest{
+				Path: path,
+			},
+			&resp,
+		)
+
+		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
+
+		diags.Append(resp.Diagnostics...)
 
 		if diags.HasError() {
 			return diags
+		}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
+			logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+			logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
+
+			diags.Append(attrTypeWithValidate.Validate(ctx, tfVal, path)...)
+
+			logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
+
+			if diags.HasError() {
+				return diags
+			}
 		}
 	}
 

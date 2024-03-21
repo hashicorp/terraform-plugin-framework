@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'resource/schema/planmodifier: New `Dynamic` interface for dynamic value plan
-  modification implementations'
-time: 2024-03-11T18:12:42.945376-04:00
-custom:
-  Issue: "147"

@@ -1,6 +1,0 @@
-kind: BREAKING CHANGES
-body: 'function: `DefaultParameterNamePrefix` and `DefaultVariadicParameterName` constants
-  have been removed'
-time: 2024-03-20T17:14:54.480412Z
-custom:
-  Issue: "964"

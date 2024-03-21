@@ -213,15 +213,51 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 		return nil, diags
 	}
 
-	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	if attrTypeWithValidate, ok := parentAttrType.(xattr.TypeWithValidate); ok {
-		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkTrace(ctx, "Calling provider defined Type ValidateAttribute")
-		diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
-		logging.FrameworkTrace(ctx, "Called provider defined Type ValidateAttribute")
+	parentAttrValue, err := parentAttrType.ValueFromTerraform(ctx, parentValue)
+
+	if err != nil {
+		diags.AddAttributeError(
+			parentPath,
+			d.Description.Title()+" Read Error",
+			"An unexpected error was encountered trying to read an attribute from the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return nil, diags
+	}
+
+	switch t := parentAttrValue.(type) {
+	case validation.ValidateableAttribute:
+		resp := validation.ValidateAttributeResponse{}
+
+		logging.FrameworkTrace(ctx, "Value implements ValidateableAttribute")
+		logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateAttribute")
+
+		t.ValidateAttribute(ctx,
+			validation.ValidateAttributeRequest{
+				Path: parentPath,
+			},
+			&resp,
+		)
+
+		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
+
+		diags.Append(resp.Diagnostics...)
 
 		if diags.HasError() {
 			return nil, diags
+		}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if attrTypeWithValidate, ok := parentAttrType.(xattr.TypeWithValidate); ok {
+			logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+			logging.FrameworkTrace(ctx, "Calling provider defined Type ValidateAttribute")
+
+			diags.Append(attrTypeWithValidate.Validate(ctx, parentValue, parentPath)...)
+
+			logging.FrameworkTrace(ctx, "Called provider defined Type ValidateAttribute")
+
+			if diags.HasError() {
+				return nil, diags
+			}
 		}
 	}
 

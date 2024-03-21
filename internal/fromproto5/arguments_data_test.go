@@ -8,25 +8,24 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestArgumentsData(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input               []*tfprotov5.DynamicValue
-		definition          function.Definition
-		expected            function.ArgumentsData
-		expectedDiagnostics diag.Diagnostics
+		input             []*tfprotov5.DynamicValue
+		definition        function.Definition
+		expected          function.ArgumentsData
+		expectedFuncError *function.FuncError
 	}{
 		"nil": {
 			input:      nil,
@@ -49,15 +48,13 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unexpected Function Arguments Data",
-					"The provider received an unexpected number of function arguments from Terraform for the given function definition. "+
-						"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n"+
-						"Expected function arguments: 2\n"+
-						"Given function arguments: 1",
-				),
-			},
+			expectedFuncError: function.NewFuncError(
+				"Unexpected Function Arguments Data: " +
+					"The provider received an unexpected number of function arguments from Terraform for the given function definition. " +
+					"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n" +
+					"Expected function arguments: 2\n" +
+					"Given function arguments: 1",
+			),
 		},
 		"mismatched-arguments-too-many-arguments": {
 			input: []*tfprotov5.DynamicValue{
@@ -70,15 +67,13 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unexpected Function Arguments Data",
-					"The provider received an unexpected number of function arguments from Terraform for the given function definition. "+
-						"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n"+
-						"Expected function arguments: 1\n"+
-						"Given function arguments: 2",
-				),
-			},
+			expectedFuncError: function.NewFuncError(
+				"Unexpected Function Arguments Data: " +
+					"The provider received an unexpected number of function arguments from Terraform for the given function definition. " +
+					"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n" +
+					"Expected function arguments: 1\n" +
+					"Given function arguments: 2",
+			),
 		},
 		"mismatched-arguments-type": {
 			input: []*tfprotov5.DynamicValue{
@@ -90,15 +85,14 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unable to Convert Function Argument",
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Unable to Convert Function Argument: "+
 					"An unexpected error was encountered when converting the function argument from the protocol type. "+
-						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-						"Please report this to the provider developer:\n\n"+
-						"Unable to unmarshal DynamicValue at position 0: error decoding string: msgpack: invalid code=c3 decoding string/bytes length",
-				),
-			},
+					"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+					"Please report this to the provider developer:\n\n"+
+					"Unable to unmarshal DynamicValue at position 0: error decoding string: msgpack: invalid code=c3 decoding string/bytes length",
+			),
 		},
 		"parameters-zero": {
 			input:      []*tfprotov5.DynamicValue{},
@@ -147,9 +141,10 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData(nil),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
-			},
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Error Diagnostic: This is an error.",
+			),
 		},
 		"parameters-one-TypeWithValidation-warning": {
 			input: []*tfprotov5.DynamicValue{
@@ -167,9 +162,7 @@ func TestArgumentsData(t *testing.T) {
 					Bool: basetypes.NewBoolValue(true),
 				},
 			}),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeWarningDiagnostic(path.Empty(), "Warning Diagnostic", "This is a warning."),
-			},
+			// Function error is not generated as diagnostic raised is warning.
 		},
 		"parameters-one-variadicparameter-zero": {
 			input: []*tfprotov5.DynamicValue{
@@ -418,7 +411,7 @@ func TestArgumentsData(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedFuncError); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

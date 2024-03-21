@@ -32,6 +32,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         // ... other Definition fields ...
         Parameters: []function.Parameter{
             function.Float64Parameter{
+                Name: "float64_param",
                 // ... potentially other Float64Parameter fields ...
             },
         },
@@ -79,7 +80,10 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Parameters: []function.Parameter{
-            function.Float64Parameter{},
+            function.Float64Parameter{
+                Name: "float64_param",
+                // ... potentially other Float64Parameter fields ...
+            },
         },
     }
 }

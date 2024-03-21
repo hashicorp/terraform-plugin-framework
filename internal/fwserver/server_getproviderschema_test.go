@@ -416,7 +416,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						"Invalid Function Definition",
 						"When validating the function definition, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"Definition Return field is undefined",
+							"Function \"function1\" - Definition Return field is undefined",
 					),
 				},
 				FunctionDefinitions: nil,

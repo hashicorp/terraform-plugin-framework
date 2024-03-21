@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestGetFunctionsResponse(t *testing.T) {
@@ -138,15 +139,12 @@ func TestGetFunctionsResponse(t *testing.T) {
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{
 							{
-								Name: "param1",
 								Type: tftypes.Bool,
 							},
 							{
-								Name: "param2",
 								Type: tftypes.Number,
 							},
 							{
-								Name: "param3",
 								Type: tftypes.String,
 							},
 						},
@@ -214,7 +212,6 @@ func TestGetFunctionsResponse(t *testing.T) {
 							Type: tftypes.String,
 						},
 						VariadicParameter: &tfprotov5.FunctionParameter{
-							Name: function.DefaultVariadicParameterName,
 							Type: tftypes.String,
 						},
 					},

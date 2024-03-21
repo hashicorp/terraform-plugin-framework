@@ -32,6 +32,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         // ... other Definition fields ...
         Parameters: []function.Parameter{
             function.Int64Parameter{
+                Name: "int64_param",
                 // ... potentially other Int64Parameter fields ...
             },
         },
@@ -79,7 +80,10 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Parameters: []function.Parameter{
-            function.Int64Parameter{},
+            function.Int64Parameter{
+                Name: "int64_param",
+                // ... potentially other Int64Parameter fields ...
+            },
         },
     }
 }

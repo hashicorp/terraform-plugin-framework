@@ -32,6 +32,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         Parameters: []function.Parameter{
             function.MapParameter{
                 ElementType: types.StringType,
+                Name: "map_param",
                 // ... potentially other MapParameter fields ...
             },
         },
@@ -86,6 +87,8 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         Parameters: []function.Parameter{
             function.MapParameter{
                 ElementType: types.StringType,
+                Name: "map_param",
+                // ... potentially other MapParameter fields ...
             },
         },
     }

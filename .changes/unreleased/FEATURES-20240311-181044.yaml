@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/dynamicplanmodifier: New package with built-in implementations
+  for dynamic value plan modification.'
+time: 2024-03-11T18:10:44.015502-04:00
+custom:
+  Issue: "147"

@@ -96,6 +96,38 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 				},
 			),
 		},
+		"basic-object-dynamic-types": {
+			receiver: ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": DynamicType{},
+					"b": DynamicType{},
+					"c": DynamicType{},
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.DynamicPseudoType,
+					"b": tftypes.DynamicPseudoType,
+					"c": tftypes.DynamicPseudoType,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "red"),
+				"b": tftypes.NewValue(tftypes.Bool, true),
+				"c": tftypes.NewValue(tftypes.Number, 123),
+			}),
+			expected: NewObjectValueMust(
+				map[string]attr.Type{
+					"a": DynamicType{},
+					"b": DynamicType{},
+					"c": DynamicType{},
+				},
+				map[string]attr.Value{
+					"a": NewDynamicValue(NewStringValue("red")),
+					"b": NewDynamicValue(NewBoolValue(true)),
+					"c": NewDynamicValue(NewNumberValue(big.NewFloat(123))),
+				},
+			),
+		},
 		"extra-attribute": {
 			receiver: ObjectType{
 				AttrTypes: map[string]attr.Type{

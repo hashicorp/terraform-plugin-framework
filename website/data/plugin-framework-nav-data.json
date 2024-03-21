@@ -149,6 +149,10 @@
             "path": "functions/parameters/bool"
           },
           {
+            "title": "Dynamic",
+            "path": "functions/parameters/dynamic"
+          },
+          {
             "title": "Float64",
             "path": "functions/parameters/float64"
           },
@@ -192,6 +196,10 @@
           {
             "title": "Bool",
             "path": "functions/returns/bool"
+          },
+          {
+            "title": "Dynamic",
+            "path": "functions/returns/dynamic"
           },
           {
             "title": "Float64",
@@ -262,6 +270,10 @@
           {
             "title": "Bool",
             "path": "handling-data/attributes/bool"
+          },
+          {
+            "title": "Dynamic",
+            "path": "handling-data/attributes/dynamic"
           },
           {
             "title": "Float64",
@@ -346,6 +358,10 @@
             "path": "handling-data/types/bool"
           },
           {
+            "title": "Dynamic",
+            "path": "handling-data/types/dynamic"
+          },
+          {
             "title": "Float64",
             "path": "handling-data/types/float64"
           },
@@ -402,6 +418,10 @@
       {
         "title": "Writing Data",
         "path": "handling-data/writing-state"
+      },
+      {
+        "title": "Dynamic Data",
+        "path": "handling-data/dynamic-data"
       }
     ]
   },

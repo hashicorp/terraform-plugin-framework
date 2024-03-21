@@ -26,6 +26,7 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
         // ... other Definition fields ...
         Parameters: []function.Parameter{
             function.StringParameter{
+                Name: "string_param",
                 // ... potentially other StringParameter fields ...
             },
         },
@@ -73,7 +74,10 @@ func (f ExampleFunction) Definition(ctx context.Context, req function.Definition
     resp.Definition = function.Definition{
         // ... other Definition fields ...
         Parameters: []function.Parameter{
-            function.StringParameter{},
+            function.StringParameter{
+                Name: "string_param",
+                // ... potentially other StringParameter fields ...
+            },
         },
     }
 }

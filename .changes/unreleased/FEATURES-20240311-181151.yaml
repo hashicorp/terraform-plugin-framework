@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/defaults: New `Dynamic` interface for dynamic schema-based
+  default implementations'
+time: 2024-03-11T18:11:51.403326-04:00
+custom:
+  Issue: "147"

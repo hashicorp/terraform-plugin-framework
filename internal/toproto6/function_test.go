@@ -143,7 +143,7 @@ func TestFunction(t *testing.T) {
 				},
 			},
 		},
-		"parameters-defaults": {
+		"parameters-unnamed": {
 			fw: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{},
@@ -156,20 +156,16 @@ func TestFunction(t *testing.T) {
 			expected: &tfprotov6.Function{
 				Parameters: []*tfprotov6.FunctionParameter{
 					{
-						Name: "param1",
 						Type: tftypes.Bool,
 					},
 					{
-						Name: "param2",
 						Type: tftypes.Number,
 					},
 					{
-						Name: "param3",
 						Type: tftypes.String,
 					},
 				},
 				VariadicParameter: &tfprotov6.FunctionParameter{
-					Name: function.DefaultVariadicParameterName,
 					Type: tftypes.Number,
 				},
 				Return: &tfprotov6.FunctionReturn{
@@ -212,7 +208,6 @@ func TestFunction(t *testing.T) {
 					Type: tftypes.String,
 				},
 				VariadicParameter: &tfprotov6.FunctionParameter{
-					Name: function.DefaultVariadicParameterName,
 					Type: tftypes.String,
 				},
 			},
@@ -438,6 +433,15 @@ func TestFunctionParameter(t *testing.T) {
 			expected: &tfprotov6.FunctionParameter{
 				Name: "string",
 				Type: tftypes.String,
+			},
+		},
+		"type-dynamic": {
+			fw: function.DynamicParameter{
+				Name: "dynamic",
+			},
+			expected: &tfprotov6.FunctionParameter{
+				Name: "dynamic",
+				Type: tftypes.DynamicPseudoType,
 			},
 		},
 	}

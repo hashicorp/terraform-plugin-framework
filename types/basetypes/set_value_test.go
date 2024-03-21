@@ -555,6 +555,44 @@ func TestSetValueToTerraformValue(t *testing.T) {
 			input:       NewSetNull(StringType{}),
 			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 		},
+		// In the scenario where Terraform has refined a dynamic type to a set but the element type is not known, it's possible
+		// to receive a set with a dynamic element type.
+		//
+		// An example configuration that demonstrates this scenario, where "dynamic_attr" is a schema.DynamicAttribute:
+		//
+		//		resource "examplecloud_thing" "this" {
+		//			dynamic_attr = toset([])
+		//		}
+		//
+		// And the resulting state value:
+		//
+		//		"dynamic_attr": {
+		//			"value": [],
+		//			"type": [
+		//				"set",
+		//				"dynamic"
+		//			]
+		//		}
+		//
+		"known-empty-dynamic-element-type": {
+			input: NewSetValueMust(
+				DynamicType{},
+				[]attr.Value{},
+			),
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.DynamicPseudoType}, []tftypes.Value{}),
+		},
+		"unknown-dynamic-element-type": {
+			input: NewSetUnknown(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.DynamicPseudoType}, tftypes.UnknownValue),
+		},
+		"null-dynamic-element-type": {
+			input: NewSetNull(
+				DynamicType{},
+			),
+			expectation: tftypes.NewValue(tftypes.Set{ElementType: tftypes.DynamicPseudoType}, nil),
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

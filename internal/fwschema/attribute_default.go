@@ -78,3 +78,11 @@ type AttributeWithStringDefaultValue interface {
 
 	StringDefaultValue() defaults.String
 }
+
+// AttributeWithDynamicDefaultValue is an optional interface on Attribute which
+// enables Dynamic default value support.
+type AttributeWithDynamicDefaultValue interface {
+	Attribute
+
+	DynamicDefaultValue() defaults.Dynamic
+}

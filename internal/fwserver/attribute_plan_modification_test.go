@@ -9975,6 +9975,642 @@ func TestAttributePlanModifyString(t *testing.T) {
 	}
 }
 
+func TestAttributePlanModifyDynamic(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute fwxschema.AttributeWithDynamicPlanModifiers
+		request   ModifyAttributePlanRequest
+		response  *ModifyAttributePlanResponse
+		expected  *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-pathexpression": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:           types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:          types.DynamicValue(types.StringValue("testvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-config": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.DynamicPseudoType,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.String, "testvalue"),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-configvalue": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.ConfigValue
+							expected := types.DynamicValue(types.StringValue("testvalue"))
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicNull(),
+				AttributeState:  types.DynamicNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+		},
+		"request-plan": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.DynamicPseudoType,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.String, "testvalue"),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-planvalue": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.PlanValue
+							expected := types.DynamicValue(types.StringValue("testvalue"))
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-private": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicNull(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.DynamicPseudoType,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.String, "testvalue"),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.String, "testvalue"),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"request-statevalue": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							got := req.StateValue
+							expected := types.DynamicValue(types.StringValue("testvalue"))
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicNull(),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+		},
+		"response-diagnostics": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("testvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.PlanValue = types.DynamicValue(types.StringValue("testvalue"))
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicUnknown(),
+				AttributeState:  types.DynamicNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicUnknown(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+		},
+		"response-planvalue-custom-type": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.PlanValue = types.DynamicValue(types.StringValue("testvalue"))
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue: types.DynamicNull(),
+				},
+				AttributePlan: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue: types.DynamicUnknown(),
+				},
+				AttributeState: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue: types.DynamicNull(),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue: types.DynamicUnknown(),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.DynamicValueWithSemanticEquals{
+					DynamicValue: types.DynamicValue(types.StringValue("testvalue")),
+				},
+			},
+		},
+		"response-private": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicNull(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("oldtestvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("oldtestvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				PlanModifiers: []planmodifier.Dynamic{
+					testplanmodifier.Dynamic{
+						PlanModifyDynamicMethod: func(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("testvalue")),
+				AttributePlan:   types.DynamicValue(types.StringValue("testvalue")),
+				AttributeState:  types.DynamicValue(types.StringValue("oldtestvalue")),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			AttributePlanModifyDynamic(context.Background(), testCase.attribute, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestNestedAttributeObjectPlanModify(t *testing.T) {
 	t.Parallel()
 

@@ -16,6 +16,8 @@ The framework type system supports the following types:
 - [Primitive](#primitive-types): Type that contains a single value, such as a boolean, number, or string.
 - [Collection](#collection-types): Type that contains multiple values of a single element type, such as a list, map, or set.
 - [Object](#object-type): Type that defines a mapping of explicit attribute names to value types.
+- [Tuple](#tuple-type): Type that defines an ordered collection of elements where each element has it's own type.
+- [Dynamic](#dynamic-type): Container type that can contain any underlying value type.
 
 ### Primitive Types
 
@@ -66,9 +68,19 @@ This type is associated with:
 Type that defines an ordered collection of elements where each element has it's own type.
 
 <Note>
+
 This type intentionally includes less functionality than other types in the type system as it has limited real world application and therefore is not exposed to provider developers except when working with dynamic values.
+
 </Note>
 
 | Type | Use Case |
 |----------------|----------|
 | [Tuple](/terraform/plugin/framework/handling-data/types/tuple) | Ordered collection of multiple element types |
+
+### Dynamic Type
+
+Container type that can contain any underlying value type, determined by Terraform or the provider at runtime.
+
+| Type | Use Case |
+|----------------|----------|
+| [Dynamic](/terraform/plugin/framework/handling-data/types/dynamic) | Any value type of data, determined at runtime. |

@@ -309,6 +309,32 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			return val, nil
 		}
 
+		attribute, err := resourceSchema.AttributeAtTerraformPath(ctx, path)
+
+		if err != nil {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
+				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
+				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
+				return val, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathIsBlock) {
+				// ignore blocks, they do not have a computed field
+				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
+				return val, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) {
+				// ignore attributes/elements inside schema.DynamicAttribute, they have no schema of their own
+				logging.FrameworkTrace(ctx, "attribute is inside of a dynamic attribute, not marking unknown")
+				return val, nil
+			}
+
+			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
+
+			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
+		}
+
 		configValIface, _, err := tftypes.WalkAttributePath(config, path)
 
 		if err != nil && err != tftypes.ErrInvalidStep {
@@ -329,26 +355,6 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 		if !configVal.IsNull() {
 			logging.FrameworkTrace(ctx, "Attribute/block not null in configuration, not marking unknown")
 			return val, nil
-		}
-
-		attribute, err := resourceSchema.AttributeAtTerraformPath(ctx, path)
-
-		if err != nil {
-			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
-				// ignore attributes/elements inside schema.Attributes, they have no schema of their own
-				logging.FrameworkTrace(ctx, "attribute is a non-schema attribute, not marking unknown")
-				return val, nil
-			}
-
-			if errors.Is(err, fwschema.ErrPathIsBlock) {
-				// ignore blocks, they do not have a computed field
-				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
-				return val, nil
-			}
-
-			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
-
-			return tftypes.Value{}, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 
 		if !attribute.IsComputed() {
@@ -392,6 +398,10 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			}
 		case fwschema.AttributeWithStringDefaultValue:
 			if a.StringDefaultValue() != nil {
+				return val, nil
+			}
+		case fwschema.AttributeWithDynamicDefaultValue:
+			if a.DynamicDefaultValue() != nil {
 				return val, nil
 			}
 		}

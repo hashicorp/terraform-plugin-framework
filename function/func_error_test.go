@@ -87,6 +87,42 @@ func TestFunctionError_Equal(t *testing.T) {
 	}
 }
 
+func TestFunctionError_Error(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		funcErr  *function.FuncError
+		expected string
+	}{
+		"nil": {
+			expected: "",
+		},
+		"empty": {
+			funcErr:  &function.FuncError{},
+			expected: "",
+		},
+		"text": {
+			funcErr: &function.FuncError{
+				Text: "function error",
+			},
+			expected: "function error",
+		},
+	}
+
+	for name, tc := range testCases {
+		name, tc := name, tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.funcErr.Error()
+
+			if got != tc.expected {
+				t.Errorf("Unexpected response: got: %s, wanted: %s", got, tc.expected)
+			}
+		})
+	}
+}
+
 func TestConcatFuncErrors(t *testing.T) {
 	t.Parallel()
 

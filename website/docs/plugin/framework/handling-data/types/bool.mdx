@@ -8,7 +8,7 @@ description: >-
 
 Bool types store a boolean true or false value.
 
-By default, strings from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType) and its associated value storage type of [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*bool`. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
+By default, booleans from [schema](/terraform/plugin/framework/handling-data/schemas) (configuration, plan, and state) data are represented in the framework by [`types.BoolType`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#BoolType) and its associated value storage type of [`types.Bool`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#Bool). These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*bool`. Framework types can be [extended](#extending) by provider code or shared libraries to provide specific use case functionality.
 
 ## Schema Definitions
 
@@ -87,7 +87,7 @@ Otherwise, for certain framework functionality that does not require `types` imp
 * [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
 * [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
 
-A Go built-in `bool`, `*bool` (only with typed `nil`, `(*bool)(nil)`), or type alias of `bool` such as `type MyStringType bool` can be used instead.
+A Go built-in `bool`, `*bool` (only with typed `nil`, `(*bool)(nil)`), or type alias of `bool` such as `type MyBoolType bool` can be used instead.
 
 In this example, a `bool` is directly used to set a bool attribute value:
 

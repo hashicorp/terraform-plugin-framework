@@ -108,6 +108,8 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 		AttributePlanModifySet(ctx, attributeWithPlanModifiers, req, resp)
 	case fwxschema.AttributeWithStringPlanModifiers:
 		AttributePlanModifyString(ctx, attributeWithPlanModifiers, req, resp)
+	case fwxschema.AttributeWithDynamicPlanModifiers:
+		AttributePlanModifyDynamic(ctx, attributeWithPlanModifiers, req, resp)
 	}
 
 	if resp.Diagnostics.HasError() {
@@ -2107,6 +2109,166 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 		// later correctness errors.
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/754
 		valuable, valueFromDiags := typable.ValueFromString(ctx, planModifyResp.PlanValue)
+
+		resp.Diagnostics.Append(valueFromDiags...)
+
+		// Only on new errors.
+		if valueFromDiags.HasError() {
+			return
+		}
+
+		resp.AttributePlan = valuable
+	}
+}
+
+// AttributePlanModifyDynamic performs all types.Dynamic plan modification.
+func AttributePlanModifyDynamic(ctx context.Context, attribute fwxschema.AttributeWithDynamicPlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	// Use basetypes.DynamicValuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(basetypes.DynamicValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Dynamic Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Dynamic attribute plan modification. "+
+				"The value type must implement the basetypes.DynamicValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToDynamicValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	planValuable, ok := req.AttributePlan.(basetypes.DynamicValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Dynamic Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Dynamic attribute plan modification. "+
+				"The value type must implement the basetypes.DynamicValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
+		)
+
+		return
+	}
+
+	planValue, diags := planValuable.ToDynamicValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	stateValuable, ok := req.AttributeState.(basetypes.DynamicValuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Dynamic Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Dynamic attribute plan modification. "+
+				"The value type must implement the basetypes.DynamicValuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
+		)
+
+		return
+	}
+
+	stateValue, diags := stateValuable.ToDynamicValue(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	typable, diags := coerceDynamicTypable(ctx, req.AttributePath, planValuable)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	planModifyReq := planmodifier.DynamicRequest{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+		Plan:           req.Plan,
+		PlanValue:      planValue,
+		Private:        req.Private,
+		State:          req.State,
+		StateValue:     stateValue,
+	}
+
+	for _, planModifier := range attribute.DynamicPlanModifiers() {
+		// Instantiate a new response for each request to prevent plan modifiers
+		// from modifying or removing diagnostics.
+		planModifyResp := &planmodifier.DynamicResponse{
+			PlanValue: planModifyReq.PlanValue,
+			Private:   resp.Private,
+		}
+
+		logging.FrameworkTrace(
+			ctx,
+			"Calling provider defined planmodifier.Dynamic",
+			map[string]interface{}{
+				logging.KeyDescription: planModifier.Description(ctx),
+			},
+		)
+
+		planModifier.PlanModifyDynamic(ctx, planModifyReq, planModifyResp)
+
+		logging.FrameworkTrace(
+			ctx,
+			"Called provider defined planmodifier.Dynamic",
+			map[string]interface{}{
+				logging.KeyDescription: planModifier.Description(ctx),
+			},
+		)
+
+		// Prepare next request with base type.
+		planModifyReq.PlanValue = planModifyResp.PlanValue
+
+		resp.Diagnostics.Append(planModifyResp.Diagnostics...)
+		resp.Private = planModifyResp.Private
+
+		if planModifyResp.RequiresReplace {
+			resp.RequiresReplace.Append(req.AttributePath)
+		}
+
+		// Only on new errors.
+		if planModifyResp.Diagnostics.HasError() {
+			return
+		}
+
+		// A custom value type must be returned in the final response to prevent
+		// later correctness errors.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/754
+		valuable, valueFromDiags := typable.ValueFromDynamic(ctx, planModifyResp.PlanValue)
 
 		resp.Diagnostics.Append(valueFromDiags...)
 

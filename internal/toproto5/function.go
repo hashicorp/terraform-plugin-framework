@@ -5,7 +5,6 @@ package toproto5
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
@@ -30,25 +29,13 @@ func Function(ctx context.Context, fw function.Definition) *tfprotov5.Function {
 		proto.DescriptionKind = tfprotov5.StringKindPlain
 	}
 
-	for i, fwParameter := range fw.Parameters {
+	for _, fwParameter := range fw.Parameters {
 		protoParam := FunctionParameter(ctx, fwParameter)
-
-		// If name is not set, default the param name based on position: "param1", "param2", etc.
-		if protoParam.Name == "" {
-			protoParam.Name = fmt.Sprintf("%s%d", function.DefaultParameterNamePrefix, i+1)
-		}
-
 		proto.Parameters = append(proto.Parameters, protoParam)
 	}
 
 	if fw.VariadicParameter != nil {
 		protoParam := FunctionParameter(ctx, fw.VariadicParameter)
-
-		// If name is not set, default the variadic param name
-		if protoParam.Name == "" {
-			protoParam.Name = function.DefaultVariadicParameterName
-		}
-
 		proto.VariadicParameter = protoParam
 	}
 

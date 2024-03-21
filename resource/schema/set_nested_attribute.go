@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -53,6 +54,10 @@ var (
 type SetNestedAttribute struct {
 	// NestedObject is the underlying object that contains nested attributes.
 	// This field must be set.
+	//
+	// Nested attributes that contain a dynamic type (i.e. DynamicAttribute) are not supported.
+	// If underlying dynamic values are required, replace this attribute definition with
+	// DynamicAttribute instead.
 	NestedObject NestedAttributeObject
 
 	// CustomType enables the use of a custom attribute type in place of the
@@ -270,6 +275,10 @@ func (a SetNestedAttribute) SetValidators() []validator.Set {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (a SetNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
+
 	if a.SetDefaultValue() != nil {
 		if !a.IsComputed() {
 			resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))

@@ -209,6 +209,19 @@ func (l ListValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) 
 
 	switch l.state {
 	case attr.ValueStateKnown:
+		// MAINTAINER NOTE:
+		// ListValue does not support DynamicType as an element type. It is not explicitly prevented from being created with the
+		// Framework type system, but the Framework-supported ListAttribute, ListNestedAttribute, and ListNestedBlock all prevent DynamicType
+		// from being used as an element type.
+		//
+		// In the future, if we ever need to support a list of dynamic element types, this tftypes.List creation logic will need to be modified to ensure
+		// that known values contain the exact same concrete element type, specifically with unknown and null values. Dynamic values will return the correct concrete
+		// element type for known values from `elem.ToTerraformValue`, but unknown and null values will be tftypes.DynamicPseudoType, causing an error due to multiple element
+		// types in a tftypes.List.
+		//
+		// Unknown and null element types of tftypes.DynamicPseudoType must be recreated as the concrete element type unknown/null value. This can be done by checking `l.elements`
+		// for a single concrete type (i.e. not tftypes.DynamicPseudoType), and using that concrete type to create unknown and null dynamic values later.
+		//
 		vals := make([]tftypes.Value, 0, len(l.elements))
 
 		for _, elem := range l.elements {

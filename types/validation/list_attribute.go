@@ -4,6 +4,7 @@
 package validation
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -13,5 +14,5 @@ import (
 type ListAttributeWithValidate interface {
 	basetypes.ListValuable
 
-	ValidateableAttribute
+	xattr.ValidateableAttribute
 }

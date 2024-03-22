@@ -1931,6 +1931,82 @@ func TestDataSetAtPath(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Root("disks").AtListIndex(0).AtName("id")),
 			},
 		},
+		"write-List-Element-AttrTypeWithValidateAttributeWarning": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     testtypes.StringTypeWithValidateAttributeWarning{},
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: fwschema.NestingModeList,
+							Optional:    true,
+							Computed:    true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("disks").AtListIndex(0),
+			val: struct {
+				ID                 string `tfsdk:"id"`
+				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+			}{
+				ID:                 "mynewdisk",
+				DeleteWithInstance: true,
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("disks").AtListIndex(0).AtName("id")),
+			},
+		},
 		"write-Map": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2082,6 +2158,52 @@ func TestDataSetAtPath(t *testing.T) {
 						"test": testschema.Attribute{
 							Type: types.MapType{
 								ElemType: testtypes.StringTypeWithValidateWarning{},
+							},
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test").AtMapKey("key"),
+			val:  "keyvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Map{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.String,
+				}, map[string]tftypes.Value{
+					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("test").AtMapKey("key")),
+			},
+		},
+		"write-Map-Element-AttrTypeWithValidateAttributeWarning": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type: types.MapType{
+								ElemType: testtypes.StringTypeWithValidateAttributeWarning{},
 							},
 							Required: true,
 						},
@@ -2486,6 +2608,110 @@ func TestDataSetAtPath(t *testing.T) {
 				)).AtName("id")),
 			},
 		},
+		"write-Set-Element-AttrTypeWithValidateAttributeWarning": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"disks": tftypes.Set{
+							ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"id":                   tftypes.String,
+									"delete_with_instance": tftypes.Bool,
+								},
+							},
+						},
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"disks": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"id": testschema.Attribute{
+										Type:     testtypes.StringTypeWithValidateAttributeWarning{},
+										Required: true,
+									},
+									"delete_with_instance": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: fwschema.NestingModeSet,
+							Optional:    true,
+							Computed:    true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("disks").AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"id":                   types.StringType,
+					"delete_with_instance": types.BoolType,
+				},
+				map[string]attr.Value{
+					"id":                   types.StringValue("mynewdisk"),
+					"delete_with_instance": types.BoolValue(true),
+				},
+			)),
+			val: struct {
+				ID                 string `tfsdk:"id"`
+				DeleteWithInstance bool   `tfsdk:"delete_with_instance"`
+			}{
+				ID:                 "mynewdisk",
+				DeleteWithInstance: true,
+			},
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"disks": tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"id":                   tftypes.String,
+								"delete_with_instance": tftypes.Bool,
+							},
+						},
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"disks": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					},
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"id":                   tftypes.String,
+							"delete_with_instance": tftypes.Bool,
+						},
+					}, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "mynewdisk"),
+						"delete_with_instance": tftypes.NewValue(tftypes.Bool, true),
+					}),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("disks").AtSetValue(types.ObjectValueMust(
+					map[string]attr.Type{
+						"id":                   types.StringType,
+						"delete_with_instance": types.BoolType,
+					},
+					map[string]attr.Value{
+						"id":                   types.StringValue("mynewdisk"),
+						"delete_with_instance": types.BoolValue(true),
+					},
+				)).AtName("id")),
+			},
+		},
 		"write-String": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2581,6 +2807,35 @@ func TestDataSetAtPath(t *testing.T) {
 			}),
 			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
+		"AttrTypeWithValidateAttributeError": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "originalname"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     testtypes.StringTypeWithValidateAttributeError{},
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("name"),
+			val:  "newname",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "originalname"),
+			}),
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
+		},
 		"AttrTypeWithValidateWarning": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2611,35 +2866,6 @@ func TestDataSetAtPath(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Root("name")),
 			},
-		},
-		"AttrTypeWithValidateAttributeError": {
-			data: fwschemadata.Data{
-				TerraformValue: tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"name": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"name": tftypes.NewValue(tftypes.String, "originalname"),
-				}),
-				Schema: testschema.Schema{
-					Attributes: map[string]fwschema.Attribute{
-						"name": testschema.Attribute{
-							Type:     testtypes.StringTypeWithValidateAttributeError{},
-							Required: true,
-						},
-					},
-				},
-			},
-			path: path.Root("name"),
-			val:  "newname",
-			expected: tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"name": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, "originalname"),
-			}),
-			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("name"))},
 		},
 		"AttrTypeWithValidateAttributeWarning": {
 			data: fwschemadata.Data{

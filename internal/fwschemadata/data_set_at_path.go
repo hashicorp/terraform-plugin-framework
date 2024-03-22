@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
 
 // SetAtPath sets the attribute at `path` using the supplied Go value.
@@ -74,14 +73,14 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 	}
 
 	switch t := newVal.(type) {
-	case validation.ValidateableAttribute:
-		resp := validation.ValidateAttributeResponse{}
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
 
 		logging.FrameworkTrace(ctx, "Value implements ValidateableAttribute")
 		logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateAttribute")
 
 		t.ValidateAttribute(ctx,
-			validation.ValidateAttributeRequest{
+			xattr.ValidateAttributeRequest{
 				Path: path,
 			},
 			&resp,
@@ -225,14 +224,14 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 	}
 
 	switch t := parentAttrValue.(type) {
-	case validation.ValidateableAttribute:
-		resp := validation.ValidateAttributeResponse{}
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
 
 		logging.FrameworkTrace(ctx, "Value implements ValidateableAttribute")
 		logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateAttribute")
 
 		t.ValidateAttribute(ctx,
-			validation.ValidateAttributeRequest{
+			xattr.ValidateAttributeRequest{
 				Path: parentPath,
 			},
 			&resp,

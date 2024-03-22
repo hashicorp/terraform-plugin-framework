@@ -1,7 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package validation
+// TODO: Just putting here for the moment to get rid of import cycle.
+package xattr
 
 import (
 	"context"

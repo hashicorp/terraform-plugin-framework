@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types/validation"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 )
 
 type StringTypeWithValidateAttributeError struct {
@@ -77,7 +77,7 @@ func (v StringValueWithValidateAttributeError) String() string {
 	return v.InternalString.String()
 }
 
-func (v StringValueWithValidateAttributeError) ValidateAttribute(ctx context.Context, req validation.ValidateAttributeRequest, resp *validation.ValidateAttributeResponse) {
+func (v StringValueWithValidateAttributeError) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
 	resp.Diagnostics.Append(TestErrorDiagnostic(req.Path))
 }
 
@@ -145,6 +145,6 @@ func (v StringValueWithValidateAttributeWarning) String() string {
 	return v.InternalString.String()
 }
 
-func (v StringValueWithValidateAttributeWarning) ValidateAttribute(ctx context.Context, req validation.ValidateAttributeRequest, resp *validation.ValidateAttributeResponse) {
+func (v StringValueWithValidateAttributeWarning) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
 	resp.Diagnostics.Append(TestWarningDiagnostic(req.Path))
 }

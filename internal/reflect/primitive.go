@@ -69,18 +69,32 @@ func FromString(ctx context.Context, typ attr.Type, val string, path path.Path) 
 	}
 	tfStr := tftypes.NewValue(tftypes.String, val)
 
-	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfStr, path)...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	str, err := typ.ValueFromTerraform(ctx, tfStr)
 	if err != nil {
 		return nil, append(diags, valueFromTerraformErrorDiag(err, path))
+	}
+
+	switch t := str.(type) {
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
+
+		t.ValidateAttribute(ctx,
+			xattr.ValidateAttributeRequest{
+				Path: path,
+			},
+			&resp,
+		)
+
+		diags.Append(resp.Diagnostics...)
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+			diags.Append(typeWithValidate.Validate(ctx, tfStr, path)...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		}
 	}
 
 	return str, diags

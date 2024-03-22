@@ -86,6 +86,10 @@ func FromString(ctx context.Context, typ attr.Type, val string, path path.Path) 
 		)
 
 		diags.Append(resp.Diagnostics...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
 	default:
 		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
@@ -111,18 +115,36 @@ func FromBool(ctx context.Context, typ attr.Type, val bool, path path.Path) (att
 	}
 	tfBool := tftypes.NewValue(tftypes.Bool, val)
 
-	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfBool, path)...)
+	b, err := typ.ValueFromTerraform(ctx, tfBool)
+	if err != nil {
+		return nil, append(diags, valueFromTerraformErrorDiag(err, path))
+	}
+
+	switch t := b.(type) {
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
+
+		t.ValidateAttribute(ctx,
+			xattr.ValidateAttributeRequest{
+				Path: path,
+			},
+			&resp,
+		)
+
+		diags.Append(resp.Diagnostics...)
 
 		if diags.HasError() {
 			return nil, diags
 		}
-	}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+			diags.Append(typeWithValidate.Validate(ctx, tfBool, path)...)
 
-	b, err := typ.ValueFromTerraform(ctx, tfBool)
-	if err != nil {
-		return nil, append(diags, valueFromTerraformErrorDiag(err, path))
+			if diags.HasError() {
+				return nil, diags
+			}
+		}
 	}
 
 	return b, diags

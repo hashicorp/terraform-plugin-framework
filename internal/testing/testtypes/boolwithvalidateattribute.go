@@ -62,3 +62,53 @@ func (v BoolValueWithValidateAttributeError) Equal(o attr.Value) bool {
 func (v BoolValueWithValidateAttributeError) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
 	resp.Diagnostics.Append(TestErrorDiagnostic(req.Path))
 }
+
+type BoolTypeWithValidateAttributeWarning struct {
+	BoolType
+}
+
+func (t BoolTypeWithValidateAttributeWarning) Equal(o attr.Type) bool {
+	other, ok := o.(BoolTypeWithValidateAttributeWarning)
+	if !ok {
+		return false
+	}
+	return t == other
+}
+
+func (t BoolTypeWithValidateAttributeWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := t.BoolType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	newBool, ok := val.(Bool)
+	if !ok {
+		return nil, fmt.Errorf("unexpected value type of %T", val)
+	}
+
+	newBool.CreatedBy = t
+
+	return BoolValueWithValidateAttributeWarning{
+		newBool,
+	}, nil
+}
+
+var _ xattr.ValidateableAttribute = BoolValueWithValidateAttributeWarning{}
+
+type BoolValueWithValidateAttributeWarning struct {
+	Bool
+}
+
+func (v BoolValueWithValidateAttributeWarning) Equal(o attr.Value) bool {
+	ob, ok := o.(BoolValueWithValidateAttributeWarning)
+
+	if !ok {
+		return false
+	}
+
+	return v.Bool.Equal(ob.Bool)
+}
+
+func (v BoolValueWithValidateAttributeWarning) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
+	resp.Diagnostics.Append(TestWarningDiagnostic(req.Path))
+}

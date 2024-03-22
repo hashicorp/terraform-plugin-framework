@@ -477,7 +477,7 @@ func TestFromNullable(t *testing.T) {
 			},
 		},
 		"value-validate-attribute-error": {
-			typ: testtypes.StringTypeWithValidateError{},
+			typ: testtypes.StringTypeWithValidateAttributeError{},
 			val: &nullableString{
 				String: "hello, world",
 			},

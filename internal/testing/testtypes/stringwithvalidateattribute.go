@@ -26,14 +26,14 @@ func (t StringTypeWithValidateAttributeError) Equal(o attr.Type) bool {
 }
 
 func (t StringTypeWithValidateAttributeError) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	res, err := t.StringType.ValueFromTerraform(ctx, in)
+	val, err := t.StringType.ValueFromTerraform(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 
-	newString, ok := res.(String)
+	newString, ok := val.(String)
 	if !ok {
-		return nil, fmt.Errorf("unexpected value type of %T", res)
+		return nil, fmt.Errorf("unexpected value type of %T", val)
 	}
 
 	newString.CreatedBy = t
@@ -42,6 +42,8 @@ func (t StringTypeWithValidateAttributeError) ValueFromTerraform(ctx context.Con
 		InternalString: newString,
 	}, nil
 }
+
+var _ xattr.ValidateableAttribute = StringValueWithValidateAttributeError{}
 
 type StringValueWithValidateAttributeError struct {
 	InternalString String
@@ -94,14 +96,14 @@ func (t StringTypeWithValidateAttributeWarning) Equal(o attr.Type) bool {
 }
 
 func (t StringTypeWithValidateAttributeWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
-	res, err := t.StringType.ValueFromTerraform(ctx, in)
+	val, err := t.StringType.ValueFromTerraform(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 
-	newString, ok := res.(String)
+	newString, ok := val.(String)
 	if !ok {
-		return nil, fmt.Errorf("unexpected value type of %T", res)
+		return nil, fmt.Errorf("unexpected value type of %T", val)
 	}
 
 	newString.CreatedBy = t
@@ -110,6 +112,8 @@ func (t StringTypeWithValidateAttributeWarning) ValueFromTerraform(ctx context.C
 		InternalString: newString,
 	}, nil
 }
+
+var _ xattr.ValidateableAttribute = StringValueWithValidateAttributeWarning{}
 
 type StringValueWithValidateAttributeWarning struct {
 	InternalString String

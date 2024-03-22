@@ -1701,6 +1701,55 @@ func TestDataSetAtPath(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Root("test")),
 			},
 		},
+		"write-List-AttrTypeWithValidateAttributeWarning-Element": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.List{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type: testtypes.ListTypeWithValidateAttributeWarning{
+								ListType: types.ListType{
+									ElemType: types.StringType,
+								},
+							},
+							Optional: true,
+							Computed: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test").AtListIndex(0),
+			val:  "testvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.List{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.List{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("test")),
+			},
+		},
 		"write-List-Element": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2066,6 +2115,54 @@ func TestDataSetAtPath(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"test": testschema.Attribute{
 							Type: testtypes.MapTypeWithValidateWarning{
+								MapType: types.MapType{
+									ElemType: types.StringType,
+								},
+							},
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test").AtMapKey("key"),
+			val:  "keyvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Map{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Map{
+					ElementType: tftypes.String,
+				}, map[string]tftypes.Value{
+					"key": tftypes.NewValue(tftypes.String, "keyvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("test")),
+			},
+		},
+		"write-Map-AttrTypeWithValidateAttributeWarning-Element": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Map{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type: testtypes.MapTypeWithValidateAttributeWarning{
 								MapType: types.MapType{
 									ElemType: types.StringType,
 								},
@@ -2469,6 +2566,55 @@ func TestDataSetAtPath(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"test": testschema.Attribute{
 							Type: testtypes.SetTypeWithValidateWarning{
+								SetType: types.SetType{
+									ElemType: types.StringType,
+								},
+							},
+							Optional: true,
+							Computed: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test").AtSetValue(types.StringValue("testvalue")),
+			val:  "testvalue",
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test": tftypes.Set{
+						ElementType: tftypes.String,
+					},
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test": tftypes.NewValue(tftypes.Set{
+					ElementType: tftypes.String,
+				}, []tftypes.Value{
+					tftypes.NewValue(tftypes.String, "testvalue"),
+				}),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Root("test")),
+			},
+		},
+		"write-Set-AttrTypeWithValidateAttributeWarning-Element": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Set{
+							ElementType: tftypes.String,
+						},
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type: testtypes.SetTypeWithValidateAttributeWarning{
 								SetType: types.SetType{
 									ElemType: types.StringType,
 								},

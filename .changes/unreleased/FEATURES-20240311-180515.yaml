@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'function: Added `DynamicParameter` and `DynamicReturn` for dynamic value handling`'
-time: 2024-03-11T18:05:15.196275-04:00
-custom:
-  Issue: "147"

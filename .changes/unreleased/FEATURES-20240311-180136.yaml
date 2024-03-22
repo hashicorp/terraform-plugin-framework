@@ -1,7 +1,0 @@
-kind: FEATURES
-body: 'types/basetypes: Added interfaces `basetypes.DynamicTypable`, `basetypes.DynamicValuable`,
-  and `basetypes.DynamicValuableWithSemanticEquals` for dynamic custom type and value
-  implementations'
-time: 2024-03-11T18:01:36.888566-04:00
-custom:
-  Issue: "147"

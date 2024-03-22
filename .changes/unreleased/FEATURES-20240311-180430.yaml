@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'provider/schema: Added `DynamicAttribute` implementation for dynamic value
-  handling'
-time: 2024-03-11T18:04:30.200616-04:00
-custom:
-  Issue: "147"

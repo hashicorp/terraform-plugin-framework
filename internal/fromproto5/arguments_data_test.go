@@ -146,6 +146,23 @@ func TestArgumentsData(t *testing.T) {
 				"Error Diagnostic: This is an error.",
 			),
 		},
+		"parameters-one-TypeWithParameterValidation-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateParameterError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"This is a function error",
+			),
+		},
 		"parameters-one-TypeWithValidation-warning": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),

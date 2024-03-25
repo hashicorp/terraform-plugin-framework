@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'internal/fwserver: Ensure computed dynamic values are marked as dynamic type
+  during plan modification.'
+time: 2024-03-25T10:11:08.813527-04:00
+custom:
+  Issue: "969"

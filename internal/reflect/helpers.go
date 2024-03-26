@@ -49,7 +49,9 @@ func commaSeparatedString(in []string) string {
 // the tags of the struct `in`. `in` must be a struct.
 func getStructTags(_ context.Context, in reflect.Value, path path.Path) (map[string]int, error) {
 	tags := map[string]int{}
-	typ := trueReflectValue(in).Type()
+	val := trueReflectValue(in)
+	typ := val.Type()
+
 	if typ.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("%s: can't get struct tags of %s, is not a struct", path, in.Type())
 	}
@@ -59,7 +61,20 @@ func getStructTags(_ context.Context, in reflect.Value, path path.Path) (map[str
 			// skip unexported fields
 			continue
 		}
+
 		tag := field.Tag.Get(`tfsdk`)
+		if (tag == "") && (val.Field(i).Kind() == reflect.Struct) {
+			// process embedded struct
+			sTags, err := getStructTags(context.TODO(), val.Field(i), path)
+			if err != nil {
+				return nil, fmt.Errorf(`%s: failed to process embedded struct %s`, path, field.Name)
+			}
+			for k, v := range sTags {
+				tags[k] = v
+			}
+			continue
+		}
+
 		if tag == "-" {
 			// skip explicitly excluded fields
 			continue

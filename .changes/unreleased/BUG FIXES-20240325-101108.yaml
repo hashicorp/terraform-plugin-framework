@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource: Ensured computed-only dynamic attributes will not cause `wrong final
+  value type` errors during planning'
+time: 2024-03-25T10:11:08.813527-04:00
+custom:
+  Issue: "969"

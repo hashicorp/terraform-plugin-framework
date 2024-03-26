@@ -7,15 +7,18 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	_ xattr.TypeWithValidate = NumberTypeWithValidateError{}
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	_ xattr.TypeWithValidate = NumberTypeWithValidateWarning{}
 )
 

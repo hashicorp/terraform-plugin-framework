@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestDataValueAtPath(t *testing.T) {
@@ -2058,6 +2059,34 @@ func TestDataValueAtPath(t *testing.T) {
 			expected:      nil,
 			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("test"))},
 		},
+		"AttrTypeWithValidateAttributeError": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     testtypes.StringTypeWithValidateAttributeError{},
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:          path.Root("test"),
+			expected:      nil,
+			expectedDiags: diag.Diagnostics{testtypes.TestErrorDiagnostic(path.Root("test"))},
+		},
 		"AttrTypeWithValidateWarning": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -2084,6 +2113,34 @@ func TestDataValueAtPath(t *testing.T) {
 			},
 			path:          path.Root("test"),
 			expected:      testtypes.String{InternalString: types.StringValue("value"), CreatedBy: testtypes.StringTypeWithValidateWarning{}},
+			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
+		},
+		"AttrTypeWithValidateAttributeWarning": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test":  tftypes.NewValue(tftypes.String, "value"),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     testtypes.StringTypeWithValidateAttributeWarning{},
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:          path.Root("test"),
+			expected:      testtypes.StringValueWithValidateAttributeWarning{InternalString: testtypes.String{InternalString: types.StringValue("value"), CreatedBy: testtypes.StringTypeWithValidateAttributeWarning{}}},
 			expectedDiags: diag.Diagnostics{testtypes.TestWarningDiagnostic(path.Root("test"))},
 		},
 	}

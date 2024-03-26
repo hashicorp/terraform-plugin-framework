@@ -87,9 +87,9 @@ func TestAttributeValidate(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
-						"List Type Validation Error",
-						"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-							"expected List value, received tftypes.Value with value: tftypes.String<\"testvalue\">",
+						"Configuration Read Error",
+						"An unexpected error was encountered trying to convert an attribute value from the configuration. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: can't use tftypes.String<\"testvalue\"> as value of List with ElementType basetypes.StringType, can only use tftypes.String values",
 					),
 				},
 			},

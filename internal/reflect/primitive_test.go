@@ -9,13 +9,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestPrimitive_string(t *testing.T) {
@@ -105,9 +106,29 @@ func TestFromString(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: "mystring",
+			typ: testtypes.StringTypeWithValidateAttributeWarning{},
+			expected: testtypes.StringValueWithValidateAttributeWarning{
+				InternalString: testtypes.String{
+					InternalString: types.StringValue("mystring"),
+					CreatedBy:      testtypes.StringTypeWithValidateAttributeWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: "mystring",
 			typ: testtypes.StringTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: "mystring",
+			typ: testtypes.StringTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
@@ -162,9 +183,29 @@ func TestFromBool(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: true,
+			typ: testtypes.BoolTypeWithValidateAttributeWarning{},
+			expected: testtypes.BoolValueWithValidateAttributeWarning{
+				Bool: testtypes.Bool{
+					Bool:      types.BoolValue(true),
+					CreatedBy: testtypes.BoolTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: true,
 			typ: testtypes.BoolTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: true,
+			typ: testtypes.BoolTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},

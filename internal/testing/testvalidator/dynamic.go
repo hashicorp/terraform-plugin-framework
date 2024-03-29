@@ -6,10 +6,14 @@ package testvalidator
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-var _ validator.Dynamic = &Dynamic{}
+var (
+	_ validator.Dynamic         = &Dynamic{}
+	_ function.DynamicValidator = &Dynamic{}
+)
 
 // Declarative validator.Dynamic for unit testing.
 type Dynamic struct {
@@ -17,6 +21,7 @@ type Dynamic struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateDynamicMethod     func(context.Context, validator.DynamicRequest, *validator.DynamicResponse)
+	ValidateMethod            func(context.Context, function.DynamicRequest, *function.DynamicResponse)
 }
 
 // Description satisfies the validator.Dynamic interface.
@@ -37,11 +42,20 @@ func (v Dynamic) MarkdownDescription(ctx context.Context) string {
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the validator.Dynamic interface.
+// ValidateDynamic satisfies the validator.Dynamic interface.
 func (v Dynamic) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	if v.ValidateDynamicMethod == nil {
 		return
 	}
 
 	v.ValidateDynamicMethod(ctx, req, resp)
+}
+
+// Validate satisfies the function.DynamicValidator interface.
+func (v Dynamic) Validate(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+	if v.ValidateMethod == nil {
+		return
+	}
+
+	v.ValidateMethod(ctx, req, resp)
 }

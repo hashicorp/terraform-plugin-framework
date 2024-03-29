@@ -6,10 +6,14 @@ package testvalidator
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-var _ validator.Object = &Object{}
+var (
+	_ validator.Object         = &Object{}
+	_ function.ObjectValidator = &Object{}
+)
 
 // Declarative validator.Object for unit testing.
 type Object struct {
@@ -17,6 +21,7 @@ type Object struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateObjectMethod      func(context.Context, validator.ObjectRequest, *validator.ObjectResponse)
+	ValidateMethod            func(context.Context, function.ObjectRequest, *function.ObjectResponse)
 }
 
 // Description satisfies the validator.Object interface.
@@ -37,11 +42,20 @@ func (v Object) MarkdownDescription(ctx context.Context) string {
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the validator.Object interface.
+// ValidateObject satisfies the validator.Object interface.
 func (v Object) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
 	if v.ValidateObjectMethod == nil {
 		return
 	}
 
 	v.ValidateObjectMethod(ctx, req, resp)
+}
+
+// Validate satisfies the function.ObjectValidator interface.
+func (v Object) Validate(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+	if v.ValidateMethod == nil {
+		return
+	}
+
+	v.ValidateMethod(ctx, req, resp)
 }

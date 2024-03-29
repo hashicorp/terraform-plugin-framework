@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -233,6 +235,48 @@ func TestDynamicParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestDynamicParameterDynamicValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.DynamicParameter
+		expected  []function.DynamicValidator
+	}{
+		"unset": {
+			parameter: function.DynamicParameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.DynamicParameter{
+				Validators: []function.DynamicValidator{}},
+			expected: []function.DynamicValidator{},
+		},
+		"Validators": {
+			parameter: function.DynamicParameter{
+				Validators: []function.DynamicValidator{
+					testvalidator.Dynamic{},
+				}},
+			expected: []function.DynamicValidator{
+				testvalidator.Dynamic{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.DynamicValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

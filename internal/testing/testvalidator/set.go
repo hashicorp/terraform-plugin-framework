@@ -6,10 +6,14 @@ package testvalidator
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-var _ validator.Set = &Set{}
+var (
+	_ validator.Set         = &Set{}
+	_ function.SetValidator = &Set{}
+)
 
 // Declarative validator.Set for unit testing.
 type Set struct {
@@ -17,6 +21,7 @@ type Set struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateSetMethod         func(context.Context, validator.SetRequest, *validator.SetResponse)
+	ValidateMethod            func(context.Context, function.SetRequest, *function.SetResponse)
 }
 
 // Description satisfies the validator.Set interface.
@@ -37,11 +42,20 @@ func (v Set) MarkdownDescription(ctx context.Context) string {
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the validator.Set interface.
+// ValidateSet satisfies the validator.Set interface.
 func (v Set) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
 	if v.ValidateSetMethod == nil {
 		return
 	}
 
 	v.ValidateSetMethod(ctx, req, resp)
+}
+
+// Validate satisfies the function.SetValidator interface.
+func (v Set) Validate(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+	if v.ValidateMethod == nil {
+		return
+	}
+
+	v.ValidateMethod(ctx, req, resp)
 }

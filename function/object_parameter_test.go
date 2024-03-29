@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -257,6 +259,48 @@ func TestObjectParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestObjectParameterObjectValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.ObjectParameter
+		expected  []function.ObjectValidator
+	}{
+		"unset": {
+			parameter: function.ObjectParameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.ObjectParameter{
+				Validators: []function.ObjectValidator{}},
+			expected: []function.ObjectValidator{},
+		},
+		"Validators": {
+			parameter: function.ObjectParameter{
+				Validators: []function.ObjectValidator{
+					testvalidator.Object{},
+				}},
+			expected: []function.ObjectValidator{
+				testvalidator.Object{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.ObjectValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -233,6 +235,48 @@ func TestInt64ParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64ParameterInt64Validators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.Int64Parameter
+		expected  []function.Int64Validator
+	}{
+		"unset": {
+			parameter: function.Int64Parameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.Int64Parameter{
+				Validators: []function.Int64Validator{}},
+			expected: []function.Int64Validator{},
+		},
+		"Validators": {
+			parameter: function.Int64Parameter{
+				Validators: []function.Int64Validator{
+					testvalidator.Int64{},
+				}},
+			expected: []function.Int64Validator{
+				testvalidator.Int64{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.Int64Validators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

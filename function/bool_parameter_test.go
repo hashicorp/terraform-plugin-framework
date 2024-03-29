@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -233,6 +235,48 @@ func TestBoolParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestBoolParameterBoolValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.BoolParameter
+		expected  []function.BoolValidator
+	}{
+		"unset": {
+			parameter: function.BoolParameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.BoolParameter{
+				Validators: []function.BoolValidator{}},
+			expected: []function.BoolValidator{},
+		},
+		"Validators": {
+			parameter: function.BoolParameter{
+				Validators: []function.BoolValidator{
+					testvalidator.Bool{},
+				}},
+			expected: []function.BoolValidator{
+				testvalidator.Bool{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.BoolValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

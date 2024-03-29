@@ -6,10 +6,14 @@ package testvalidator
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-var _ validator.Number = &Number{}
+var (
+	_ validator.Number         = &Number{}
+	_ function.NumberValidator = &Number{}
+)
 
 // Declarative validator.Number for unit testing.
 type Number struct {
@@ -17,6 +21,7 @@ type Number struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateNumberMethod      func(context.Context, validator.NumberRequest, *validator.NumberResponse)
+	ValidateMethod            func(context.Context, function.NumberRequest, *function.NumberResponse)
 }
 
 // Description satisfies the validator.Number interface.
@@ -37,11 +42,20 @@ func (v Number) MarkdownDescription(ctx context.Context) string {
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the validator.Number interface.
+// ValidateNumber satisfies the validator.Number interface.
 func (v Number) ValidateNumber(ctx context.Context, req validator.NumberRequest, resp *validator.NumberResponse) {
 	if v.ValidateNumberMethod == nil {
 		return
 	}
 
 	v.ValidateNumberMethod(ctx, req, resp)
+}
+
+// Validate satisfies the function.NumberValidator interface.
+func (v Number) Validate(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+	if v.ValidateMethod == nil {
+		return
+	}
+
+	v.ValidateMethod(ctx, req, resp)
 }

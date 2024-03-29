@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -233,6 +235,48 @@ func TestFloat64ParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat64ParameterFloat64Validators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.Float64Parameter
+		expected  []function.Float64Validator
+	}{
+		"unset": {
+			parameter: function.Float64Parameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.Float64Parameter{
+				Validators: []function.Float64Validator{}},
+			expected: []function.Float64Validator{},
+		},
+		"Validators": {
+			parameter: function.Float64Parameter{
+				Validators: []function.Float64Validator{
+					testvalidator.Float64{},
+				}},
+			expected: []function.Float64Validator{
+				testvalidator.Float64{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.Float64Validators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

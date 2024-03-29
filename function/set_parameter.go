@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -87,10 +86,10 @@ type SetParameter struct {
 
 	// Validators is a list of set validators that should be applied to the
 	// parameter.
-	Validators []validator.Set
+	Validators []SetValidator
 }
 
-func (p SetParameter) SetValidators() []validator.Set {
+func (p SetParameter) SetValidators() []SetValidator {
 	return p.Validators
 }
 

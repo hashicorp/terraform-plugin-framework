@@ -5,7 +5,6 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -75,10 +74,10 @@ type BoolParameter struct {
 
 	// Validators is a list of bool validators that should be applied to the
 	// parameter.
-	Validators []validator.Bool
+	Validators []BoolValidator
 }
 
-func (p BoolParameter) BoolValidators() []validator.Bool {
+func (p BoolParameter) BoolValidators() []BoolValidator {
 	return p.Validators
 }
 

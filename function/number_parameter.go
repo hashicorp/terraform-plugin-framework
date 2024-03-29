@@ -5,7 +5,6 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -70,10 +69,10 @@ type NumberParameter struct {
 
 	// Validators is a list of validators that can be used to validate the
 	// parameter.
-	Validators []validator.Number
+	Validators []NumberValidator
 }
 
-func (p NumberParameter) NumberValidators() []validator.Number {
+func (p NumberParameter) NumberValidators() []NumberValidator {
 	return p.Validators
 }
 

@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Int64 is a function validator for types.Int64 parameters.
-type Int64 interface {
+// Int64Validator is a function validator for types.Int64 parameters.
+type Int64Validator interface {
 
-	// ValidateInt64 should perform the validation.
-	ValidateInt64(context.Context, Int64Request, *Int64Response)
+	// Validate should perform the validation.
+	Validate(context.Context, Int64Request, *Int64Response)
 }
 
 // Int64Request is a request for types.Int64 schema validation.
@@ -27,5 +26,5 @@ type Int64Request struct {
 // Int64Response is a response to a Int64Request.
 type Int64Response struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

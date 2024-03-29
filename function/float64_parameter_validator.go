@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Float64 is a function validator for types.Float64 parameters.
-type Float64 interface {
+// Float64Validator is a function validator for types.Float64 parameters.
+type Float64Validator interface {
 
-	// ValidateFloat64 should perform the validation.
-	ValidateFloat64(context.Context, Float64Request, *Float64Response)
+	// Validate should perform the validation.
+	Validate(context.Context, Float64Request, *Float64Response)
 }
 
 // Float64Request is a request for types.Float64 schema validation.
@@ -27,5 +26,5 @@ type Float64Request struct {
 // Float64Response is a response to a Float64Request.
 type Float64Response struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

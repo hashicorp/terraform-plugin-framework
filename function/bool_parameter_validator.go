@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Bool is a function validator for types.Bool parameters.
-type Bool interface {
+// BoolValidator is a function validator for types.Bool parameters.
+type BoolValidator interface {
 
-	// ValidateBool should perform the validation.
-	ValidateBool(context.Context, BoolRequest, *BoolResponse)
+	// Validate should perform the validation.
+	Validate(context.Context, BoolRequest, *BoolResponse)
 }
 
 // BoolRequest is a request for types.Bool schema validation.
@@ -27,5 +26,5 @@ type BoolRequest struct {
 // BoolResponse is a response to a BoolRequest.
 type BoolResponse struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

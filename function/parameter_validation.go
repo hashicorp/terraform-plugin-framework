@@ -1,16 +1,12 @@
 package function
 
-import (
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
-)
-
 // ParameterWithBoolValidators is an optional interface on Parameter which
 // enables Bool validation support.
 type ParameterWithBoolValidators interface {
 	Parameter
 
 	// BoolValidators should return a list of Bool validators.
-	BoolValidators() []validator.Bool
+	BoolValidators() []BoolValidator
 }
 
 // ParameterWithInt64Validators is an optional interface on Parameter which
@@ -19,7 +15,7 @@ type ParameterWithInt64Validators interface {
 	Parameter
 
 	// Int64Validators should return a list of Int64 validators.
-	Int64Validators() []validator.Int64
+	Int64Validators() []Int64Validator
 }
 
 // ParameterWithFloat64Validators is an optional interface on Parameter which
@@ -28,7 +24,7 @@ type ParameterWithFloat64Validators interface {
 	Parameter
 
 	// Float64Validators should return a list of Float64 validators.
-	Float64Validators() []validator.Float64
+	Float64Validators() []Float64Validator
 }
 
 // ParameterWithDynamicValidators is an optional interface on Parameter which
@@ -37,7 +33,7 @@ type ParameterWithDynamicValidators interface {
 	Parameter
 
 	// DynamicValidators should return a list of Dynamic validators.
-	DynamicValidators() []validator.Dynamic
+	DynamicValidators() []DynamicValidator
 }
 
 // ParameterWithListValidators is an optional interface on Parameter which
@@ -46,7 +42,7 @@ type ParameterWithListValidators interface {
 	Parameter
 
 	// ListValidators should return a list of List validators.
-	ListValidators() []validator.List
+	ListValidators() []ListValidator
 }
 
 // ParameterWithMapValidators is an optional interface on Parameter which
@@ -55,7 +51,7 @@ type ParameterWithMapValidators interface {
 	Parameter
 
 	// MapValidators should return a list of Map validators.
-	MapValidators() []validator.Map
+	MapValidators() []MapValidator
 }
 
 // ParameterWithNumberValidators is an optional interface on Parameter which
@@ -64,7 +60,7 @@ type ParameterWithNumberValidators interface {
 	Parameter
 
 	// NumberValidators should return a list of Map validators.
-	NumberValidators() []validator.Number
+	NumberValidators() []NumberValidator
 }
 
 // ParameterWithObjectValidators is an optional interface on Parameter which
@@ -73,7 +69,7 @@ type ParameterWithObjectValidators interface {
 	Parameter
 
 	// ObjectValidators should return a list of Object validators.
-	ObjectValidators() []validator.Object
+	ObjectValidators() []ObjectValidator
 }
 
 // ParameterWithSetValidators is an optional interface on Parameter which
@@ -82,7 +78,7 @@ type ParameterWithSetValidators interface {
 	Parameter
 
 	// SetValidators should return a list of Set validators.
-	SetValidators() []validator.Set
+	SetValidators() []SetValidator
 }
 
 // ParameterWithStringValidators is an optional interface on Parameter which
@@ -91,5 +87,5 @@ type ParameterWithStringValidators interface {
 	Parameter
 
 	// StringValidators should return a list of String validators.
-	StringValidators() []validator.String
+	StringValidators() []StringValidator
 }

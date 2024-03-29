@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// List is a function validator for types.List parameters.
-type List interface {
+// ListValidator is a function validator for types.List parameters.
+type ListValidator interface {
 
-	// ValidateList should perform the validation.
-	ValidateList(context.Context, ListRequest, *ListResponse)
+	// Validate should perform the validation.
+	Validate(context.Context, ListRequest, *ListResponse)
 }
 
 // ListRequest is a request for types.List schema validation.
@@ -27,5 +26,5 @@ type ListRequest struct {
 // ListResponse is a response to a ListRequest.
 type ListResponse struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

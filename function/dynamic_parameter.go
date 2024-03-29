@@ -5,7 +5,6 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -70,10 +69,10 @@ type DynamicParameter struct {
 
 	// Validators is a list of dynamic validators that should be applied to the
 	// parameter.
-	Validators []validator.Dynamic
+	Validators []DynamicValidator
 }
 
-func (p DynamicParameter) DynamicValidators() []validator.Dynamic {
+func (p DynamicParameter) DynamicValidators() []DynamicValidator {
 	return p.Validators
 }
 

@@ -5,7 +5,6 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -71,10 +70,10 @@ type Int64Parameter struct {
 
 	// Validators is a list of int64 validators that should be applied to the
 	// parameter.
-	Validators []validator.Int64
+	Validators []Int64Validator
 }
 
-func (p Int64Parameter) Int64Validators() []validator.Int64 {
+func (p Int64Parameter) Int64Validators() []Int64Validator {
 	return p.Validators
 }
 

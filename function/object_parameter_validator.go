@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Object is a function validator for types.Object parameters.
-type Object interface {
+// ObjectValidator is a function validator for types.Object parameters.
+type ObjectValidator interface {
 
-	// ValidateObject should perform the validation.
-	ValidateObject(context.Context, ObjectRequest, *ObjectResponse)
+	// Validate should perform the validation.
+	Validate(context.Context, ObjectRequest, *ObjectResponse)
 }
 
 // ObjectRequest is a request for types.Object schema validation.
@@ -27,5 +26,5 @@ type ObjectRequest struct {
 // ObjectResponse is a response to a ObjectRequest.
 type ObjectResponse struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

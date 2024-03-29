@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Number is a function validator for types.Number parameters.
-type Number interface {
+// NumberValidator is a function validator for types.Number parameters.
+type NumberValidator interface {
 
-	// ValidateNumber should perform the validation.
-	ValidateNumber(context.Context, NumberRequest, *NumberResponse)
+	// Validate should perform the validation.
+	Validate(context.Context, NumberRequest, *NumberResponse)
 }
 
 // NumberRequest is a request for types.Number schema validation.
@@ -27,5 +26,5 @@ type NumberRequest struct {
 // NumberResponse is a response to a NumberRequest.
 type NumberResponse struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

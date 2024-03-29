@@ -1,17 +1,16 @@
-package validator
+package function
 
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Set is a function validator for types.Set parameters.
-type Set interface {
+// SetValidator is a function validator for types.Set parameters.
+type SetValidator interface {
 
-	// ValidateSet should perform the validation.
-	ValidateSet(context.Context, SetRequest, *SetResponse)
+	// Validate should perform the validation.
+	Validate(context.Context, SetRequest, *SetResponse)
 }
 
 // SetRequest is a request for types.Set schema validation.
@@ -27,5 +26,5 @@ type SetRequest struct {
 // SetResponse is a response to a SetRequest.
 type SetResponse struct {
 	// Error is a function error generated during validation of the Value.
-	Error *function.FuncError
+	Error *FuncError
 }

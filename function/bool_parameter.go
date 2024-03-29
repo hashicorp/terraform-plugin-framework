@@ -5,11 +5,13 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = BoolParameter{}
+var _ ParameterWithBoolValidators = BoolParameter{}
 
 // BoolParameter represents a function parameter that is a boolean.
 //
@@ -70,6 +72,14 @@ type BoolParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of bool validators that should be applied to the
+	// parameter.
+	Validators []validator.Bool
+}
+
+func (p BoolParameter) BoolValidators() []validator.Bool {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

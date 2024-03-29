@@ -5,11 +5,13 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = DynamicParameter{}
+var _ ParameterWithDynamicValidators = DynamicParameter{}
 
 // DynamicParameter represents a function parameter that is a dynamic, rather
 // than a static type. Static types are always preferable over dynamic
@@ -65,6 +67,14 @@ type DynamicParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of dynamic validators that should be applied to the
+	// parameter.
+	Validators []validator.Dynamic
+}
+
+func (p DynamicParameter) DynamicValidators() []validator.Dynamic {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

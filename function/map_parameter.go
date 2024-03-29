@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -17,6 +18,7 @@ import (
 var (
 	_ Parameter                                      = MapParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = MapParameter{}
+	_ ParameterWithMapValidators                     = MapParameter{}
 )
 
 // MapParameter represents a function parameter that is a mapping of a single
@@ -82,6 +84,14 @@ type MapParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of map validators that should be applied to the
+	// parameter.
+	Validators []validator.Map
+}
+
+func (p MapParameter) MapValidators() []validator.Map {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

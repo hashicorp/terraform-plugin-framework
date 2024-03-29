@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -17,6 +18,7 @@ import (
 var (
 	_ Parameter                                      = ListParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = ListParameter{}
+	_ ParameterWithListValidators                    = ListParameter{}
 )
 
 // ListParameter represents a function parameter that is an ordered list of a
@@ -82,6 +84,14 @@ type ListParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of list validators that should be applied to the
+	// parameter.
+	Validators []validator.List
+}
+
+func (p ListParameter) ListValidators() []validator.List {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

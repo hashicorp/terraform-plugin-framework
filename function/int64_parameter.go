@@ -5,11 +5,13 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Int64Parameter{}
+var _ ParameterWithInt64Validators = Int64Parameter{}
 
 // Int64Parameter represents a function parameter that is a 64-bit integer.
 //
@@ -66,6 +68,14 @@ type Int64Parameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of int64 validators that should be applied to the
+	// parameter.
+	Validators []validator.Int64
+}
+
+func (p Int64Parameter) Int64Validators() []validator.Int64 {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

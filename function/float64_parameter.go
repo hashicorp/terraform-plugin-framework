@@ -5,11 +5,13 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Float64Parameter{}
+var _ ParameterWithFloat64Validators = Float64Parameter{}
 
 // Float64Parameter represents a function parameter that is a 64-bit floating
 // point number.
@@ -67,6 +69,14 @@ type Float64Parameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of float64 validators that should be applied to the
+	// parameter.
+	Validators []validator.Float64
+}
+
+func (p Float64Parameter) Float64Validators() []validator.Float64 {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

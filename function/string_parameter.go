@@ -5,11 +5,13 @@ package function
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = StringParameter{}
+var _ ParameterWithStringValidators = StringParameter{}
 
 // StringParameter represents a function parameter that is a string.
 //
@@ -66,6 +68,15 @@ type StringParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of string validators that should be applied to the
+	// parameter.
+	Validators []validator.String
+}
+
+// StringValidators returns the string validators for the parameter.
+func (p StringParameter) StringValidators() []validator.String {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

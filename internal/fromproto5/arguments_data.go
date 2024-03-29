@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/function/validator"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
@@ -158,6 +160,159 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					}
 
 					continue
+				}
+			}
+		}
+
+		switch parameterWithValidators := parameter.(type) {
+		case function.ParameterWithBoolValidators:
+			for _, functionValidator := range parameterWithValidators.BoolValidators() {
+				req := validator.BoolRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Bool),
+				}
+				resp := &validator.BoolResponse{}
+				functionValidator.ValidateBool(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithDynamicValidators:
+			for _, functionValidator := range parameterWithValidators.DynamicValidators() {
+				req := validator.DynamicRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Dynamic),
+				}
+				resp := &validator.DynamicResponse{}
+				functionValidator.ValidateDynamic(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithFloat64Validators:
+			for _, functionValidator := range parameterWithValidators.Float64Validators() {
+				req := validator.Float64Request{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Float64),
+				}
+				resp := &validator.Float64Response{}
+				functionValidator.ValidateFloat64(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithInt64Validators:
+			for _, functionValidator := range parameterWithValidators.Int64Validators() {
+				req := validator.Int64Request{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Int64),
+				}
+				resp := &validator.Int64Response{}
+				functionValidator.ValidateInt64(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithListValidators:
+			for _, functionValidator := range parameterWithValidators.ListValidators() {
+				req := validator.ListRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.List),
+				}
+				resp := &validator.ListResponse{}
+				functionValidator.ValidateList(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithMapValidators:
+			for _, functionValidator := range parameterWithValidators.MapValidators() {
+				req := validator.MapRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Map),
+				}
+				resp := &validator.MapResponse{}
+				functionValidator.ValidateMap(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithNumberValidators:
+			for _, functionValidator := range parameterWithValidators.NumberValidators() {
+				req := validator.NumberRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Number),
+				}
+				resp := &validator.NumberResponse{}
+				functionValidator.ValidateNumber(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithObjectValidators:
+			for _, functionValidator := range parameterWithValidators.ObjectValidators() {
+				req := validator.ObjectRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Object),
+				}
+				resp := &validator.ObjectResponse{}
+				functionValidator.ValidateObject(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithSetValidators:
+			for _, functionValidator := range parameterWithValidators.SetValidators() {
+				req := validator.SetRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.Set),
+				}
+				resp := &validator.SetResponse{}
+				functionValidator.ValidateSet(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithStringValidators:
+			for _, functionValidator := range parameterWithValidators.StringValidators() {
+				req := validator.StringRequest{
+					ArgumentPosition: position,
+					Value:            attrValue.(types.String),
+				}
+				resp := &validator.StringResponse{}
+				functionValidator.ValidateString(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
 				}
 			}
 		}

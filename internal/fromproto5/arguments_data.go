@@ -59,9 +59,10 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 
 		funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, parameterDiags))
 
-		if funcError != nil {
-			return function.NewArgumentsData(nil), funcError
-		}
+		//TODO: ask about the error handling here
+		//if funcError != nil {
+		//	return function.NewArgumentsData(nil), funcError
+		//}
 
 		parameterType := parameter.GetType()
 
@@ -167,7 +168,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithBoolValidators:
 			for _, functionValidator := range parameterWithValidators.BoolValidators() {
 				req := function.BoolRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Bool),
 				}
 				resp := &function.BoolResponse{}
@@ -182,7 +183,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithDynamicValidators:
 			for _, functionValidator := range parameterWithValidators.DynamicValidators() {
 				req := function.DynamicRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Dynamic),
 				}
 				resp := &function.DynamicResponse{}
@@ -197,7 +198,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithFloat64Validators:
 			for _, functionValidator := range parameterWithValidators.Float64Validators() {
 				req := function.Float64Request{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Float64),
 				}
 				resp := &function.Float64Response{}
@@ -212,7 +213,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithInt64Validators:
 			for _, functionValidator := range parameterWithValidators.Int64Validators() {
 				req := function.Int64Request{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Int64),
 				}
 				resp := &function.Int64Response{}
@@ -227,7 +228,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithListValidators:
 			for _, functionValidator := range parameterWithValidators.ListValidators() {
 				req := function.ListRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.List),
 				}
 				resp := &function.ListResponse{}
@@ -242,7 +243,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithMapValidators:
 			for _, functionValidator := range parameterWithValidators.MapValidators() {
 				req := function.MapRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Map),
 				}
 				resp := &function.MapResponse{}
@@ -257,7 +258,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithNumberValidators:
 			for _, functionValidator := range parameterWithValidators.NumberValidators() {
 				req := function.NumberRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Number),
 				}
 				resp := &function.NumberResponse{}
@@ -272,7 +273,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithObjectValidators:
 			for _, functionValidator := range parameterWithValidators.ObjectValidators() {
 				req := function.ObjectRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Object),
 				}
 				resp := &function.ObjectResponse{}
@@ -287,7 +288,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithSetValidators:
 			for _, functionValidator := range parameterWithValidators.SetValidators() {
 				req := function.SetRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.Set),
 				}
 				resp := &function.SetResponse{}
@@ -302,7 +303,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		case function.ParameterWithStringValidators:
 			for _, functionValidator := range parameterWithValidators.StringValidators() {
 				req := function.StringRequest{
-					ArgumentPosition: position,
+					ArgumentPosition: pos,
 					Value:            attrValue.(types.String),
 				}
 				resp := &function.StringResponse{}

@@ -17,7 +17,7 @@ type ListValidator interface {
 type ListRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
-	ArgumentPosition int
+	ArgumentPosition int64
 
 	// Value contains the value of the argument for validation.
 	Value types.List

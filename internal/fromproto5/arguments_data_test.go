@@ -553,7 +553,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 		},
 		"dynamic-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
-				createDynamicValue(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
 			},
 			definition: function.Definition{
 				Parameters: []function.Parameter{
@@ -1661,6 +1661,8 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),
 			),
 		},
+
+		//TODO: Add test cases for variadic parameter
 	}
 
 	for name, testCase := range testCases {

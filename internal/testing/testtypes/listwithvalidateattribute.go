@@ -70,6 +70,16 @@ type ListValueWithValidateAttributeWarning struct {
 	types.List
 }
 
+func (v ListValueWithValidateAttributeWarning) Equal(o attr.Value) bool {
+	other, ok := o.(ListValueWithValidateAttributeWarning)
+
+	if !ok {
+		return false
+	}
+
+	return v.List.Equal(other.List)
+}
+
 func (v ListValueWithValidateAttributeWarning) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
 	resp.Diagnostics.Append(TestWarningDiagnostic(req.Path))
 }

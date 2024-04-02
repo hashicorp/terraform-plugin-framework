@@ -70,6 +70,16 @@ type MapValueWithValidateAttributeWarning struct {
 	types.Map
 }
 
+func (v MapValueWithValidateAttributeWarning) Equal(o attr.Value) bool {
+	other, ok := o.(MapValueWithValidateAttributeWarning)
+
+	if !ok {
+		return false
+	}
+
+	return v.Map.Equal(other.Map)
+}
+
 func (v MapValueWithValidateAttributeWarning) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
 	resp.Diagnostics.Append(TestWarningDiagnostic(req.Path))
 }

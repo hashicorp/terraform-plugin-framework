@@ -110,7 +110,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 
 		// This is intentionally below the conversion of tftypes.Value to attr.Value
 		// so it can be updated for any new type system validation interfaces. Note that the
-		// original xattr.TypeWithValidation interface must set a path.Path,
+		// original xattr.TypeWithValidate interface must set a path.Path,
 		// which will always be incorrect in the context of functions.
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/589
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/893
@@ -148,14 +148,12 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 
 				logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
 
-				if diags.HasError() {
-					funcErrFromDiags := function.FuncErrorFromDiags(ctx, diags)
+				funcErrFromDiags := function.FuncErrorFromDiags(ctx, diags)
 
-					if funcErrFromDiags != nil {
-						funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
-							pos,
-							funcErrFromDiags.Error()))
-					}
+				if funcErrFromDiags != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						funcErrFromDiags.Error()))
 
 					continue
 				}

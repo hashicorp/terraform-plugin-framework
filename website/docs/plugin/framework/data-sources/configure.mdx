@@ -66,8 +66,8 @@ type ThingDataSource struct {
 }
 
 func (d *ThingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-  // A nil check should always be performed when handling ProviderData as it
-  // is only set after the ConfigureProvider RPC has been called by Terraform.
+  // Always preform a nil check when handling ProviderData because Terraform
+  // sets that data after it calls the ConfigureProvider RPC.
   if req.ProviderData == nil {
     return
   }

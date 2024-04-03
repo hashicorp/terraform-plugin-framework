@@ -619,7 +619,7 @@ func TestArgumentsData(t *testing.T) {
 			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
-				"Error Diagnostic: This is an error.",
+				"Error Diagnostic: This is an error.\nError Diagnostic: This is an error.",
 			),
 		},
 		"variadicparameter-multiple-TypeWithParameterValidation-error": {
@@ -635,7 +635,7 @@ func TestArgumentsData(t *testing.T) {
 			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
-				"This is a function error",
+				"This is a function error\nThis is a function error",
 			),
 		},
 		"variadicparameter-multiple-TypeWithValidation-warning": {

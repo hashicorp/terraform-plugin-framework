@@ -1661,8 +1661,256 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),
 			),
 		},
+		"variadicparameter-one": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("false")
 
-		//TODO: Add test cases for variadic parameter
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+		},
+		"variadicparameter-one-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("true")
+
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+			expectedFuncError: function.ConcatFuncErrors(
+				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
+			),
+		},
+		"variadicparameter-multiple": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("false")
+
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("false"),
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+		},
+		"variadicparameter-multiple-error-single": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "true")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("true")
+
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("true"),
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+			expectedFuncError: function.ConcatFuncErrors(
+				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),
+			),
+		},
+		"variadicparameter-multiple-errors-multiple": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("true")
+
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("false"),
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+			expectedFuncError: function.ConcatFuncErrors(
+				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
+				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
+			),
+		},
+		"boolparameter-and-variadicparameter-multiple-error-single": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "true")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "false")),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						Validators: []function.BoolValidator{
+							testvalidator.Bool{
+								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+									got := req.Value
+									expected := types.BoolValue(true)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				VariadicParameter: function.StringParameter{
+					Validators: []function.StringValidator{
+						testvalidator.String{
+							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								got := req.Value
+								expected := types.StringValue("true")
+
+								if !got.Equal(expected) {
+									resp.Error = function.NewArgumentFuncError(
+										req.ArgumentPosition,
+										"Error Diagnostic: string validator error.",
+									)
+								}
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolValue(true),
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						basetypes.StringType{},
+						basetypes.StringType{},
+					},
+					[]attr.Value{
+						basetypes.NewStringValue("true"),
+						basetypes.NewStringValue("false"),
+					},
+				),
+			}),
+			expectedFuncError: function.ConcatFuncErrors(
+				function.NewArgumentFuncError(2, "Error Diagnostic: string validator error."),
+			),
+		},
 	}
 
 	for name, testCase := range testCases {

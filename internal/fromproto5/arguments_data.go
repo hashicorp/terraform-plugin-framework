@@ -57,12 +57,10 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	for position, argument := range arguments {
 		parameter, parameterDiags := definition.Parameter(ctx, position)
 
-		funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, parameterDiags))
-
-		//TODO: ask about the error handling here
-		//if funcError != nil {
-		//	return function.NewArgumentsData(nil), funcError
-		//}
+		if parameterDiags.HasError() {
+			funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, parameterDiags))
+			return function.NewArgumentsData(nil), funcError
+		}
 
 		parameterType := parameter.GetType()
 

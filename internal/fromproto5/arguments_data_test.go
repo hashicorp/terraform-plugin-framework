@@ -553,7 +553,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 		},
 		"dynamic-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
-				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				createDynamicValue(tftypes.NewValue(tftypes.Bool, true)),
 			},
 			definition: function.Definition{
 				Parameters: []function.Parameter{

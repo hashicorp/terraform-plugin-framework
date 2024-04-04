@@ -94,3 +94,7 @@ Parameter names are used in runtime errors to highlight which parameter is causi
 │
 │ Invalid value for "bool_param" parameter: a bool is required.
 ```
+
+## Parameter Validation
+
+Parameter validation handling is enabled by using a custom value type which implements the [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter). Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values

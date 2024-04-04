@@ -344,7 +344,6 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 			tupleTypes[i] = variadicType
 			tupleValues[i] = val
 		}
-
 		variadicValue, variadicValueDiags := basetypes.NewTupleValue(tupleTypes, tupleValues)
 
 		if variadicValueDiags.HasError() {

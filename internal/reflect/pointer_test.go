@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
@@ -120,17 +121,37 @@ func TestFromPointer(t *testing.T) {
 		},
 		"WithValidateError": {
 			typ: testtypes.StringTypeWithValidateError{},
-			val: reflect.ValueOf(strPtr("hello, world")),
+			val: reflect.ValueOf(new(*string)),
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: reflect.ValueOf(new(*string)),
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
 		},
 		"WithValidateWarning": {
 			typ: testtypes.StringTypeWithValidateWarning{},
-			val: reflect.ValueOf(strPtr("hello, world")),
+			val: reflect.ValueOf(new(*string)),
 			expected: testtypes.String{
-				InternalString: types.StringValue("hello, world"),
+				InternalString: types.StringNull(),
 				CreatedBy:      testtypes.StringTypeWithValidateWarning{},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeWarning": {
+			typ: testtypes.StringTypeWithValidateAttributeWarning{},
+			val: reflect.ValueOf(new(*string)),
+			expected: testtypes.StringValueWithValidateAttributeWarning{
+				InternalString: testtypes.String{
+					InternalString: types.StringNull(),
+					CreatedBy:      testtypes.StringTypeWithValidateAttributeWarning{},
+				},
 			},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestWarningDiagnostic(path.Empty()),

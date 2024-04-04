@@ -78,7 +78,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			"dynamic-nil-computed": schema.DynamicAttribute{
 				Computed: true,
 			},
-			// underlying nil computed values should be turned into unknown, preserving the original type
+			// underlying nil computed values should be turned into unknown, this should not preserve the original type
 			"dynamic-underlying-string-nil-computed": schema.DynamicAttribute{
 				Computed: true,
 			},
@@ -274,7 +274,7 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 		"dynamic-value":                          tftypes.NewValue(tftypes.String, "hello, world"),
 		"dynamic-nil":                            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 		"dynamic-nil-computed":                   tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-		"dynamic-underlying-string-nil-computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Preserves the underlying string type
+		"dynamic-underlying-string-nil-computed": tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue), // doesn't preserve original type
 		"dynamic-nil-optional-computed":          tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 		"dynamic-value-optional-computed":        tftypes.NewValue(tftypes.String, "hello, world"),
 		"dynamic-value-with-underlying-list-optional-computed": tftypes.NewValue(

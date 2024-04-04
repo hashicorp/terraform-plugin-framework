@@ -251,15 +251,16 @@ schema.StringAttribute{
 
 ### Defining Value Validation
 
-To support validation for a custom value type, you must implement [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) for attribute validation, or [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) for provider-defined function parameter validation. Both interfaces can be implemented if the same custom type is used for both attributes and function parameters.
+To support validation for a custom value type, you must implement [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) for attribute validation, or [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) for provider-defined function parameter validation.
 
-For example:
+Value type-specific interfaces are also provided as a convenience, for example [`validation.StringValuableWithValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#StringValuableWithValidateableAttribute), and [`validation.StringValuableWithValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#StringValuableWithValidateableParameter).
+
+Both interfaces can be implemented if the same custom value type is used for both attributes and function parameters, for example:
 
 ```go
 // Ensure the implementation satisfies the expected interfaces
-var _ basetypes.StringValuable = computeInstanceIdentifierType{}
-var _ xattr.ValidateableAttribute = computeInstanceIdentifierType{}
-var _ validation.ValidateableParameter = computeInstanceIdentifierType{}
+var _ validation.StringValuableWithValidateableAttribute = computeInstanceIdentifierValue{}
+var _ validation.StringValuableWithValidateableParameter = computeInstanceIdentifierValue{}
 
 // Other methods to implement the attr.Value interface are omitted for brevity
 type computeInstanceIdentifierValue struct {

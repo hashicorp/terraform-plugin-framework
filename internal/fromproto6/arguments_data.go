@@ -165,9 +165,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 		switch parameterWithValidators := parameter.(type) {
 		case function.ParameterWithBoolValidators:
 			for _, functionValidator := range parameterWithValidators.BoolValidators() {
+				boolVal, ok := attrValue.(types.Bool)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Bool at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.BoolRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Bool),
+					Value:            boolVal,
 				}
 				resp := &function.BoolResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -180,9 +193,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithDynamicValidators:
 			for _, functionValidator := range parameterWithValidators.DynamicValidators() {
+				dynamicVal, ok := attrValue.(types.Dynamic)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Dynamic at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.DynamicRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Dynamic),
+					Value:            dynamicVal,
 				}
 				resp := &function.DynamicResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -195,9 +221,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithFloat64Validators:
 			for _, functionValidator := range parameterWithValidators.Float64Validators() {
+				float64Value, ok := attrValue.(types.Float64)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Float64 at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.Float64Request{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Float64),
+					Value:            float64Value,
 				}
 				resp := &function.Float64Response{}
 				functionValidator.Validate(ctx, req, resp)
@@ -210,9 +249,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithInt64Validators:
 			for _, functionValidator := range parameterWithValidators.Int64Validators() {
+				int64Value, ok := attrValue.(types.Int64)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Int64 at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.Int64Request{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Int64),
+					Value:            int64Value,
 				}
 				resp := &function.Int64Response{}
 				functionValidator.Validate(ctx, req, resp)
@@ -225,9 +277,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithListValidators:
 			for _, functionValidator := range parameterWithValidators.ListValidators() {
+				listValue, ok := attrValue.(types.List)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.List at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.ListRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.List),
+					Value:            listValue,
 				}
 				resp := &function.ListResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -240,9 +305,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithMapValidators:
 			for _, functionValidator := range parameterWithValidators.MapValidators() {
+				mapValue, ok := attrValue.(types.Map)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Map at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.MapRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Map),
+					Value:            mapValue,
 				}
 				resp := &function.MapResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -255,9 +333,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithNumberValidators:
 			for _, functionValidator := range parameterWithValidators.NumberValidators() {
+				numberValue, ok := attrValue.(types.Number)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Number at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.NumberRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Number),
+					Value:            numberValue,
 				}
 				resp := &function.NumberResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -270,9 +361,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithObjectValidators:
 			for _, functionValidator := range parameterWithValidators.ObjectValidators() {
+				objectValue, ok := attrValue.(types.Object)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Object at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.ObjectRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Object),
+					Value:            objectValue,
 				}
 				resp := &function.ObjectResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -285,9 +389,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithSetValidators:
 			for _, functionValidator := range parameterWithValidators.SetValidators() {
+				setValue, ok := attrValue.(types.Set)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.Set at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.SetRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.Set),
+					Value:            setValue,
 				}
 				resp := &function.SetResponse{}
 				functionValidator.Validate(ctx, req, resp)
@@ -300,9 +417,22 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		case function.ParameterWithStringValidators:
 			for _, functionValidator := range parameterWithValidators.StringValidators() {
+				stringValue, ok := attrValue.(types.String)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected types.String at position %d", pos),
+					))
+
+					continue
+				}
 				req := function.StringRequest{
 					ArgumentPosition: pos,
-					Value:            attrValue.(types.String),
+					Value:            stringValue,
 				}
 				resp := &function.StringResponse{}
 				functionValidator.Validate(ctx, req, resp)

@@ -103,9 +103,9 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 			&resp,
 		)
 
-		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
-
 		diags.Append(resp.Diagnostics...)
+
+		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
 
 		if diags.HasError() {
 			return nil, diags

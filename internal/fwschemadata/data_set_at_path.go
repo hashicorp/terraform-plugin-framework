@@ -131,7 +131,7 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 	return diags
 }
 
-// SetAttributeTransformFunc recursively creates a value based on the current
+// SetAtPathTransformFunc recursively creates a value based on the current
 // Plan values along the path. If the value at the path does not yet exist,
 // this will perform recursion to add the child value to a parent value,
 // creating the parent value if necessary.
@@ -237,9 +237,9 @@ func (d Data) SetAtPathTransformFunc(ctx context.Context, path path.Path, tfVal 
 			&resp,
 		)
 
-		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
-
 		diags.Append(resp.Diagnostics...)
+
+		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
 
 		if diags.HasError() {
 			return nil, diags

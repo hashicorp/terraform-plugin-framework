@@ -12,7 +12,7 @@ import (
 
 // Parameter returns the Parameter for a given argument position. This may be
 // from the Parameters field or, if defined, the VariadicParameter field. An
-// error diagnostic is raised if the position is outside the expected arguments.
+// error is raised if the position is outside the expected arguments.
 func Parameter(ctx context.Context, d function.Definition, position int) (function.Parameter, *function.FuncError) {
 	if d.VariadicParameter != nil && position >= len(d.Parameters) {
 		return d.VariadicParameter, nil

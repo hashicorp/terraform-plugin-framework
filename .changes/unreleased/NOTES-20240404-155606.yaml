@@ -1,0 +1,6 @@
+kind: NOTES
+body: 'attr/xattr: The `TypeWithValidate` interface has been deprecated in preference
+  of the `ValidateableAttribute` interface'
+time: 2024-04-04T15:56:06.494328+01:00
+custom:
+  Issue: "968"

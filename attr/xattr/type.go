@@ -16,8 +16,7 @@ import (
 // TypeWithValidate extends the attr.Type interface to include a Validate
 // method, used to bundle consistent validation logic with the Type.
 //
-// Deprecated: Use the value type-specific AttributeWithValidate and
-// ParameterWithValidate interfaces in the validation package instead.
+// Deprecated: Use the ValidateableAttribute interface instead.
 type TypeWithValidate interface {
 	attr.Type
 

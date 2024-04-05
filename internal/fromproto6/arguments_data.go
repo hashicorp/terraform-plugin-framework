@@ -102,7 +102,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				"Unable to Convert Function Argument"+
 					"An unexpected error was encountered when converting the function argument from the protocol type. "+
 					"Please report this to the provider developer:\n\n"+
-					fmt.Sprintf("Unable to convert tftypes to framework type at position %d: %stringVal", position, err),
+					fmt.Sprintf("Unable to convert tftypes to framework type at position %d: %s", position, err),
 			))
 
 			return function.NewArgumentsData(nil), funcError

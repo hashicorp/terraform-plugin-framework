@@ -449,6 +449,10 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			continue
 		}
 
+		if funcError != nil {
+			continue
+		}
+
 		argumentValues = append(argumentValues, attrValue)
 	}
 

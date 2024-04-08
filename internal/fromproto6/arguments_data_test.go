@@ -792,9 +792,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewBoolValue(true),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -837,9 +835,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewBoolValue(true),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -899,9 +895,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewDynamicValue(types.BoolValue(true)),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -944,9 +938,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewDynamicValue(types.BoolValue(true)),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1006,9 +998,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewFloat64Value(1.0),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1051,9 +1041,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewFloat64Value(1.0),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1113,9 +1101,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewInt64Value(1),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1158,9 +1144,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewInt64Value(1),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1223,9 +1207,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createListValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1271,9 +1253,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createListValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1338,9 +1318,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createMapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1387,9 +1365,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createMapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1449,9 +1425,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewNumberValue(big.NewFloat(1)),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1494,9 +1468,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewNumberValue(big.NewFloat(1)),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1569,10 +1541,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
-					map[string]attr.Value{"boolAttribute": types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1625,10 +1594,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
-					map[string]attr.Value{"boolAttribute": types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1691,9 +1657,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createSetValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1739,9 +1703,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				createSetValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1801,9 +1763,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewStringValue("true"),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1846,9 +1806,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewStringValue("true"),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: error 1."+
@@ -1946,10 +1904,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewBoolValue(true),
-				basetypes.NewStringValue("true"),
-			}),
+			expected: function.NewArgumentsData([]attr.Value{}),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(0, "Error Diagnostic: bool validator error."),
 				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),

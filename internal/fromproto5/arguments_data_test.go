@@ -838,6 +838,69 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					"\nError Diagnostic: error 2.",
 			),
 		},
+		"bool-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolType{},
+						Validators: []function.BoolValidator{
+							testvalidator.Bool{
+								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+									got := req.Value
+									expected := types.BoolValue(true)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Bool{
+					Bool: basetypes.NewBoolValue(true),
+				},
+			}),
+		},
+		"bool-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolType{},
+						Validators: []function.BoolValidator{
+							testvalidator.Bool{
+								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+									got := req.Value
+									expected := types.BoolValue(false)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"dynamic-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				createDynamicValue(tftypes.NewValue(tftypes.Bool, true)),
@@ -939,6 +1002,67 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
+			),
+		},
+		"dynamic-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				createDynamicValue(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.DynamicParameter{
+						CustomType: testtypes.DynamicType{},
+						Validators: []function.DynamicValidator{
+							testvalidator.Dynamic{
+								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+									got := req.Value
+									expected := types.DynamicValue(types.BoolValue(true))
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewDynamicValue(types.BoolValue(true)),
+			}),
+		},
+		"dynamic-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				createDynamicValue(tftypes.NewValue(tftypes.Bool, true)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.DynamicParameter{
+						CustomType: testtypes.DynamicType{},
+						Validators: []function.DynamicValidator{
+							testvalidator.Dynamic{
+								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+									got := req.Value
+									expected := types.DynamicValue(types.BoolValue(false))
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
 			),
 		},
 		"float64-parameter-Validators": {
@@ -1044,6 +1168,67 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					"\nError Diagnostic: error 2.",
 			),
 		},
+		"float64-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float64Parameter{
+						CustomType: testtypes.Float64Type{},
+						Validators: []function.Float64Validator{
+							testvalidator.Float64{
+								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+									got := req.Value
+									expected := types.Float64Value(1.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewFloat64Value(1.0),
+			}),
+		},
+		"float64-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float64Parameter{
+						CustomType: testtypes.Float64Type{},
+						Validators: []function.Float64Validator{
+							testvalidator.Float64{
+								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+									got := req.Value
+									expected := types.Float64Value(2.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"int64-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
@@ -1145,6 +1330,67 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
+			),
+		},
+		"int64-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int64Parameter{
+						CustomType: testtypes.Int64Type{},
+						Validators: []function.Int64Validator{
+							testvalidator.Int64{
+								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+									got := req.Value
+									expected := types.Int64Value(1)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewInt64Value(1),
+			}),
+		},
+		"int64-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int64Parameter{
+						CustomType: testtypes.Int64Type{},
+						Validators: []function.Int64Validator{
+							testvalidator.Int64{
+								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+									got := req.Value
+									expected := types.Int64Value(2)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
 			),
 		},
 		"list-parameter-Validators": {
@@ -1254,6 +1500,78 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
+			),
+		},
+		"list-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.List{ElementType: tftypes.Bool}, []tftypes.Value{tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.ListParameter{
+						CustomType: testtypes.ListType{
+							ListType: types.ListType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.ListValidator{
+							testvalidator.List{
+								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+									got := req.Value
+									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				createListValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+			}),
+		},
+		"list-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.List{ElementType: tftypes.Bool}, []tftypes.Value{tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.ListParameter{
+						CustomType: testtypes.ListType{
+							ListType: types.ListType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.ListValidator{
+							testvalidator.List{
+								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+									got := req.Value
+									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true),
+										types.BoolValue(false)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
 			),
 		},
 		"map-parameter-Validators": {
@@ -1368,6 +1686,80 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					"\nError Diagnostic: error 2.",
 			),
 		},
+		"map-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Map{ElementType: tftypes.Bool},
+					map[string]tftypes.Value{"key": tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.MapParameter{
+						CustomType: testtypes.MapType{
+							MapType: types.MapType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.MapValidator{
+							testvalidator.Map{
+								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+									got := req.Value
+									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				createMapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
+			}),
+		},
+		"map-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Map{ElementType: tftypes.Bool},
+					map[string]tftypes.Value{"key": tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.MapParameter{
+						CustomType: testtypes.MapType{
+							MapType: types.MapType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.MapValidator{
+							testvalidator.Map{
+								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+									got := req.Value
+									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true),
+										"key2": types.BoolValue(false)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"number-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
@@ -1469,6 +1861,69 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
+			),
+		},
+		"number-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.NumberParameter{
+						CustomType: testtypes.NumberType{},
+						Validators: []function.NumberValidator{
+							testvalidator.Number{
+								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+									got := req.Value
+									expected := types.NumberValue(big.NewFloat(1))
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Number{
+					Number: basetypes.NewNumberValue(big.NewFloat(1)),
+				},
+			}),
+		},
+		"number-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.NumberParameter{
+						CustomType: testtypes.NumberType{},
+						Validators: []function.NumberValidator{
+							testvalidator.Number{
+								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+									got := req.Value
+									expected := types.NumberValue(big.NewFloat(2))
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
 			),
 		},
 		"object-parameter-Validators": {
@@ -1597,6 +2052,88 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					"\nError Diagnostic: error 2.",
 			),
 		},
+		"object-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"boolAttribute": tftypes.Bool}},
+					map[string]tftypes.Value{"boolAttribute": tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.ObjectParameter{
+						CustomType: testtypes.ObjectType{
+							ObjectType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{"boolAttribute": types.BoolType},
+							},
+						},
+						AttributeTypes: map[string]attr.Type{
+							"boolAttribute": types.BoolType,
+						},
+						Validators: []function.ObjectValidator{
+							testvalidator.Object{
+								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+									got := req.Value
+									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
+										map[string]attr.Value{"boolAttribute": types.BoolValue(true)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				createObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
+					map[string]attr.Value{"boolAttribute": types.BoolValue(true)}),
+			}),
+		},
+		"object-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"boolAttribute": tftypes.Bool}},
+					map[string]tftypes.Value{"boolAttribute": tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.ObjectParameter{
+						CustomType: testtypes.ObjectType{
+							ObjectType: types.ObjectType{
+								AttrTypes: map[string]attr.Type{"boolAttribute": types.BoolType},
+							},
+						},
+						AttributeTypes: map[string]attr.Type{
+							"boolAttribute": types.BoolType,
+						},
+						Validators: []function.ObjectValidator{
+							testvalidator.Object{
+								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+									got := req.Value
+									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType,
+										"boolAttribute2": types.BoolType},
+										map[string]attr.Value{"boolAttribute": types.BoolValue(true),
+											"boolAttribute2": types.BoolValue(false)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"set-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Set{ElementType: tftypes.Bool}, []tftypes.Value{tftypes.NewValue(tftypes.Bool, true)})),
@@ -1706,6 +2243,78 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					"\nError Diagnostic: error 2.",
 			),
 		},
+		"set-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Set{ElementType: tftypes.Bool}, []tftypes.Value{tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.SetParameter{
+						CustomType: testtypes.SetType{
+							SetType: types.SetType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.SetValidator{
+							testvalidator.Set{
+								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+									got := req.Value
+									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				createSetValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+			}),
+		},
+		"set-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Set{ElementType: tftypes.Bool}, []tftypes.Value{tftypes.NewValue(tftypes.Bool, true)})),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.SetParameter{
+						CustomType: testtypes.SetType{
+							SetType: types.SetType{
+								ElemType: types.BoolType,
+							},
+						},
+						ElementType: types.BoolType,
+						Validators: []function.SetValidator{
+							testvalidator.Set{
+								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+									got := req.Value
+									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true),
+										types.BoolValue(false)})
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"string-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.String, "true")),
@@ -1808,6 +2417,69 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				0,
 				"Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
+			),
+		},
+		"string-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "true")),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{
+						CustomType: testtypes.StringType{},
+						Validators: []function.StringValidator{
+							testvalidator.String{
+								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+									got := req.Value
+									expected := types.StringValue("true")
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.String{
+					InternalString: basetypes.NewStringValue("true"),
+				},
+			}),
+		},
+		"string-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "true")),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.StringParameter{
+						CustomType: testtypes.StringType{},
+						Validators: []function.StringValidator{
+							testvalidator.String{
+								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+									got := req.Value
+									expected := types.StringValue("false")
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{}),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
 			),
 		},
 		"multiple-parameter-Validators": {
@@ -2178,22 +2850,22 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 	}
 }
 
-func createListValue(elementType attr.Type, elements []attr.Value) attr.Value {
+func createListValue(elementType attr.Type, elements []attr.Value) basetypes.ListValue {
 	list, _ := basetypes.NewListValue(elementType, elements)
 	return list
 }
 
-func createMapValue(elementType attr.Type, elements map[string]attr.Value) attr.Value {
+func createMapValue(elementType attr.Type, elements map[string]attr.Value) basetypes.MapValue {
 	mapVal, _ := basetypes.NewMapValue(elementType, elements)
 	return mapVal
 }
 
-func createObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) attr.Value {
+func createObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) basetypes.ObjectValue {
 	object, _ := basetypes.NewObjectValue(attributeTypes, attributes)
 	return object
 }
 
-func createSetValue(elementType attr.Type, elements []attr.Value) attr.Value {
+func createSetValue(elementType attr.Type, elements []attr.Value) basetypes.SetValue {
 	list, _ := basetypes.NewSetValue(elementType, elements)
 	return list
 }

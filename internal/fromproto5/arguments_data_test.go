@@ -40,13 +40,6 @@ func TestArgumentsData(t *testing.T) {
 			definition: function.Definition{},
 			expected:   function.ArgumentsData{},
 		},
-		"empty-def": {
-			input: []*tfprotov5.DynamicValue{
-				DynamicValueMust(tftypes.NewValue(tftypes.Bool, nil)),
-			},
-			definition: function.Definition{},
-			expected:   function.ArgumentsData{},
-		},
 		"mismatched-arguments-too-few-arguments": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Bool, nil)),

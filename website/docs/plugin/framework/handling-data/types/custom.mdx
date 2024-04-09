@@ -314,7 +314,7 @@ Validation handling in custom value types can be enabled for schema attribute va
 
 Implement the [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) on the custom value type to define and enable validation handling for a schema attribute, which will automatically raise warning and/or error diagnostics when a value is determined to be invalid.
 
-Immplement the [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) on the custom value type to define and enable validation handling for a provider-defined function parameter, which will automatically raise an error when a value is determined to be invalid.
+Implement the [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) on the custom value type to define and enable validation handling for a provider-defined function parameter, which will automatically raise an error when a value is determined to be invalid.
 
 If the custom value type is to be used for both schema attribute values and provider-defined function parameters, implement both interfaces.
 

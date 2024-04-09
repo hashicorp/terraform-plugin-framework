@@ -97,4 +97,31 @@ Parameter names are used in runtime errors to highlight which parameter is causi
 
 ## Parameter Validation
 
-Parameter validation handling is enabled by using a custom value type which implements the [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter). Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values
+Validation handling for provider-defined function parameters can be enabled by using [custom types](/terraform/plugin/framework/handling-data/types/custom#validation).
+
+Implement the [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) on the custom value type to define and enable validation handling for a provider-defined function parameter, which will automatically raise an error when a value is determined to be invalid.
+
+```go
+// Implementation of the validation.ValidateableParameter interface
+func (v CustomStringValue) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+    if v.IsNull() || v.IsUnknown() {
+        return
+    }
+
+    _, err := time.Parse(time.RFC3339, v.ValueString())
+
+    if err != nil {
+        resp.Error = function.NewArgumentFuncError(
+            req.Position,
+            "Invalid RFC 3339 String Value: "+
+                "An unexpected error occurred while converting a string value that was expected to be RFC 3339 format. "+
+                "The RFC 3339 string format is YYYY-MM-DDTHH:MM:SSZ, such as 2006-01-02T15:04:05Z or 2006-01-02T15:04:05+07:00.\n\n"+
+                fmt.Sprintf("Position: %d", req.Position)+"\n"+
+                "Given Value: "+v.ValueString()+"\n"+
+                "Error: "+err.Error(),
+        )
+    }
+}
+```
+
+Refer to [Custom Types](/terraform/plugin/framework/handling-data/types/custom) for further details on creating provider-defined types and values

@@ -70,10 +70,11 @@ type Int64Parameter struct {
 
 	// Validators is a list of int64 validators that should be applied to the
 	// parameter.
-	Validators []Int64Validator
+	Validators []Int64ParameterValidator
 }
 
-func (p Int64Parameter) Int64Validators() []Int64Validator {
+// GetValidators returns the list of validators for the parameter.
+func (p Int64Parameter) GetValidators() []Int64ParameterValidator {
 	return p.Validators
 }
 

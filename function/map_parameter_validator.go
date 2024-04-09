@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// MapValidator is a function validator for types.Map parameters.
-type MapValidator interface {
+// MapParameterValidator is a function validator for types.Map parameters.
+type MapParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, MapRequest, *MapResponse)
+	// Validate performs the validation.
+	Validate(context.Context, MapParameterValidatorRequest, *MapParameterValidatorResponse)
 }
 
-// MapRequest is a request for types.Map schema validation.
-type MapRequest struct {
+// MapParameterValidatorRequest is a request for types.Map schema validation.
+type MapParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type MapRequest struct {
 	Value types.Map
 }
 
-// MapResponse is a response to a MapRequest.
-type MapResponse struct {
+// MapParameterValidatorResponse is a response to a MapParameterValidatorRequest.
+type MapParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

@@ -248,7 +248,7 @@ func TestStringParameterStringValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.StringParameter
-		expected  []function.StringValidator
+		expected  []function.StringParameterValidator
 	}{
 		"unset": {
 			parameter: function.StringParameter{},
@@ -256,15 +256,15 @@ func TestStringParameterStringValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.StringParameter{
-				Validators: []function.StringValidator{}},
-			expected: []function.StringValidator{},
+				Validators: []function.StringParameterValidator{}},
+			expected: []function.StringParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.StringParameter{
-				Validators: []function.StringValidator{
+				Validators: []function.StringParameterValidator{
 					testvalidator.String{},
 				}},
-			expected: []function.StringValidator{
+			expected: []function.StringParameterValidator{
 				testvalidator.String{},
 			},
 		},
@@ -276,7 +276,7 @@ func TestStringParameterStringValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.StringValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

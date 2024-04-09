@@ -161,7 +161,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 
 		switch parameterWithValidators := parameter.(type) {
 		case function.ParameterWithBoolValidators:
-			for _, functionValidator := range parameterWithValidators.BoolValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				boolValuable, ok := attrValue.(basetypes.BoolValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -180,11 +180,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.BoolRequest{
+				req := function.BoolParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            boolVal,
 				}
-				resp := &function.BoolResponse{}
+				resp := &function.BoolParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -194,7 +194,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithDynamicValidators:
-			for _, functionValidator := range parameterWithValidators.DynamicValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				dynamicValuable, ok := attrValue.(basetypes.DynamicValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -213,11 +213,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.DynamicRequest{
+				req := function.DynamicParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            dynamicVal,
 				}
-				resp := &function.DynamicResponse{}
+				resp := &function.DynamicParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -227,7 +227,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithFloat64Validators:
-			for _, functionValidator := range parameterWithValidators.Float64Validators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				float64Valuable, ok := attrValue.(basetypes.Float64Valuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -246,11 +246,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.Float64Request{
+				req := function.Float64ParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            float64Val,
 				}
-				resp := &function.Float64Response{}
+				resp := &function.Float64ParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -260,7 +260,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithInt64Validators:
-			for _, functionValidator := range parameterWithValidators.Int64Validators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				int64Valuable, ok := attrValue.(basetypes.Int64Valuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -279,11 +279,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.Int64Request{
+				req := function.Int64ParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            int64Val,
 				}
-				resp := &function.Int64Response{}
+				resp := &function.Int64ParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -293,7 +293,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithListValidators:
-			for _, functionValidator := range parameterWithValidators.ListValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				listValue, ok := attrValue.(basetypes.ListValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -312,11 +312,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.ListRequest{
+				req := function.ListParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            listVal,
 				}
-				resp := &function.ListResponse{}
+				resp := &function.ListParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -326,7 +326,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithMapValidators:
-			for _, functionValidator := range parameterWithValidators.MapValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				mapValuable, ok := attrValue.(basetypes.MapValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -345,11 +345,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.MapRequest{
+				req := function.MapParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            mapVal,
 				}
-				resp := &function.MapResponse{}
+				resp := &function.MapParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -359,7 +359,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithNumberValidators:
-			for _, functionValidator := range parameterWithValidators.NumberValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				numberValuable, ok := attrValue.(basetypes.NumberValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -378,11 +378,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.NumberRequest{
+				req := function.NumberParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            numberVal,
 				}
-				resp := &function.NumberResponse{}
+				resp := &function.NumberParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -392,7 +392,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithObjectValidators:
-			for _, functionValidator := range parameterWithValidators.ObjectValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				objectValuable, ok := attrValue.(basetypes.ObjectValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -411,11 +411,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.ObjectRequest{
+				req := function.ObjectParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            objectVal,
 				}
-				resp := &function.ObjectResponse{}
+				resp := &function.ObjectParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -425,7 +425,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithSetValidators:
-			for _, functionValidator := range parameterWithValidators.SetValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				setValuable, ok := attrValue.(basetypes.SetValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -444,11 +444,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.SetRequest{
+				req := function.SetParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            setVal,
 				}
-				resp := &function.SetResponse{}
+				resp := &function.SetParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -458,7 +458,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 				}
 			}
 		case function.ParameterWithStringValidators:
-			for _, functionValidator := range parameterWithValidators.StringValidators() {
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				stringValuable, ok := attrValue.(basetypes.StringValuable)
 				if !ok {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -477,11 +477,11 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
 					continue
 				}
-				req := function.StringRequest{
+				req := function.StringParameterValidatorRequest{
 					ArgumentPosition: pos,
 					Value:            stringVal,
 				}
-				resp := &function.StringResponse{}
+				resp := &function.StringParameterValidatorResponse{}
 				functionValidator.Validate(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(

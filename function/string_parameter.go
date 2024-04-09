@@ -70,11 +70,11 @@ type StringParameter struct {
 
 	// Validators is a list of string validators that should be applied to the
 	// parameter.
-	Validators []StringValidator
+	Validators []StringParameterValidator
 }
 
-// StringValidators returns the string validators for the parameter.
-func (p StringParameter) StringValidators() []StringValidator {
+// GetValidators returns the string validators for the parameter.
+func (p StringParameter) GetValidators() []StringParameterValidator {
 	return p.Validators
 }
 

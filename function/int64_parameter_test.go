@@ -248,7 +248,7 @@ func TestInt64ParameterInt64Validators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.Int64Parameter
-		expected  []function.Int64Validator
+		expected  []function.Int64ParameterValidator
 	}{
 		"unset": {
 			parameter: function.Int64Parameter{},
@@ -256,15 +256,15 @@ func TestInt64ParameterInt64Validators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.Int64Parameter{
-				Validators: []function.Int64Validator{}},
-			expected: []function.Int64Validator{},
+				Validators: []function.Int64ParameterValidator{}},
+			expected: []function.Int64ParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.Int64Parameter{
-				Validators: []function.Int64Validator{
+				Validators: []function.Int64ParameterValidator{
 					testvalidator.Int64{},
 				}},
-			expected: []function.Int64Validator{
+			expected: []function.Int64ParameterValidator{
 				testvalidator.Int64{},
 			},
 		},
@@ -276,7 +276,7 @@ func TestInt64ParameterInt64Validators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.Int64Validators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

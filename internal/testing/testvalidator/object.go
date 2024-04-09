@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Object         = &Object{}
-	_ function.ObjectValidator = &Object{}
+	_ validator.Object                  = &Object{}
+	_ function.ObjectParameterValidator = &Object{}
 )
 
 // Declarative validator.Object for unit testing.
@@ -21,7 +21,7 @@ type Object struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateObjectMethod      func(context.Context, validator.ObjectRequest, *validator.ObjectResponse)
-	ValidateMethod            func(context.Context, function.ObjectRequest, *function.ObjectResponse)
+	ValidateMethod            func(context.Context, function.ObjectParameterValidatorRequest, *function.ObjectParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Object interface.
@@ -51,8 +51,8 @@ func (v Object) ValidateObject(ctx context.Context, req validator.ObjectRequest,
 	v.ValidateObjectMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.ObjectValidator interface.
-func (v Object) Validate(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+// Validate satisfies the function.ObjectParameterValidator interface.
+func (v Object) Validate(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

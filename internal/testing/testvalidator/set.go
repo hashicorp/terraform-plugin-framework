@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Set         = &Set{}
-	_ function.SetValidator = &Set{}
+	_ validator.Set                  = &Set{}
+	_ function.SetParameterValidator = &Set{}
 )
 
 // Declarative validator.Set for unit testing.
@@ -21,7 +21,7 @@ type Set struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateSetMethod         func(context.Context, validator.SetRequest, *validator.SetResponse)
-	ValidateMethod            func(context.Context, function.SetRequest, *function.SetResponse)
+	ValidateMethod            func(context.Context, function.SetParameterValidatorRequest, *function.SetParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Set interface.
@@ -51,8 +51,8 @@ func (v Set) ValidateSet(ctx context.Context, req validator.SetRequest, resp *va
 	v.ValidateSetMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.SetValidator interface.
-func (v Set) Validate(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+// Validate satisfies the function.SetParameterValidator interface.
+func (v Set) Validate(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

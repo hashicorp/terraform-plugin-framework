@@ -248,7 +248,7 @@ func TestDynamicParameterDynamicValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.DynamicParameter
-		expected  []function.DynamicValidator
+		expected  []function.DynamicParameterValidator
 	}{
 		"unset": {
 			parameter: function.DynamicParameter{},
@@ -256,15 +256,15 @@ func TestDynamicParameterDynamicValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.DynamicParameter{
-				Validators: []function.DynamicValidator{}},
-			expected: []function.DynamicValidator{},
+				Validators: []function.DynamicParameterValidator{}},
+			expected: []function.DynamicParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.DynamicParameter{
-				Validators: []function.DynamicValidator{
+				Validators: []function.DynamicParameterValidator{
 					testvalidator.Dynamic{},
 				}},
-			expected: []function.DynamicValidator{
+			expected: []function.DynamicParameterValidator{
 				testvalidator.Dynamic{},
 			},
 		},
@@ -276,7 +276,7 @@ func TestDynamicParameterDynamicValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.DynamicValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

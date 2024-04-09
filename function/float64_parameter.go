@@ -71,10 +71,11 @@ type Float64Parameter struct {
 
 	// Validators is a list of float64 validators that should be applied to the
 	// parameter.
-	Validators []Float64Validator
+	Validators []Float64ParameterValidator
 }
 
-func (p Float64Parameter) Float64Validators() []Float64Validator {
+// GetValidators returns the list of validators for the parameter.
+func (p Float64Parameter) GetValidators() []Float64ParameterValidator {
 	return p.Validators
 }
 

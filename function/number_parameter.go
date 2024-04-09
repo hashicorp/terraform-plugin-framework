@@ -69,10 +69,11 @@ type NumberParameter struct {
 
 	// Validators is a list of validators that can be used to validate the
 	// parameter.
-	Validators []NumberValidator
+	Validators []NumberParameterValidator
 }
 
-func (p NumberParameter) NumberValidators() []NumberValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p NumberParameter) GetValidators() []NumberParameterValidator {
 	return p.Validators
 }
 

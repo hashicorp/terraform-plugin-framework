@@ -264,7 +264,7 @@ func TestMapParameterMapValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.MapParameter
-		expected  []function.MapValidator
+		expected  []function.MapParameterValidator
 	}{
 		"unset": {
 			parameter: function.MapParameter{},
@@ -272,15 +272,15 @@ func TestMapParameterMapValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.MapParameter{
-				Validators: []function.MapValidator{}},
-			expected: []function.MapValidator{},
+				Validators: []function.MapParameterValidator{}},
+			expected: []function.MapParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.MapParameter{
-				Validators: []function.MapValidator{
+				Validators: []function.MapParameterValidator{
 					testvalidator.Map{},
 				}},
-			expected: []function.MapValidator{
+			expected: []function.MapParameterValidator{
 				testvalidator.Map{},
 			},
 		},
@@ -292,7 +292,7 @@ func TestMapParameterMapValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.MapValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

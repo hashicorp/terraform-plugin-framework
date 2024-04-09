@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ObjectValidator is a function validator for types.Object parameters.
-type ObjectValidator interface {
+// ObjectParameterValidator is a function validator for types.Object parameters.
+type ObjectParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, ObjectRequest, *ObjectResponse)
+	// Validate performs the validation.
+	Validate(context.Context, ObjectParameterValidatorRequest, *ObjectParameterValidatorResponse)
 }
 
-// ObjectRequest is a request for types.Object schema validation.
-type ObjectRequest struct {
+// ObjectParameterValidatorRequest is a request for types.Object schema validation.
+type ObjectParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type ObjectRequest struct {
 	Value types.Object
 }
 
-// ObjectResponse is a response to a ObjectRequest.
-type ObjectResponse struct {
+// ObjectParameterValidatorResponse is a response to a ObjectParameterValidatorRequest.
+type ObjectParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

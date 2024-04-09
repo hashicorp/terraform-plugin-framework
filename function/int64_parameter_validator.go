@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Int64Validator is a function validator for types.Int64 parameters.
-type Int64Validator interface {
+// Int64ParameterValidator is a function validator for types.Int64 parameters.
+type Int64ParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, Int64Request, *Int64Response)
+	// Validate performs the validation.
+	Validate(context.Context, Int64ParameterValidatorRequest, *Int64ParameterValidatorResponse)
 }
 
-// Int64Request is a request for types.Int64 schema validation.
-type Int64Request struct {
+// Int64ParameterValidatorRequest is a request for types.Int64 schema validation.
+type Int64ParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type Int64Request struct {
 	Value types.Int64
 }
 
-// Int64Response is a response to a Int64Request.
-type Int64Response struct {
+// Int64ParameterValidatorResponse is a response to a Int64ParameterValidatorRequest.
+type Int64ParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

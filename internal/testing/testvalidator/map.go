@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Map         = &Map{}
-	_ function.MapValidator = &Map{}
+	_ validator.Map                  = &Map{}
+	_ function.MapParameterValidator = &Map{}
 )
 
 // Declarative validator.Map for unit testing.
@@ -21,7 +21,7 @@ type Map struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateMapMethod         func(context.Context, validator.MapRequest, *validator.MapResponse)
-	ValidateMethod            func(context.Context, function.MapRequest, *function.MapResponse)
+	ValidateMethod            func(context.Context, function.MapParameterValidatorRequest, *function.MapParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Map interface.
@@ -51,8 +51,8 @@ func (v Map) ValidateMap(ctx context.Context, req validator.MapRequest, resp *va
 	v.ValidateMapMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.MapValidator interface.
-func (v Map) Validate(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+// Validate satisfies the function.MapParameterValidator interface.
+func (v Map) Validate(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

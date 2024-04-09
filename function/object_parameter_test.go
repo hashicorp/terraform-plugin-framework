@@ -272,7 +272,7 @@ func TestObjectParameterObjectValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.ObjectParameter
-		expected  []function.ObjectValidator
+		expected  []function.ObjectParameterValidator
 	}{
 		"unset": {
 			parameter: function.ObjectParameter{},
@@ -280,15 +280,15 @@ func TestObjectParameterObjectValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.ObjectParameter{
-				Validators: []function.ObjectValidator{}},
-			expected: []function.ObjectValidator{},
+				Validators: []function.ObjectParameterValidator{}},
+			expected: []function.ObjectParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.ObjectParameter{
-				Validators: []function.ObjectValidator{
+				Validators: []function.ObjectParameterValidator{
 					testvalidator.Object{},
 				}},
-			expected: []function.ObjectValidator{
+			expected: []function.ObjectParameterValidator{
 				testvalidator.Object{},
 			},
 		},
@@ -300,7 +300,7 @@ func TestObjectParameterObjectValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.ObjectValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -88,10 +88,11 @@ type ObjectParameter struct {
 
 	// Validators is a list of object validators that should be applied to the
 	// parameter.
-	Validators []ObjectValidator
+	Validators []ObjectParameterValidator
 }
 
-func (p ObjectParameter) ObjectValidators() []ObjectValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p ObjectParameter) GetValidators() []ObjectParameterValidator {
 	return p.Validators
 }
 

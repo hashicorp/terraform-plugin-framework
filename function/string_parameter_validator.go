@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// StringValidator is a function validator for types.String parameters.
-type StringValidator interface {
+// StringParameterValidator is a function validator for types.String parameters.
+type StringParameterValidator interface {
 
-	// ValidateString should perform the validation.
-	Validate(context.Context, StringRequest, *StringResponse)
+	// Validate performs the validation.
+	Validate(context.Context, StringParameterValidatorRequest, *StringParameterValidatorResponse)
 }
 
-// StringRequest is a request for types.String schema validation.
-type StringRequest struct {
+// StringParameterValidatorRequest is a request for types.String schema validation.
+type StringParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type StringRequest struct {
 	Value types.String
 }
 
-// StringResponse is a response to a StringRequest.
-type StringResponse struct {
+// StringParameterValidatorResponse is a response to a StringParameterValidatorRequest.
+type StringParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

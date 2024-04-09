@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Int64         = &Int64{}
-	_ function.Int64Validator = &Int64{}
+	_ validator.Int64                  = &Int64{}
+	_ function.Int64ParameterValidator = &Int64{}
 )
 
 // Declarative validator.Int64 for unit testing.
@@ -21,7 +21,7 @@ type Int64 struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateInt64Method       func(context.Context, validator.Int64Request, *validator.Int64Response)
-	ValidateMethod            func(context.Context, function.Int64Request, *function.Int64Response)
+	ValidateMethod            func(context.Context, function.Int64ParameterValidatorRequest, *function.Int64ParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Int64 interface.
@@ -51,8 +51,8 @@ func (v Int64) ValidateInt64(ctx context.Context, req validator.Int64Request, re
 	v.ValidateInt64Method(ctx, req, resp)
 }
 
-// Validate satisfies the function.Int64Validator interface.
-func (v Int64) Validate(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+// Validate satisfies the function.Int64ParameterValidator interface.
+func (v Int64) Validate(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

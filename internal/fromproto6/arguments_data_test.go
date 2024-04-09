@@ -745,9 +745,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(true)
 
@@ -774,9 +774,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(false)
 
@@ -804,9 +804,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(false)
 
@@ -819,7 +819,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(false)
 
@@ -849,9 +849,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.BoolParameter{
 						CustomType: testtypes.BoolType{},
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(true)
 
@@ -881,9 +881,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.BoolParameter{
 						CustomType: testtypes.BoolType{},
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(false)
 
@@ -911,9 +911,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.DynamicParameter{
-						Validators: []function.DynamicValidator{
+						Validators: []function.DynamicParameterValidator{
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(true))
 
@@ -940,9 +940,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.DynamicParameter{
-						Validators: []function.DynamicValidator{
+						Validators: []function.DynamicParameterValidator{
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(false))
 
@@ -970,9 +970,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.DynamicParameter{
-						Validators: []function.DynamicValidator{
+						Validators: []function.DynamicParameterValidator{
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(false))
 
@@ -985,7 +985,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(false))
 
@@ -1015,9 +1015,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.DynamicParameter{
 						CustomType: testtypes.DynamicType{},
-						Validators: []function.DynamicValidator{
+						Validators: []function.DynamicParameterValidator{
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(true))
 
@@ -1045,9 +1045,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.DynamicParameter{
 						CustomType: testtypes.DynamicType{},
-						Validators: []function.DynamicValidator{
+						Validators: []function.DynamicParameterValidator{
 							testvalidator.Dynamic{
-								ValidateMethod: func(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+								ValidateMethod: func(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 									got := req.Value
 									expected := types.DynamicValue(types.BoolValue(false))
 
@@ -1075,9 +1075,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Float64Parameter{
-						Validators: []function.Float64Validator{
+						Validators: []function.Float64ParameterValidator{
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(1.0)
 
@@ -1104,9 +1104,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Float64Parameter{
-						Validators: []function.Float64Validator{
+						Validators: []function.Float64ParameterValidator{
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(2.0)
 
@@ -1134,9 +1134,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Float64Parameter{
-						Validators: []function.Float64Validator{
+						Validators: []function.Float64ParameterValidator{
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(2.0)
 
@@ -1149,7 +1149,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(3.0)
 
@@ -1179,9 +1179,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.Float64Parameter{
 						CustomType: testtypes.Float64Type{},
-						Validators: []function.Float64Validator{
+						Validators: []function.Float64ParameterValidator{
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(1.0)
 
@@ -1209,9 +1209,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.Float64Parameter{
 						CustomType: testtypes.Float64Type{},
-						Validators: []function.Float64Validator{
+						Validators: []function.Float64ParameterValidator{
 							testvalidator.Float64{
-								ValidateMethod: func(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Float64Value(2.0)
 
@@ -1239,9 +1239,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Int64Parameter{
-						Validators: []function.Int64Validator{
+						Validators: []function.Int64ParameterValidator{
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(1)
 
@@ -1268,9 +1268,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Int64Parameter{
-						Validators: []function.Int64Validator{
+						Validators: []function.Int64ParameterValidator{
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(2)
 
@@ -1298,9 +1298,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.Int64Parameter{
-						Validators: []function.Int64Validator{
+						Validators: []function.Int64ParameterValidator{
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(2)
 
@@ -1313,7 +1313,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(3)
 
@@ -1343,9 +1343,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.Int64Parameter{
 						CustomType: testtypes.Int64Type{},
-						Validators: []function.Int64Validator{
+						Validators: []function.Int64ParameterValidator{
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(1)
 
@@ -1373,9 +1373,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.Int64Parameter{
 						CustomType: testtypes.Int64Type{},
-						Validators: []function.Int64Validator{
+						Validators: []function.Int64ParameterValidator{
 							testvalidator.Int64{
-								ValidateMethod: func(ctx context.Context, req function.Int64Request, resp *function.Int64Response) {
+								ValidateMethod: func(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 									got := req.Value
 									expected := types.Int64Value(2)
 
@@ -1404,9 +1404,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.ListParameter{
 						ElementType: types.BoolType,
-						Validators: []function.ListValidator{
+						Validators: []function.ListParameterValidator{
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true)})
 
@@ -1434,9 +1434,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.ListParameter{
 						ElementType: types.BoolType,
-						Validators: []function.ListValidator{
+						Validators: []function.ListParameterValidator{
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -1466,9 +1466,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.ListParameter{
 						ElementType: types.BoolType,
-						Validators: []function.ListValidator{
+						Validators: []function.ListParameterValidator{
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -1482,7 +1482,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -1518,9 +1518,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.ListValidator{
+						Validators: []function.ListParameterValidator{
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true)})
 
@@ -1553,9 +1553,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.ListValidator{
+						Validators: []function.ListParameterValidator{
 							testvalidator.List{
-								ValidateMethod: func(ctx context.Context, req function.ListRequest, resp *function.ListResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ListValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -1586,9 +1586,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.MapParameter{
 						ElementType: types.BoolType,
-						Validators: []function.MapValidator{
+						Validators: []function.MapParameterValidator{
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)})
 
@@ -1617,9 +1617,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.MapParameter{
 						ElementType: types.BoolType,
-						Validators: []function.MapValidator{
+						Validators: []function.MapParameterValidator{
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true),
 										"key2": types.BoolValue(false)})
@@ -1650,9 +1650,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.MapParameter{
 						ElementType: types.BoolType,
-						Validators: []function.MapValidator{
+						Validators: []function.MapParameterValidator{
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true),
 										"key2": types.BoolValue(false)})
@@ -1666,7 +1666,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key1": types.BoolValue(true),
 										"key2": types.BoolValue(false)})
@@ -1703,9 +1703,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.MapValidator{
+						Validators: []function.MapParameterValidator{
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)})
 
@@ -1739,9 +1739,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.MapValidator{
+						Validators: []function.MapParameterValidator{
 							testvalidator.Map{
-								ValidateMethod: func(ctx context.Context, req function.MapRequest, resp *function.MapResponse) {
+								ValidateMethod: func(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.MapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true),
 										"key2": types.BoolValue(false)})
@@ -1770,9 +1770,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.NumberParameter{
-						Validators: []function.NumberValidator{
+						Validators: []function.NumberParameterValidator{
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(1))
 
@@ -1799,9 +1799,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.NumberParameter{
-						Validators: []function.NumberValidator{
+						Validators: []function.NumberParameterValidator{
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(2))
 
@@ -1829,9 +1829,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.NumberParameter{
-						Validators: []function.NumberValidator{
+						Validators: []function.NumberParameterValidator{
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(2))
 
@@ -1844,7 +1844,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(3))
 
@@ -1874,9 +1874,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.NumberParameter{
 						CustomType: testtypes.NumberType{},
-						Validators: []function.NumberValidator{
+						Validators: []function.NumberParameterValidator{
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(1))
 
@@ -1906,9 +1906,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.NumberParameter{
 						CustomType: testtypes.NumberType{},
-						Validators: []function.NumberValidator{
+						Validators: []function.NumberParameterValidator{
 							testvalidator.Number{
-								ValidateMethod: func(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+								ValidateMethod: func(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 									got := req.Value
 									expected := types.NumberValue(big.NewFloat(2))
 
@@ -1940,9 +1940,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						AttributeTypes: map[string]attr.Type{
 							"boolAttribute": types.BoolType,
 						},
-						Validators: []function.ObjectValidator{
+						Validators: []function.ObjectParameterValidator{
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
 										map[string]attr.Value{"boolAttribute": types.BoolValue(true)})
@@ -1975,9 +1975,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						AttributeTypes: map[string]attr.Type{
 							"boolAttribute": types.BoolType,
 						},
-						Validators: []function.ObjectValidator{
+						Validators: []function.ObjectParameterValidator{
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType,
 										"boolAttribute2": types.BoolType},
@@ -2012,9 +2012,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						AttributeTypes: map[string]attr.Type{
 							"boolAttribute": types.BoolType,
 						},
-						Validators: []function.ObjectValidator{
+						Validators: []function.ObjectParameterValidator{
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType,
 										"boolAttribute2": types.BoolType},
@@ -2030,7 +2030,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute1": types.BoolType,
 										"boolAttribute2": types.BoolType},
@@ -2071,9 +2071,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						AttributeTypes: map[string]attr.Type{
 							"boolAttribute": types.BoolType,
 						},
-						Validators: []function.ObjectValidator{
+						Validators: []function.ObjectParameterValidator{
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
 										map[string]attr.Value{"boolAttribute": types.BoolValue(true)})
@@ -2111,9 +2111,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						AttributeTypes: map[string]attr.Type{
 							"boolAttribute": types.BoolType,
 						},
-						Validators: []function.ObjectValidator{
+						Validators: []function.ObjectParameterValidator{
 							testvalidator.Object{
-								ValidateMethod: func(ctx context.Context, req function.ObjectRequest, resp *function.ObjectResponse) {
+								ValidateMethod: func(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.ObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType,
 										"boolAttribute2": types.BoolType},
@@ -2145,9 +2145,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.SetParameter{
 						ElementType: types.BoolType,
-						Validators: []function.SetValidator{
+						Validators: []function.SetParameterValidator{
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true)})
 
@@ -2175,9 +2175,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.SetParameter{
 						ElementType: types.BoolType,
-						Validators: []function.SetValidator{
+						Validators: []function.SetParameterValidator{
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -2207,9 +2207,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.SetParameter{
 						ElementType: types.BoolType,
-						Validators: []function.SetValidator{
+						Validators: []function.SetParameterValidator{
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -2223,7 +2223,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -2259,9 +2259,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.SetValidator{
+						Validators: []function.SetParameterValidator{
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true)})
 
@@ -2294,9 +2294,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 							},
 						},
 						ElementType: types.BoolType,
-						Validators: []function.SetValidator{
+						Validators: []function.SetParameterValidator{
 							testvalidator.Set{
-								ValidateMethod: func(ctx context.Context, req function.SetRequest, resp *function.SetResponse) {
+								ValidateMethod: func(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 									got := req.Value
 									expected, _ := types.SetValue(types.BoolType, []attr.Value{types.BoolValue(true),
 										types.BoolValue(false)})
@@ -2325,9 +2325,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.StringParameter{
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("true")
 
@@ -2354,9 +2354,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.StringParameter{
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("false")
 
@@ -2384,9 +2384,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.StringParameter{
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("false")
 
@@ -2399,7 +2399,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 								},
 							},
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("false")
 
@@ -2430,9 +2430,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.StringParameter{
 						CustomType: testtypes.StringType{},
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("true")
 
@@ -2462,9 +2462,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				Parameters: []function.Parameter{
 					function.StringParameter{
 						CustomType: testtypes.StringType{},
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("false")
 
@@ -2493,9 +2493,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(true)
 
@@ -2510,9 +2510,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						},
 					},
 					function.StringParameter{
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("true")
 
@@ -2541,9 +2541,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(false)
 
@@ -2558,9 +2558,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 						},
 					},
 					function.StringParameter{
-						Validators: []function.StringValidator{
+						Validators: []function.StringParameterValidator{
 							testvalidator.String{
-								ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+								ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 									got := req.Value
 									expected := types.StringValue("false")
 
@@ -2588,9 +2588,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("false")
 
@@ -2622,9 +2622,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("true")
 
@@ -2660,9 +2660,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("false")
 
@@ -2697,9 +2697,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("true")
 
@@ -2737,9 +2737,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			definition: function.Definition{
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("true")
 
@@ -2780,9 +2780,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			definition: function.Definition{
 				Parameters: []function.Parameter{
 					function.BoolParameter{
-						Validators: []function.BoolValidator{
+						Validators: []function.BoolParameterValidator{
 							testvalidator.Bool{
-								ValidateMethod: func(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+								ValidateMethod: func(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 									got := req.Value
 									expected := types.BoolValue(true)
 
@@ -2798,9 +2798,9 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 				VariadicParameter: function.StringParameter{
-					Validators: []function.StringValidator{
+					Validators: []function.StringParameterValidator{
 						testvalidator.String{
-							ValidateMethod: func(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+							ValidateMethod: func(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 								got := req.Value
 								expected := types.StringValue("true")
 

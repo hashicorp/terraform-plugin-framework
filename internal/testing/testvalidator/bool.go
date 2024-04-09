@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Bool         = &Bool{}
-	_ function.BoolValidator = &Bool{}
+	_ validator.Bool                  = &Bool{}
+	_ function.BoolParameterValidator = &Bool{}
 )
 
 // Declarative validator.Bool for unit testing.
@@ -21,7 +21,7 @@ type Bool struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateBoolMethod        func(context.Context, validator.BoolRequest, *validator.BoolResponse)
-	ValidateMethod            func(context.Context, function.BoolRequest, *function.BoolResponse)
+	ValidateMethod            func(context.Context, function.BoolParameterValidatorRequest, *function.BoolParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Bool interface.
@@ -51,8 +51,8 @@ func (v Bool) ValidateBool(ctx context.Context, req validator.BoolRequest, resp 
 	v.ValidateBoolMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.BoolValidator interface.
-func (v Bool) Validate(ctx context.Context, req function.BoolRequest, resp *function.BoolResponse) {
+// Validate satisfies the function.BoolParameterValidator interface.
+func (v Bool) Validate(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

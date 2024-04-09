@@ -8,8 +8,8 @@ package function
 type ParameterWithBoolValidators interface {
 	Parameter
 
-	// BoolValidators should return a list of Bool validators.
-	BoolValidators() []BoolValidator
+	// GetValidators should return a list of Bool validators.
+	GetValidators() []BoolParameterValidator
 }
 
 // ParameterWithInt64Validators is an optional interface on Parameter which
@@ -17,8 +17,8 @@ type ParameterWithBoolValidators interface {
 type ParameterWithInt64Validators interface {
 	Parameter
 
-	// Int64Validators should return a list of Int64 validators.
-	Int64Validators() []Int64Validator
+	// GetValidators should return a list of Int64 validators.
+	GetValidators() []Int64ParameterValidator
 }
 
 // ParameterWithFloat64Validators is an optional interface on Parameter which
@@ -26,8 +26,8 @@ type ParameterWithInt64Validators interface {
 type ParameterWithFloat64Validators interface {
 	Parameter
 
-	// Float64Validators should return a list of Float64 validators.
-	Float64Validators() []Float64Validator
+	// GetValidators should return a list of Float64 validators.
+	GetValidators() []Float64ParameterValidator
 }
 
 // ParameterWithDynamicValidators is an optional interface on Parameter which
@@ -35,8 +35,8 @@ type ParameterWithFloat64Validators interface {
 type ParameterWithDynamicValidators interface {
 	Parameter
 
-	// DynamicValidators should return a list of Dynamic validators.
-	DynamicValidators() []DynamicValidator
+	// GetValidators should return a list of Dynamic validators.
+	GetValidators() []DynamicParameterValidator
 }
 
 // ParameterWithListValidators is an optional interface on Parameter which
@@ -44,8 +44,8 @@ type ParameterWithDynamicValidators interface {
 type ParameterWithListValidators interface {
 	Parameter
 
-	// ListValidators should return a list of List validators.
-	ListValidators() []ListValidator
+	// GetValidators should return a list of List validators.
+	GetValidators() []ListParameterValidator
 }
 
 // ParameterWithMapValidators is an optional interface on Parameter which
@@ -53,8 +53,8 @@ type ParameterWithListValidators interface {
 type ParameterWithMapValidators interface {
 	Parameter
 
-	// MapValidators should return a list of Map validators.
-	MapValidators() []MapValidator
+	// GetValidators should return a list of Map validators.
+	GetValidators() []MapParameterValidator
 }
 
 // ParameterWithNumberValidators is an optional interface on Parameter which
@@ -62,8 +62,8 @@ type ParameterWithMapValidators interface {
 type ParameterWithNumberValidators interface {
 	Parameter
 
-	// NumberValidators should return a list of Map validators.
-	NumberValidators() []NumberValidator
+	// GetValidators should return a list of Map validators.
+	GetValidators() []NumberParameterValidator
 }
 
 // ParameterWithObjectValidators is an optional interface on Parameter which
@@ -71,8 +71,8 @@ type ParameterWithNumberValidators interface {
 type ParameterWithObjectValidators interface {
 	Parameter
 
-	// ObjectValidators should return a list of Object validators.
-	ObjectValidators() []ObjectValidator
+	// GetValidators should return a list of Object validators.
+	GetValidators() []ObjectParameterValidator
 }
 
 // ParameterWithSetValidators is an optional interface on Parameter which
@@ -80,8 +80,8 @@ type ParameterWithObjectValidators interface {
 type ParameterWithSetValidators interface {
 	Parameter
 
-	// SetValidators should return a list of Set validators.
-	SetValidators() []SetValidator
+	// GetValidators should return a list of Set validators.
+	GetValidators() []SetParameterValidator
 }
 
 // ParameterWithStringValidators is an optional interface on Parameter which
@@ -89,6 +89,6 @@ type ParameterWithSetValidators interface {
 type ParameterWithStringValidators interface {
 	Parameter
 
-	// StringValidators should return a list of String validators.
-	StringValidators() []StringValidator
+	// GetValidators should return a list of String validators.
+	GetValidators() []StringParameterValidator
 }

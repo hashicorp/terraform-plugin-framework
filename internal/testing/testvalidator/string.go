@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.String         = &String{}
-	_ function.StringValidator = &String{}
+	_ validator.String                  = &String{}
+	_ function.StringParameterValidator = &String{}
 )
 
 // Declarative validator.String for unit testing.
@@ -21,7 +21,7 @@ type String struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateStringMethod      func(context.Context, validator.StringRequest, *validator.StringResponse)
-	ValidateMethod            func(context.Context, function.StringRequest, *function.StringResponse)
+	ValidateMethod            func(context.Context, function.StringParameterValidatorRequest, *function.StringParameterValidatorResponse)
 }
 
 // Description satisfies the validator.String interface.
@@ -51,8 +51,8 @@ func (v String) ValidateString(ctx context.Context, req validator.StringRequest,
 	v.ValidateStringMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.StringValidator interface.
-func (v String) Validate(ctx context.Context, req function.StringRequest, resp *function.StringResponse) {
+// Validate satisfies the function.StringParameterValidator interface.
+func (v String) Validate(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

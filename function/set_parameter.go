@@ -86,10 +86,11 @@ type SetParameter struct {
 
 	// Validators is a list of set validators that should be applied to the
 	// parameter.
-	Validators []SetValidator
+	Validators []SetParameterValidator
 }
 
-func (p SetParameter) SetValidators() []SetValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p SetParameter) GetValidators() []SetParameterValidator {
 	return p.Validators
 }
 

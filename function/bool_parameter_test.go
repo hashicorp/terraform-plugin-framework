@@ -248,7 +248,7 @@ func TestBoolParameterBoolValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.BoolParameter
-		expected  []function.BoolValidator
+		expected  []function.BoolParameterValidator
 	}{
 		"unset": {
 			parameter: function.BoolParameter{},
@@ -256,15 +256,15 @@ func TestBoolParameterBoolValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.BoolParameter{
-				Validators: []function.BoolValidator{}},
-			expected: []function.BoolValidator{},
+				Validators: []function.BoolParameterValidator{}},
+			expected: []function.BoolParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.BoolParameter{
-				Validators: []function.BoolValidator{
+				Validators: []function.BoolParameterValidator{
 					testvalidator.Bool{},
 				}},
-			expected: []function.BoolValidator{
+			expected: []function.BoolParameterValidator{
 				testvalidator.Bool{},
 			},
 		},
@@ -276,7 +276,7 @@ func TestBoolParameterBoolValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.BoolValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

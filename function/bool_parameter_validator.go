@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// BoolValidator is a function validator for types.Bool parameters.
-type BoolValidator interface {
+// BoolParameterValidator is a function validator for types.Bool parameters.
+type BoolParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, BoolRequest, *BoolResponse)
+	// Validate performs the validation.
+	Validate(context.Context, BoolParameterValidatorRequest, *BoolParameterValidatorResponse)
 }
 
-// BoolRequest is a request for types.Bool schema validation.
-type BoolRequest struct {
+// BoolParameterValidatorRequest is a request for types.Bool schema validation.
+type BoolParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type BoolRequest struct {
 	Value types.Bool
 }
 
-// BoolResponse is a response to a BoolRequest.
-type BoolResponse struct {
+// BoolParameterValidatorResponse is a response to a BoolParameterValidatorRequest.
+type BoolParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// SetValidator is a function validator for types.Set parameters.
-type SetValidator interface {
+// SetParameterValidator is a function validator for types.Set parameters.
+type SetParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, SetRequest, *SetResponse)
+	// Validate performs the validation.
+	Validate(context.Context, SetParameterValidatorRequest, *SetParameterValidatorResponse)
 }
 
-// SetRequest is a request for types.Set schema validation.
-type SetRequest struct {
+// SetParameterValidatorRequest is a request for types.Set schema validation.
+type SetParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type SetRequest struct {
 	Value types.Set
 }
 
-// SetResponse is a response to a SetRequest.
-type SetResponse struct {
+// SetParameterValidatorResponse is a response to a SetParameterValidatorRequest.
+type SetParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

@@ -86,10 +86,11 @@ type ListParameter struct {
 
 	// Validators is a list of list validators that should be applied to the
 	// parameter.
-	Validators []ListValidator
+	Validators []ListParameterValidator
 }
 
-func (p ListParameter) ListValidators() []ListValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p ListParameter) GetValidators() []ListParameterValidator {
 	return p.Validators
 }
 

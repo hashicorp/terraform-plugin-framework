@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Float64         = &Float64{}
-	_ function.Float64Validator = &Float64{}
+	_ validator.Float64                  = &Float64{}
+	_ function.Float64ParameterValidator = &Float64{}
 )
 
 // Declarative validator.Float64 for unit testing.
@@ -21,7 +21,7 @@ type Float64 struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateFloat64Method     func(context.Context, validator.Float64Request, *validator.Float64Response)
-	ValidateMethod            func(context.Context, function.Float64Request, *function.Float64Response)
+	ValidateMethod            func(context.Context, function.Float64ParameterValidatorRequest, *function.Float64ParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Float64 interface.
@@ -51,8 +51,8 @@ func (v Float64) ValidateFloat64(ctx context.Context, req validator.Float64Reque
 	v.ValidateFloat64Method(ctx, req, resp)
 }
 
-// Validate satisfies the function.Float64Validator interface.
-func (v Float64) Validate(ctx context.Context, req function.Float64Request, resp *function.Float64Response) {
+// Validate satisfies the function.Float64ParameterValidator interface.
+func (v Float64) Validate(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Number         = &Number{}
-	_ function.NumberValidator = &Number{}
+	_ validator.Number                  = &Number{}
+	_ function.NumberParameterValidator = &Number{}
 )
 
 // Declarative validator.Number for unit testing.
@@ -21,7 +21,7 @@ type Number struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateNumberMethod      func(context.Context, validator.NumberRequest, *validator.NumberResponse)
-	ValidateMethod            func(context.Context, function.NumberRequest, *function.NumberResponse)
+	ValidateMethod            func(context.Context, function.NumberParameterValidatorRequest, *function.NumberParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Number interface.
@@ -51,8 +51,8 @@ func (v Number) ValidateNumber(ctx context.Context, req validator.NumberRequest,
 	v.ValidateNumberMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.NumberValidator interface.
-func (v Number) Validate(ctx context.Context, req function.NumberRequest, resp *function.NumberResponse) {
+// Validate satisfies the function.NumberParameterValidator interface.
+func (v Number) Validate(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

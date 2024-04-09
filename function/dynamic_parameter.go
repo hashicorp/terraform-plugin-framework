@@ -69,10 +69,11 @@ type DynamicParameter struct {
 
 	// Validators is a list of dynamic validators that should be applied to the
 	// parameter.
-	Validators []DynamicValidator
+	Validators []DynamicParameterValidator
 }
 
-func (p DynamicParameter) DynamicValidators() []DynamicValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p DynamicParameter) GetValidators() []DynamicParameterValidator {
 	return p.Validators
 }
 

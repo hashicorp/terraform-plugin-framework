@@ -86,10 +86,11 @@ type MapParameter struct {
 
 	// Validators is a list of map validators that should be applied to the
 	// parameter.
-	Validators []MapValidator
+	Validators []MapParameterValidator
 }
 
-func (p MapParameter) MapValidators() []MapValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p MapParameter) GetValidators() []MapParameterValidator {
 	return p.Validators
 }
 

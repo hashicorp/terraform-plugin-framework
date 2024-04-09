@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	_ validator.Dynamic         = &Dynamic{}
-	_ function.DynamicValidator = &Dynamic{}
+	_ validator.Dynamic                  = &Dynamic{}
+	_ function.DynamicParameterValidator = &Dynamic{}
 )
 
 // Declarative validator.Dynamic for unit testing.
@@ -21,7 +21,7 @@ type Dynamic struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateDynamicMethod     func(context.Context, validator.DynamicRequest, *validator.DynamicResponse)
-	ValidateMethod            func(context.Context, function.DynamicRequest, *function.DynamicResponse)
+	ValidateMethod            func(context.Context, function.DynamicParameterValidatorRequest, *function.DynamicParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Dynamic interface.
@@ -51,8 +51,8 @@ func (v Dynamic) ValidateDynamic(ctx context.Context, req validator.DynamicReque
 	v.ValidateDynamicMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.DynamicValidator interface.
-func (v Dynamic) Validate(ctx context.Context, req function.DynamicRequest, resp *function.DynamicResponse) {
+// Validate satisfies the function.DynamicParameterValidator interface.
+func (v Dynamic) Validate(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

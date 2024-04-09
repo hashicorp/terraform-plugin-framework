@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// DynamicValidator is a function validator for types.Dynamic parameters.
-type DynamicValidator interface {
+// DynamicParameterValidator is a function validator for types.Dynamic parameters.
+type DynamicParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, DynamicRequest, *DynamicResponse)
+	// Validate performs the validation.
+	Validate(context.Context, DynamicParameterValidatorRequest, *DynamicParameterValidatorResponse)
 }
 
-// DynamicRequest is a request for types.Dynamic schema validation.
-type DynamicRequest struct {
+// DynamicParameterValidatorRequest is a request for types.Dynamic schema validation.
+type DynamicParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type DynamicRequest struct {
 	Value types.Dynamic
 }
 
-// DynamicResponse is a response to a DynamicRequest.
-type DynamicResponse struct {
+// DynamicParameterValidatorResponse is a response to a DynamicParameterValidatorRequest.
+type DynamicParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

@@ -74,10 +74,11 @@ type BoolParameter struct {
 
 	// Validators is a list of bool validators that should be applied to the
 	// parameter.
-	Validators []BoolValidator
+	Validators []BoolParameterValidator
 }
 
-func (p BoolParameter) BoolValidators() []BoolValidator {
+// GetValidators returns the list of validators for the parameter.
+func (p BoolParameter) GetValidators() []BoolParameterValidator {
 	return p.Validators
 }
 

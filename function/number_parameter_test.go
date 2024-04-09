@@ -248,7 +248,7 @@ func TestNumberParameterNumberValidators(t *testing.T) {
 
 	testCases := map[string]struct {
 		parameter function.NumberParameter
-		expected  []function.NumberValidator
+		expected  []function.NumberParameterValidator
 	}{
 		"unset": {
 			parameter: function.NumberParameter{},
@@ -256,15 +256,15 @@ func TestNumberParameterNumberValidators(t *testing.T) {
 		},
 		"Validators - empty": {
 			parameter: function.NumberParameter{
-				Validators: []function.NumberValidator{}},
-			expected: []function.NumberValidator{},
+				Validators: []function.NumberParameterValidator{}},
+			expected: []function.NumberParameterValidator{},
 		},
 		"Validators": {
 			parameter: function.NumberParameter{
-				Validators: []function.NumberValidator{
+				Validators: []function.NumberParameterValidator{
 					testvalidator.Number{},
 				}},
-			expected: []function.NumberValidator{
+			expected: []function.NumberParameterValidator{
 				testvalidator.Number{},
 			},
 		},
@@ -276,7 +276,7 @@ func TestNumberParameterNumberValidators(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.parameter.NumberValidators()
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

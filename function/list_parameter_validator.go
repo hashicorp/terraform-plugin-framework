@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ListValidator is a function validator for types.List parameters.
-type ListValidator interface {
+// ListParameterValidator is a function validator for types.List parameters.
+type ListParameterValidator interface {
 
-	// Validate should perform the validation.
-	Validate(context.Context, ListRequest, *ListResponse)
+	// Validate performs the validation.
+	Validate(context.Context, ListParameterValidatorRequest, *ListParameterValidatorResponse)
 }
 
-// ListRequest is a request for types.List schema validation.
-type ListRequest struct {
+// ListParameterValidatorRequest is a request for types.List schema validation.
+type ListParameterValidatorRequest struct {
 	// ArgumentPosition contains the position of the argument for validation.
 	// Use this position for any response diagnostics.
 	ArgumentPosition int64
@@ -26,8 +26,8 @@ type ListRequest struct {
 	Value types.List
 }
 
-// ListResponse is a response to a ListRequest.
-type ListResponse struct {
+// ListParameterValidatorResponse is a response to a ListParameterValidatorRequest.
+type ListParameterValidatorResponse struct {
 	// Error is a function error generated during validation of the Value.
 	Error *FuncError
 }

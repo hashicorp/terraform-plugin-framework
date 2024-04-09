@@ -286,7 +286,7 @@ func (v computeInstanceIdentifierValue) ValidateAttribute(ctx context.Context, r
 }
 
 // Implementation of the function.ValidateableParameter interface
-func (v computeInstanceIdentifierValue) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+func (v computeInstanceIdentifierValue) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
     if v.IsNull() || v.IsUnknown() {
         return
     }

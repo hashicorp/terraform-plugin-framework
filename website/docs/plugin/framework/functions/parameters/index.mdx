@@ -103,7 +103,7 @@ Implement the [`function.ValidateableParameter` interface](https://pkg.go.dev/gi
 
 ```go
 // Implementation of the function.ValidateableParameter interface
-func (v CustomStringValue) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+func (v CustomStringValue) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
     if v.IsNull() || v.IsUnknown() {
         return
     }

@@ -343,7 +343,7 @@ func (v CustomStringValue) ValidateAttribute(ctx context.Context, req xattr.Vali
 }
 
 // Implementation of the function.ValidateableParameter interface
-func (v CustomStringValue) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+func (v CustomStringValue) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
     if v.IsNull() || v.IsUnknown() {
         return
     }

@@ -251,7 +251,7 @@ schema.StringAttribute{
 
 ### Defining Value Validation
 
-To support validation for a custom value type, you must implement [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) for attribute validation, or [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) for provider-defined function parameter validation.
+To support validation for a custom value type, you must implement [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) for attribute validation, or [`function.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ValidateableParameter) for provider-defined function parameter validation.
 
 Both interfaces can be implemented if the same custom value type is used for both attributes and function parameters, for example:
 
@@ -260,7 +260,7 @@ Both interfaces can be implemented if the same custom value type is used for bot
 var (
     _ basetypes.StringValuable = computeInstanceIdentifierValue{}
     _ xattr.ValidateableAttribute = computeInstanceIdentifierValue{}
-    _ validation.ValidateableParameter = computeInstanceIdentifierValue{}
+    _ function.ValidateableParameter = computeInstanceIdentifierValue{}
 )
 
 // Other methods to implement the attr.Value interface are omitted for brevity
@@ -285,7 +285,7 @@ func (v computeInstanceIdentifierValue) ValidateAttribute(ctx context.Context, r
     }
 }
 
-// Implementation of the validation.ValidateableParameter interface
+// Implementation of the function.ValidateableParameter interface
 func (v computeInstanceIdentifierValue) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
     if v.IsNull() || v.IsUnknown() {
         return
@@ -337,7 +337,7 @@ schema.StringAttribute{
 
 <Note>
 
-The [`xattr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate) has been deprecated. Refer to [Defining Value Validation](#defining-value-validation) for more information about using [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute), and [`validation.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types/validation#ValidateableParameter) instead.
+The [`xattr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate) has been deprecated. Refer to [Defining Value Validation](#defining-value-validation) for more information about using [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute), and [`function.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ValidateableParameter) instead.
 
 </Note>
 

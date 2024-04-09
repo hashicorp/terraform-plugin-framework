@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
 
 type StringTypeWithValidateParameterError struct {
@@ -44,7 +43,7 @@ func (t StringTypeWithValidateParameterError) ValueFromTerraform(ctx context.Con
 	}, nil
 }
 
-var _ validation.ValidateableParameter = StringValueWithValidateParameterError{}
+var _ function.ValidateableParameter = StringValueWithValidateParameterError{}
 
 type StringValueWithValidateParameterError struct {
 	InternalString String
@@ -80,6 +79,6 @@ func (v StringValueWithValidateParameterError) String() string {
 	return v.InternalString.String()
 }
 
-func (v StringValueWithValidateParameterError) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+func (v StringValueWithValidateParameterError) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
 	resp.Error = function.NewArgumentFuncError(req.Position, "This is a function error")
 }

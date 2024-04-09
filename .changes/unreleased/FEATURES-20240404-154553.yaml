@@ -1,8 +1,0 @@
-kind: FEATURES
-body: 'types/validation: Added `BoolValuableWithValidateableAttribute`, `Float64ValuableWithValidateableAttribute`,
-  `Int64ValuableWithValidateableAttribute`, `ListValuableWithValidateableAttribute`, `MapValuableWithValidateableAttribute`,
-  `NumberValuableWithValidateableAttribute`, `ObjectValuableWithValidateableAttribute`, `SetValuableWithValidateableAttribute`,
-  and `StringValuableWithValidateableAttribute` interfaces for custom value type-specific implementations'
-time: 2024-04-04T15:45:53.376774+01:00
-custom:
-  Issue: "968"

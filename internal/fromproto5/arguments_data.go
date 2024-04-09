@@ -59,24 +59,6 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		switch {
 		case definition.VariadicParameter != nil && position >= len(definition.Parameters):
 			parameter = definition.VariadicParameter
-		case len(definition.Parameters) == 0:
-			return function.NewArgumentsData(nil), function.NewArgumentFuncError(
-				pos,
-				"Invalid Parameter Position for Definition: "+
-					"When determining the parameter for the given argument position, an invalid value was given. "+
-					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-					"Function does not implement parameters.\n"+
-					fmt.Sprintf("Given position: %d", position),
-			)
-		case position >= len(definition.Parameters):
-			return function.NewArgumentsData(nil), function.NewArgumentFuncError(
-				pos,
-				"Invalid Parameter Position for Definition: "+
-					"When determining the parameter for the given argument position, an invalid value was given. "+
-					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Max argument position: %d\n", len(definition.Parameters)-1)+
-					fmt.Sprintf("Given position: %d", position),
-			)
 		default:
 			parameter = definition.Parameters[position]
 		}

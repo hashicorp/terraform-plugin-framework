@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction/xfwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -55,15 +54,35 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	var funcError *function.FuncError
 
 	for position, argument := range arguments {
-		parameter, parameterFuncError := xfwfunction.Parameter(ctx, definition, position)
+		var parameter function.Parameter
+		pos := int64(position)
 
-		if parameterFuncError != nil {
-			return function.NewArgumentsData(nil), function.ConcatFuncErrors(funcError, parameterFuncError)
+		switch {
+		case definition.VariadicParameter != nil && position >= len(definition.Parameters):
+			parameter = definition.VariadicParameter
+		case len(definition.Parameters) == 0:
+			return function.NewArgumentsData(nil), function.NewArgumentFuncError(
+				pos,
+				"Invalid Parameter Position for Definition: "+
+					"When determining the parameter for the given argument position, an invalid value was given. "+
+					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+					"Function does not implement parameters.\n"+
+					fmt.Sprintf("Given position: %d", position),
+			)
+		case position >= len(definition.Parameters):
+			return function.NewArgumentsData(nil), function.NewArgumentFuncError(
+				pos,
+				"Invalid Parameter Position for Definition: "+
+					"When determining the parameter for the given argument position, an invalid value was given. "+
+					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Max argument position: %d\n", len(definition.Parameters)-1)+
+					fmt.Sprintf("Given position: %d", position),
+			)
+		default:
+			parameter = definition.Parameters[position]
 		}
 
 		parameterType := parameter.GetType()
-
-		pos := int64(position)
 
 		if parameterType == nil {
 			funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -201,4 +220,39 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	}
 
 	return function.NewArgumentsData(argumentValues), funcError
+}
+
+// Parameter returns the Parameter for a given argument position. This may be
+// from the Parameters field or, if defined, the VariadicParameter field. An
+// error is raised if the position is outside the expected arguments.
+func Parameter(ctx context.Context, d function.Definition, position int) (function.Parameter, *function.FuncError) {
+	if d.VariadicParameter != nil && position >= len(d.Parameters) {
+		return d.VariadicParameter, nil
+	}
+
+	pos := int64(position)
+
+	if len(d.Parameters) == 0 {
+		return nil, function.NewArgumentFuncError(
+			pos,
+			"Invalid Parameter Position for Definition: "+
+				"When determining the parameter for the given argument position, an invalid value was given. "+
+				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+				"Function does not implement parameters.\n"+
+				fmt.Sprintf("Given position: %d", position),
+		)
+	}
+
+	if position >= len(d.Parameters) {
+		return nil, function.NewArgumentFuncError(
+			pos,
+			"Invalid Parameter Position for Definition: "+
+				"When determining the parameter for the given argument position, an invalid value was given. "+
+				"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+				fmt.Sprintf("Max argument position: %d\n", len(d.Parameters)-1)+
+				fmt.Sprintf("Given position: %d", position),
+		)
+	}
+
+	return d.Parameters[position], nil
 }

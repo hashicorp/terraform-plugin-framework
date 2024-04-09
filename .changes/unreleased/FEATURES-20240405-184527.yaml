@@ -2,8 +2,8 @@ kind: FEATURES
 body: '`function`: Add `ParameterWithBoolValidators`, `ParameterWithInt64Validators`,
   `ParameterWithFloat64Validators`, `ParameterWithDynamicValidators`, `ParameterWithListValidators`,
   `ParameterWithMapValidators`, `ParameterWithNumberValidators`, `ParameterWithObjectValidators`,
-  `ParameterWithSetValidators`, and `ParameterWithStringValidators` interfaces for
-  custom type-specific parameter support for validation'
+  `ParameterWithSetValidators`, and `ParameterWithStringValidators` interfaces to enable
+   parameter-based validation support'
 time: 2024-04-05T18:45:27.979266-04:00
 custom:
   Issue: "971"

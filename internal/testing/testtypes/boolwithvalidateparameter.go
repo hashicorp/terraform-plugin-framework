@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
 
 type BoolTypeWithValidateParameterError struct {
@@ -44,12 +43,12 @@ func (t BoolTypeWithValidateParameterError) ValueFromTerraform(ctx context.Conte
 	}, nil
 }
 
-var _ validation.ValidateableParameter = BoolValueWithValidateParameterError{}
+var _ function.ValidateableParameter = BoolValueWithValidateParameterError{}
 
 type BoolValueWithValidateParameterError struct {
 	Bool
 }
 
-func (v BoolValueWithValidateParameterError) ValidateParameter(ctx context.Context, req validation.ValidateParameterRequest, resp *validation.ValidateParameterResponse) {
+func (v BoolValueWithValidateParameterError) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
 	resp.Error = function.NewArgumentFuncError(req.Position, "This is a function error")
 }

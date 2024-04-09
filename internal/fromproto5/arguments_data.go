@@ -12,11 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction/xfwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-framework/types/validation"
 )
 
 // ArgumentsData returns the ArgumentsData for a given []*tfprotov5.DynamicValue
@@ -55,15 +53,17 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 	var funcError *function.FuncError
 
 	for position, argument := range arguments {
-		parameter, parameterFuncError := xfwfunction.Parameter(ctx, definition, position)
+		var parameter function.Parameter
+		pos := int64(position)
 
-		if parameterFuncError != nil {
-			return function.NewArgumentsData(nil), function.ConcatFuncErrors(funcError, parameterFuncError)
+		switch {
+		case definition.VariadicParameter != nil && position >= len(definition.Parameters):
+			parameter = definition.VariadicParameter
+		default:
+			parameter = definition.Parameters[position]
 		}
 
 		parameterType := parameter.GetType()
-
-		pos := int64(position)
 
 		if parameterType == nil {
 			funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
@@ -114,14 +114,14 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/589
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/893
 		switch t := attrValue.(type) {
-		case validation.ValidateableParameter:
-			resp := validation.ValidateParameterResponse{}
+		case function.ValidateableParameter:
+			resp := function.ValidateParameterResponse{}
 
 			logging.FrameworkTrace(ctx, "Parameter value implements ValidateableParameter")
 			logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateParameter")
 
 			t.ValidateParameter(ctx,
-				validation.ValidateParameterRequest{
+				function.ValidateParameterRequest{
 					Position: pos,
 				},
 				&resp,

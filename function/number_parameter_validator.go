@@ -12,8 +12,8 @@ import (
 // NumberParameterValidator is a function validator for types.Number parameters.
 type NumberParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, NumberParameterValidatorRequest, *NumberParameterValidatorResponse)
+	// ValidateParameterNumber performs the validation.
+	ValidateParameterNumber(context.Context, NumberParameterValidatorRequest, *NumberParameterValidatorResponse)
 }
 
 // NumberParameterValidatorRequest is a request for types.Number schema validation.

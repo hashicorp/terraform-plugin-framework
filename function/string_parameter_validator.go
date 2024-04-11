@@ -12,8 +12,8 @@ import (
 // StringParameterValidator is a function validator for types.String parameters.
 type StringParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, StringParameterValidatorRequest, *StringParameterValidatorResponse)
+	// ValidateParameterString performs the validation.
+	ValidateParameterString(context.Context, StringParameterValidatorRequest, *StringParameterValidatorResponse)
 }
 
 // StringParameterValidatorRequest is a request for types.String schema validation.

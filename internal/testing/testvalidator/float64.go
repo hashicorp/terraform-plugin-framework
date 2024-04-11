@@ -51,8 +51,8 @@ func (v Float64) ValidateFloat64(ctx context.Context, req validator.Float64Reque
 	v.ValidateFloat64Method(ctx, req, resp)
 }
 
-// Validate satisfies the function.Float64ParameterValidator interface.
-func (v Float64) Validate(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
+// ValidateParameterFloat64 satisfies the function.Float64ParameterValidator interface.
+func (v Float64) ValidateParameterFloat64(ctx context.Context, req function.Float64ParameterValidatorRequest, resp *function.Float64ParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

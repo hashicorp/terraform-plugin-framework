@@ -12,8 +12,8 @@ import (
 // SetParameterValidator is a function validator for types.Set parameters.
 type SetParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, SetParameterValidatorRequest, *SetParameterValidatorResponse)
+	// ValidateParameterSet performs the validation.
+	ValidateParameterSet(context.Context, SetParameterValidatorRequest, *SetParameterValidatorResponse)
 }
 
 // SetParameterValidatorRequest is a request for types.Set schema validation.

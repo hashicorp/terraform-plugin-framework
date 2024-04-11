@@ -51,8 +51,8 @@ func (v Int64) ValidateInt64(ctx context.Context, req validator.Int64Request, re
 	v.ValidateInt64Method(ctx, req, resp)
 }
 
-// Validate satisfies the function.Int64ParameterValidator interface.
-func (v Int64) Validate(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
+// ValidateParameterInt64 satisfies the function.Int64ParameterValidator interface.
+func (v Int64) ValidateParameterInt64(ctx context.Context, req function.Int64ParameterValidatorRequest, resp *function.Int64ParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

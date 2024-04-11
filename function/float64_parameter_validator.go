@@ -12,8 +12,8 @@ import (
 // Float64ParameterValidator is a function validator for types.Float64 parameters.
 type Float64ParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, Float64ParameterValidatorRequest, *Float64ParameterValidatorResponse)
+	// ValidateParameterFloat64 performs the validation.
+	ValidateParameterFloat64(context.Context, Float64ParameterValidatorRequest, *Float64ParameterValidatorResponse)
 }
 
 // Float64ParameterValidatorRequest is a request for types.Float64 schema validation.

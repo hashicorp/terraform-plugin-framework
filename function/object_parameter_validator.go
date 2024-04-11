@@ -12,8 +12,8 @@ import (
 // ObjectParameterValidator is a function validator for types.Object parameters.
 type ObjectParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, ObjectParameterValidatorRequest, *ObjectParameterValidatorResponse)
+	// ValidateParameterObject ValidateParameterSet performs the validation.
+	ValidateParameterObject(context.Context, ObjectParameterValidatorRequest, *ObjectParameterValidatorResponse)
 }
 
 // ObjectParameterValidatorRequest is a request for types.Object schema validation.

@@ -12,8 +12,8 @@ import (
 // MapParameterValidator is a function validator for types.Map parameters.
 type MapParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, MapParameterValidatorRequest, *MapParameterValidatorResponse)
+	// ValidateParameterMap performs the validation.
+	ValidateParameterMap(context.Context, MapParameterValidatorRequest, *MapParameterValidatorResponse)
 }
 
 // MapParameterValidatorRequest is a request for types.Map schema validation.

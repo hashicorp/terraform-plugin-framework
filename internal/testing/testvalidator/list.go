@@ -51,8 +51,8 @@ func (v List) ValidateList(ctx context.Context, req validator.ListRequest, resp 
 	v.ValidateListMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.ListParameterValidator interface.
-func (v List) Validate(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
+// ValidateParameterList satisfies the function.ListParameterValidator interface.
+func (v List) ValidateParameterList(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

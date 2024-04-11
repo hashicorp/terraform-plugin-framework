@@ -51,8 +51,8 @@ func (v Number) ValidateNumber(ctx context.Context, req validator.NumberRequest,
 	v.ValidateNumberMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.NumberParameterValidator interface.
-func (v Number) Validate(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
+// ValidateParameterNumber satisfies the function.NumberParameterValidator interface.
+func (v Number) ValidateParameterNumber(ctx context.Context, req function.NumberParameterValidatorRequest, resp *function.NumberParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

@@ -12,8 +12,8 @@ import (
 // BoolParameterValidator is a function validator for types.Bool parameters.
 type BoolParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, BoolParameterValidatorRequest, *BoolParameterValidatorResponse)
+	// ValidateParameterBool performs the validation.
+	ValidateParameterBool(context.Context, BoolParameterValidatorRequest, *BoolParameterValidatorResponse)
 }
 
 // BoolParameterValidatorRequest is a request for types.Bool schema validation.

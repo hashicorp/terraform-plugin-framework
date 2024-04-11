@@ -51,8 +51,8 @@ func (v String) ValidateString(ctx context.Context, req validator.StringRequest,
 	v.ValidateStringMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.StringParameterValidator interface.
-func (v String) Validate(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
+// ValidateParameterString satisfies the function.StringParameterValidator interface.
+func (v String) ValidateParameterString(ctx context.Context, req function.StringParameterValidatorRequest, resp *function.StringParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

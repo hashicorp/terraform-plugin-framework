@@ -12,8 +12,8 @@ import (
 // DynamicParameterValidator is a function validator for types.Dynamic parameters.
 type DynamicParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, DynamicParameterValidatorRequest, *DynamicParameterValidatorResponse)
+	// ValidateParameterDynamic performs the validation.
+	ValidateParameterDynamic(context.Context, DynamicParameterValidatorRequest, *DynamicParameterValidatorResponse)
 }
 
 // DynamicParameterValidatorRequest is a request for types.Dynamic schema validation.

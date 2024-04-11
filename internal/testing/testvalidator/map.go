@@ -51,8 +51,8 @@ func (v Map) ValidateMap(ctx context.Context, req validator.MapRequest, resp *va
 	v.ValidateMapMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.MapParameterValidator interface.
-func (v Map) Validate(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
+// ValidateParameterMap satisfies the function.MapParameterValidator interface.
+func (v Map) ValidateParameterMap(ctx context.Context, req function.MapParameterValidatorRequest, resp *function.MapParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

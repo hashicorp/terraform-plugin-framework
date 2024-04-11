@@ -12,8 +12,8 @@ import (
 // Int64ParameterValidator is a function validator for types.Int64 parameters.
 type Int64ParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, Int64ParameterValidatorRequest, *Int64ParameterValidatorResponse)
+	// ValidateParameterInt64 performs the validation.
+	ValidateParameterInt64(context.Context, Int64ParameterValidatorRequest, *Int64ParameterValidatorResponse)
 }
 
 // Int64ParameterValidatorRequest is a request for types.Int64 schema validation.

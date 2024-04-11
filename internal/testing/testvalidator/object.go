@@ -51,8 +51,8 @@ func (v Object) ValidateObject(ctx context.Context, req validator.ObjectRequest,
 	v.ValidateObjectMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.ObjectParameterValidator interface.
-func (v Object) Validate(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
+// ValidateParameterObject satisfies the function.ObjectParameterValidator interface.
+func (v Object) ValidateParameterObject(ctx context.Context, req function.ObjectParameterValidatorRequest, resp *function.ObjectParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

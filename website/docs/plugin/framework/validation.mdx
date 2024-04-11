@@ -258,7 +258,7 @@ type stringLengthBetweenValidator struct {
 }
 
 // Validate runs the main validation logic of the validator, reading configuration data out of `req` and updating `resp` with diagnostics.
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, req validator.StringParameterValidatorRequest, resp *validator.StringParameterValidatorResponse) {
+func (v stringLengthBetweenValidator) ValidateParameterString(ctx context.Context, req validator.StringParameterValidatorRequest, resp *validator.StringParameterValidatorResponse) {
 	// If the value is unknown or null, there is nothing to validate.
     if req.Value.IsUnknown() || req.Value.IsNull() {
         return
@@ -332,7 +332,7 @@ func (v stringLengthBetweenValidator) ValidateString(ctx context.Context, req va
 }
 
 // Validate runs the main validation logic of the parameter validator, reading configuration data out of `req` and updating `resp` with diagnostics.
-func (v stringLengthBetweenValidator) Validate(ctx context.Context, req validator.StringParameterValidatorRequest, resp *validator.StringParameterValidatorResponse) {
+func (v stringLengthBetweenValidator) ValidateParameterString(ctx context.Context, req validator.StringParameterValidatorRequest, resp *validator.StringParameterValidatorResponse) {
 	// If the value is unknown or null, there is nothing to validate.
     if req.Value.IsUnknown() || req.Value.IsNull() {
         return

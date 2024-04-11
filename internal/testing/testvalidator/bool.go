@@ -51,8 +51,8 @@ func (v Bool) ValidateBool(ctx context.Context, req validator.BoolRequest, resp 
 	v.ValidateBoolMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.BoolParameterValidator interface.
-func (v Bool) Validate(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
+// ValidateParameterBool satisfies the function.BoolParameterValidator interface.
+func (v Bool) ValidateParameterBool(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

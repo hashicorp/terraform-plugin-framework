@@ -51,8 +51,8 @@ func (v Set) ValidateSet(ctx context.Context, req validator.SetRequest, resp *va
 	v.ValidateSetMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.SetParameterValidator interface.
-func (v Set) Validate(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
+// ValidateParameterSet satisfies the function.SetParameterValidator interface.
+func (v Set) ValidateParameterSet(ctx context.Context, req function.SetParameterValidatorRequest, resp *function.SetParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

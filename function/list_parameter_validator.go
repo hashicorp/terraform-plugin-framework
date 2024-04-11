@@ -12,8 +12,8 @@ import (
 // ListParameterValidator is a function validator for types.List parameters.
 type ListParameterValidator interface {
 
-	// Validate performs the validation.
-	Validate(context.Context, ListParameterValidatorRequest, *ListParameterValidatorResponse)
+	// ValidateParameterList performs the validation.
+	ValidateParameterList(context.Context, ListParameterValidatorRequest, *ListParameterValidatorResponse)
 }
 
 // ListParameterValidatorRequest is a request for types.List schema validation.

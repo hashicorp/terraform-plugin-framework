@@ -51,8 +51,8 @@ func (v Dynamic) ValidateDynamic(ctx context.Context, req validator.DynamicReque
 	v.ValidateDynamicMethod(ctx, req, resp)
 }
 
-// Validate satisfies the function.DynamicParameterValidator interface.
-func (v Dynamic) Validate(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
+// ValidateParameterDynamic satisfies the function.DynamicParameterValidator interface.
+func (v Dynamic) ValidateParameterDynamic(ctx context.Context, req function.DynamicParameterValidatorRequest, resp *function.DynamicParameterValidatorResponse) {
 	if v.ValidateMethod == nil {
 		return
 	}

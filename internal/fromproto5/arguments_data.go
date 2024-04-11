@@ -185,7 +185,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            boolVal,
 				}
 				resp := &function.BoolParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterBool(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -218,7 +218,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            dynamicVal,
 				}
 				resp := &function.DynamicParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterDynamic(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -251,7 +251,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            float64Val,
 				}
 				resp := &function.Float64ParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterFloat64(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -284,7 +284,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            int64Val,
 				}
 				resp := &function.Int64ParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterInt64(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -317,7 +317,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            listVal,
 				}
 				resp := &function.ListParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterList(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -350,7 +350,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            mapVal,
 				}
 				resp := &function.MapParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterMap(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -383,7 +383,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            numberVal,
 				}
 				resp := &function.NumberParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterNumber(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -416,7 +416,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            objectVal,
 				}
 				resp := &function.ObjectParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterObject(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -449,7 +449,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            setVal,
 				}
 				resp := &function.SetParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterSet(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,
@@ -482,7 +482,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 					Value:            stringVal,
 				}
 				resp := &function.StringParameterValidatorResponse{}
-				functionValidator.Validate(ctx, req, resp)
+				functionValidator.ValidateParameterString(ctx, req, resp)
 				if resp.Error != nil {
 					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
 						pos,

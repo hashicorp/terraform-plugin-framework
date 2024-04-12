@@ -225,7 +225,94 @@ func Int64IsGreaterThan(expressions ...path.Expression) validator.Int64 {
 }
 ```
 
+## Value Validation
+
+Validation of custom value types can be used for both attribute values and provider-defined function parameter values. This can be useful if you have consistent validation rules for a specific value type across multiple attributes or function parameters.
+
+When you implement validation on a custom value type associated with a schema attribute, you do not need to declare the same validation on the attribute, but you can supply additional validations in that manner. For example:
+
+```go
+// Typically within the schema.Schema returned by Schema() for a provider,
+// resource, or data source.
+schema.StringAttribute{
+    // ... other Attribute configuration ...
+
+    // This is an example type with a corresponding custom value type
+    // which implements its own validation
+    CustomType: computeInstanceIdentifierType,
+
+    // This is optional, example validation that is checked in addition
+    // to any validation performed by the custom value type
+    Validators: []validator.String{
+        stringvalidator.LengthBetween(10, 256),
+    },
+}
+```
+
+### Defining Value Validation
+
+To support validation for a custom value type, you must implement [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute) for attribute validation, or [`function.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ValidateableParameter) for provider-defined function parameter validation.
+
+Both interfaces can be implemented if the same custom value type is used for both attributes and function parameters, for example:
+
+```go
+// Ensure the implementation satisfies the expected interfaces
+var (
+    _ basetypes.StringValuable = computeInstanceIdentifierValue{}
+    _ xattr.ValidateableAttribute = computeInstanceIdentifierValue{}
+    _ function.ValidateableParameter = computeInstanceIdentifierValue{}
+)
+
+// Other methods to implement the attr.Value interface are omitted for brevity
+type computeInstanceIdentifierValue struct {
+    basetypes.StringValue
+}
+
+// Implementation of the xattr.ValidateableAttribute interface
+func (v computeInstanceIdentifierValue) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
+    if v.IsNull() || v.IsUnknown() {
+        return
+    }
+
+    if !v.isValid(v.ValueString()) {
+        resp.Diagnostics.AddAttributeError(
+            req.Path,
+            "Compute Instance Type Validation Error",
+            fmt.Sprintf("Missing `instance-` prefix, got: %s", v.ValueString()),
+        )
+
+        return
+    }
+}
+
+// Implementation of the function.ValidateableParameter interface
+func (v computeInstanceIdentifierValue) ValidateParameter(ctx context.Context, req function.ValidateParameterRequest, resp *function.ValidateParameterResponse) {
+    if v.IsNull() || v.IsUnknown() {
+        return
+    }
+
+    if !v.isValid(v.ValueString()) {
+        resp.Error = function.NewArgumentFuncError(
+            req.Position,
+            fmt.Sprintf("Compute Instance Type Validation Error: Missing `instance-` prefix, got: %s", v.ValueString()),
+        )
+
+        return
+    }
+}
+
+func (v computeInstanceIdentifierValue) isValid(in string) bool {
+    return strings.HasPrefix(in, "instance-")
+}
+```
+
 ## Type Validation
+
+<Note>
+
+`Value` validation should be used in preference to `Type` validation. Refer to [Value Validation](#value-validation) for more information.
+
+</Note>
 
 You may want to create a custom type to simplify schemas if your provider contains common attribute values with consistent validation rules. When you implement validation on a type, you do not need to declare the same validation on the attribute, but you can supply additional validations in that manner. For example:
 
@@ -247,6 +334,12 @@ schema.StringAttribute{
 ```
 
 ### Defining Type Validation
+
+<Note>
+
+The [`xattr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate) has been deprecated. Refer to [Defining Value Validation](#defining-value-validation) for more information about using [`xattr.ValidateableAttribute` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#ValidateableAttribute), and [`function.ValidateableParameter` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#ValidateableParameter) instead.
+
+</Note>
 
 To support validation within a type, you must implement the [`xattr.TypeWithValidate` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/attr/xattr#TypeWithValidate). For example:
 

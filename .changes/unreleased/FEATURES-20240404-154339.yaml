@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'attr/xattr: Added `ValidateableAttribute` interface for custom value type implementations'
+time: 2024-04-04T15:43:39.796606+01:00
+custom:
+  Issue: "968"

@@ -8,25 +8,25 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestCallFunctionRequest(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input               *tfprotov6.CallFunctionRequest
-		function            function.Function
-		functionDefinition  function.Definition
-		expected            *fwserver.CallFunctionRequest
-		expectedDiagnostics diag.Diagnostics
+		input              *tfprotov6.CallFunctionRequest
+		function           function.Function
+		functionDefinition function.Definition
+		expected           *fwserver.CallFunctionRequest
+		expectedFuncError  *function.FuncError
 	}{
 		"nil": {
 			input:    nil,
@@ -92,7 +92,7 @@ func TestCallFunctionRequest(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedFuncError); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
 			}
 		})

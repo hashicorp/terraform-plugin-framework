@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -989,6 +990,228 @@ func TestFromStruct_errors(t *testing.T) {
 						"Expected framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n"+
 						"Received framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n"+
 						"Path: test.string",
+				),
+			},
+		},
+		"struct-validate-error": {
+			typ: testtypes.ObjectTypeWithValidateError{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"struct-validate-attribute-error": {
+			typ: testtypes.ObjectTypeWithValidateAttributeError{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"struct-validate-warning": {
+			typ: testtypes.ObjectTypeWithValidateWarning{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{
+					Test: types.StringValue("test"),
+				},
+			),
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"test": types.StringType,
+				},
+				map[string]attr.Value{
+					"test": types.StringValue("test"),
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
+				),
+			},
+		},
+		"struct-validate-attribute-warning": {
+			typ: testtypes.ObjectTypeWithValidateAttributeWarning{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"test": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{
+					Test: types.StringValue("test"),
+				},
+			),
+			expected: testtypes.ObjectValueWithValidateAttributeWarning{
+				Object: types.ObjectValueMust(
+					map[string]attr.Type{
+						"test": types.StringType,
+					},
+					map[string]attr.Value{
+						"test": types.StringValue("test"),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
+				),
+			},
+		},
+		"struct-field-validate-error": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateError{},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"struct-field-validate-attribute-error": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateAttributeWarning{},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test testtypes.StringValueWithValidateAttributeError `tfsdk:"test"`
+				}{
+					Test: testtypes.StringValueWithValidateAttributeError{
+						InternalString: testtypes.String{
+							InternalString: types.String{},
+							CreatedBy:      testtypes.StringTypeWithValidateAttributeError{},
+						},
+					},
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"struct-field-validate-warning": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateWarning{},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+				}{
+					Test: types.StringValue("test"),
+				},
+			),
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateWarning{},
+				},
+				map[string]attr.Value{
+					"test": testtypes.String{
+						InternalString: types.StringValue("test"),
+						CreatedBy:      testtypes.StringTypeWithValidateWarning{},
+					},
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test").AtName("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
+				),
+			},
+		},
+		"struct-field-validate-attribute-warning": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateAttributeWarning{},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test testtypes.StringValueWithValidateAttributeWarning `tfsdk:"test"`
+				}{
+					Test: testtypes.StringValueWithValidateAttributeWarning{
+						InternalString: testtypes.String{
+							InternalString: types.StringValue("test"),
+							CreatedBy:      testtypes.StringTypeWithValidateAttributeWarning{},
+						},
+					},
+				},
+			),
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"test": testtypes.StringTypeWithValidateAttributeWarning{},
+				},
+				map[string]attr.Value{
+					"test": testtypes.StringValueWithValidateAttributeWarning{
+						InternalString: testtypes.String{
+							InternalString: types.StringValue("test"),
+							CreatedBy:      testtypes.StringTypeWithValidateAttributeWarning{},
+						},
+					},
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test").AtName("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
 				),
 			},
 		},

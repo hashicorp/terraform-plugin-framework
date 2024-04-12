@@ -1,0 +1,5 @@
+kind: BREAKING CHANGES
+body: 'function: Removed `Definition` type `Parameter()` method'
+time: 2024-04-04T18:20:04.534677+01:00
+custom:
+  Issue: "968"

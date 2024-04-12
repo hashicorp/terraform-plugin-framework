@@ -11,6 +11,8 @@ import (
 )
 
 // ValidateableAttribute defines an interface for validating an attribute value.
+// The ValidateAttribute method is called implicitly by the framework when value
+// types from Terraform are converted into framework types.
 type ValidateableAttribute interface {
 	// ValidateAttribute returns any warnings or errors generated during validation
 	// of the attribute. It is generally used to check the data format and ensure

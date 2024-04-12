@@ -527,8 +527,9 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 		}
 		variadicValue, variadicValueDiags := basetypes.NewTupleValue(tupleTypes, tupleValues)
 
-		if variadicValueDiags.HasError() {
-			funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, variadicValueDiags))
+		funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, variadicValueDiags))
+
+		if funcError != nil {
 			return function.NewArgumentsData(argumentValues), funcError
 		}
 

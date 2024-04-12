@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -535,9 +536,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: This is an error.",
@@ -552,9 +551,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateParameterError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"This is a function error",
@@ -623,9 +620,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: This is an error.\nError Diagnostic: This is an error.",
@@ -641,9 +636,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateParameterError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"This is a function error\nThis is a function error",

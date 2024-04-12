@@ -92,7 +92,8 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.ArgumentsData{},
 			expectedFuncError: function.NewArgumentFuncError(
-				0, "Unable to Convert Function Argument: "+
+				0,
+				"Unable to Convert Function Argument: "+
 					"An unexpected error was encountered when converting the function argument from the protocol type. "+
 					"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 					"Please report this to the provider developer:\n\n"+
@@ -147,7 +148,8 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
-				0, "Error Diagnostic: This is an error.",
+				0,
+				"Error Diagnostic: This is an error.",
 			),
 		},
 		"parameters-one-TypeWithParameterValidation-error": {
@@ -163,7 +165,8 @@ func TestArgumentsData(t *testing.T) {
 			},
 			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
-				0, "This is a function error",
+				0,
+				"This is a function error",
 			),
 		},
 		"parameters-one-TypeWithValidation-warning": {
@@ -532,9 +535,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: This is an error.",
@@ -549,9 +550,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateParameterError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"This is a function error",
@@ -620,9 +619,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: This is an error.\nError Diagnostic: This is an error.",
@@ -638,9 +635,7 @@ func TestArgumentsData(t *testing.T) {
 					CustomType: testtypes.StringTypeWithValidateParameterError{},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust([]attr.Type{}, []attr.Value{}),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"This is a function error\nThis is a function error",

@@ -784,7 +784,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -827,7 +827,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -891,7 +891,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -950,7 +950,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -993,7 +993,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1055,7 +1055,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1114,7 +1114,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1157,7 +1157,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1219,7 +1219,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1278,7 +1278,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1321,7 +1321,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1383,7 +1383,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1445,7 +1445,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1491,7 +1491,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1564,7 +1564,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1628,7 +1628,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1675,7 +1675,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1750,7 +1750,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1809,7 +1809,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1852,7 +1852,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -1916,7 +1916,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -1988,7 +1988,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2041,7 +2041,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -2124,7 +2124,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2186,7 +2186,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2232,7 +2232,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: error 1."+
 					"\nError Diagnostic: error 2.",
@@ -2305,7 +2305,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2364,7 +2364,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2407,7 +2407,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0,
 				"Error Diagnostic: error 1."+
@@ -2472,7 +2472,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.NewArgumentFuncError(
 				0, "Error Diagnostic: This is an error.",
 			),
@@ -2568,7 +2568,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(0, "Error Diagnostic: bool validator error."),
 				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),
@@ -2631,16 +2631,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust(
-					[]attr.Type{
-						basetypes.StringType{},
-					},
-					[]attr.Value{
-						basetypes.NewStringValue("false"),
-					},
-				),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
 			),
@@ -2706,18 +2697,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust(
-					[]attr.Type{
-						basetypes.StringType{},
-						basetypes.StringType{},
-					},
-					[]attr.Value{
-						basetypes.NewStringValue("true"),
-						basetypes.NewStringValue("false"),
-					},
-				),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(1, "Error Diagnostic: string validator error."),
 			),
@@ -2746,18 +2726,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 					},
 				},
 			},
-			expected: function.NewArgumentsData([]attr.Value{
-				basetypes.NewTupleValueMust(
-					[]attr.Type{
-						basetypes.StringType{},
-						basetypes.StringType{},
-					},
-					[]attr.Value{
-						basetypes.NewStringValue("false"),
-						basetypes.NewStringValue("false"),
-					},
-				),
-			}),
+			expected: function.NewArgumentsData(nil),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
 				function.NewArgumentFuncError(0, "Error Diagnostic: string validator error."),
@@ -2809,16 +2778,6 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			},
 			expected: function.NewArgumentsData([]attr.Value{
 				basetypes.NewBoolValue(true),
-				basetypes.NewTupleValueMust(
-					[]attr.Type{
-						basetypes.StringType{},
-						basetypes.StringType{},
-					},
-					[]attr.Value{
-						basetypes.NewStringValue("true"),
-						basetypes.NewStringValue("false"),
-					},
-				),
 			}),
 			expectedFuncError: function.ConcatFuncErrors(
 				function.NewArgumentFuncError(2, "Error Diagnostic: string validator error."),

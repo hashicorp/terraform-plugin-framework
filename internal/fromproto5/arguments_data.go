@@ -498,6 +498,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov5.DynamicValue, def
 			continue
 		}
 
+		// Skip appending argument values if parameter validation raises an error.
 		if funcError != nil {
 			continue
 		}

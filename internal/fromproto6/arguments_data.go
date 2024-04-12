@@ -498,6 +498,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			continue
 		}
 
+		// Skip appending argument values if parameter validation raises an error.
 		if funcError != nil {
 			continue
 		}
@@ -525,6 +526,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			tupleTypes[i] = variadicType
 			tupleValues[i] = val
 		}
+
 		variadicValue, variadicValueDiags := basetypes.NewTupleValue(tupleTypes, tupleValues)
 
 		funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, variadicValueDiags))

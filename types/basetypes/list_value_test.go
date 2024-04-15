@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestNewListValue(t *testing.T) {
@@ -161,9 +162,9 @@ func TestNewListValueFrom(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Empty(),
-					"List Type Validation Error",
-					"An unexpected error was encountered trying to validate an attribute value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"expected List value, received tftypes.Value with value: tftypes.String<\"oops\">",
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert the Terraform value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"can't use tftypes.String<\"oops\"> as value of List with ElementType basetypes.StringType, can only use tftypes.String values",
 				),
 			},
 		},

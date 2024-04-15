@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	refl "github.com/hashicorp/terraform-plugin-framework/internal/reflect"
@@ -289,21 +290,60 @@ func TestFromUnknownable(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
+		typ           attr.Type
 		val           refl.Unknownable
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}{
 		"unknown": {
+			typ: types.StringType,
 			val: &unknownableString{
 				Unknown: true,
 			},
 			expected: types.StringUnknown(),
 		},
+		"unknown-validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: &unknownableString{
+				Unknown: true,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"unknown-validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: &unknownableString{
+				Unknown: true,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
 		"value": {
+			typ: types.StringType,
 			val: &unknownableString{
 				String: "hello, world",
 			},
 			expected: types.StringValue("hello, world"),
+		},
+		"value-validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: &unknownableString{
+				String: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"value-validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: &unknownableString{
+				String: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
 		},
 	}
 
@@ -312,7 +352,7 @@ func TestFromUnknownable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromUnknownable(context.Background(), types.StringType, tc.val, path.Empty())
+			got, diags := refl.FromUnknownable(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -390,21 +430,60 @@ func TestFromNullable(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
+		typ           attr.Type
 		val           refl.Nullable
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}{
 		"null": {
+			typ: types.StringType,
 			val: &nullableString{
 				Null: true,
 			},
 			expected: types.StringNull(),
 		},
+		"null-validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: &nullableString{
+				Null: true,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"null-validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: &nullableString{
+				Null: true,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
 		"value": {
+			typ: types.StringType,
 			val: &nullableString{
 				String: "hello, world",
 			},
 			expected: types.StringValue("hello, world"),
+		},
+		"value-validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: &nullableString{
+				String: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"value-validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: &nullableString{
+				String: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
 		},
 	}
 
@@ -413,7 +492,7 @@ func TestFromNullable(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromNullable(context.Background(), types.StringType, tc.val, path.Empty())
+			got, diags := refl.FromNullable(context.Background(), tc.typ, tc.val, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -430,25 +509,43 @@ func TestNewAttributeValue(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
+		typ           attr.Type
 		val           tftypes.Value
 		target        reflect.Value
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}{
 		"unknown": {
+			typ:      types.StringType,
 			val:      tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			target:   reflect.ValueOf(types.String{}),
 			expected: types.StringUnknown(),
 		},
 		"null": {
+			typ:      types.StringType,
 			val:      tftypes.NewValue(tftypes.String, nil),
 			target:   reflect.ValueOf(types.String{}),
 			expected: types.StringNull(),
 		},
 		"value": {
+			typ:      types.StringType,
 			val:      tftypes.NewValue(tftypes.String, "hello"),
 			target:   reflect.ValueOf(types.String{}),
 			expected: types.StringValue("hello"),
+		},
+		"validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			val: tftypes.NewValue(tftypes.String, "hello"),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			val: tftypes.NewValue(tftypes.String, "hello"),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
 		},
 	}
 
@@ -457,7 +554,7 @@ func TestNewAttributeValue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			res, diags := refl.NewAttributeValue(context.Background(), types.StringType, tc.val, tc.target, refl.Options{}, path.Empty())
+			res, diags := refl.NewAttributeValue(context.Background(), tc.typ, tc.val, tc.target, refl.Options{}, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -506,6 +603,26 @@ func TestFromAttributeValue(t *testing.T) {
 			typ:      testtypes.BoolTypeWithSemanticEquals{},
 			val:      types.BoolNull(),
 			expected: types.BoolNull(),
+		},
+		"BoolTypable-BoolValue-ValidateError": {
+			typ:      testtypes.BoolTypeWithValidateError{},
+			val:      types.BoolNull(),
+			expected: types.BoolNull(),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"BoolTypable-BoolValue-ValidateAttributeError": {
+			typ: testtypes.BoolType{},
+			val: testtypes.BoolValueWithValidateAttributeError{
+				Bool: testtypes.Bool{
+					CreatedBy: testtypes.BoolTypeWithValidateAttributeError{},
+				},
+			},
+			expected: testtypes.BoolValueWithValidateAttributeError{Bool: testtypes.Bool{CreatedBy: testtypes.BoolTypeWithValidateAttributeError{}}},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "Error Diagnostic", "This is an error."),
+			},
 		},
 		"Float64Type-Float64Value": {
 			typ:      types.Float64Type,
@@ -812,27 +929,49 @@ func TestFromValueCreator(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
+		typ           attr.Type
 		vc            *valueCreator
 		expected      attr.Value
 		expectedDiags diag.Diagnostics
 	}{
 		"null": {
+			typ: types.StringType,
 			vc: &valueCreator{
 				null: true,
 			},
 			expected: types.StringNull(),
 		},
 		"unknown": {
+			typ: types.StringType,
 			vc: &valueCreator{
 				unknown: true,
 			},
 			expected: types.StringUnknown(),
 		},
 		"value": {
+			typ: types.StringType,
 			vc: &valueCreator{
 				value: "hello, world",
 			},
 			expected: types.StringValue("hello, world"),
+		},
+		"validate-error": {
+			typ: testtypes.StringTypeWithValidateError{},
+			vc: &valueCreator{
+				value: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
+		},
+		"validate-attribute-error": {
+			typ: testtypes.StringTypeWithValidateAttributeError{},
+			vc: &valueCreator{
+				value: "hello, world",
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			},
 		},
 	}
 
@@ -841,7 +980,7 @@ func TestFromValueCreator(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := refl.FromValueCreator(context.Background(), types.StringType, tc.vc, path.Empty())
+			got, diags := refl.FromValueCreator(context.Background(), tc.typ, tc.vc, path.Empty())
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

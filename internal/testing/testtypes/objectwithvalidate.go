@@ -16,23 +16,23 @@ import (
 
 var (
 	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	_ xattr.TypeWithValidate = MapTypeWithValidateError{}
+	_ xattr.TypeWithValidate = ObjectTypeWithValidateError{}
 	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
-	_ xattr.TypeWithValidate = MapTypeWithValidateWarning{}
+	_ xattr.TypeWithValidate = ObjectTypeWithValidateWarning{}
 )
 
-type MapTypeWithValidateError struct {
-	types.MapType
+type ObjectTypeWithValidateError struct {
+	types.ObjectType
 }
 
-type MapTypeWithValidateWarning struct {
-	types.MapType
+type ObjectTypeWithValidateWarning struct {
+	types.ObjectType
 }
 
-func (t MapTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+func (t ObjectTypeWithValidateError) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestErrorDiagnostic(path)}
 }
 
-func (t MapTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
+func (t ObjectTypeWithValidateWarning) Validate(ctx context.Context, in tftypes.Value, path path.Path) diag.Diagnostics {
 	return diag.Diagnostics{TestWarningDiagnostic(path)}
 }

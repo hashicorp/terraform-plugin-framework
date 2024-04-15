@@ -48,41 +48,6 @@ type Definition struct {
 	DeprecationMessage string
 }
 
-// Parameter returns the Parameter for a given argument position. This may be
-// from the Parameters field or, if defined, the VariadicParameter field. An
-// error diagnostic is raised if the position is outside the expected arguments.
-func (d Definition) Parameter(ctx context.Context, position int) (Parameter, diag.Diagnostics) {
-	if d.VariadicParameter != nil && position >= len(d.Parameters) {
-		return d.VariadicParameter, nil
-	}
-
-	if len(d.Parameters) == 0 {
-		return nil, diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Invalid Parameter Position for Definition",
-				"When determining the parameter for the given argument position, an invalid value was given. "+
-					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-					"Function does not implement parameters.\n"+
-					fmt.Sprintf("Given position: %d", position),
-			),
-		}
-	}
-
-	if position >= len(d.Parameters) {
-		return nil, diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Invalid Parameter Position for Definition",
-				"When determining the parameter for the given argument position, an invalid value was given. "+
-					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
-					fmt.Sprintf("Max argument position: %d\n", len(d.Parameters)-1)+
-					fmt.Sprintf("Given position: %d", position),
-			),
-		}
-	}
-
-	return d.Parameters[position], nil
-}
-
 // ValidateImplementation contains logic for validating the provider-defined
 // implementation of the definition to prevent unexpected errors or panics. This
 // logic runs during the GetProviderSchema RPC, or via provider-defined unit

@@ -4,29 +4,31 @@
 package fromproto6_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tflogtest"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestArgumentsData(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		input               []*tfprotov6.DynamicValue
-		definition          function.Definition
-		expected            function.ArgumentsData
-		expectedDiagnostics diag.Diagnostics
+		input             []*tfprotov6.DynamicValue
+		definition        function.Definition
+		expected          function.ArgumentsData
+		expectedFuncError *function.FuncError
+		expectedLog       []map[string]interface{}
 	}{
 		"nil": {
 			input:      nil,
@@ -49,15 +51,13 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unexpected Function Arguments Data",
-					"The provider received an unexpected number of function arguments from Terraform for the given function definition. "+
-						"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n"+
-						"Expected function arguments: 2\n"+
-						"Given function arguments: 1",
-				),
-			},
+			expectedFuncError: function.NewFuncError(
+				"Unexpected Function Arguments Data: " +
+					"The provider received an unexpected number of function arguments from Terraform for the given function definition. " +
+					"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n" +
+					"Expected function arguments: 2\n" +
+					"Given function arguments: 1",
+			),
 		},
 		"mismatched-arguments-too-many-arguments": {
 			input: []*tfprotov6.DynamicValue{
@@ -70,15 +70,13 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unexpected Function Arguments Data",
-					"The provider received an unexpected number of function arguments from Terraform for the given function definition. "+
-						"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n"+
-						"Expected function arguments: 1\n"+
-						"Given function arguments: 2",
-				),
-			},
+			expectedFuncError: function.NewFuncError(
+				"Unexpected Function Arguments Data: " +
+					"The provider received an unexpected number of function arguments from Terraform for the given function definition. " +
+					"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n" +
+					"Expected function arguments: 1\n" +
+					"Given function arguments: 2",
+			),
 		},
 		"mismatched-arguments-type": {
 			input: []*tfprotov6.DynamicValue{
@@ -90,15 +88,14 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.ArgumentsData{},
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unable to Convert Function Argument",
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Unable to Convert Function Argument: "+
 					"An unexpected error was encountered when converting the function argument from the protocol type. "+
-						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-						"Please report this to the provider developer:\n\n"+
-						"Unable to unmarshal DynamicValue at position 0: error decoding string: msgpack: invalid code=c3 decoding string/bytes length",
-				),
-			},
+					"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+					"Please report this to the provider developer:\n\n"+
+					"Unable to unmarshal DynamicValue at position 0: error decoding string: msgpack: invalid code=c3 decoding string/bytes length",
+			),
 		},
 		"parameters-zero": {
 			input:      []*tfprotov6.DynamicValue{},
@@ -147,9 +144,27 @@ func TestArgumentsData(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData(nil),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(path.Empty(), "Error Diagnostic", "This is an error."),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Error Diagnostic: This is an error.",
+			),
+		},
+		"parameters-one-TypeWithParameterValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
 			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateParameterError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"This is a function error",
+			),
 		},
 		"parameters-one-TypeWithValidation-warning": {
 			input: []*tfprotov6.DynamicValue{
@@ -167,8 +182,14 @@ func TestArgumentsData(t *testing.T) {
 					Bool: basetypes.NewBoolValue(true),
 				},
 			}),
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewAttributeWarningDiagnostic(path.Empty(), "Warning Diagnostic", "This is a warning."),
+			expectedLog: []map[string]interface{}{
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
 			},
 		},
 		"parameters-one-variadicparameter-zero": {
@@ -253,6 +274,125 @@ func TestArgumentsData(t *testing.T) {
 				basetypes.NewBoolValue(true),
 				basetypes.NewBoolValue(false),
 			}),
+		},
+		"parameters-multiple-TypeWithValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, false)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolValue(true),
+			}),
+			expectedFuncError: function.NewArgumentFuncError(
+				1,
+				"Error Diagnostic: This is an error.",
+			),
+		},
+		"parameters-multiple-TypeWithParameterValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, false)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{},
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateParameterError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewBoolValue(true),
+			}),
+			expectedFuncError: function.NewArgumentFuncError(
+				1,
+				"This is a function error",
+			),
+		},
+		"parameters-multiple-TypeWithValidation-warning": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, false)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateWarning{},
+					},
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateWarning{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Bool{
+					Bool:      basetypes.NewBoolValue(true),
+					CreatedBy: testtypes.BoolTypeWithValidateWarning{},
+				},
+				testtypes.Bool{
+					Bool:      basetypes.NewBoolValue(false),
+					CreatedBy: testtypes.BoolTypeWithValidateWarning{},
+				},
+			}),
+			expectedLog: []map[string]interface{}{
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+			},
+		},
+		"parameters-multiple-TypeWithValidation-warning-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, true)),
+				DynamicValueMust(tftypes.NewValue(tftypes.Bool, false)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateWarning{},
+					},
+					function.BoolParameter{
+						CustomType: testtypes.BoolTypeWithValidateError{},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				testtypes.Bool{
+					Bool:      basetypes.NewBoolValue(true),
+					CreatedBy: testtypes.BoolTypeWithValidateWarning{},
+				},
+			}),
+			expectedFuncError: function.NewArgumentFuncError(
+				1,
+				"Error Diagnostic: This is an error.",
+			),
+			expectedLog: []map[string]interface{}{
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+			},
 		},
 		"parameters-multiple-variadicparameter-zero": {
 			input: []*tfprotov6.DynamicValue{
@@ -383,6 +523,68 @@ func TestArgumentsData(t *testing.T) {
 				),
 			}),
 		},
+		"variadicparameter-one-TypeWithValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateError{},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Error Diagnostic: This is an error.",
+			),
+		},
+		"variadicparameter-one-TypeWithParameterValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateParameterError{},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"This is a function error",
+			),
+		},
+		"variadicparameter-one-TypeWithValidation-warning": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateWarning{},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						testtypes.StringTypeWithValidateWarning{},
+					},
+					[]attr.Value{
+						testtypes.String{
+							CreatedBy:      testtypes.StringTypeWithValidateWarning{},
+							InternalString: basetypes.NewStringValue("varg-arg0"),
+						},
+					},
+				),
+			}),
+			expectedLog: []map[string]interface{}{
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+			},
+		},
 		"variadicparameter-multiple": {
 			input: []*tfprotov6.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
@@ -404,6 +606,83 @@ func TestArgumentsData(t *testing.T) {
 				),
 			}),
 		},
+		"variadicparameter-multiple-TypeWithValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg1")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateError{},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"Error Diagnostic: This is an error.\nError Diagnostic: This is an error.",
+			),
+		},
+		"variadicparameter-multiple-TypeWithParameterValidation-error": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg1")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateParameterError{},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0,
+				"This is a function error\nThis is a function error",
+			),
+		},
+		"variadicparameter-multiple-TypeWithValidation-warning": {
+			input: []*tfprotov6.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg0")),
+				DynamicValueMust(tftypes.NewValue(tftypes.String, "varg-arg1")),
+			},
+			definition: function.Definition{
+				VariadicParameter: function.StringParameter{
+					CustomType: testtypes.StringTypeWithValidateWarning{},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewTupleValueMust(
+					[]attr.Type{
+						testtypes.StringTypeWithValidateWarning{},
+						testtypes.StringTypeWithValidateWarning{},
+					},
+					[]attr.Value{
+						testtypes.String{
+							CreatedBy:      testtypes.StringTypeWithValidateWarning{},
+							InternalString: basetypes.NewStringValue("varg-arg0"),
+						},
+						testtypes.String{
+							CreatedBy:      testtypes.StringTypeWithValidateWarning{},
+							InternalString: basetypes.NewStringValue("varg-arg1"),
+						},
+					},
+				),
+			}),
+			expectedLog: []map[string]interface{}{
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+				{
+					"@level":   "warn",
+					"@message": "warning: call function",
+					"@module":  "provider",
+					"detail":   "This is a warning.",
+					"summary":  "Warning Diagnostic",
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -412,14 +691,28 @@ func TestArgumentsData(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.ArgumentsData(context.Background(), testCase.input, testCase.definition)
+			var output bytes.Buffer
+
+			ctx := tflogtest.RootLogger(context.Background(), &output)
+
+			got, diags := fromproto6.ArgumentsData(ctx, testCase.input, testCase.definition)
+
+			entries, err := tflogtest.MultilineJSONDecode(&output)
+
+			if err != nil {
+				t.Fatalf("unable to read multiple line JSON: %s", err)
+			}
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(diags, testCase.expectedDiagnostics); diff != "" {
+			if diff := cmp.Diff(diags, testCase.expectedFuncError); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(entries, testCase.expectedLog); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

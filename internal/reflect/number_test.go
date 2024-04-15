@@ -737,9 +737,29 @@ func TestFromInt(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeWarning{},
+			expected: testtypes.NumberValueWithValidateAttributeWarning{
+				InternalNumber: testtypes.Number{
+					Number:    types.NumberValue(big.NewFloat(1)),
+					CreatedBy: testtypes.NumberTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
@@ -793,9 +813,29 @@ func TestFromUint(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeWarning{},
+			expected: testtypes.NumberValueWithValidateAttributeWarning{
+				InternalNumber: testtypes.Number{
+					Number:    types.NumberValue(big.NewFloat(1)),
+					CreatedBy: testtypes.NumberTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
@@ -854,9 +894,29 @@ func TestFromFloat(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeWarning{},
+			expected: testtypes.NumberValueWithValidateAttributeWarning{
+				InternalNumber: testtypes.Number{
+					Number:    types.NumberValue(big.NewFloat(1)),
+					CreatedBy: testtypes.NumberTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: 1,
 			typ: testtypes.NumberTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: 1,
+			typ: testtypes.NumberTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
@@ -915,9 +975,29 @@ func TestFromBigFloat(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: big.NewFloat(1),
+			typ: testtypes.NumberTypeWithValidateAttributeWarning{},
+			expected: testtypes.NumberValueWithValidateAttributeWarning{
+				InternalNumber: testtypes.Number{
+					Number:    types.NumberValue(big.NewFloat(1)),
+					CreatedBy: testtypes.NumberTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: big.NewFloat(1),
 			typ: testtypes.NumberTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: big.NewFloat(1),
+			typ: testtypes.NumberTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},
@@ -971,9 +1051,29 @@ func TestFromBigInt(t *testing.T) {
 				testtypes.TestWarningDiagnostic(path.Empty()),
 			},
 		},
+		"WithValidateAttributeWarning": {
+			val: big.NewInt(1),
+			typ: testtypes.NumberTypeWithValidateAttributeWarning{},
+			expected: testtypes.NumberValueWithValidateAttributeWarning{
+				InternalNumber: testtypes.Number{
+					Number:    types.NumberValue(big.NewFloat(1)),
+					CreatedBy: testtypes.NumberTypeWithValidateWarning{},
+				},
+			},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestWarningDiagnostic(path.Empty()),
+			},
+		},
 		"WithValidateError": {
 			val: big.NewInt(1),
 			typ: testtypes.NumberTypeWithValidateError{},
+			expectedDiags: diag.Diagnostics{
+				testtypes.TestErrorDiagnostic(path.Empty()),
+			},
+		},
+		"WithValidateAttributeError": {
+			val: big.NewInt(1),
+			typ: testtypes.NumberTypeWithValidateAttributeError{},
 			expectedDiags: diag.Diagnostics{
 				testtypes.TestErrorDiagnostic(path.Empty()),
 			},

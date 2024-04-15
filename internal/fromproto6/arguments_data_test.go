@@ -1416,7 +1416,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createListValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+				basetypes.NewListValueMust(types.BoolType, []attr.Value{types.BoolValue(true)}),
 			}),
 		},
 		"list-parameter-Validators-error": {
@@ -1530,7 +1530,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createListValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+				basetypes.NewListValueMust(types.BoolType, []attr.Value{types.BoolValue(true)}),
 			}),
 		},
 		"list-parameter-custom-type-Validators-error": {
@@ -1598,7 +1598,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createMapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
+				basetypes.NewMapValueMust(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
 			}),
 		},
 		"map-parameter-Validators-error": {
@@ -1715,7 +1715,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createMapValue(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
+				basetypes.NewMapValueMust(types.BoolType, map[string]attr.Value{"key": types.BoolValue(true)}),
 			}),
 		},
 		"map-parameter-custom-type-Validators-error": {
@@ -1953,7 +1953,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
+				basetypes.NewObjectValueMust(map[string]attr.Type{"boolAttribute": types.BoolType},
 					map[string]attr.Value{"boolAttribute": types.BoolValue(true)}),
 			}),
 		},
@@ -2084,7 +2084,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createObjectValue(map[string]attr.Type{"boolAttribute": types.BoolType},
+				basetypes.NewObjectValueMust(map[string]attr.Type{"boolAttribute": types.BoolType},
 					map[string]attr.Value{"boolAttribute": types.BoolValue(true)}),
 			}),
 		},
@@ -2157,7 +2157,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createSetValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+				basetypes.NewSetValueMust(types.BoolType, []attr.Value{types.BoolValue(true)}),
 			}),
 		},
 		"set-parameter-Validators-error": {
@@ -2271,7 +2271,7 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				},
 			},
 			expected: function.NewArgumentsData([]attr.Value{
-				createSetValue(types.BoolType, []attr.Value{types.BoolValue(true)}),
+				basetypes.NewSetValueMust(types.BoolType, []attr.Value{types.BoolValue(true)}),
 			}),
 		},
 		"set-parameter-custom-type-Validators-error": {
@@ -2803,26 +2803,6 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 			}
 		})
 	}
-}
-
-func createListValue(elementType attr.Type, elements []attr.Value) basetypes.ListValue {
-	list, _ := basetypes.NewListValue(elementType, elements)
-	return list
-}
-
-func createMapValue(elementType attr.Type, elements map[string]attr.Value) basetypes.MapValue {
-	mapVal, _ := basetypes.NewMapValue(elementType, elements)
-	return mapVal
-}
-
-func createObjectValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) basetypes.ObjectValue {
-	object, _ := basetypes.NewObjectValue(attributeTypes, attributes)
-	return object
-}
-
-func createSetValue(elementType attr.Type, elements []attr.Value) basetypes.SetValue {
-	list, _ := basetypes.NewSetValue(elementType, elements)
-	return list
 }
 
 func createDynamicValue(value tftypes.Value) *tfprotov6.DynamicValue {

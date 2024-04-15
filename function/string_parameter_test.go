@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
@@ -233,6 +235,48 @@ func TestStringParameterGetType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetType()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestStringParameterStringValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		parameter function.StringParameter
+		expected  []function.StringParameterValidator
+	}{
+		"unset": {
+			parameter: function.StringParameter{},
+			expected:  nil,
+		},
+		"Validators - empty": {
+			parameter: function.StringParameter{
+				Validators: []function.StringParameterValidator{}},
+			expected: []function.StringParameterValidator{},
+		},
+		"Validators": {
+			parameter: function.StringParameter{
+				Validators: []function.StringParameterValidator{
+					testvalidator.String{},
+				}},
+			expected: []function.StringParameterValidator{
+				testvalidator.String{},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.parameter.GetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

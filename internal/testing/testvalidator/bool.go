@@ -6,10 +6,14 @@ package testvalidator
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-var _ validator.Bool = &Bool{}
+var (
+	_ validator.Bool                  = &Bool{}
+	_ function.BoolParameterValidator = &Bool{}
+)
 
 // Declarative validator.Bool for unit testing.
 type Bool struct {
@@ -17,6 +21,7 @@ type Bool struct {
 	DescriptionMethod         func(context.Context) string
 	MarkdownDescriptionMethod func(context.Context) string
 	ValidateBoolMethod        func(context.Context, validator.BoolRequest, *validator.BoolResponse)
+	ValidateMethod            func(context.Context, function.BoolParameterValidatorRequest, *function.BoolParameterValidatorResponse)
 }
 
 // Description satisfies the validator.Bool interface.
@@ -37,11 +42,20 @@ func (v Bool) MarkdownDescription(ctx context.Context) string {
 	return v.MarkdownDescriptionMethod(ctx)
 }
 
-// Validate satisfies the validator.Bool interface.
+// ValidateBool satisfies the validator.Bool interface.
 func (v Bool) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
 	if v.ValidateBoolMethod == nil {
 		return
 	}
 
 	v.ValidateBoolMethod(ctx, req, resp)
+}
+
+// ValidateParameterBool satisfies the function.BoolParameterValidator interface.
+func (v Bool) ValidateParameterBool(ctx context.Context, req function.BoolParameterValidatorRequest, resp *function.BoolParameterValidatorResponse) {
+	if v.ValidateMethod == nil {
+		return
+	}
+
+	v.ValidateMethod(ctx, req, resp)
 }

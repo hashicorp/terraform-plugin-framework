@@ -159,9 +159,347 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			}
 		}
 
+		switch parameterWithValidators := parameter.(type) {
+		case function.ParameterWithBoolValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				boolValuable, ok := attrValue.(basetypes.BoolValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.BoolValuable at position %d", pos),
+					))
+
+					continue
+				}
+				boolVal, diags := boolValuable.ToBoolValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.BoolParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            boolVal,
+				}
+				resp := &function.BoolParameterValidatorResponse{}
+				functionValidator.ValidateParameterBool(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithDynamicValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				dynamicValuable, ok := attrValue.(basetypes.DynamicValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.DynamicValuable at position %d", pos),
+					))
+
+					continue
+				}
+				dynamicVal, diags := dynamicValuable.ToDynamicValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.DynamicParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            dynamicVal,
+				}
+				resp := &function.DynamicParameterValidatorResponse{}
+				functionValidator.ValidateParameterDynamic(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithFloat64Validators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				float64Valuable, ok := attrValue.(basetypes.Float64Valuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.Float64Valuable at position %d", pos),
+					))
+
+					continue
+				}
+				float64Val, diags := float64Valuable.ToFloat64Value(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.Float64ParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            float64Val,
+				}
+				resp := &function.Float64ParameterValidatorResponse{}
+				functionValidator.ValidateParameterFloat64(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithInt64Validators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				int64Valuable, ok := attrValue.(basetypes.Int64Valuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.Int64Valuable at position %d", pos),
+					))
+
+					continue
+				}
+				int64Val, diags := int64Valuable.ToInt64Value(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.Int64ParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            int64Val,
+				}
+				resp := &function.Int64ParameterValidatorResponse{}
+				functionValidator.ValidateParameterInt64(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithListValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				listValue, ok := attrValue.(basetypes.ListValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.ListValuable at position %d", pos),
+					))
+
+					continue
+				}
+				listVal, diags := listValue.ToListValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.ListParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            listVal,
+				}
+				resp := &function.ListParameterValidatorResponse{}
+				functionValidator.ValidateParameterList(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithMapValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				mapValuable, ok := attrValue.(basetypes.MapValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.MapValuable at position %d", pos),
+					))
+
+					continue
+				}
+				mapVal, diags := mapValuable.ToMapValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.MapParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            mapVal,
+				}
+				resp := &function.MapParameterValidatorResponse{}
+				functionValidator.ValidateParameterMap(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithNumberValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				numberValuable, ok := attrValue.(basetypes.NumberValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.NumberValuable at position %d", pos),
+					))
+
+					continue
+				}
+				numberVal, diags := numberValuable.ToNumberValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.NumberParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            numberVal,
+				}
+				resp := &function.NumberParameterValidatorResponse{}
+				functionValidator.ValidateParameterNumber(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithObjectValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				objectValuable, ok := attrValue.(basetypes.ObjectValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.ObjectValuable at position %d", pos),
+					))
+
+					continue
+				}
+				objectVal, diags := objectValuable.ToObjectValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.ObjectParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            objectVal,
+				}
+				resp := &function.ObjectParameterValidatorResponse{}
+				functionValidator.ValidateParameterObject(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithSetValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				setValuable, ok := attrValue.(basetypes.SetValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.SetValuable at position %d", pos),
+					))
+
+					continue
+				}
+				setVal, diags := setValuable.ToSetValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.SetParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            setVal,
+				}
+				resp := &function.SetParameterValidatorResponse{}
+				functionValidator.ValidateParameterSet(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		case function.ParameterWithStringValidators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				stringValuable, ok := attrValue.(basetypes.StringValuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.StringValuable at position %d", pos),
+					))
+
+					continue
+				}
+				stringVal, diags := stringValuable.ToStringValue(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.StringParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            stringVal,
+				}
+				resp := &function.StringParameterValidatorResponse{}
+				functionValidator.ValidateParameterString(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
+		}
+
 		if definition.VariadicParameter != nil && position >= len(definition.Parameters) {
 			variadicValues = append(variadicValues, attrValue)
 
+			continue
+		}
+
+		// Skip appending argument values if parameter validation raises an error.
+		if funcError != nil {
 			continue
 		}
 
@@ -188,6 +526,7 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 			tupleTypes[i] = variadicType
 			tupleValues[i] = val
 		}
+
 		variadicValue, variadicValueDiags := basetypes.NewTupleValue(tupleTypes, tupleValues)
 
 		funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, variadicValueDiags))

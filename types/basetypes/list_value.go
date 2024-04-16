@@ -297,6 +297,17 @@ func (l ListValue) IsUnknown() bool {
 	return l.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the List represents a currently nullable known value,
+// including all its elements, recursively.
+func (l ListValue) IsFullyNullableKnown() bool {
+	for _, elem := range l.elements {
+		if !elem.IsFullyNullableKnown() {
+			return false
+		}
+	}
+	return true
+}
+
 // String returns a human-readable representation of the List value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

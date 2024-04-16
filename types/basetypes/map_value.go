@@ -304,6 +304,17 @@ func (m MapValue) IsUnknown() bool {
 	return m.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Map represents a currently nullable known value,
+// including all its elements, recursively.
+func (m MapValue) IsFullyNullableKnown() bool {
+	for _, elem := range m.elements {
+		if !elem.IsFullyNullableKnown() {
+			return false
+		}
+	}
+	return true
+}
+
 // String returns a human-readable representation of the Map value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

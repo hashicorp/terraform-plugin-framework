@@ -174,6 +174,11 @@ func (f Float64Value) IsUnknown() bool {
 	return f.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Float64 represents a currently nullable known value.
+func (f Float64Value) IsFullyNullableKnown() bool {
+	return !f.IsUnknown()
+}
+
 // String returns a human-readable representation of the Float64 value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

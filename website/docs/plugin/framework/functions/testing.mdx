@@ -43,6 +43,8 @@ import (
     "github.com/hashicorp/terraform-plugin-framework/providerserver"
     "github.com/hashicorp/terraform-plugin-go/tfprotov6"
     "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+    "github.com/hashicorp/terraform-plugin-testing/knownvalue"
+    "github.com/hashicorp/terraform-plugin-testing/statecheck"
     "github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
@@ -59,11 +61,12 @@ func TestEchoFunction_Valid(t *testing.T) {
         Steps: []resource.TestStep{
             {
                 Config: `
-output "test" {
-    value = provider::example::echo("test-value")
-}
-`,
-                Check: resource.TestCheckOutput("test", "test-value"),
+                output "test" {
+                    value = provider::example::echo("test-value")
+                }`,
+                ConfigStateChecks: []statecheck.StateCheck{
+                    statecheck.ExpectKnownOutputValue("test", knownvalue.StringExact("test-value")),
+                },
             },
         },
     })
@@ -84,10 +87,9 @@ func TestEchoFunction_Invalid(t *testing.T) {
         Steps: []resource.TestStep{
             {
                 Config: `
-output "test" {
-    value = provider::example::echo("invalid")
-}
-`,
+                output "test" {
+                    value = provider::example::echo("invalid")
+                }`,
                 ExpectError: regexp.MustCompile(`error summary`),
             },
         },
@@ -109,10 +111,9 @@ func TestEchoFunction_Null(t *testing.T) {
         Steps: []resource.TestStep{
             {
                 Config: `
-output "test" {
-    value = provider::example::echo(null)
-}
-`,
+                output "test" {
+                    value = provider::example::echo(null)
+                }`,
                 ExpectError: regexp.MustCompile(`Invalid Function Call`),
             },
         },
@@ -132,19 +133,20 @@ func TestEchoFunction_Unknown(t *testing.T) {
         Steps: []resource.TestStep{
             {
                 Config: `
-terraform_data "test" {
-    input = "test-value"
-}
-
-output "test" {
-    value = provider::example::echo(terraform_data.test.output)
-}
-`,
-                Check: resource.TestCheckOutput("test", "test-value"),
+                terraform_data "test" {
+                    input = "test-value"
+                }
+                
+                output "test" {
+                    value = provider::example::echo(terraform_data.test.output)
+                }`,
                 ConfigPlanChecks: resource.ConfigPlanChecks{
                     PreApply: []plancheck.PlanCheck{
                         plancheck.ExpectUnknownOutputValue("test"),
                     },
+                },
+                ConfigStateChecks: []statecheck.StateCheck{
+                    statecheck.ExpectKnownOutputValue("test", knownvalue.StringExact("test-value")),
                 },
             },
         },

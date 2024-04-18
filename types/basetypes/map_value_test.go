@@ -621,6 +621,21 @@ func TestMapValueEqual(t *testing.T) {
 			input:    nil,
 			expected: false,
 		},
+		"zero-null": {
+			receiver: MapValue{},
+			input:    NewMapNull(StringType{}),
+			expected: false,
+		},
+		"zero-zero": {
+			receiver: MapValue{},
+			input:    MapValue{},
+			expected: false,
+		},
+		"null-zero": {
+			receiver: NewMapNull(StringType{}),
+			input:    MapValue{},
+			expected: false,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test

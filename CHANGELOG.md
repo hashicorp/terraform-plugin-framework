@@ -1,3 +1,28 @@
+## 1.8.0 (April 18, 2024)
+
+BREAKING CHANGES:
+
+* function: Removed `Definition` type `Parameter()` method ([#968](https://github.com/hashicorp/terraform-plugin-framework/issues/968))
+
+NOTES:
+
+* function: Provider-defined function features are now considered generally available and protected by compatibility promises ([#966](https://github.com/hashicorp/terraform-plugin-framework/issues/966))
+* attr/xattr: The `TypeWithValidate` interface has been deprecated in preference of the `ValidateableAttribute` interface. A `ValidatableParameter` interface has also been added to the `function` package ([#968](https://github.com/hashicorp/terraform-plugin-framework/issues/968))
+
+FEATURES:
+
+* attr/xattr: Added `ValidateableAttribute` interface for custom value type implementations ([#968](https://github.com/hashicorp/terraform-plugin-framework/issues/968))
+* function: Added `ValidateableParameter` interface for custom value type implementations ([#968](https://github.com/hashicorp/terraform-plugin-framework/issues/968))
+* `function`: Add `BoolParameterValidator`, `DynamicParameterValidator`, `Float64ParameterValidator`, `Int64ParameterValidator`, `ListParameterValidator`, `MapParameterValidator`, `NumberParameterValidator`, `ObjectParameterValidator`, `SetParameterValidator`, and `StringParameterValidator` interfaces for custom function parameter validation implementations. ([#971](https://github.com/hashicorp/terraform-plugin-framework/issues/971))
+* `function`: Add `ParameterWithBoolValidators`, `ParameterWithInt64Validators`, `ParameterWithFloat64Validators`, `ParameterWithDynamicValidators`, `ParameterWithListValidators`, `ParameterWithMapValidators`, `ParameterWithNumberValidators`, `ParameterWithObjectValidators`, `ParameterWithSetValidators`, and `ParameterWithStringValidators` interfaces to enable parameter-based validation support ([#971](https://github.com/hashicorp/terraform-plugin-framework/issues/971))
+
+BUG FIXES:
+
+* types/basetypes: Prevented panic in the `MapValue` types `Equal` method when the receiver has a nil `elementType` ([#961](https://github.com/hashicorp/terraform-plugin-framework/issues/961))
+* types/basetypes: Prevented panic in the `ListValue` types `Equal` method when the receiver has a nil `elementType` ([#961](https://github.com/hashicorp/terraform-plugin-framework/issues/961))
+* types/basetypes: Prevented panic in the `SetValue` types `Equal` method when the receiver has a nil `elementType` ([#961](https://github.com/hashicorp/terraform-plugin-framework/issues/961))
+* resource: Ensured computed-only dynamic attributes will not cause `wrong final value type` errors during planning ([#969](https://github.com/hashicorp/terraform-plugin-framework/issues/969))
+
 ## 1.7.0 (March 21, 2024)
 
 BREAKING CHANGES:

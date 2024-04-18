@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'types/basetypes: Prevented panic in the `MapValue` types `Equal` method when
-  the receiver has a nil `elementType`'
-time: 2024-03-19T08:57:39.837509-04:00
-custom:
-  Issue: "961"

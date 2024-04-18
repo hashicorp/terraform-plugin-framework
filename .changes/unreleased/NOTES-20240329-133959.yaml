@@ -1,6 +1,0 @@
-kind: NOTES
-body: 'function: Provider-defined function features are now considered generally available
-  and protected by compatibility promises'
-time: 2024-03-29T13:39:59.085147-04:00
-custom:
-  Issue: "966"

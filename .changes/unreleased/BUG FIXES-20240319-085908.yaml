@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'types/basetypes: Prevented panic in the `ListValue` types `Equal` method when
-  the receiver has a nil `elementType`'
-time: 2024-03-19T08:59:08.576502-04:00
-custom:
-  Issue: "961"

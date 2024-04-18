@@ -1,7 +1,0 @@
-kind: FEATURES
-body: '`function`: Add `BoolParameterValidator`, `DynamicParameterValidator`, `Float64ParameterValidator`, `Int64ParameterValidator`,
-  `ListParameterValidator`, `MapParameterValidator`, `NumberParameterValidator`, `ObjectParameterValidator`, `SetParameterValidator`,
-  and `StringParameterValidator` interfaces for custom function parameter validation implementations.'
-time: 2024-04-05T18:39:17.640444-04:00
-custom:
-  Issue: "971"

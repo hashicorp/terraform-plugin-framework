@@ -71,7 +71,13 @@ func (r MapReturn) NewResultData(ctx context.Context) (ResultData, *FuncError) {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p MapReturn) ValidateImplementation(ctx context.Context, req fwfunction.ValidateReturnImplementationRequest, resp *fwfunction.ValidateReturnImplementationResponse) {
-	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
-		resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
+	if p.CustomType == nil {
+		if fwtype.ContainsCollectionWithDynamic(p.GetType()) {
+			resp.Diagnostics.Append(fwtype.ReturnCollectionWithDynamicTypeDiag())
+		}
+
+		if fwtype.ContainsMissingUnderlyingType(p.GetType()) {
+			resp.Diagnostics.Append(fwtype.ReturnMissingUnderlyingTypeDiag())
+		}
 	}
 }

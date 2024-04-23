@@ -4,12 +4,15 @@
 package function_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -277,6 +280,61 @@ func TestDynamicParameterDynamicValidators(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.parameter.GetValidators()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestDynamicParameterValidateImplementation(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		param    function.DynamicParameter
+		request  fwfunction.ValidateParameterImplementationRequest
+		expected *fwfunction.ValidateParameterImplementationResponse
+	}{
+		"name": {
+			param: function.DynamicParameter{
+				Name: "testparam",
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
+		},
+		"name-missing": {
+			param: function.DynamicParameter{
+				// Name intentionally missing
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"testfunc\" - Parameter at position 0 does not have a name",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := &fwfunction.ValidateParameterImplementationResponse{}
+			testCase.param.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -50,11 +50,13 @@ func (r *ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 ```
 
 ## Migration Notes
+
 Remember the following differences between SDKv2 and the Framework when completing the migration.
 
 - In SDKv2, attributes are defined by a map from attribute names to `schema.Schema` structs in the `Schema` field of
 your resource's schema. In the Framework, attributes are defined by a map from attribute names to `schema.Attribute`
 implementations in your resource's schema, which is returned by the resource `Schema` method.
+- In SDKv2, the computed string `id` attribute was implicitly included in the schema. In the Framework, it must be explicitly defined in the schema.
 - There are several differences between the implementation of attributes in SDKv2 and the Framework. Refer to the other
 pages in the Attributes & Blocks section of this migration guide for more details.
 

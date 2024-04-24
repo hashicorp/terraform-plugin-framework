@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -23,6 +24,7 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			attrTyp:  nil,
 			expected: true,
 		},
+		// custom type test cases are below all of the base type test cases
 		"bool": {
 			attrTyp:  types.BoolType,
 			expected: false,
@@ -1593,6 +1595,61 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 				},
 			},
 			expected: true,
+		},
+		"custom-bool": {
+			attrTyp:  testtypes.BoolType{},
+			expected: false,
+		},
+		"custom-dynamic": {
+			attrTyp:  testtypes.DynamicType{},
+			expected: false,
+		},
+		"custom-float64": {
+			attrTyp:  testtypes.Float64Type{},
+			expected: false,
+		},
+		"custom-int64": {
+			attrTyp:  testtypes.Int64Type{},
+			expected: false,
+		},
+		"custom-list-nil": {
+			attrTyp: testtypes.ListType{},
+			// While testtypes.ListType embeds basetypes.ListType and this test
+			// case does not specify an ElemType value, the function logic is
+			// coded to only handle basetypes implementations due to the
+			// unexported missingType that would be returned from the
+			// ElementType() method which would be used for custom types.
+			expected: false,
+		},
+		"custom-map-nil": {
+			attrTyp: testtypes.MapType{},
+			// While testtypes.MapType embeds basetypes.MapType and this test
+			// case does not specify an ElemType value, the function logic is
+			// coded to only handle basetypes implementations due to the
+			// unexported missingType that would be returned from the
+			// ElementType() method which would be used for custom types.
+			expected: false,
+		},
+		"custom-object-nil": {
+			attrTyp:  testtypes.ObjectType{},
+			expected: false, // expected as objects can be empty
+		},
+		"custom-number": {
+			attrTyp:  testtypes.NumberType{},
+			expected: false,
+		},
+		"custom-set-nil": {
+			attrTyp: testtypes.SetType{},
+			// While testtypes.SetType embeds basetypes.SetType and this test
+			// case does not specify an ElemType value, the function logic is
+			// coded to only handle basetypes implementations due to the
+			// unexported missingType that would be returned from the
+			// ElementType() method which would be used for custom types.
+			expected: false,
+		},
+		"custom-string": {
+			attrTyp:  testtypes.StringType{},
+			expected: false,
 		},
 	}
 	for name, testCase := range testCases {

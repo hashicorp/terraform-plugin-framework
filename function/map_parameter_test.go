@@ -311,6 +311,7 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 	}{
 		"customtype": {
 			param: function.MapParameter{
+				Name:       "testparam",
 				CustomType: testtypes.MapType{},
 			},
 			request: fwfunction.ValidateParameterImplementationRequest{
@@ -320,6 +321,7 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 		},
 		"elementtype": {
 			param: function.MapParameter{
+				Name:        "testparam",
 				ElementType: types.StringType,
 			},
 			request: fwfunction.ValidateParameterImplementationRequest{
@@ -333,7 +335,6 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 				ElementType: types.DynamicType,
 			},
 			request: fwfunction.ValidateParameterImplementationRequest{
-				Name:              "testparam",
 				ParameterPosition: pointer(int64(0)),
 			},
 			expected: &fwfunction.ValidateParameterImplementationResponse{
@@ -354,9 +355,7 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 				Name:        "testparam",
 				ElementType: types.DynamicType,
 			},
-			request: fwfunction.ValidateParameterImplementationRequest{
-				Name: "testparam",
-			},
+			request: fwfunction.ValidateParameterImplementationRequest{},
 			expected: &fwfunction.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -366,6 +365,57 @@ func TestMapParameterValidateImplementation(t *testing.T) {
 							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
+					),
+				},
+			},
+		},
+		"elementtype-missing": {
+			param: function.MapParameter{
+				Name: "testparam",
+				// ElementType intentionally missing
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter \"testparam\" at position 0 is missing underlying type.\n\n"+
+							"Collection element and object attribute types are always required in Terraform.",
+					),
+				},
+			},
+		},
+		"name": {
+			param: function.MapParameter{
+				Name:        "testparam",
+				ElementType: types.StringType,
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
+		},
+		"name-missing": {
+			param: function.MapParameter{
+				// Name intentionally missing
+				ElementType: types.StringType,
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"testfunc\" - Parameter at position 0 does not have a name",
 					),
 				},
 			},

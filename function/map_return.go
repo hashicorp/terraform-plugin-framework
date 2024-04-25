@@ -26,6 +26,8 @@ var (
 //   - If CustomType is set, use its associated value type.
 //   - Otherwise, use [types.Map] or a Go map value type compatible with the
 //     element type.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type MapReturn struct {
 	// ElementType is the type for all elements of the map. This field must be
 	// set.

@@ -22,6 +22,8 @@ var (
 // attribute names to values. When setting the value for this return, use
 // [types.Object] or a compatible Go struct as the value type unless the
 // CustomType field is set. The AttributeTypes field must be set.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type ObjectReturn struct {
 	// AttributeTypes is the mapping of underlying attribute names to attribute
 	// types. This field must be set.

@@ -26,6 +26,8 @@ var (
 //   - If CustomType is set, use its associated value type.
 //   - Otherwise, use [types.Set] or a Go slice value type compatible with the
 //     element type.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type SetReturn struct {
 	// ElementType is the type for all elements of the set. This field must be
 	// set.

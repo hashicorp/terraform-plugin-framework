@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource: Prevented errant collection-based nested object conversion from null/unknown
+  object to known object'
+time: 2024-04-29T16:58:53.593467-04:00
+custom:
+  Issue: "995"

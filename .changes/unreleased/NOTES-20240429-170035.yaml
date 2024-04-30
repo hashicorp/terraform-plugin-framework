@@ -1,0 +1,7 @@
+kind: NOTES
+body: 'resource: If plan modification was dependent on nested attribute plan modification
+  automatically running when the nested object was null/unknown, it may be necessary to
+  add object-level plan modification to convert the nested object to a known object first.'
+time: 2024-04-29T17:00:35.374624-04:00
+custom:
+  Issue: "995"

@@ -2325,6 +2325,17 @@ func NestedAttributeObjectPlanModify(ctx context.Context, o fwschema.NestedAttri
 		}
 	}
 
+	// If the nested object itself is null or unknown, skip calling nested
+	// attribute plan modifiers. Any plan modification from a null or unknown
+	// object into a known object must occur at the object level to prevent
+	// the framework from errantly sending a known object when it should remain
+	// a null/unknown object.
+	//
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/993
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+
 	newPlanValueAttributes := req.PlanValue.Attributes()
 
 	for nestedName, nestedAttr := range o.GetAttributes() {

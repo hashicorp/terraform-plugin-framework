@@ -6,8 +6,9 @@ package toproto6
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 // ImportResourceStateResponse returns the *tfprotov6.ImportResourceStateResponse
@@ -31,6 +32,10 @@ func ImportResourceStateResponse(ctx context.Context, fw *fwserver.ImportResourc
 		}
 
 		proto6.ImportedResources = append(proto6.ImportedResources, proto6ImportedResource)
+	}
+
+	if fw.Deferral != nil {
+		proto6.Deferred.Reason = tfprotov6.DeferredReason(fw.Deferral.Reason)
 	}
 
 	return proto6

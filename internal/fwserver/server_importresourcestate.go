@@ -35,6 +35,9 @@ type ImportResourceStateRequest struct {
 	// TypeName is the resource type name, which is necessary for populating
 	// the ImportedResource TypeName of the ImportResourceStateResponse.
 	TypeName string
+
+	//TODO: doc
+	ClientCapabilities *resource.ImportStateClientCapabilities
 }
 
 // ImportResourceStateResponse is the framework server response for the
@@ -42,6 +45,7 @@ type ImportResourceStateRequest struct {
 type ImportResourceStateResponse struct {
 	Diagnostics       diag.Diagnostics
 	ImportedResources []ImportedResource
+	Deferral          *resource.DeferralResponse
 }
 
 // ImportResourceState implements the framework server ImportResourceState RPC.
@@ -90,7 +94,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	importReq := resource.ImportStateRequest{
-		ID: req.ID,
+		ID:                 req.ID,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)
@@ -113,6 +118,16 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
+	if (importReq.ClientCapabilities == nil || !importReq.ClientCapabilities.DeferralAllowed) && importResp.DeferralResponse != nil {
+		resp.Diagnostics.AddError(
+			"Resource Import Deferral Not Allowed",
+			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+				"The resource requested a deferral but the Terraform client does not support deferrals, "+
+				"resource.DeferralResponse can only be set if resource.ImportStateRequest.ImportStateClientCapabilities.DeferralAllowed is true.",
+		)
+		return
+	}
+
 	if importResp.State.Raw.Equal(req.EmptyState.Raw) {
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",
@@ -126,6 +141,10 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	if importResp.Private != nil {
 		private.Provider = importResp.Private
+	}
+
+	if importResp.DeferralResponse != nil {
+		resp.Deferral = importResp.DeferralResponse
 	}
 
 	resp.ImportedResources = []ImportedResource{

@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -15,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestImportResourceStateRequest(t *testing.T) {
@@ -84,6 +85,22 @@ func TestImportResourceStateRequest(t *testing.T) {
 			expected: &fwserver.ImportResourceStateRequest{
 				EmptyState: testFwEmptyState,
 				TypeName:   "test_resource",
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov5.ImportResourceStateRequest{
+				ID: "test-id",
+				ClientCapabilities: &tfprotov5.ClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ImportResourceStateRequest{
+				EmptyState: testFwEmptyState,
+				ID:         "test-id",
+				ClientCapabilities: &resource.ImportStateClientCapabilities{
+					DeferralAllowed: true,
+				},
 			},
 		},
 	}

@@ -84,6 +84,10 @@ func TestServerImportResourceState(t *testing.T) {
 		Provider: testEmptyProviderData,
 	}
 
+	testDeferral := &resource.ImportStateClientCapabilities{
+		DeferralAllowed: true,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.ImportResourceStateRequest
@@ -295,6 +299,77 @@ func TestServerImportResourceState(t *testing.T) {
 						"Missing Resource Import State",
 						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"Resource ImportState method returned no State in response. If import is intentionally not supported, remove the Resource type ImportState method or return an error.",
+					),
+				},
+			},
+		},
+		"request-deferral-allowed-response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						if req.ID != "test-id" {
+							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
+						}
+
+						resp.DeferralResponse = &resource.DeferralResponse{
+							Reason: resource.DeferralReasonAbsentPrereq,
+						}
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+					},
+				},
+				TypeName:           "test_resource",
+				ClientCapabilities: testDeferral,
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testState,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+				Deferral: &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq},
+			},
+		},
+		"request-deferral-not-allowed-response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						if req.ID != "test-id" {
+							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
+						}
+
+						resp.DeferralResponse = &resource.DeferralResponse{
+							Reason: resource.DeferralReasonAbsentPrereq,
+						}
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Resource Import Deferral Not Allowed",
+						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+							"The resource requested a deferral but the Terraform client does not support deferrals, "+
+							"resource.DeferralResponse can only be set if resource.ImportStateRequest.ImportStateClientCapabilities.DeferralAllowed is true.",
 					),
 				},
 			},

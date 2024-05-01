@@ -12,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// TODO: doc
+type ImportStateClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	DeferralAllowed bool
+}
+
 // ImportStateRequest represents a request for the provider to import a
 // resource. An instance of this request struct is supplied as an argument to
 // the Resource's ImportState method.
@@ -23,6 +30,9 @@ type ImportStateRequest struct {
 	// its own type of value and parsed during import. This value
 	// is not stored in the state unless the provider explicitly stores it.
 	ID string
+
+	//TODO: doc
+	ClientCapabilities *ImportStateClientCapabilities
 }
 
 // ImportStateResponse represents a response to a ImportStateRequest.
@@ -44,6 +54,13 @@ type ImportStateResponse struct {
 	// This field is not pre-populated as there is no pre-existing private state
 	// data during the resource's Import operation.
 	Private *privatestate.ProviderData
+
+	// DeferralResponse indicates that Terraform should defer
+	// importing this resource.
+	//
+	// This field can only be set if
+	// `(resource.ImportStateRequest.ImportStateClientCapabilities).DeferralAllowed` is true.
+	DeferralResponse *DeferralResponse
 }
 
 // ImportStatePassthroughID is a helper function to set the import

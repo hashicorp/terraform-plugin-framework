@@ -17,7 +17,7 @@ import (
 
 // ReadResourceRequest returns the *fwserver.ReadResourceRequest
 // equivalent of a *tfprotov5.ReadResourceRequest.
-func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
+func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}
@@ -25,7 +25,7 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		Resource: resource,
+		Resource: reqResource,
 	}
 
 	currentState, currentStateDiags := State(ctx, proto5.CurrentState, resourceSchema)
@@ -45,6 +45,12 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	diags.Append(privateDataDiags...)
 
 	fw.Private = privateData
+
+	if proto5.ClientCapabilities != nil {
+		fw.ClientCapabilities = &resource.ReadClientCapabilities{
+			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
+		}
+	}
 
 	return fw, diags
 }

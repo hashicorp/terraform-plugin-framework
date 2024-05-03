@@ -9,6 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// TODO: doc
+type ReadClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	DeferralAllowed bool
+}
+
 // ReadRequest represents a request for the provider to read a
 // resource, i.e., update values in state according to the real state of the
 // resource. An instance of this request struct is supplied as an argument to
@@ -29,6 +36,9 @@ type ReadRequest struct {
 
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
+
+	//TODO: doc
+	ClientCapabilities *ReadClientCapabilities
 }
 
 // ReadResponse represents a response to a ReadRequest. An
@@ -50,4 +60,11 @@ type ReadResponse struct {
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
+
+	// DeferralResponse indicates that Terraform should defer
+	// importing this resource.
+	//
+	// This field can only be set if
+	// `(resource.ReadRequest.ReadStateClientCapabilities).DeferralAllowed` is true.
+	DeferralResponse *DeferralResponse
 }

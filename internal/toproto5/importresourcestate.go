@@ -35,7 +35,9 @@ func ImportResourceStateResponse(ctx context.Context, fw *fwserver.ImportResourc
 	}
 
 	if fw.Deferral != nil {
-		proto5.Deferred.Reason = tfprotov5.DeferredReason(fw.Deferral.Reason)
+		proto5.Deferred = &tfprotov5.Deferred{
+			Reason: tfprotov5.DeferredReason(fw.Deferral.Reason),
+		}
 	}
 
 	return proto5

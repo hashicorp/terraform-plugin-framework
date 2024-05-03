@@ -17,10 +17,11 @@ import (
 // ReadResourceRequest is the framework server request for the
 // ReadResource RPC.
 type ReadResourceRequest struct {
-	CurrentState *tfsdk.State
-	Resource     resource.Resource
-	Private      *privatestate.Data
-	ProviderMeta *tfsdk.Config
+	CurrentState       *tfsdk.State
+	Resource           resource.Resource
+	Private            *privatestate.Data
+	ProviderMeta       *tfsdk.Config
+	ClientCapabilities *resource.ReadClientCapabilities
 }
 
 // ReadResourceResponse is the framework server response for the
@@ -29,6 +30,7 @@ type ReadResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
 	Private     *privatestate.Data
+	Deferral    *resource.DeferralResponse
 }
 
 // ReadResource implements the framework server ReadResource RPC.
@@ -97,12 +99,15 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		resp.Private = req.Private
 	}
 
+	readReq.ClientCapabilities = req.ClientCapabilities
+
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Read")
 	req.Resource.Read(ctx, readReq, &readResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Read")
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
+	resp.Deferral = readResp.DeferralResponse
 
 	if readResp.Private != nil {
 		if resp.Private == nil {
@@ -113,6 +118,16 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) && resp.Deferral != nil {
+		resp.Diagnostics.AddError(
+			"Resource Deferral Not Allowed",
+			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+				"The resource requested a deferral but the Terraform client does not support deferrals, "+
+				"resource.DeferralResponse can only be set if resource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+		)
 		return
 	}
 

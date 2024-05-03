@@ -44,12 +44,15 @@ func ImportResourceStateRequest(ctx context.Context, proto5 *tfprotov5.ImportRes
 			Raw:    tftypes.NewValue(resourceSchema.Type().TerraformType(ctx), nil),
 			Schema: resourceSchema,
 		},
-		ID: proto5.ID,
-		ClientCapabilities: &resource.ImportStateClientCapabilities{
-			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
-		},
+		ID:       proto5.ID,
 		Resource: reqResource,
 		TypeName: proto5.TypeName,
+	}
+
+	if proto5.ClientCapabilities != nil {
+		fw.ClientCapabilities = &resource.ImportStateClientCapabilities{
+			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
+		}
 	}
 
 	return fw, diags

@@ -56,6 +56,8 @@ func TestReadResourceRequest(t *testing.T) {
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
+	testClientCapabilities := tfprotov5.ClientCapabilities{DeferralAllowed: true}
+
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadResourceRequest
 		resourceSchema      fwschema.Schema
@@ -169,6 +171,17 @@ func TestReadResourceRequest(t *testing.T) {
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto5Value,
 					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov5.ReadResourceRequest{
+				ClientCapabilities: &testClientCapabilities,
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				ClientCapabilities: &resource.ReadClientCapabilities{
+					DeferralAllowed: true,
 				},
 			},
 		},

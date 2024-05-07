@@ -45,7 +45,7 @@ type ImportResourceStateRequest struct {
 type ImportResourceStateResponse struct {
 	Diagnostics       diag.Diagnostics
 	ImportedResources []ImportedResource
-	Deferral          *resource.DeferralResponse
+	Deferred          *resource.DeferredResponse
 }
 
 // ImportResourceState implements the framework server ImportResourceState RPC.
@@ -118,12 +118,12 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
-	if (importReq.ClientCapabilities == nil || !importReq.ClientCapabilities.DeferralAllowed) && importResp.DeferralResponse != nil {
+	if (importReq.ClientCapabilities == nil || !importReq.ClientCapabilities.DeferralAllowed) && importResp.DeferredResponse != nil {
 		resp.Diagnostics.AddError(
 			"Resource Import Deferral Not Allowed",
 			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 				"The resource requested a deferral but the Terraform client does not support deferrals, "+
-				"resource.DeferralResponse can only be set if resource.ImportStateRequest.ImportStateClientCapabilities.DeferralAllowed is true.",
+				"resource.DeferredResponse can only be set if resource.ImportStateRequest.ImportStateClientCapabilities.DeferralAllowed is true.",
 		)
 		return
 	}
@@ -143,8 +143,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		private.Provider = importResp.Private
 	}
 
-	if importResp.DeferralResponse != nil {
-		resp.Deferral = importResp.DeferralResponse
+	if importResp.DeferredResponse != nil {
+		resp.Deferred = importResp.DeferredResponse
 	}
 
 	resp.ImportedResources = []ImportedResource{

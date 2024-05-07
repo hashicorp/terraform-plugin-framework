@@ -6044,14 +6044,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 						if req.ClientCapabilities.DeferralAllowed == true {
-							resp.DeferralResponse = &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq}
+							resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
 						}
 
 					},
 				},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				Deferral: &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
@@ -6085,7 +6085,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						resp.DeferralResponse = &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
 					},
 				},
 			},
@@ -6095,7 +6095,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"Resource Deferral Not Allowed",
 						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(*resource.ModifyPlanResponse).DeferralResponse can only be set if (resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed is true.",
+							"(*resource.ModifyPlanResponse).DeferredResponse can only be set if (resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed is true.",
 					),
 				},
 				PlannedState: &tfsdk.State{

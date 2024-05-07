@@ -69,7 +69,7 @@ func TestReadResourceResponse(t *testing.T) {
 		},
 	}
 
-	testDeferral := &resource.DeferralResponse{
+	testDeferral := &resource.DeferredResponse{
 		Reason: resource.DeferralReasonAbsentPrereq,
 	}
 
@@ -178,7 +178,7 @@ func TestReadResourceResponse(t *testing.T) {
 		},
 		"deferral": {
 			input: &fwserver.ReadResourceResponse{
-				Deferral: testDeferral,
+				Deferred: testDeferral,
 			},
 			expected: &tfprotov5.ReadResourceResponse{
 				Deferred: testProto5Deferred,

@@ -32,9 +32,9 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.Private = newPrivate
 
-	if fw.Deferral != nil {
+	if fw.Deferred != nil {
 		proto6.Deferred = &tfprotov6.Deferred{
-			Reason: tfprotov6.DeferredReason(fw.Deferral.Reason),
+			Reason: tfprotov6.DeferredReason(fw.Deferred.Reason),
 		}
 	}
 

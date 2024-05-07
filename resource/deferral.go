@@ -1,19 +1,19 @@
 package resource
 
 const (
-	DeferralReasonUnknown               DeferralReason = 0
-	DeferralReasonResourceConfigUnknown DeferralReason = 1
-	DeferralReasonProviderConfigUnknown DeferralReason = 2
-	DeferralReasonAbsentPrereq          DeferralReason = 3
+	DeferralReasonUnknown               DeferredReason = 0
+	DeferralReasonResourceConfigUnknown DeferredReason = 1
+	DeferralReasonProviderConfigUnknown DeferredReason = 2
+	DeferralReasonAbsentPrereq          DeferredReason = 3
 )
 
-type DeferralResponse struct {
-	Reason DeferralReason
+type DeferredResponse struct {
+	Reason DeferredReason
 }
 
-type DeferralReason int32
+type DeferredReason int32
 
-func (d DeferralReason) String() string {
+func (d DeferredReason) String() string {
 	switch d {
 	case 0:
 		return "Unknown"

@@ -529,7 +529,7 @@ func TestServerReadResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						resp.DeferralResponse = &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
 
 						if data.TestRequired.ValueString() != "test-currentstate-value" {
 							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
@@ -541,7 +541,7 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
-				Deferral: &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
 			},
 		},
 		"request-deferral-not-allowed-response-deferral": {
@@ -559,7 +559,7 @@ func TestServerReadResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						resp.DeferralResponse = &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
 
 						if data.TestRequired.ValueString() != "test-currentstate-value" {
 							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
@@ -573,12 +573,12 @@ func TestServerReadResource(t *testing.T) {
 						"Resource Deferral Not Allowed",
 						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"resource.DeferralResponse can only be set if resource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+							"resource.DeferredResponse can only be set if resource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
 					),
 				},
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
-				Deferral: &resource.DeferralResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
 			},
 		},
 	}

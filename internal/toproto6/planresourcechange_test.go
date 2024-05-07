@@ -70,7 +70,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	testDeferral := &resource.DeferralResponse{
+	testDeferred := &resource.DeferredResponse{
 		Reason: resource.DeferralReasonAbsentPrereq,
 	}
 
@@ -191,7 +191,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 		},
 		"deferral": {
 			input: &fwserver.PlanResourceChangeResponse{
-				Deferral: testDeferral,
+				Deferred: testDeferred,
 			},
 			expected: &tfprotov6.PlanResourceChangeResponse{
 				Deferred: testProto6Deferred,

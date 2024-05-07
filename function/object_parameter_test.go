@@ -319,6 +319,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 	}{
 		"customtype": {
 			param: function.ObjectParameter{
+				Name:       "testparam",
 				CustomType: testtypes.ObjectType{},
 			},
 			request: fwfunction.ValidateParameterImplementationRequest{
@@ -328,6 +329,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 		},
 		"attributetypes": {
 			param: function.ObjectParameter{
+				Name: "testparam",
 				AttributeTypes: map[string]attr.Type{
 					"test_attr": types.StringType,
 				},
@@ -339,6 +341,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 		},
 		"attributetypes-dynamic": {
 			param: function.ObjectParameter{
+				Name: "testparam",
 				AttributeTypes: map[string]attr.Type{
 					"test_attr": types.DynamicType,
 					"test_list": types.ListType{
@@ -366,7 +369,6 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 				},
 			},
 			request: fwfunction.ValidateParameterImplementationRequest{
-				Name:              "testparam",
 				ParameterPosition: pointer(int64(0)),
 			},
 			expected: &fwfunction.ValidateParameterImplementationResponse{
@@ -391,9 +393,7 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 					},
 				},
 			},
-			request: fwfunction.ValidateParameterImplementationRequest{
-				Name: "testparam",
-			},
+			request: fwfunction.ValidateParameterImplementationRequest{},
 			expected: &fwfunction.ValidateParameterImplementationResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
@@ -403,6 +403,75 @@ func TestObjectParameterValidateImplementation(t *testing.T) {
 							"Variadic parameter \"testparam\" contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the variadic parameter definition with DynamicParameter instead.",
+					),
+				},
+			},
+		},
+		"attributetypes-missing": {
+			param: function.ObjectParameter{
+				Name: "testparam",
+				// AttributeTypes intentionally missing
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				// No diagnostics are expected as objects can be empty
+			},
+		},
+		"attributetypes-missing-underlying-type": {
+			param: function.ObjectParameter{
+				Name: "testparam",
+				AttributeTypes: map[string]attr.Type{
+					"nil": nil,
+				},
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Parameter \"testparam\" at position 0 is missing underlying type.\n\n"+
+							"Collection element and object attribute types are always required in Terraform.",
+					),
+				},
+			},
+		},
+		"name": {
+			param: function.ObjectParameter{
+				Name: "testparam",
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.StringType,
+				},
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{},
+		},
+		"name-missing": {
+			param: function.ObjectParameter{
+				// Name intentionally missing
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.StringType,
+				},
+			},
+			request: fwfunction.ValidateParameterImplementationRequest{
+				FunctionName:      "testfunc",
+				ParameterPosition: pointer(int64(0)),
+			},
+			expected: &fwfunction.ValidateParameterImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Function \"testfunc\" - Parameter at position 0 does not have a name",
 					),
 				},
 			},

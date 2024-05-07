@@ -103,6 +103,23 @@ func TestListReturnValidateImplementation(t *testing.T) {
 				},
 			},
 		},
+		"elementtype-missing": {
+			returnDef: function.ListReturn{
+				// ElementType intentionally missing
+			},
+			request: fwfunction.ValidateReturnImplementationRequest{},
+			expected: &fwfunction.ValidateReturnImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Function Definition",
+						"When validating the function definition, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"Return is missing underlying type.\n\n"+
+							"Collection element and object attribute types are always required in Terraform.",
+					),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

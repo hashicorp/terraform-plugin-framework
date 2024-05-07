@@ -10837,7 +10837,7 @@ func TestNestedAttributeObjectPlanModify(t *testing.T) {
 				AttributePlan: fwValue,
 			},
 		},
-		"request-planvalue": {
+		"request-planvalue-known": {
 			object: testschema.NestedAttributeObjectWithPlanModifiers{
 				PlanModifiers: []planmodifier.Object{
 					testplanmodifier.Object{
@@ -10870,6 +10870,110 @@ func TestNestedAttributeObjectPlanModify(t *testing.T) {
 			},
 			expected: &ModifyAttributePlanResponse{
 				AttributePlan: fwValue,
+			},
+		},
+		"request-planvalue-null": {
+			object: testschema.NestedAttributeObjectWithPlanModifiers{
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							got := req.PlanValue
+							expected := types.ObjectNull(map[string]attr.Type{"testattr": types.StringType})
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								nil, // null object
+							),
+						},
+					),
+					Schema: fwSchema,
+				},
+				ConfigValue:    types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								nil, // null object
+							),
+						},
+					),
+					Schema: fwSchema,
+				},
+				PlanValue: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"testattr": tftypes.String,
+									},
+								},
+								nil, // null object
+							),
+						},
+					),
+					Schema: fwSchema,
+				},
+				StateValue: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
 			},
 		},
 		"request-private": {
@@ -11261,7 +11365,7 @@ func TestNestedAttributeObjectPlanModify(t *testing.T) {
 				),
 			},
 		},
-		"response-planvalue-unknown-to-known-nested": {
+		"response-planvalue-unknown-object": {
 			object: testschema.NestedAttributeObject{
 				Attributes: map[string]fwschema.Attribute{
 					"testattr": testschema.AttributeWithStringPlanModifiers{
@@ -11269,9 +11373,95 @@ func TestNestedAttributeObjectPlanModify(t *testing.T) {
 						PlanModifiers: []planmodifier.String{
 							testplanmodifier.String{
 								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-									resp.PlanValue = types.StringValue("newtestvalue") // should win over object
+									resp.PlanValue = types.StringValue("newtestvalue") // should not win over unknown object
 								},
 							},
+						},
+					},
+				},
+			},
+			request: planmodifier.ObjectRequest{
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"testattr": tftypes.String}},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{AttributeTypes: map[string]tftypes.Type{"testattr": tftypes.String}},
+								nil,
+							),
+						},
+					),
+					Schema: fwSchema,
+				},
+				ConfigValue: types.ObjectNull(
+					map[string]attr.Type{"testattr": types.StringType},
+				),
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"testattr": tftypes.String}},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{AttributeTypes: map[string]tftypes.Type{"testattr": tftypes.String}},
+								tftypes.UnknownValue,
+							),
+						},
+					),
+					Schema: fwSchema,
+				},
+				PlanValue: types.ObjectUnknown(
+					map[string]attr.Type{"testattr": types.StringType},
+				),
+				State:      testState,
+				StateValue: fwValue,
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectUnknown(
+					map[string]attr.Type{"testattr": types.StringType},
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectUnknown(
+					map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+				),
+			},
+		},
+		"response-planvalue-unknown-object-with-plan-modifiers-to-known-nested": {
+			object: testschema.NestedAttributeObjectWithPlanModifiers{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringPlanModifiers{
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							testplanmodifier.String{
+								PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+									resp.PlanValue = types.StringValue("newtestvalue") // should only work after unknown object is made known
+								},
+							},
+						},
+					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					testplanmodifier.Object{
+						PlanModifyObjectMethod: func(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+							resp.PlanValue = types.ObjectValueMust(
+								map[string]attr.Type{
+									"testattr": types.StringType,
+								},
+								map[string]attr.Value{
+									"testattr": types.StringUnknown(), // ensure string plan modifier is applied later
+								},
+							)
 						},
 					},
 				},

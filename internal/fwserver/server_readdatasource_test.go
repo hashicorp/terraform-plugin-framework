@@ -414,7 +414,7 @@ func TestServerReadDataSource(t *testing.T) {
 						"Data Source Deferral Not Allowed",
 						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"datasource.DeferredResponse can only be set if datasource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+							"(datasource.ReadResponse).DeferredResponse can only be set if (datasource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
 					),
 				},
 				State:    testStateUnchanged,

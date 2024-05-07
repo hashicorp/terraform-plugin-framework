@@ -369,7 +369,7 @@ func TestServerImportResourceState(t *testing.T) {
 						"Resource Import Deferral Not Allowed",
 						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"resource.DeferredResponse can only be set if resource.ImportStateRequest.ImportStateClientCapabilities.DeferralAllowed is true.",
+							"(resource.ImportStateResponse).DeferredResponse can only be set if (resource.ImportStateRequest.ClientCapabilities).DeferralAllowed is true.",
 					),
 				},
 			},

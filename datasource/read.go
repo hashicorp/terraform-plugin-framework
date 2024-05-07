@@ -12,8 +12,8 @@ import (
 // regarding optionally supported protocol features for the ReadDataSource RPC,
 // such as forward-compatible Terraform behavior changes.
 type ReadClientCapabilities struct {
-	// DeferralAllowed signals that the request from Terraform is able to
-	// handle deferred responses from the provider.
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
 	DeferralAllowed bool
 }
 

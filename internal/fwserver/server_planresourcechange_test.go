@@ -6095,7 +6095,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"Resource Deferral Not Allowed",
 						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(*resource.ModifyPlanResponse).DeferredResponse can only be set if (resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed is true.",
+							"(resource.ModifyPlanResponse).DeferredResponse can only be set if (resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed is true.",
 					),
 				},
 				PlannedState: &tfsdk.State{

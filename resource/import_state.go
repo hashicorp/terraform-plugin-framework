@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// TODO: doc
+// ImportStateClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ImportResourceState RPC,
+// such as forward-compatible Terraform behavior changes.
 type ImportStateClientCapabilities struct {
 	// DeferralAllowed indicates whether the Terraform client initiating
 	// the request allows a deferral response.
@@ -31,7 +33,8 @@ type ImportStateRequest struct {
 	// is not stored in the state unless the provider explicitly stores it.
 	ID string
 
-	//TODO: doc
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ImportResourceState RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities *ImportStateClientCapabilities
 }
 

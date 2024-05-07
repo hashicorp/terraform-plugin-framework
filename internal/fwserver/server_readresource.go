@@ -126,7 +126,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 			"Resource Deferral Not Allowed",
 			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 				"The resource requested a deferral but the Terraform client does not support deferrals, "+
-				"resource.DeferredResponse can only be set if resource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+				"(resource.ReadResponse).DeferredResponse can only be set if (resource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
 		)
 		return
 	}

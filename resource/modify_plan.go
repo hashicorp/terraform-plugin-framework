@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// TODO: doc
+// ModifyPlanClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the PlanResourceChange RPC,
+// such as forward-compatible Terraform behavior changes.
 type ModifyPlanClientCapabilities struct {
 	// DeferralAllowed indicates whether the Terraform client initiating
 	// the request allows a deferral response.
@@ -47,7 +49,8 @@ type ModifyPlanRequest struct {
 	// ModifyPlanResponse.Private to update or remove a value.
 	Private *privatestate.ProviderData
 
-	//TODO: doc
+	// ClientCapabilities defines optionally supported protocol features for the
+	// PlanResourceChange RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities *ModifyPlanClientCapabilities
 }
 

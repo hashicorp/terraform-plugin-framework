@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// TODO: doc
+// ReadClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ReadResource RPC,
+// such as forward-compatible Terraform behavior changes.
 type ReadClientCapabilities struct {
 	// DeferralAllowed indicates whether the Terraform client initiating
 	// the request allows a deferral response.
@@ -37,7 +39,8 @@ type ReadRequest struct {
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
 
-	//TODO: doc
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ReadResource RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities *ReadClientCapabilities
 }
 

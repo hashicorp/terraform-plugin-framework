@@ -1,4 +1,5 @@
 // Copyright (c) HashiCorp, Inc.
+
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto5_test
@@ -8,6 +9,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -15,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadDataSourceRequest(t *testing.T) {
@@ -45,6 +47,8 @@ func TestReadDataSourceRequest(t *testing.T) {
 			},
 		},
 	}
+
+	testClientCapabilities := tfprotov5.ReadDataSourceClientCapabilities{DeferralAllowed: true}
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ReadDataSourceRequest
@@ -132,6 +136,18 @@ func TestReadDataSourceRequest(t *testing.T) {
 				ProviderMeta: &tfsdk.Config{
 					Raw:    testProto5Value,
 					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov5.ReadDataSourceRequest{
+				ClientCapabilities: &testClientCapabilities,
+			},
+			dataSourceSchema: testFwSchema,
+			expected: &fwserver.ReadDataSourceRequest{
+				DataSourceSchema: testFwSchema,
+				ClientCapabilities: &datasource.ReadClientCapabilities{
+					DeferralAllowed: true,
 				},
 			},
 		},

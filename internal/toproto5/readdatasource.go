@@ -6,8 +6,9 @@ package toproto5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 // ReadDataSourceResponse returns the *tfprotov5.ReadDataSourceResponse
@@ -25,6 +26,12 @@ func ReadDataSourceResponse(ctx context.Context, fw *fwserver.ReadDataSourceResp
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.State = state
+
+	if fw.Deferred != nil {
+		proto5.Deferred = &tfprotov5.Deferred{
+			Reason: tfprotov5.DeferredReason(fw.Deferred.Reason),
+		}
+	}
 
 	return proto5
 }

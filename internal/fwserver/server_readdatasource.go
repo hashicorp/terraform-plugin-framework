@@ -17,15 +17,17 @@ import (
 // ReadDataSourceRequest is the framework server request for the
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
-	Config           *tfsdk.Config
-	DataSourceSchema fwschema.Schema
-	DataSource       datasource.DataSource
-	ProviderMeta     *tfsdk.Config
+	ClientCapabilities *datasource.ReadClientCapabilities
+	Config             *tfsdk.Config
+	DataSourceSchema   fwschema.Schema
+	DataSource         datasource.DataSource
+	ProviderMeta       *tfsdk.Config
 }
 
 // ReadDataSourceResponse is the framework server response for the
 // ReadDataSource RPC.
 type ReadDataSourceResponse struct {
+	Deferred    *datasource.DeferredResponse
 	Diagnostics diag.Diagnostics
 	State       *tfsdk.State
 }
@@ -75,14 +77,27 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	readReq.ClientCapabilities = req.ClientCapabilities
+
 	logging.FrameworkTrace(ctx, "Calling provider defined DataSource Read")
 	req.DataSource.Read(ctx, readReq, &readResp)
 	logging.FrameworkTrace(ctx, "Called provider defined DataSource Read")
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.State = &readResp.State
+	resp.Deferred = readResp.DeferredResponse
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) && resp.Deferred != nil {
+		resp.Diagnostics.AddError(
+			"Data Source Deferral Not Allowed",
+			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+				"The resource requested a deferral but the Terraform client does not support deferrals, "+
+				"datasource.DeferredResponse can only be set if datasource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+		)
 		return
 	}
 

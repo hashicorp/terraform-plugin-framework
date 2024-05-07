@@ -6,11 +6,12 @@ package fromproto5
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ReadDataSourceRequest returns the *fwserver.ReadDataSourceRequest
@@ -52,6 +53,12 @@ func ReadDataSourceRequest(ctx context.Context, proto5 *tfprotov5.ReadDataSource
 	diags.Append(providerMetaDiags...)
 
 	fw.ProviderMeta = providerMeta
+
+	if proto5.ClientCapabilities != nil {
+		fw.ClientCapabilities = &datasource.ReadClientCapabilities{
+			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
+		}
+	}
 
 	return fw, diags
 }

@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerReadDataSource(t *testing.T) {
@@ -96,6 +97,10 @@ func TestServerReadDataSource(t *testing.T) {
 	testState := &tfsdk.State{
 		Raw:    testStateValue,
 		Schema: testSchema,
+	}
+
+	testDeferralAllowed := &datasource.ReadClientCapabilities{
+		DeferralAllowed: true,
 	}
 
 	testCases := map[string]struct {
@@ -347,6 +352,73 @@ func TestServerReadDataSource(t *testing.T) {
 					}),
 					Schema: testSchemaWithSemanticEquals,
 				},
+			},
+		},
+		"request-deferral-allowed-response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+						resp.DeferredResponse = &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq}
+
+						if config.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
+						}
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State:    testStateUnchanged,
+				Deferred: &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq},
+			},
+		},
+		"request-deferral-not-allowed-response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+						resp.DeferredResponse = &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq}
+
+						if config.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Data Source Deferral Not Allowed",
+						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+							"The resource requested a deferral but the Terraform client does not support deferrals, "+
+							"datasource.DeferredResponse can only be set if datasource.ReadRequest.ReadClientCapabilities.DeferralAllowed is true.",
+					),
+				},
+				State:    testStateUnchanged,
+				Deferred: &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 	}

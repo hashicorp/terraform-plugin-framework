@@ -318,7 +318,7 @@ func TestServerImportResourceState(t *testing.T) {
 						}
 
 						resp.DeferredResponse = &resource.DeferredResponse{
-							Reason: resource.DeferralReasonAbsentPrereq,
+							Reason: resource.DeferredReasonAbsentPrereq,
 						}
 
 						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
@@ -336,7 +336,7 @@ func TestServerImportResourceState(t *testing.T) {
 						Private:  testEmptyPrivate,
 					},
 				},
-				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"request-deferral-not-allowed-response-deferral": {
@@ -354,7 +354,7 @@ func TestServerImportResourceState(t *testing.T) {
 						}
 
 						resp.DeferredResponse = &resource.DeferredResponse{
-							Reason: resource.DeferralReasonAbsentPrereq,
+							Reason: resource.DeferredReasonAbsentPrereq,
 						}
 
 						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)

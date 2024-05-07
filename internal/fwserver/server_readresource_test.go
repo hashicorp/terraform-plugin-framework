@@ -529,7 +529,7 @@ func TestServerReadResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq}
 
 						if data.TestRequired.ValueString() != "test-currentstate-value" {
 							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
@@ -541,7 +541,7 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
-				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"request-deferral-not-allowed-response-deferral": {
@@ -559,7 +559,7 @@ func TestServerReadResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq}
 
 						if data.TestRequired.ValueString() != "test-currentstate-value" {
 							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
@@ -578,7 +578,7 @@ func TestServerReadResource(t *testing.T) {
 				},
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
-				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 	}

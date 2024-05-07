@@ -6044,14 +6044,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 						if req.ClientCapabilities.DeferralAllowed == true {
-							resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
+							resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq}
 						}
 
 					},
 				},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				Deferred: &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq},
+				Deferred: &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
@@ -6085,7 +6085,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferralReasonAbsentPrereq}
+						resp.DeferredResponse = &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq}
 					},
 				},
 			},

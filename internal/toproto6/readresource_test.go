@@ -70,7 +70,7 @@ func TestReadResourceResponse(t *testing.T) {
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testDeferral := &resource.DeferredResponse{
-		Reason: resource.DeferralReasonAbsentPrereq,
+		Reason: resource.DeferredReasonAbsentPrereq,
 	}
 
 	testProto6Deferred := &tfprotov6.Deferred{

@@ -38,5 +38,11 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.PlannedPrivate = plannedPrivate
 
+	if fw.Deferral != nil {
+		proto5.Deferred = &tfprotov5.Deferred{
+			Reason: tfprotov5.DeferredReason(fw.Deferral.Reason),
+		}
+	}
+
 	return proto5
 }

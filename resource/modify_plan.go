@@ -10,6 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// TODO: doc
+type ModifyPlanClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	DeferralAllowed bool
+}
+
 // ModifyPlanRequest represents a request for the provider to modify the
 // planned new state that Terraform has generated for the resource.
 type ModifyPlanRequest struct {
@@ -39,6 +46,9 @@ type ModifyPlanRequest struct {
 	// Use the GetKey method to read data. Use the SetKey method on
 	// ModifyPlanResponse.Private to update or remove a value.
 	Private *privatestate.ProviderData
+
+	//TODO: doc
+	ClientCapabilities *ModifyPlanClientCapabilities
 }
 
 // ModifyPlanResponse represents a response to a
@@ -65,4 +75,11 @@ type ModifyPlanResponse struct {
 	// indicates a successful plan modification with no warnings or errors
 	// generated.
 	Diagnostics diag.Diagnostics
+
+	// DeferralResponse indicates that Terraform should defer
+	// importing this resource.
+	//
+	// This field can only be set if
+	// `(resource.ModifyPlanRequest.ModifyPlanClientCapabilities).DeferralAllowed` is true.
+	DeferralResponse *DeferralResponse
 }

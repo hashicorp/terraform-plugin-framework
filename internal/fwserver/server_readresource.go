@@ -17,20 +17,20 @@ import (
 // ReadResourceRequest is the framework server request for the
 // ReadResource RPC.
 type ReadResourceRequest struct {
+	ClientCapabilities *resource.ReadClientCapabilities
 	CurrentState       *tfsdk.State
 	Resource           resource.Resource
 	Private            *privatestate.Data
 	ProviderMeta       *tfsdk.Config
-	ClientCapabilities *resource.ReadClientCapabilities
 }
 
 // ReadResourceResponse is the framework server response for the
 // ReadResource RPC.
 type ReadResourceResponse struct {
+	Deferral    *resource.DeferralResponse
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
 	Private     *privatestate.Data
-	Deferral    *resource.DeferralResponse
 }
 
 // ReadResource implements the framework server ReadResource RPC.

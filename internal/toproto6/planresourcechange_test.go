@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -68,6 +69,14 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
+
+	testDeferral := &resource.DeferralResponse{
+		Reason: resource.DeferralReasonAbsentPrereq,
+	}
+
+	testProto6Deferred := &tfprotov6.Deferred{
+		Reason: tfprotov6.DeferredReasonAbsentPrereq,
+	}
 
 	testCases := map[string]struct {
 		input    *fwserver.PlanResourceChangeResponse
@@ -178,6 +187,14 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 				RequiresReplace: []*tftypes.AttributePath{
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
+			},
+		},
+		"deferral": {
+			input: &fwserver.PlanResourceChangeResponse{
+				Deferral: testDeferral,
+			},
+			expected: &tfprotov6.PlanResourceChangeResponse{
+				Deferred: testProto6Deferred,
 			},
 		},
 	}

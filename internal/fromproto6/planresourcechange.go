@@ -17,7 +17,7 @@ import (
 
 // PlanResourceChangeRequest returns the *fwserver.PlanResourceChangeRequest
 // equivalent of a *tfprotov6.PlanResourceChangeRequest.
-func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
+func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResourceChangeRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -40,7 +40,7 @@ func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResour
 
 	fw := &fwserver.PlanResourceChangeRequest{
 		ResourceSchema: resourceSchema,
-		Resource:       resource,
+		Resource:       reqResource,
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, resourceSchema)
@@ -72,6 +72,12 @@ func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResour
 	diags.Append(privateDataDiags...)
 
 	fw.PriorPrivate = privateData
+
+	if proto6.ClientCapabilities != nil {
+		fw.ClientCapabilities = &resource.ModifyPlanClientCapabilities{
+			DeferralAllowed: proto6.ClientCapabilities.DeferralAllowed,
+		}
+	}
 
 	return fw, diags
 }

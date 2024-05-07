@@ -26,18 +26,20 @@ import (
 // PlanResourceChangeRequest is the framework server request for the
 // PlanResourceChange RPC.
 type PlanResourceChangeRequest struct {
-	Config           *tfsdk.Config
-	PriorPrivate     *privatestate.Data
-	PriorState       *tfsdk.State
-	ProposedNewState *tfsdk.Plan
-	ProviderMeta     *tfsdk.Config
-	ResourceSchema   fwschema.Schema
-	Resource         resource.Resource
+	ClientCapabilities *resource.ModifyPlanClientCapabilities
+	Config             *tfsdk.Config
+	PriorPrivate       *privatestate.Data
+	PriorState         *tfsdk.State
+	ProposedNewState   *tfsdk.Plan
+	ProviderMeta       *tfsdk.Config
+	ResourceSchema     fwschema.Schema
+	Resource           resource.Resource
 }
 
 // PlanResourceChangeResponse is the framework server response for the
 // PlanResourceChange RPC.
 type PlanResourceChangeResponse struct {
+	Deferral        *resource.DeferralResponse
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
@@ -260,10 +262,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{
-			Config:  *req.Config,
-			Plan:    stateToPlan(*resp.PlannedState),
-			State:   *req.PriorState,
-			Private: resp.PlannedPrivate.Provider,
+			Config:             *req.Config,
+			Plan:               stateToPlan(*resp.PlannedState),
+			State:              *req.PriorState,
+			Private:            resp.PlannedPrivate.Provider,
+			ClientCapabilities: req.ClientCapabilities,
 		}
 
 		if req.ProviderMeta != nil {
@@ -281,10 +284,21 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
+		if (modifyPlanReq.ClientCapabilities == nil || !modifyPlanReq.ClientCapabilities.DeferralAllowed) && modifyPlanResp.DeferralResponse != nil {
+			resp.Diagnostics.AddError(
+				"Resource Deferral Not Allowed",
+				"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
+					"The resource requested a deferral but the Terraform client does not support deferrals, "+
+					"(*resource.ModifyPlanResponse).DeferralResponse can only be set if (resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed is true.",
+			)
+			return
+		}
+
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
+		resp.Deferral = modifyPlanResp.DeferralResponse
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

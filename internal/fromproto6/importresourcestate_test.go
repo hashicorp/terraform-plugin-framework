@@ -90,7 +90,7 @@ func TestImportResourceStateRequest(t *testing.T) {
 		"client-capabilities": {
 			input: &tfprotov6.ImportResourceStateRequest{
 				ID: "test-id",
-				ClientCapabilities: &tfprotov6.ClientCapabilities{
+				ClientCapabilities: &tfprotov6.ImportResourceStateClientCapabilities{
 					DeferralAllowed: true,
 				},
 			},

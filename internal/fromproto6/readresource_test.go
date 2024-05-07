@@ -56,7 +56,7 @@ func TestReadResourceRequest(t *testing.T) {
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	testClientCapabilities := tfprotov6.ClientCapabilities{DeferralAllowed: true}
+	testClientCapabilities := tfprotov6.ReadResourceClientCapabilities{DeferralAllowed: true}
 
 	testCases := map[string]struct {
 		input               *tfprotov6.ReadResourceRequest

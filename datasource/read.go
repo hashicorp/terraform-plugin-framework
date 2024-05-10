@@ -52,9 +52,9 @@ type ReadResponse struct {
 	Diagnostics diag.Diagnostics
 
 	// DeferredResponse indicates that Terraform should defer
-	// importing this resource.
+	// reading this data source.
 	//
 	// This field can only be set if
-	// `(datasource.ReadRequest.ReadClientCapabilities).DeferralAllowed` is true.
+	// `(datasource.ReadRequest).ClientCapabilities.DeferralAllowed` is true.
 	DeferredResponse *DeferredResponse
 }

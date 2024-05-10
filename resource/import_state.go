@@ -62,7 +62,7 @@ type ImportStateResponse struct {
 	// importing this resource.
 	//
 	// This field can only be set if
-	// `(resource.ImportStateRequest.ImportStateClientCapabilities).DeferralAllowed` is true.
+	// `(resource.ImportStateRequest).ClientCapabilities.DeferralAllowed` is true.
 	DeferredResponse *DeferredResponse
 }
 

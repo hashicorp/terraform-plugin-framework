@@ -83,6 +83,6 @@ type ModifyPlanResponse struct {
 	// importing this resource.
 	//
 	// This field can only be set if
-	// `(resource.ModifyPlanRequest.ModifyPlanClientCapabilities).DeferralAllowed` is true.
+	// `(resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed` is true.
 	DeferredResponse *DeferredResponse
 }

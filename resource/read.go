@@ -68,6 +68,6 @@ type ReadResponse struct {
 	// importing this resource.
 	//
 	// This field can only be set if
-	// `(resource.ReadRequest.ReadClientCapabilities).DeferralAllowed` is true.
+	// `(resource.ReadRequest).ClientCapabilities.DeferralAllowed` is true.
 	DeferredResponse *DeferredResponse
 }

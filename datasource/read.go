@@ -14,6 +14,9 @@ import (
 type ReadClientCapabilities struct {
 	// DeferralAllowed indicates whether the Terraform client initiating
 	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
 	DeferralAllowed bool
 }
 
@@ -56,5 +59,8 @@ type ReadResponse struct {
 	//
 	// This field can only be set if
 	// `(datasource.ReadRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
 	DeferredResponse *DeferredResponse
 }

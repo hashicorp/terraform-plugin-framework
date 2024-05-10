@@ -16,6 +16,9 @@ import (
 type ModifyPlanClientCapabilities struct {
 	// DeferralAllowed indicates whether the Terraform client initiating
 	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
 	DeferralAllowed bool
 }
 
@@ -84,5 +87,8 @@ type ModifyPlanResponse struct {
 	//
 	// This field can only be set if
 	// `(resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
 	DeferredResponse *DeferredResponse
 }

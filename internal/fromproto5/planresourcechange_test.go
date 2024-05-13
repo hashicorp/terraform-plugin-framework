@@ -54,8 +54,6 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
-	testClientCapabilities := tfprotov5.PlanResourceChangeClientCapabilities{DeferralAllowed: true}
-
 	testCases := map[string]struct {
 		input               *tfprotov5.PlanResourceChangeRequest
 		resourceSchema      fwschema.Schema
@@ -221,7 +219,9 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		},
 		"client-capabilities": {
 			input: &tfprotov5.PlanResourceChangeRequest{
-				ClientCapabilities: &testClientCapabilities,
+				ClientCapabilities: &tfprotov5.PlanResourceChangeClientCapabilities{
+					DeferralAllowed: true,
+				},
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.PlanResourceChangeRequest{

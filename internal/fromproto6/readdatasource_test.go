@@ -47,8 +47,6 @@ func TestReadDataSourceRequest(t *testing.T) {
 		},
 	}
 
-	testClientCapabilities := tfprotov6.ReadDataSourceClientCapabilities{DeferralAllowed: true}
-
 	testCases := map[string]struct {
 		input               *tfprotov6.ReadDataSourceRequest
 		dataSourceSchema    fwschema.Schema
@@ -140,7 +138,9 @@ func TestReadDataSourceRequest(t *testing.T) {
 		},
 		"client-capabilities": {
 			input: &tfprotov6.ReadDataSourceRequest{
-				ClientCapabilities: &testClientCapabilities,
+				ClientCapabilities: &tfprotov6.ReadDataSourceClientCapabilities{
+					DeferralAllowed: true,
+				},
 			},
 			dataSourceSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{

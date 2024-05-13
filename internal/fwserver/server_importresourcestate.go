@@ -36,7 +36,6 @@ type ImportResourceStateRequest struct {
 	// the ImportedResource TypeName of the ImportResourceStateResponse.
 	TypeName string
 
-	//TODO: doc
 	ClientCapabilities *resource.ImportStateClientCapabilities
 }
 

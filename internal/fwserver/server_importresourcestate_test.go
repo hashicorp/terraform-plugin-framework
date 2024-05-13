@@ -317,7 +317,7 @@ func TestServerImportResourceState(t *testing.T) {
 							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
 						}
 
-						resp.DeferredResponse = &resource.DeferredResponse{
+						resp.Deferred = &resource.Deferred{
 							Reason: resource.DeferredReasonAbsentPrereq,
 						}
 
@@ -336,7 +336,7 @@ func TestServerImportResourceState(t *testing.T) {
 						Private:  testEmptyPrivate,
 					},
 				},
-				Deferred: &resource.DeferredResponse{Reason: resource.DeferredReasonAbsentPrereq},
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"request-deferral-not-allowed-response-deferral": {
@@ -353,7 +353,7 @@ func TestServerImportResourceState(t *testing.T) {
 							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
 						}
 
-						resp.DeferredResponse = &resource.DeferredResponse{
+						resp.Deferred = &resource.Deferred{
 							Reason: resource.DeferredReasonAbsentPrereq,
 						}
 
@@ -369,7 +369,7 @@ func TestServerImportResourceState(t *testing.T) {
 						"Resource Import Deferral Not Allowed",
 						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(resource.ImportStateResponse).DeferredResponse can only be set if (resource.ImportStateRequest.ClientCapabilities).DeferralAllowed is true.",
+							"(resource.ImportStateResponse).Deferred can only be set if (resource.ImportStateRequest.ClientCapabilities).DeferralAllowed is true.",
 					),
 				},
 			},

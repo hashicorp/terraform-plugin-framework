@@ -39,7 +39,7 @@ type PlanResourceChangeRequest struct {
 // PlanResourceChangeResponse is the framework server response for the
 // PlanResourceChange RPC.
 type PlanResourceChangeResponse struct {
-	Deferred        *resource.DeferredResponse
+	Deferred        *resource.Deferred
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
@@ -287,12 +287,12 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
-		if !modifyPlanReq.ClientCapabilities.DeferralAllowed && modifyPlanResp.DeferredResponse != nil {
+		if !modifyPlanReq.ClientCapabilities.DeferralAllowed && modifyPlanResp.Deferred != nil {
 			resp.Diagnostics.AddError(
 				"Resource Deferral Not Allowed",
 				"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 					"The resource requested a deferral but the Terraform client does not support deferrals, "+
-					"(resource.ModifyPlanResponse).DeferredResponse can only be set if (resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed is true.",
+					"(resource.ModifyPlanResponse).Deferred can only be set if (resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed is true.",
 			)
 			return
 		}
@@ -301,7 +301,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
-		resp.Deferred = modifyPlanResp.DeferredResponse
+		resp.Deferred = modifyPlanResp.Deferred
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

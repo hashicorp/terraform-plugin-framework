@@ -370,7 +370,7 @@ func TestServerReadDataSource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-						resp.DeferredResponse = &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq}
+						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
 
 						if config.TestRequired.ValueString() != "test-config-value" {
 							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
@@ -381,7 +381,7 @@ func TestServerReadDataSource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{
 				State:    testStateUnchanged,
-				Deferred: &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq},
+				Deferred: &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"request-deferral-not-allowed-response-deferral": {
@@ -400,7 +400,7 @@ func TestServerReadDataSource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
-						resp.DeferredResponse = &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq}
+						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
 
 						if config.TestRequired.ValueString() != "test-config-value" {
 							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
@@ -414,11 +414,11 @@ func TestServerReadDataSource(t *testing.T) {
 						"Data Source Deferral Not Allowed",
 						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(datasource.ReadResponse).DeferredResponse can only be set if (datasource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
+							"(datasource.ReadResponse).Deferred can only be set if (datasource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
 					),
 				},
 				State:    testStateUnchanged,
-				Deferred: &datasource.DeferredResponse{Reason: datasource.DeferredReasonAbsentPrereq},
+				Deferred: &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 	}

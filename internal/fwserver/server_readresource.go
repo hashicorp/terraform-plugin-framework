@@ -27,7 +27,7 @@ type ReadResourceRequest struct {
 // ReadResourceResponse is the framework server response for the
 // ReadResource RPC.
 type ReadResourceResponse struct {
-	Deferred    *resource.DeferredResponse
+	Deferred    *resource.Deferred
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
 	Private     *privatestate.Data
@@ -109,7 +109,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
-	resp.Deferred = readResp.DeferredResponse
+	resp.Deferred = readResp.Deferred
 
 	if readResp.Private != nil {
 		if resp.Private == nil {
@@ -128,7 +128,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 			"Resource Deferral Not Allowed",
 			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 				"The resource requested a deferral but the Terraform client does not support deferrals, "+
-				"(resource.ReadResponse).DeferredResponse can only be set if (resource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
+				"(resource.ReadResponse).Deferred can only be set if (resource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
 		)
 		return
 	}

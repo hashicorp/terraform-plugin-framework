@@ -1,5 +1,5 @@
 kind: FEATURES
-body: 'datasource: Add `DeferredResponse` field to `ReadResponse` which indicates a data source deferred action 
+body: 'datasource: Add `Deferred` field to `ReadResponse` which indicates a data source deferred action 
   to the Terraform client'
 time: 2024-05-08T10:51:41.663935-04:00
 custom:

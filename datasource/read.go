@@ -54,7 +54,7 @@ type ReadResponse struct {
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
 
-	// DeferredResponse indicates that Terraform should defer
+	// Deferred indicates that Terraform should defer
 	// reading this data source.
 	//
 	// This field can only be set if
@@ -62,5 +62,5 @@ type ReadResponse struct {
 	//
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
-	DeferredResponse *DeferredResponse
+	Deferred *Deferred
 }

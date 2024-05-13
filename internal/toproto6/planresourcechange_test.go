@@ -70,7 +70,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	testDeferred := &resource.DeferredResponse{
+	testDeferred := &resource.Deferred{
 		Reason: resource.DeferredReasonAbsentPrereq,
 	}
 

@@ -27,7 +27,7 @@ type ReadDataSourceRequest struct {
 // ReadDataSourceResponse is the framework server response for the
 // ReadDataSource RPC.
 type ReadDataSourceResponse struct {
-	Deferred    *datasource.DeferredResponse
+	Deferred    *datasource.Deferred
 	Diagnostics diag.Diagnostics
 	State       *tfsdk.State
 }
@@ -87,7 +87,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.State = &readResp.State
-	resp.Deferred = readResp.DeferredResponse
+	resp.Deferred = readResp.Deferred
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,7 +98,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 			"Data Source Deferral Not Allowed",
 			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 				"The resource requested a deferral but the Terraform client does not support deferrals, "+
-				"(datasource.ReadResponse).DeferredResponse can only be set if (datasource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
+				"(datasource.ReadResponse).Deferred can only be set if (datasource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
 		)
 		return
 	}

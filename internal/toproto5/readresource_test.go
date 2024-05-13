@@ -69,7 +69,7 @@ func TestReadResourceResponse(t *testing.T) {
 		},
 	}
 
-	testDeferral := &resource.DeferredResponse{
+	testDeferral := &resource.Deferred{
 		Reason: resource.DeferredReasonAbsentPrereq,
 	}
 

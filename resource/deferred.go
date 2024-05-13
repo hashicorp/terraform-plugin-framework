@@ -20,11 +20,11 @@ const (
 	DeferredReasonAbsentPrereq DeferredReason = 3
 )
 
-// DeferredResponse is used to indicate to Terraform that a change needs to be deferred for a reason.
+// Deferred is used to indicate to Terraform that a change needs to be deferred for a reason.
 //
 // NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 // to change or break without warning. It is not protected by version compatibility guarantees.
-type DeferredResponse struct {
+type Deferred struct {
 	// Reason is the reason for deferring the change.
 	Reason DeferredReason
 }

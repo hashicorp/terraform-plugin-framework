@@ -34,7 +34,7 @@ func TestReadDataSourceResponse(t *testing.T) {
 
 	testProto6DynamicValue, err := tfprotov6.NewDynamicValue(testProto6Type, testProto6Value)
 
-	testDeferral := &datasource.DeferredResponse{
+	testDeferral := &datasource.Deferred{
 		Reason: datasource.DeferredReasonAbsentPrereq,
 	}
 

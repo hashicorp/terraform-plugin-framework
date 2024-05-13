@@ -61,7 +61,7 @@ type ImportStateResponse struct {
 	// data during the resource's Import operation.
 	Private *privatestate.ProviderData
 
-	// DeferredResponse indicates that Terraform should defer
+	// Deferred indicates that Terraform should defer
 	// importing this resource.
 	//
 	// This field can only be set if
@@ -69,7 +69,7 @@ type ImportStateResponse struct {
 	//
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
-	DeferredResponse *DeferredResponse
+	Deferred *Deferred
 }
 
 // ImportStatePassthroughID is a helper function to set the import

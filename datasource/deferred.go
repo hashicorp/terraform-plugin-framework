@@ -8,9 +8,9 @@ const (
 	// Provider developers should not use it.
 	DeferredReasonUnknown DeferredReason = 0
 
-	// DeferredReasonResourceConfigUnknown is used to indicate that the resource configuration
+	// DeferredReasonDataSourceConfigUnknown is used to indicate that the resource configuration
 	// is partially unknown and the real values need to be known before the change can be planned.
-	DeferredReasonResourceConfigUnknown DeferredReason = 1
+	DeferredReasonDataSourceConfigUnknown DeferredReason = 1
 
 	// DeferredReasonProviderConfigUnknown is used to indicate that the provider configuration
 	// is partially unknown and the real values need to be known before the change can be planned.
@@ -40,7 +40,7 @@ func (d DeferredReason) String() string {
 	case 0:
 		return "Unknown"
 	case 1:
-		return "Resource Config Unknown"
+		return "Data Source Config Unknown"
 	case 2:
 		return "Provider Config Unknown"
 	case 3:

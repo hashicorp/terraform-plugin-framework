@@ -77,7 +77,9 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
-	readReq.ClientCapabilities = req.ClientCapabilities
+	if req.ClientCapabilities != nil {
+		readReq.ClientCapabilities = *req.ClientCapabilities
+	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined DataSource Read")
 	req.DataSource.Read(ctx, readReq, &readResp)

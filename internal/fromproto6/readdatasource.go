@@ -38,8 +38,9 @@ func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSource
 	}
 
 	fw := &fwserver.ReadDataSourceRequest{
-		DataSourceSchema: dataSourceSchema,
-		DataSource:       dataSource,
+		DataSourceSchema:   dataSourceSchema,
+		DataSource:         dataSource,
+		ClientCapabilities: ReadDataSourceClientCapabilities(proto6.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, dataSourceSchema)
@@ -53,12 +54,6 @@ func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSource
 	diags.Append(providerMetaDiags...)
 
 	fw.ProviderMeta = providerMeta
-
-	if proto6.ClientCapabilities != nil {
-		fw.ClientCapabilities = &datasource.ReadClientCapabilities{
-			DeferralAllowed: proto6.ClientCapabilities.DeferralAllowed,
-		}
-	}
 
 	return fw, diags
 }

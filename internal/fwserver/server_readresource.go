@@ -85,6 +85,10 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		readReq.ProviderMeta = *req.ProviderMeta
 	}
 
+	if req.ClientCapabilities != nil {
+		readReq.ClientCapabilities = *req.ClientCapabilities
+	}
+
 	privateProviderData := privatestate.EmptyProviderData(ctx)
 
 	readReq.Private = privateProviderData
@@ -98,8 +102,6 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 		resp.Private = req.Private
 	}
-
-	readReq.ClientCapabilities = req.ClientCapabilities
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Read")
 	req.Resource.Read(ctx, readReq, &readResp)

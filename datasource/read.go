@@ -37,7 +37,7 @@ type ReadRequest struct {
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// ReadDataSource RPC, such as forward-compatible Terraform behavior changes.
-	ClientCapabilities *ReadClientCapabilities
+	ClientCapabilities ReadClientCapabilities
 }
 
 // ReadResponse represents a response to a ReadRequest. An

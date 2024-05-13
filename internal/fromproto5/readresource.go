@@ -25,7 +25,8 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		Resource: reqResource,
+		Resource:           reqResource,
+		ClientCapabilities: ReadResourceClientCapabilities(proto5.ClientCapabilities),
 	}
 
 	currentState, currentStateDiags := State(ctx, proto5.CurrentState, resourceSchema)
@@ -45,12 +46,6 @@ func ReadResourceRequest(ctx context.Context, proto5 *tfprotov5.ReadResourceRequ
 	diags.Append(privateDataDiags...)
 
 	fw.Private = privateData
-
-	if proto5.ClientCapabilities != nil {
-		fw.ClientCapabilities = &resource.ReadClientCapabilities{
-			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
-		}
-	}
 
 	return fw, diags
 }

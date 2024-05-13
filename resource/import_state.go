@@ -38,7 +38,7 @@ type ImportStateRequest struct {
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// ImportResourceState RPC, such as forward-compatible Terraform behavior changes.
-	ClientCapabilities *ImportStateClientCapabilities
+	ClientCapabilities ImportStateClientCapabilities
 }
 
 // ImportStateResponse represents a response to a ImportStateRequest.

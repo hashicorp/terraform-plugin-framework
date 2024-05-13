@@ -93,8 +93,11 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	importReq := resource.ImportStateRequest{
-		ID:                 req.ID,
-		ClientCapabilities: req.ClientCapabilities,
+		ID: req.ID,
+	}
+
+	if req.ClientCapabilities != nil {
+		importReq.ClientCapabilities = *req.ClientCapabilities
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)
@@ -117,7 +120,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
-	if (importReq.ClientCapabilities == nil || !importReq.ClientCapabilities.DeferralAllowed) && importResp.DeferredResponse != nil {
+	if !importReq.ClientCapabilities.DeferralAllowed && importResp.DeferredResponse != nil {
 		resp.Diagnostics.AddError(
 			"Resource Import Deferral Not Allowed",
 			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+

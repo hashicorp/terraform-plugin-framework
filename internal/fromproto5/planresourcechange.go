@@ -39,8 +39,9 @@ func PlanResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.PlanResour
 	}
 
 	fw := &fwserver.PlanResourceChangeRequest{
-		ResourceSchema: resourceSchema,
-		Resource:       reqResource,
+		ResourceSchema:     resourceSchema,
+		Resource:           reqResource,
+		ClientCapabilities: ModifyPlanClientCapabilities(proto5.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto5.Config, resourceSchema)
@@ -72,12 +73,6 @@ func PlanResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.PlanResour
 	diags.Append(privateDataDiags...)
 
 	fw.PriorPrivate = privateData
-
-	if proto5.ClientCapabilities != nil {
-		fw.ClientCapabilities = &resource.ModifyPlanClientCapabilities{
-			DeferralAllowed: proto5.ClientCapabilities.DeferralAllowed,
-		}
-	}
 
 	return fw, diags
 }

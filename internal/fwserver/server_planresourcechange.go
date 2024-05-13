@@ -262,15 +262,18 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{
-			Config:             *req.Config,
-			Plan:               stateToPlan(*resp.PlannedState),
-			State:              *req.PriorState,
-			Private:            resp.PlannedPrivate.Provider,
-			ClientCapabilities: req.ClientCapabilities,
+			Config:  *req.Config,
+			Plan:    stateToPlan(*resp.PlannedState),
+			State:   *req.PriorState,
+			Private: resp.PlannedPrivate.Provider,
 		}
 
 		if req.ProviderMeta != nil {
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
+		}
+
+		if req.ClientCapabilities != nil {
+			modifyPlanReq.ClientCapabilities = *req.ClientCapabilities
 		}
 
 		modifyPlanResp := resource.ModifyPlanResponse{
@@ -284,7 +287,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
-		if (modifyPlanReq.ClientCapabilities == nil || !modifyPlanReq.ClientCapabilities.DeferralAllowed) && modifyPlanResp.DeferredResponse != nil {
+		if !modifyPlanReq.ClientCapabilities.DeferralAllowed && modifyPlanResp.DeferredResponse != nil {
 			resp.Diagnostics.AddError(
 				"Resource Deferral Not Allowed",
 				"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+

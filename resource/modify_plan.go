@@ -54,7 +54,7 @@ type ModifyPlanRequest struct {
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// PlanResourceChange RPC, such as forward-compatible Terraform behavior changes.
-	ClientCapabilities *ModifyPlanClientCapabilities
+	ClientCapabilities ModifyPlanClientCapabilities
 }
 
 // ModifyPlanResponse represents a response to a

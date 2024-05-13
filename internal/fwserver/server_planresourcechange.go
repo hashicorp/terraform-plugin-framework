@@ -287,16 +287,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resourceWithModifyPlan.ModifyPlan(ctx, modifyPlanReq, &modifyPlanResp)
 		logging.FrameworkTrace(ctx, "Called provider defined Resource ModifyPlan")
 
-		if !modifyPlanReq.ClientCapabilities.DeferralAllowed && modifyPlanResp.Deferred != nil {
-			resp.Diagnostics.AddError(
-				"Resource Deferral Not Allowed",
-				"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-					"The resource requested a deferral but the Terraform client does not support deferrals, "+
-					"(resource.ModifyPlanResponse).Deferred can only be set if (resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed is true.",
-			)
-			return
-		}
-
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)

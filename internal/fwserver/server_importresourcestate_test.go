@@ -303,7 +303,7 @@ func TestServerImportResourceState(t *testing.T) {
 				},
 			},
 		},
-		"request-deferral-allowed-response-deferral": {
+		"response-importedresources-deferral": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -337,41 +337,6 @@ func TestServerImportResourceState(t *testing.T) {
 					},
 				},
 				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
-			},
-		},
-		"request-deferral-not-allowed-response-deferral": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ImportResourceStateRequest{
-				EmptyState: *testEmptyState,
-				ID:         "test-id",
-				Resource: &testprovider.ResourceWithImportState{
-					Resource: &testprovider.Resource{},
-					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-						if req.ID != "test-id" {
-							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
-						}
-
-						resp.Deferred = &resource.Deferred{
-							Reason: resource.DeferredReasonAbsentPrereq,
-						}
-
-						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
-					},
-				},
-				TypeName: "test_resource",
-			},
-			expectedResponse: &fwserver.ImportResourceStateResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Resource Import Deferral Not Allowed",
-						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(resource.ImportStateResponse).Deferred can only be set if (resource.ImportStateRequest.ClientCapabilities).DeferralAllowed is true.",
-					),
-				},
 			},
 		},
 	}

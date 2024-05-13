@@ -514,7 +514,7 @@ func TestServerReadResource(t *testing.T) {
 				Private:  testPrivate,
 			},
 		},
-		"request-deferral-allowed-response-deferral": {
+		"response-deferral": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -539,43 +539,6 @@ func TestServerReadResource(t *testing.T) {
 				ClientCapabilities: testDeferralAllowed,
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
-				NewState: testCurrentState,
-				Private:  testEmptyPrivate,
-				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
-			},
-		},
-		"request-deferral-not-allowed-response-deferral": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ReadResourceRequest{
-				CurrentState: testCurrentState,
-				Resource: &testprovider.Resource{
-					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-						resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
-
-						if data.TestRequired.ValueString() != "test-currentstate-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
-						}
-					},
-				},
-			},
-			expectedResponse: &fwserver.ReadResourceResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Resource Deferral Not Allowed",
-						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(resource.ReadResponse).Deferred can only be set if (resource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
-					),
-				},
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
 				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},

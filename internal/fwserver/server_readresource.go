@@ -123,16 +123,6 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
-	if (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) && resp.Deferred != nil {
-		resp.Diagnostics.AddError(
-			"Resource Deferral Not Allowed",
-			"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-				"The resource requested a deferral but the Terraform client does not support deferrals, "+
-				"(resource.ReadResponse).Deferred can only be set if (resource.ReadRequest.ClientCapabilities).DeferralAllowed is true.",
-		)
-		return
-	}
-
 	semanticEqualityReq := SchemaSemanticEqualityRequest{
 		PriorData: fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionState,

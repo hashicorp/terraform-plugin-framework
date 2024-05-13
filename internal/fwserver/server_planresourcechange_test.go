@@ -6019,7 +6019,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedPrivate: testPrivateProvider,
 			},
 		},
-		"create-resourcewithmodifyplan-request-deferral-allowed-response-deferral": {
+		"create-resourcewithmodifyplan-response-deferral": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -6052,52 +6052,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
 				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
-				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				PlannedPrivate: testEmptyPrivate,
-			},
-		},
-		"create-resourcewithmodifyplan-request-deferral-not-allowed-response-deferral": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, nil),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, nil),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				PriorState:     testEmptyState,
-				ResourceSchema: testSchema,
-				Resource: &testprovider.ResourceWithModifyPlan{
-					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
-					},
-				},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Resource Deferral Not Allowed",
-						"An unexpected error was encountered when reading the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
-							"The resource requested a deferral but the Terraform client does not support deferrals, "+
-							"(resource.ModifyPlanResponse).Deferred can only be set if (resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed is true.",
-					),
-				},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),

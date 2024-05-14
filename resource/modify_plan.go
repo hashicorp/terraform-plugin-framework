@@ -82,8 +82,8 @@ type ModifyPlanResponse struct {
 	// generated.
 	Diagnostics diag.Diagnostics
 
-	// Deferred indicates that Terraform should defer
-	// importing this resource.
+	// Deferred indicates that Terraform should defer importing this
+	// resource until a followup apply operation.
 	//
 	// This field can only be set if
 	// `(resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed` is true.

@@ -67,8 +67,8 @@ type ReadResponse struct {
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
 
-	// Deferred indicates that Terraform should defer
-	// importing this resource.
+	// Deferred indicates that Terraform should defer refreshing this
+	// resource until a followup plan operation.
 	//
 	// This field can only be set if
 	// `(resource.ReadRequest).ClientCapabilities.DeferralAllowed` is true.

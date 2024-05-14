@@ -135,7 +135,7 @@ func TestServerReadResource(t *testing.T) {
 		Provider: testEmptyProviderData,
 	}
 
-	testDeferralAllowed := &resource.ReadClientCapabilities{
+	testDeferralAllowed := resource.ReadClientCapabilities{
 		DeferralAllowed: true,
 	}
 
@@ -162,32 +162,6 @@ func TestServerReadResource(t *testing.T) {
 						if req.ClientCapabilities.DeferralAllowed != true {
 							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
 								"expected: true but got: false")
-						}
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-					},
-				},
-			},
-			expectedResponse: &fwserver.ReadResourceResponse{
-				NewState: testCurrentState,
-				Private:  testEmptyPrivate,
-			},
-		},
-		"request-client-capabilities-unset": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ReadResourceRequest{
-				CurrentState: testCurrentState,
-				Resource: &testprovider.Resource{
-					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-						if req.ClientCapabilities.DeferralAllowed != false {
-							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
-								"expected: false but got: true")
 						}
 						var data struct {
 							TestComputed types.String `tfsdk:"test_computed"`

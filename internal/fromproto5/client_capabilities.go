@@ -10,50 +10,54 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func ReadDataSourceClientCapabilities(in *tfprotov5.ReadDataSourceClientCapabilities) *datasource.ReadClientCapabilities {
+func ReadDataSourceClientCapabilities(in *tfprotov5.ReadDataSourceClientCapabilities) datasource.ReadClientCapabilities {
 	if in == nil {
-		return nil
+		// Client did not indicate any supported capabilities
+		return datasource.ReadClientCapabilities{
+			DeferralAllowed: false,
+		}
 	}
 
-	resp := &datasource.ReadClientCapabilities{
+	return datasource.ReadClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
-
-	return resp
 }
 
-func ReadResourceClientCapabilities(in *tfprotov5.ReadResourceClientCapabilities) *resource.ReadClientCapabilities {
+func ReadResourceClientCapabilities(in *tfprotov5.ReadResourceClientCapabilities) resource.ReadClientCapabilities {
 	if in == nil {
-		return nil
+		// Client did not indicate any supported capabilities
+		return resource.ReadClientCapabilities{
+			DeferralAllowed: false,
+		}
 	}
 
-	resp := &resource.ReadClientCapabilities{
+	return resource.ReadClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
-
-	return resp
 }
 
-func ModifyPlanClientCapabilities(in *tfprotov5.PlanResourceChangeClientCapabilities) *resource.ModifyPlanClientCapabilities {
+func ModifyPlanClientCapabilities(in *tfprotov5.PlanResourceChangeClientCapabilities) resource.ModifyPlanClientCapabilities {
 	if in == nil {
-		return nil
+		// Client did not indicate any supported capabilities
+		return resource.ModifyPlanClientCapabilities{
+			DeferralAllowed: false,
+		}
 	}
 
-	resp := &resource.ModifyPlanClientCapabilities{
+	return resource.ModifyPlanClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
-
-	return resp
 }
 
-func ImportStateClientCapabilities(in *tfprotov5.ImportResourceStateClientCapabilities) *resource.ImportStateClientCapabilities {
+func ImportStateClientCapabilities(in *tfprotov5.ImportResourceStateClientCapabilities) resource.ImportStateClientCapabilities {
 	if in == nil {
-		return nil
+		// Client did not indicate any supported capabilities
+		return resource.ImportStateClientCapabilities{
+			DeferralAllowed: false,
+		}
 	}
 
-	resp := &resource.ImportStateClientCapabilities{
+	return resource.ImportStateClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
-
-	return resp
 }

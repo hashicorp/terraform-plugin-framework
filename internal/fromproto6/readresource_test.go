@@ -180,8 +180,17 @@ func TestReadResourceRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ReadResourceRequest{
-				ClientCapabilities: &resource.ReadClientCapabilities{
+				ClientCapabilities: resource.ReadClientCapabilities{
 					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input:          &tfprotov6.ReadResourceRequest{},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				ClientCapabilities: resource.ReadClientCapabilities{
+					DeferralAllowed: false,
 				},
 			},
 		},

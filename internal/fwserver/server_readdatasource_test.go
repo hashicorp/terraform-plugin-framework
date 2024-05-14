@@ -99,7 +99,7 @@ func TestServerReadDataSource(t *testing.T) {
 		Schema: testSchema,
 	}
 
-	testDeferralAllowed := &datasource.ReadClientCapabilities{
+	testDeferralAllowed := datasource.ReadClientCapabilities{
 		DeferralAllowed: true,
 	}
 
@@ -127,33 +127,6 @@ func TestServerReadDataSource(t *testing.T) {
 						if req.ClientCapabilities.DeferralAllowed != true {
 							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
 								"expected: true but got: false")
-						}
-
-						var config struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-					},
-				},
-			},
-			expectedResponse: &fwserver.ReadDataSourceResponse{
-				State: testStateUnchanged,
-			},
-		},
-		"request-client-capabilities-unset": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ReadDataSourceRequest{
-				Config:           testConfig,
-				DataSourceSchema: testSchema,
-				DataSource: &testprovider.DataSource{
-					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-						if req.ClientCapabilities.DeferralAllowed != false {
-							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
-								"expected: false but got: true")
 						}
 
 						var config struct {

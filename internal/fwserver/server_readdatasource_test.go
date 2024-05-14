@@ -114,6 +114,61 @@ func TestServerReadDataSource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{},
 		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				ClientCapabilities: testDeferralAllowed,
+				Config:             testConfig,
+				DataSourceSchema:   testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State: testStateUnchanged,
+			},
+		},
+		"request-client-capabilities-unset": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						if req.ClientCapabilities.DeferralAllowed != false {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: false but got: true")
+						}
+
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State: testStateUnchanged,
+			},
+		},
 		"request-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -206,6 +261,36 @@ func TestServerReadDataSource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{
 				State: testStateUnchanged,
+			},
+		},
+		"response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
+
+						if config.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
+						}
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State:    testStateUnchanged,
+				Deferred: &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-diagnostics": {
@@ -352,36 +437,6 @@ func TestServerReadDataSource(t *testing.T) {
 					}),
 					Schema: testSchemaWithSemanticEquals,
 				},
-			},
-		},
-		"response-deferral": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ReadDataSourceRequest{
-				Config:           testConfig,
-				DataSourceSchema: testSchema,
-				DataSource: &testprovider.DataSource{
-					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-						var config struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
-						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
-
-						if config.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
-						}
-					},
-				},
-				ClientCapabilities: testDeferralAllowed,
-			},
-			expectedResponse: &fwserver.ReadDataSourceResponse{
-				State:    testStateUnchanged,
-				Deferred: &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 	}

@@ -150,6 +150,59 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{},
 		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				ClientCapabilities: testDeferralAllowed,
+				CurrentState:       testCurrentState,
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testEmptyPrivate,
+			},
+		},
+		"request-client-capabilities-unset": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						if req.ClientCapabilities.DeferralAllowed != false {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: false but got: true")
+						}
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testEmptyPrivate,
+			},
+		},
 		"request-currentstate-missing": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -310,6 +363,36 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+						resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
+
+						if data.TestRequired.ValueString() != "test-currentstate-value" {
+							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
+						}
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				Private:  testEmptyPrivate,
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-diagnostics": {
@@ -512,36 +595,6 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
 				Private:  testPrivate,
-			},
-		},
-		"response-deferral": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ReadResourceRequest{
-				CurrentState: testCurrentState,
-				Resource: &testprovider.Resource{
-					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-						resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
-
-						if data.TestRequired.ValueString() != "test-currentstate-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
-						}
-					},
-				},
-				ClientCapabilities: testDeferralAllowed,
-			},
-			expectedResponse: &fwserver.ReadResourceResponse{
-				NewState: testCurrentState,
-				Private:  testEmptyPrivate,
-				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 	}

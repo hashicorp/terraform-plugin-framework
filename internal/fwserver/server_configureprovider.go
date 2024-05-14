@@ -22,6 +22,7 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 
 	logging.FrameworkTrace(ctx, "Called provider defined Provider Configure")
 
+	s.deferred = resp.Deferred
 	s.DataSourceConfigureData = resp.DataSourceData
 	s.ResourceConfigureData = resp.ResourceData
 }

@@ -56,6 +56,11 @@ type Server struct {
 	// access from race conditions.
 	dataSourceTypesMutex sync.Mutex
 
+	// deferred indicates an automatic provider deferral. When this is set,
+	// the provider will automatically defer the PlanResourceChange, ReadResource,
+	// ImportResourceState, and ReadDataSource RPCs.
+	deferred *provider.Deferred
+
 	// functionDefinitions is the cached Function Definitions for RPCs that need to
 	// convert data from the protocol. If not found, it will be fetched from the
 	// Function.Definition() method.

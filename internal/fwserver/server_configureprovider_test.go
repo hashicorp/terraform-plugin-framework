@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerConfigureProvider(t *testing.T) {
@@ -54,6 +55,40 @@ func TestServerConfigureProvider(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
+			expectedResponse: &provider.ConfigureResponse{},
+		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expectedResponse: &provider.ConfigureResponse{},
+		},
+		"request-client-capabilities-unset": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						if req.ClientCapabilities.DeferralAllowed != false {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: false but got: true")
+						}
+					},
+				},
+			},
+			request:          &provider.ConfigureRequest{},
 			expectedResponse: &provider.ConfigureResponse{},
 		},
 		"request-config": {
@@ -109,6 +144,24 @@ func TestServerConfigureProvider(t *testing.T) {
 			},
 			request: &provider.ConfigureRequest{},
 			expectedResponse: &provider.ConfigureResponse{
+				DataSourceData: "test-provider-configure-value",
+			},
+		},
+		"response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+						resp.DataSourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				Deferred: &provider.Deferred{
+					Reason: provider.DeferredReasonProviderConfigUnknown,
+				},
 				DataSourceData: "test-provider-configure-value",
 			},
 		},

@@ -19,6 +19,7 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 	}
 
 	proto5 := &tfprotov5.ReadResourceResponse{
+		Deferred:    ResourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
@@ -31,12 +32,6 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.Private = newPrivate
-
-	if fw.Deferred != nil {
-		proto5.Deferred = &tfprotov5.Deferred{
-			Reason: tfprotov5.DeferredReason(fw.Deferred.Reason),
-		}
-	}
 
 	return proto5
 }

@@ -26,7 +26,7 @@ import (
 // PlanResourceChangeRequest is the framework server request for the
 // PlanResourceChange RPC.
 type PlanResourceChangeRequest struct {
-	ClientCapabilities *resource.ModifyPlanClientCapabilities
+	ClientCapabilities resource.ModifyPlanClientCapabilities
 	Config             *tfsdk.Config
 	PriorPrivate       *privatestate.Data
 	PriorState         *tfsdk.State
@@ -262,18 +262,15 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{
-			Config:  *req.Config,
-			Plan:    stateToPlan(*resp.PlannedState),
-			State:   *req.PriorState,
-			Private: resp.PlannedPrivate.Provider,
+			ClientCapabilities: req.ClientCapabilities,
+			Config:             *req.Config,
+			Plan:               stateToPlan(*resp.PlannedState),
+			State:              *req.PriorState,
+			Private:            resp.PlannedPrivate.Provider,
 		}
 
 		if req.ProviderMeta != nil {
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
-		}
-
-		if req.ClientCapabilities != nil {
-			modifyPlanReq.ClientCapabilities = *req.ClientCapabilities
 		}
 
 		modifyPlanResp := resource.ModifyPlanResponse{

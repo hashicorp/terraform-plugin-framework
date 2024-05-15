@@ -17,7 +17,7 @@ import (
 // ReadDataSourceRequest is the framework server request for the
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
-	ClientCapabilities *datasource.ReadClientCapabilities
+	ClientCapabilities datasource.ReadClientCapabilities
 	Config             *tfsdk.Config
 	DataSourceSchema   fwschema.Schema
 	DataSource         datasource.DataSource
@@ -58,6 +58,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 	}
 
 	readReq := datasource.ReadRequest{
+		ClientCapabilities: req.ClientCapabilities,
 		Config: tfsdk.Config{
 			Schema: req.DataSourceSchema,
 		},
@@ -75,10 +76,6 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	if req.ProviderMeta != nil {
 		readReq.ProviderMeta = *req.ProviderMeta
-	}
-
-	if req.ClientCapabilities != nil {
-		readReq.ClientCapabilities = *req.ClientCapabilities
 	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined DataSource Read")

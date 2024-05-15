@@ -36,7 +36,7 @@ type ImportResourceStateRequest struct {
 	// the ImportedResource TypeName of the ImportResourceStateResponse.
 	TypeName string
 
-	ClientCapabilities *resource.ImportStateClientCapabilities
+	ClientCapabilities resource.ImportStateClientCapabilities
 }
 
 // ImportResourceStateResponse is the framework server response for the
@@ -93,11 +93,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	importReq := resource.ImportStateRequest{
-		ID: req.ID,
-	}
-
-	if req.ClientCapabilities != nil {
-		importReq.ClientCapabilities = *req.ClientCapabilities
+		ID:                 req.ID,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)

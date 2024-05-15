@@ -20,6 +20,7 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 	}
 
 	proto6 := &tfprotov6.PlanResourceChangeResponse{
+		Deferred:    ResourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
@@ -37,12 +38,6 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.PlannedPrivate = plannedPrivate
-
-	if fw.Deferred != nil {
-		proto6.Deferred = &tfprotov6.Deferred{
-			Reason: tfprotov6.DeferredReason(fw.Deferred.Reason),
-		}
-	}
 
 	return proto6
 }

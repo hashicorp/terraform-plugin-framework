@@ -19,6 +19,7 @@ func ImportResourceStateResponse(ctx context.Context, fw *fwserver.ImportResourc
 	}
 
 	proto6 := &tfprotov6.ImportResourceStateResponse{
+		Deferred:    ResourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 
@@ -32,12 +33,6 @@ func ImportResourceStateResponse(ctx context.Context, fw *fwserver.ImportResourc
 		}
 
 		proto6.ImportedResources = append(proto6.ImportedResources, proto6ImportedResource)
-	}
-
-	if fw.Deferred != nil {
-		proto6.Deferred = &tfprotov6.Deferred{
-			Reason: tfprotov6.DeferredReason(fw.Deferred.Reason),
-		}
 	}
 
 	return proto6

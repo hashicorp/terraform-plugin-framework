@@ -98,8 +98,21 @@ func TestImportResourceStateRequest(t *testing.T) {
 			expected: &fwserver.ImportResourceStateRequest{
 				EmptyState: testFwEmptyState,
 				ID:         "test-id",
-				ClientCapabilities: &resource.ImportStateClientCapabilities{
+				ClientCapabilities: resource.ImportStateClientCapabilities{
 					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input: &tfprotov6.ImportResourceStateRequest{
+				ID: "test-id",
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ImportResourceStateRequest{
+				EmptyState: testFwEmptyState,
+				ID:         "test-id",
+				ClientCapabilities: resource.ImportStateClientCapabilities{
+					DeferralAllowed: false,
 				},
 			},
 		},

@@ -225,8 +225,18 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.PlanResourceChangeRequest{
-				ClientCapabilities: &resource.ModifyPlanClientCapabilities{
+				ClientCapabilities: resource.ModifyPlanClientCapabilities{
 					DeferralAllowed: true,
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
+		"client-capabilities-unset": {
+			input:          &tfprotov6.PlanResourceChangeRequest{},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.PlanResourceChangeRequest{
+				ClientCapabilities: resource.ModifyPlanClientCapabilities{
+					DeferralAllowed: false,
 				},
 				ResourceSchema: testFwSchema,
 			},

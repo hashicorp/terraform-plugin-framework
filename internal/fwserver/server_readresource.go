@@ -17,7 +17,7 @@ import (
 // ReadResourceRequest is the framework server request for the
 // ReadResource RPC.
 type ReadResourceRequest struct {
-	ClientCapabilities *resource.ReadClientCapabilities
+	ClientCapabilities resource.ReadClientCapabilities
 	CurrentState       *tfsdk.State
 	Resource           resource.Resource
 	Private            *privatestate.Data
@@ -69,6 +69,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	readReq := resource.ReadRequest{
+		ClientCapabilities: req.ClientCapabilities,
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
@@ -83,10 +84,6 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	if req.ProviderMeta != nil {
 		readReq.ProviderMeta = *req.ProviderMeta
-	}
-
-	if req.ClientCapabilities != nil {
-		readReq.ClientCapabilities = *req.ClientCapabilities
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)

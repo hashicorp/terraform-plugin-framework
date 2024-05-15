@@ -145,8 +145,18 @@ func TestReadDataSourceRequest(t *testing.T) {
 			dataSourceSchema: testFwSchema,
 			expected: &fwserver.ReadDataSourceRequest{
 				DataSourceSchema: testFwSchema,
-				ClientCapabilities: &datasource.ReadClientCapabilities{
+				ClientCapabilities: datasource.ReadClientCapabilities{
 					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input:            &tfprotov5.ReadDataSourceRequest{},
+			dataSourceSchema: testFwSchema,
+			expected: &fwserver.ReadDataSourceRequest{
+				DataSourceSchema: testFwSchema,
+				ClientCapabilities: datasource.ReadClientCapabilities{
+					DeferralAllowed: false,
 				},
 			},
 		},

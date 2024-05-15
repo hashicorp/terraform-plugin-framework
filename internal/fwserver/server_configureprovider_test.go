@@ -76,21 +76,6 @@ func TestServerConfigureProvider(t *testing.T) {
 			},
 			expectedResponse: &provider.ConfigureResponse{},
 		},
-		"request-client-capabilities-unset": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{
-					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
-					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-						if req.ClientCapabilities.DeferralAllowed != false {
-							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
-								"expected: false but got: true")
-						}
-					},
-				},
-			},
-			request:          &provider.ConfigureRequest{},
-			expectedResponse: &provider.ConfigureResponse{},
-		},
 		"request-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{

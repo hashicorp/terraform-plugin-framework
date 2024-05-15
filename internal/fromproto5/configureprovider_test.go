@@ -107,6 +107,14 @@ func TestConfigureProviderRequest(t *testing.T) {
 				},
 			},
 		},
+		"client-capabilities-unset": {
+			input: &tfprotov5.ConfigureProviderRequest{},
+			expected: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: false,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

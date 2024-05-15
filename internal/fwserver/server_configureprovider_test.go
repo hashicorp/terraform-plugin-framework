@@ -142,7 +142,11 @@ func TestServerConfigureProvider(t *testing.T) {
 					},
 				},
 			},
-			request: &provider.ConfigureRequest{},
+			request: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
 			expectedResponse: &provider.ConfigureResponse{
 				Deferred: &provider.Deferred{
 					Reason: provider.DeferredReasonProviderConfigUnknown,
@@ -172,6 +176,29 @@ func TestServerConfigureProvider(t *testing.T) {
 						"error detail",
 					),
 				},
+			},
+		},
+		"response-invalid-deferral-diagnostic": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+						resp.DataSourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic("Invalid Deferred Provider Response",
+						"Provider configured a deferred response for all resources and data sources but the Terraform request "+
+							"did not indicate support for deferred actions. This is an issue with the provider and should be reported to the provider developers."),
+				},
+				Deferred: &provider.Deferred{
+					Reason: provider.DeferredReasonProviderConfigUnknown,
+				},
+				DataSourceData: "test-provider-configure-value",
 			},
 		},
 		"response-resourcedata": {

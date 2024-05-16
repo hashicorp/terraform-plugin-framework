@@ -84,6 +84,10 @@ func TestServerImportResourceState(t *testing.T) {
 		Provider: testEmptyProviderData,
 	}
 
+	testDeferral := resource.ImportStateClientCapabilities{
+		DeferralAllowed: true,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.ImportResourceStateRequest
@@ -94,6 +98,37 @@ func TestServerImportResourceState(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.ImportResourceStateResponse{},
+		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				ClientCapabilities: testDeferral,
+				EmptyState:         *testEmptyState,
+				ID:                 "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testState,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
 		},
 		"request-id": {
 			server: &fwserver.Server{
@@ -243,6 +278,42 @@ func TestServerImportResourceState(t *testing.T) {
 						Private:  testEmptyPrivate,
 					},
 				},
+			},
+		},
+		"response-importedresources-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						if req.ID != "test-id" {
+							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
+						}
+
+						resp.Deferred = &resource.Deferred{
+							Reason: resource.DeferredReasonAbsentPrereq,
+						}
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+					},
+				},
+				TypeName:           "test_resource",
+				ClientCapabilities: testDeferral,
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testState,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-importedresources-private": {

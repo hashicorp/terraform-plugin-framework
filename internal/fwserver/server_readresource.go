@@ -17,15 +17,17 @@ import (
 // ReadResourceRequest is the framework server request for the
 // ReadResource RPC.
 type ReadResourceRequest struct {
-	CurrentState *tfsdk.State
-	Resource     resource.Resource
-	Private      *privatestate.Data
-	ProviderMeta *tfsdk.Config
+	ClientCapabilities resource.ReadClientCapabilities
+	CurrentState       *tfsdk.State
+	Resource           resource.Resource
+	Private            *privatestate.Data
+	ProviderMeta       *tfsdk.Config
 }
 
 // ReadResourceResponse is the framework server response for the
 // ReadResource RPC.
 type ReadResourceResponse struct {
+	Deferred    *resource.Deferred
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
 	Private     *privatestate.Data
@@ -67,6 +69,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	readReq := resource.ReadRequest{
+		ClientCapabilities: req.ClientCapabilities,
 		State: tfsdk.State{
 			Schema: req.CurrentState.Schema,
 			Raw:    req.CurrentState.Raw.Copy(),
@@ -103,6 +106,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
+	resp.Deferred = readResp.Deferred
 
 	if readResp.Private != nil {
 		if resp.Private == nil {

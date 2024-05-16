@@ -172,6 +172,28 @@ func TestReadResourceRequest(t *testing.T) {
 				},
 			},
 		},
+		"client-capabilities": {
+			input: &tfprotov5.ReadResourceRequest{
+				ClientCapabilities: &tfprotov5.ReadResourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				ClientCapabilities: resource.ReadClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input:          &tfprotov5.ReadResourceRequest{},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ReadResourceRequest{
+				ClientCapabilities: resource.ReadClientCapabilities{
+					DeferralAllowed: false,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

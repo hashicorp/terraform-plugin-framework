@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource: Add `ClientCapabilities` field to `ReadRequest`, `ModifyPlanRequest`, and `ImportStateRequest`
+  which specifies optionally supported protocol features for the Terraform client'
+time: 2024-05-08T11:07:15.955126-04:00
+custom:
+  Issue: "999"

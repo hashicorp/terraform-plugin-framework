@@ -26,18 +26,20 @@ import (
 // PlanResourceChangeRequest is the framework server request for the
 // PlanResourceChange RPC.
 type PlanResourceChangeRequest struct {
-	Config           *tfsdk.Config
-	PriorPrivate     *privatestate.Data
-	PriorState       *tfsdk.State
-	ProposedNewState *tfsdk.Plan
-	ProviderMeta     *tfsdk.Config
-	ResourceSchema   fwschema.Schema
-	Resource         resource.Resource
+	ClientCapabilities resource.ModifyPlanClientCapabilities
+	Config             *tfsdk.Config
+	PriorPrivate       *privatestate.Data
+	PriorState         *tfsdk.State
+	ProposedNewState   *tfsdk.Plan
+	ProviderMeta       *tfsdk.Config
+	ResourceSchema     fwschema.Schema
+	Resource           resource.Resource
 }
 
 // PlanResourceChangeResponse is the framework server response for the
 // PlanResourceChange RPC.
 type PlanResourceChangeResponse struct {
+	Deferred        *resource.Deferred
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
@@ -260,10 +262,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithModifyPlan")
 
 		modifyPlanReq := resource.ModifyPlanRequest{
-			Config:  *req.Config,
-			Plan:    stateToPlan(*resp.PlannedState),
-			State:   *req.PriorState,
-			Private: resp.PlannedPrivate.Provider,
+			ClientCapabilities: req.ClientCapabilities,
+			Config:             *req.Config,
+			Plan:               stateToPlan(*resp.PlannedState),
+			State:              *req.PriorState,
+			Private:            resp.PlannedPrivate.Provider,
 		}
 
 		if req.ProviderMeta != nil {
@@ -285,6 +288,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
+		resp.Deferred = modifyPlanResp.Deferred
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

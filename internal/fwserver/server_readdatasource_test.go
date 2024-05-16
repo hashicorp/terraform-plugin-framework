@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerReadDataSource(t *testing.T) {
@@ -98,6 +99,10 @@ func TestServerReadDataSource(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testDeferralAllowed := datasource.ReadClientCapabilities{
+		DeferralAllowed: true,
+	}
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.ReadDataSourceRequest
@@ -108,6 +113,34 @@ func TestServerReadDataSource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{},
+		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				ClientCapabilities: testDeferralAllowed,
+				Config:             testConfig,
+				DataSourceSchema:   testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State: testStateUnchanged,
+			},
 		},
 		"request-config": {
 			server: &fwserver.Server{
@@ -201,6 +234,36 @@ func TestServerReadDataSource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ReadDataSourceResponse{
 				State: testStateUnchanged,
+			},
+		},
+		"response-deferral": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadDataSourceRequest{
+				Config:           testConfig,
+				DataSourceSchema: testSchema,
+				DataSource: &testprovider.DataSource{
+					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
+
+						if config.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
+						}
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.ReadDataSourceResponse{
+				State:    testStateUnchanged,
+				Deferred: &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-diagnostics": {

@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource: Add `Deferred` field to `ReadResponse`, `ModifyPlanResponse`, and `ImportStateResponse`
+  which indicates a resource deferred action to the Terraform client'
+time: 2024-05-08T10:51:05.90518-04:00
+custom:
+  Issue: "999"

@@ -35,6 +35,8 @@ type ImportResourceStateRequest struct {
 	// TypeName is the resource type name, which is necessary for populating
 	// the ImportedResource TypeName of the ImportResourceStateResponse.
 	TypeName string
+
+	ClientCapabilities resource.ImportStateClientCapabilities
 }
 
 // ImportResourceStateResponse is the framework server response for the
@@ -42,6 +44,7 @@ type ImportResourceStateRequest struct {
 type ImportResourceStateResponse struct {
 	Diagnostics       diag.Diagnostics
 	ImportedResources []ImportedResource
+	Deferred          *resource.Deferred
 }
 
 // ImportResourceState implements the framework server ImportResourceState RPC.
@@ -90,7 +93,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	importReq := resource.ImportStateRequest{
-		ID: req.ID,
+		ID:                 req.ID,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)
@@ -128,6 +132,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		private.Provider = importResp.Private
 	}
 
+	resp.Deferred = importResp.Deferred
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,

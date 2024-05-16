@@ -17,15 +17,17 @@ import (
 // ReadDataSourceRequest is the framework server request for the
 // ReadDataSource RPC.
 type ReadDataSourceRequest struct {
-	Config           *tfsdk.Config
-	DataSourceSchema fwschema.Schema
-	DataSource       datasource.DataSource
-	ProviderMeta     *tfsdk.Config
+	ClientCapabilities datasource.ReadClientCapabilities
+	Config             *tfsdk.Config
+	DataSourceSchema   fwschema.Schema
+	DataSource         datasource.DataSource
+	ProviderMeta       *tfsdk.Config
 }
 
 // ReadDataSourceResponse is the framework server response for the
 // ReadDataSource RPC.
 type ReadDataSourceResponse struct {
+	Deferred    *datasource.Deferred
 	Diagnostics diag.Diagnostics
 	State       *tfsdk.State
 }
@@ -56,6 +58,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 	}
 
 	readReq := datasource.ReadRequest{
+		ClientCapabilities: req.ClientCapabilities,
 		Config: tfsdk.Config{
 			Schema: req.DataSourceSchema,
 		},
@@ -81,6 +84,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.State = &readResp.State
+	resp.Deferred = readResp.Deferred
 
 	if resp.Diagnostics.HasError() {
 		return

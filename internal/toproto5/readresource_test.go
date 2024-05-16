@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -66,6 +67,14 @@ func TestReadResourceResponse(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	testDeferral := &resource.Deferred{
+		Reason: resource.DeferredReasonAbsentPrereq,
+	}
+
+	testProto5Deferred := &tfprotov5.Deferred{
+		Reason: tfprotov5.DeferredReasonAbsentPrereq,
 	}
 
 	testCases := map[string]struct {
@@ -165,6 +174,14 @@ func TestReadResourceResponse(t *testing.T) {
 					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
+			},
+		},
+		"deferral": {
+			input: &fwserver.ReadResourceResponse{
+				Deferred: testDeferral,
+			},
+			expected: &tfprotov5.ReadResourceResponse{
+				Deferred: testProto5Deferred,
 			},
 		},
 	}

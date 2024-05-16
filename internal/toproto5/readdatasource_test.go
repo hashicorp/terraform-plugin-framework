@@ -8,13 +8,15 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestReadDataSourceResponse(t *testing.T) {
@@ -31,6 +33,14 @@ func TestReadDataSourceResponse(t *testing.T) {
 	})
 
 	testProto5DynamicValue, err := tfprotov5.NewDynamicValue(testProto5Type, testProto5Value)
+
+	testDeferral := &datasource.Deferred{
+		Reason: datasource.DeferredReasonAbsentPrereq,
+	}
+
+	testProto5Deferred := &tfprotov5.Deferred{
+		Reason: tfprotov5.DeferredReasonAbsentPrereq,
+	}
 
 	if err != nil {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
@@ -129,6 +139,14 @@ func TestReadDataSourceResponse(t *testing.T) {
 			},
 			expected: &tfprotov5.ReadDataSourceResponse{
 				State: &testProto5DynamicValue,
+			},
+		},
+		"deferral": {
+			input: &fwserver.ReadDataSourceResponse{
+				Deferred: testDeferral,
+			},
+			expected: &tfprotov5.ReadDataSourceResponse{
+				Deferred: testProto5Deferred,
 			},
 		},
 	}

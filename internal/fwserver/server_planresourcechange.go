@@ -215,6 +215,13 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = modifiedPlan
 	}
 
+	// TODO: Finish Implementation
+	// Skip plan modification for automatic deferrals
+	// unless ProviderDeferredBehavior.EnablePlanModification is true
+	if s.deferred != nil {
+
+	}
+
 	// Execute any schema-based plan modifiers. This allows overwriting
 	// any unknown values.
 	//

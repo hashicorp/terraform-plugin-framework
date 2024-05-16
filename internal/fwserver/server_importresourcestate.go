@@ -53,6 +53,13 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
+	//TODO: add logging for replacing deferred reason
+	if s.deferred != nil {
+		resp.Deferred = &resource.Deferred{
+			Reason: resp.Deferred.Reason,
+		}
+	}
+
 	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
@@ -133,6 +140,12 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	resp.Deferred = importResp.Deferred
+	if s.deferred != nil {
+		resp.Deferred = &resource.Deferred{
+			Reason: resp.Deferred.Reason,
+		}
+	}
+
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,

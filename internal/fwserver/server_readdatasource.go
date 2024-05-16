@@ -38,6 +38,13 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		return
 	}
 
+	//TODO: add logging for replacing deferred reason
+	if s.deferred != nil {
+		resp.Deferred = &datasource.Deferred{
+			Reason: resp.Deferred.Reason,
+		}
+	}
+
 	if dataSourceWithConfigure, ok := req.DataSource.(datasource.DataSourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "DataSource implements DataSourceWithConfigure")
 

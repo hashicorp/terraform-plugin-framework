@@ -49,6 +49,13 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
+	//TODO: add logging for replacing deferred reason
+	if s.deferred != nil {
+		resp.Deferred = &resource.Deferred{
+			Reason: resp.Deferred.Reason,
+		}
+	}
+
 	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 

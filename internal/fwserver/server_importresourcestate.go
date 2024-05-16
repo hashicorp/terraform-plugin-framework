@@ -140,12 +140,6 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	resp.Deferred = importResp.Deferred
-	if s.deferred != nil {
-		resp.Deferred = &resource.Deferred{
-			Reason: resp.Deferred.Reason,
-		}
-	}
-
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,

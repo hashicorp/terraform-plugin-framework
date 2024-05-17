@@ -34,6 +34,7 @@ type PlanResourceChangeRequest struct {
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
 	Resource           resource.Resource
+	ResourceBehavior   resource.ResourceBehavior
 }
 
 // PlanResourceChangeResponse is the framework server response for the
@@ -215,11 +216,13 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = modifiedPlan
 	}
 
-	// TODO: Finish Implementation
 	// Skip plan modification for automatic deferrals
 	// unless ProviderDeferredBehavior.EnablePlanModification is true
-	if s.deferred != nil {
-
+	if s.deferred != nil && req.ResourceBehavior.ProviderDeferred.EnablePlanModification == false {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
 	}
 
 	// Execute any schema-based plan modifiers. This allows overwriting
@@ -295,7 +298,20 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
-		resp.Deferred = modifyPlanResp.Deferred
+
+		// Provider deferred response is present, add the deferred response alongside the provider-modified plan
+		if s.deferred != nil {
+			logging.FrameworkDebug(ctx, "Provider has deferred response configured, returning deferred response with modified plan.")
+			if modifyPlanResp.Deferred != nil {
+				logging.FrameworkDebug(ctx, fmt.Sprintf("Provider deferred response reason: %s replaced resource deferred response reason: %s",
+					s.deferred.Reason.String(), modifyPlanResp.Deferred.Reason.String()))
+			}
+			resp.Deferred = &resource.Deferred{
+				Reason: resource.DeferredReason(s.deferred.Reason),
+			}
+		} else {
+			resp.Deferred = modifyPlanResp.Deferred
+		}
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

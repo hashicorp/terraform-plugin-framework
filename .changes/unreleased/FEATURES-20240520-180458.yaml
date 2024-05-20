@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'provider: Add `Deferred` field to `ConfigureResponse` 
+  which indicates a provider deferred action to the Terraform client'
+time: 2024-05-20T18:04:58.852448-04:00
+custom:
+  Issue: "1002"

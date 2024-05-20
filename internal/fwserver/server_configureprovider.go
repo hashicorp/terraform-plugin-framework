@@ -27,13 +27,14 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 			resp.Diagnostics.AddError("Invalid Deferred Provider Response",
 				"Provider configured a deferred response for all resources and data sources but the Terraform request "+
 					"did not indicate support for deferred actions. This is an issue with the provider and should be reported to the provider developers.")
+			return
 		} else {
 			logging.FrameworkDebug(ctx, "Provider has configured a deferred response, "+
 				"all associated resources and data sources will automatically return a deferred response.")
+			s.deferred = resp.Deferred
 		}
 	}
 
-	s.deferred = resp.Deferred
 	s.DataSourceConfigureData = resp.DataSourceData
 	s.ResourceConfigureData = resp.ResourceData
 }

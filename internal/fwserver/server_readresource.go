@@ -49,11 +49,13 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
-	//TODO: add logging for replacing deferred reason
 	if s.deferred != nil {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		resp.NewState = req.CurrentState
 		resp.Deferred = &resource.Deferred{
-			Reason: resp.Deferred.Reason,
+			Reason: resource.DeferredReason(s.deferred.Reason),
 		}
+		return
 	}
 
 	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {

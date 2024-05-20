@@ -6,6 +6,8 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -38,11 +40,17 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		return
 	}
 
-	//TODO: add logging for replacing deferred reason
 	if s.deferred != nil {
-		resp.Deferred = &datasource.Deferred{
-			Reason: resp.Deferred.Reason,
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		// Send an unknown value for the data source
+		resp.State = &tfsdk.State{
+			Raw:    tftypes.NewValue(req.DataSourceSchema.Type().TerraformType(ctx), tftypes.UnknownValue),
+			Schema: req.DataSourceSchema,
 		}
+		resp.Deferred = &datasource.Deferred{
+			Reason: datasource.DeferredReason(s.deferred.Reason),
+		}
+		return
 	}
 
 	if dataSourceWithConfigure, ok := req.DataSource.(datasource.DataSourceWithConfigure); ok {

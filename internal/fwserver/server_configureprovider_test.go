@@ -184,7 +184,6 @@ func TestServerConfigureProvider(t *testing.T) {
 					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
 					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
-						resp.DataSourceData = "test-provider-configure-value"
 					},
 				},
 			},
@@ -198,7 +197,6 @@ func TestServerConfigureProvider(t *testing.T) {
 				Deferred: &provider.Deferred{
 					Reason: provider.DeferredReasonProviderConfigUnknown,
 				},
-				DataSourceData: "test-provider-configure-value",
 			},
 		},
 		"response-resourcedata": {

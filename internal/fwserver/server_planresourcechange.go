@@ -216,15 +216,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = modifiedPlan
 	}
 
-	// Skip plan modification for automatic deferrals
-	// unless ProviderDeferredBehavior.EnablePlanModification is true
-	if s.deferred != nil && req.ResourceBehavior.ProviderDeferred.EnablePlanModification == false {
-		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
-		resp.Deferred = &resource.Deferred{
-			Reason: resource.DeferredReason(s.deferred.Reason),
-		}
-	}
-
 	// Execute any schema-based plan modifiers. This allows overwriting
 	// any unknown values.
 	//
@@ -258,6 +249,16 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		if resp.Diagnostics.HasError() {
 			return
 		}
+	}
+
+	// Skip resource-level ModifyPlan for automatic deferrals
+	// unless ProviderDeferredBehavior.EnablePlanModification is true
+	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
+		return
 	}
 
 	// Execute any resource-level ModifyPlan method. This allows

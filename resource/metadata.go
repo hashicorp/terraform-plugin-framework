@@ -35,6 +35,11 @@ type ResourceBehavior struct {
 	ProviderDeferred ProviderDeferredBehavior
 }
 
+// ProviderDeferredBehavior enables provider-defined logic to be executed
+// in the case of a deferred response from provider configuration.
+//
+// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+// to change or break without warning. It is not protected by version compatibility guarantees.
 type ProviderDeferredBehavior struct {
 	// When EnablePlanModification is true, framework will still execute
 	// provider-defined resource plan modification logic if

@@ -59,9 +59,6 @@ type Server struct {
 	// deferred indicates an automatic provider deferral. When this is set,
 	// the provider will automatically defer the PlanResourceChange, ReadResource,
 	// ImportResourceState, and ReadDataSource RPCs.
-	//
-	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
-	// to change or break without warning. It is not protected by version compatibility guarantees.
 	deferred *provider.Deferred
 
 	// functionDefinitions is the cached Function Definitions for RPCs that need to

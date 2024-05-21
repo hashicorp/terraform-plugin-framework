@@ -32,6 +32,9 @@ type MetadataResponse struct {
 type ResourceBehavior struct {
 	// ProviderDeferred enables provider-defined logic to be executed
 	// in the case of an automatic deferred response from provider configure.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
 	ProviderDeferred ProviderDeferredBehavior
 }
 

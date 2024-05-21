@@ -56,7 +56,11 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	if s.deferred != nil {
-		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
 		// Send an unknown value for the imported object
 		resp.ImportedResources = []ImportedResource{
 			{

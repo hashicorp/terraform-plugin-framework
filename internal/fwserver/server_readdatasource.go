@@ -41,7 +41,11 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 	}
 
 	if s.deferred != nil {
-		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
 		// Send an unknown value for the data source
 		resp.State = &tfsdk.State{
 			Raw:    tftypes.NewValue(req.DataSourceSchema.Type().TerraformType(ctx), tftypes.UnknownValue),

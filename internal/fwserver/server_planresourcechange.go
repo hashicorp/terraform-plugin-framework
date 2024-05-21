@@ -254,7 +254,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// Skip resource-level ModifyPlan for automatic deferrals
 	// unless ProviderDeferredBehavior.EnablePlanModification is true
 	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
-		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.")
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
 		resp.Deferred = &resource.Deferred{
 			Reason: resource.DeferredReason(s.deferred.Reason),
 		}

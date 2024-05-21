@@ -31,10 +31,10 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 		} else {
 			logging.FrameworkDebug(ctx, "Provider has configured a deferred response, "+
 				"all associated resources and data sources will automatically return a deferred response.")
-			s.deferred = resp.Deferred
 		}
 	}
 
+	s.deferred = resp.Deferred
 	s.DataSourceConfigureData = resp.DataSourceData
 	s.ResourceConfigureData = resp.ResourceData
 }

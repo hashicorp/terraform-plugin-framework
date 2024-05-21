@@ -309,16 +309,7 @@ func TestServerImportResourceState(t *testing.T) {
 				Resource: &testprovider.ResourceWithImportState{
 					Resource: &testprovider.Resource{},
 					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-						if req.ID != "test-id" {
-							resp.Diagnostics.AddError("unexpected req.ID value: %s", req.ID)
-						}
-
-						resp.Deferred = &resource.Deferred{
-							Reason: resource.DeferredReasonAbsentPrereq,
-						}
-
-						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
+						resp.Diagnostics.AddError("Test assertion failed: ", "import shouldn't be called")
 					},
 				},
 				TypeName:           "test_resource",

@@ -264,18 +264,7 @@ func TestServerReadDataSource(t *testing.T) {
 				DataSourceSchema: testSchema,
 				DataSource: &testprovider.DataSource{
 					ReadMethod: func(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-						var config struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
-						resp.Deferred = &datasource.Deferred{Reason: datasource.DeferredReasonAbsentPrereq}
-
-						if config.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
-						}
+						resp.Diagnostics.AddError("Test assertion failed: ", "read shouldn't be called")
 					},
 				},
 				ClientCapabilities: testDeferralAllowed,

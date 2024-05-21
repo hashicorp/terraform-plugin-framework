@@ -359,18 +359,7 @@ func TestServerReadResource(t *testing.T) {
 				CurrentState: testCurrentState,
 				Resource: &testprovider.Resource{
 					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-						resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
-
-						if data.TestRequired.ValueString() != "test-currentstate-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
-						}
+						resp.Diagnostics.AddError("Test assertion failed: ", "read shouldn't be called")
 					},
 				},
 				ClientCapabilities: testDeferralAllowed,

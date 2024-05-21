@@ -3106,17 +3106,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						if req.ClientCapabilities.DeferralAllowed == true {
-							resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
-						}
-
-						var data testSchemaData
-
-						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-						data.TestComputed = types.StringValue("test-plannedstate-value")
-
-						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+						resp.Diagnostics.AddError("Test assertion failed: ", "modifyplan shouldn't be called")
 					},
 				},
 			},

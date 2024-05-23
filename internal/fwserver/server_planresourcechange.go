@@ -53,7 +53,27 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		return
 	}
 
-	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
+	var skipPlanModification bool
+
+	// Skip ModifyPlan for automatic deferrals
+	// unless ProviderDeferredBehavior.EnablePlanModification is true.
+	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
+
+		// Flag to skip schema default plan modifiers, schema plan modifiers,
+		// and the resource Configure method call but continue to run the logic
+		// to mark null computed attributes as unknown.
+		skipPlanModification = true
+	}
+
+	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok && !skipPlanModification {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
 		configureReq := resource.ConfigureRequest{
@@ -119,7 +139,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// identifying any attributes which are null within the configuration, and if the attribute
 	// has a default value specified by the `Default` field on the attribute then the default
 	// value is assigned.
-	if !resp.PlannedState.Raw.IsNull() {
+	if !resp.PlannedState.Raw.IsNull() && !skipPlanModification {
 		data := fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionState,
 			Schema:         resp.PlannedState.Schema,
@@ -214,6 +234,10 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 
 		resp.PlannedState.Raw = modifiedPlan
+
+		if skipPlanModification {
+			return
+		}
 	}
 
 	// Execute any schema-based plan modifiers. This allows overwriting
@@ -249,20 +273,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		if resp.Diagnostics.HasError() {
 			return
 		}
-	}
-
-	// Skip resource-level ModifyPlan for automatic deferrals
-	// unless ProviderDeferredBehavior.EnablePlanModification is true
-	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
-		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
-			map[string]interface{}{
-				logging.KeyDeferredReason: s.deferred.Reason.String(),
-			},
-		)
-		resp.Deferred = &resource.Deferred{
-			Reason: resource.DeferredReason(s.deferred.Reason),
-		}
-		return
 	}
 
 	// Execute any resource-level ModifyPlan method. This allows
@@ -303,19 +313,22 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
+		resp.Deferred = modifyPlanResp.Deferred
 
 		// Provider deferred response is present, add the deferred response alongside the provider-modified plan
 		if s.deferred != nil {
 			logging.FrameworkDebug(ctx, "Provider has deferred response configured, returning deferred response with modified plan.")
-			if modifyPlanResp.Deferred != nil {
-				logging.FrameworkDebug(ctx, fmt.Sprintf("Provider deferred response reason: %s replaced resource deferred response reason: %s",
+			// Only set the response to the provider configured deferred reason if there is no resource configured deferred reason
+			if resp.Deferred == nil {
+				resp.Deferred = &resource.Deferred{
+					Reason: resource.DeferredReason(s.deferred.Reason),
+				}
+			} else {
+				logging.FrameworkDebug(ctx, fmt.Sprintf("Resource has deferred reason configured, "+
+					"replacing provider deferred reason: %s with resource deferred reason: %s",
 					s.deferred.Reason.String(), modifyPlanResp.Deferred.Reason.String()))
 			}
-			resp.Deferred = &resource.Deferred{
-				Reason: resource.DeferredReason(s.deferred.Reason),
-			}
-		} else {
-			resp.Deferred = modifyPlanResp.Deferred
+			return
 		}
 	}
 

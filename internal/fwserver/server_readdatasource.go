@@ -46,7 +46,9 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 				logging.KeyDeferredReason: s.deferred.Reason.String(),
 			},
 		)
-		// Send an unknown value for the data source
+		// Send an unknown value for the data source. This will replace any configured values
+		// for ease of implementation as Terraform Core currently does not use these values for
+		// deferred actions, but this design could change in the future.
 		resp.State = &tfsdk.State{
 			Raw:    tftypes.NewValue(req.DataSourceSchema.Type().TerraformType(ctx), tftypes.UnknownValue),
 			Schema: req.DataSourceSchema,

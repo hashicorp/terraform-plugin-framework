@@ -53,9 +53,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		return
 	}
 
-	var skipPlanModification bool
-
-	// Skip ModifyPlan for automatic deferrals
+	// Skip ModifyPlan for automatic deferrals with proposed new state as a best effort for PlannedState
 	// unless ProviderDeferredBehavior.EnablePlanModification is true.
 	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
 		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
@@ -63,17 +61,17 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				logging.KeyDeferredReason: s.deferred.Reason.String(),
 			},
 		)
+
+		resp.PlannedState = planToState(*req.ProposedNewState)
+		resp.PlannedPrivate = req.PriorPrivate
 		resp.Deferred = &resource.Deferred{
 			Reason: resource.DeferredReason(s.deferred.Reason),
 		}
 
-		// Flag to skip schema default plan modifiers, schema plan modifiers,
-		// and the resource Configure method call but continue to run the logic
-		// to mark null computed attributes as unknown.
-		skipPlanModification = true
+		return
 	}
 
-	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok && !skipPlanModification {
+	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
 
 		configureReq := resource.ConfigureRequest{
@@ -139,7 +137,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	// identifying any attributes which are null within the configuration, and if the attribute
 	// has a default value specified by the `Default` field on the attribute then the default
 	// value is assigned.
-	if !resp.PlannedState.Raw.IsNull() && !skipPlanModification {
+	if !resp.PlannedState.Raw.IsNull() {
 		data := fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionState,
 			Schema:         resp.PlannedState.Schema,
@@ -234,10 +232,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 
 		resp.PlannedState.Raw = modifiedPlan
-
-		if skipPlanModification {
-			return
-		}
 	}
 
 	// Execute any schema-based plan modifiers. This allows overwriting

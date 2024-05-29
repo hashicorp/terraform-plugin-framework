@@ -3114,12 +3114,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Deferred: &resource.Deferred{Reason: resource.DeferredReasonProviderConfigUnknown},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
 						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 					}),
 					Schema: testSchema,
 				},
-				PlannedPrivate: testEmptyPrivate,
 			},
 		},
 		"create-resourcewithmodifyplan-response-deferral-manual": {

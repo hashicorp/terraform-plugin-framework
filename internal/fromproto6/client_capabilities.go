@@ -7,8 +7,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
+
+func ConfigureProviderClientCapabilities(in *tfprotov6.ConfigureProviderClientCapabilities) provider.ConfigureProviderClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return provider.ConfigureProviderClientCapabilities{
+			DeferralAllowed: false,
+		}
+	}
+
+	return provider.ConfigureProviderClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+}
 
 func ReadDataSourceClientCapabilities(in *tfprotov6.ReadDataSourceClientCapabilities) datasource.ReadClientCapabilities {
 	if in == nil {

@@ -8,14 +8,15 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestConfigureProviderRequest(t *testing.T) {
@@ -92,6 +93,26 @@ func TestConfigureProviderRequest(t *testing.T) {
 			},
 			expected: &provider.ConfigureRequest{
 				TerraformVersion: "99.99.99",
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov5.ConfigureProviderRequest{
+				ClientCapabilities: &tfprotov5.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input: &tfprotov5.ConfigureProviderRequest{},
+			expected: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: false,
+				},
 			},
 		},
 	}

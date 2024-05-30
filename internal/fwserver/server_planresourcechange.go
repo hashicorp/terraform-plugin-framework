@@ -34,6 +34,7 @@ type PlanResourceChangeRequest struct {
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
 	Resource           resource.Resource
+	ResourceBehavior   resource.ResourceBehavior
 }
 
 // PlanResourceChangeResponse is the framework server response for the
@@ -49,6 +50,24 @@ type PlanResourceChangeResponse struct {
 // PlanResourceChange implements the framework server PlanResourceChange RPC.
 func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChangeRequest, resp *PlanResourceChangeResponse) {
 	if req == nil {
+		return
+	}
+
+	// Skip ModifyPlan for automatic deferrals with proposed new state as a best effort for PlannedState
+	// unless ProviderDeferredBehavior.EnablePlanModification is true.
+	if s.deferred != nil && !req.ResourceBehavior.ProviderDeferred.EnablePlanModification {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+
+		resp.PlannedState = planToState(*req.ProposedNewState)
+		resp.PlannedPrivate = req.PriorPrivate
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
+
 		return
 	}
 
@@ -289,6 +308,22 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 		resp.Deferred = modifyPlanResp.Deferred
+
+		// Provider deferred response is present, add the deferred response alongside the provider-modified plan
+		if s.deferred != nil {
+			logging.FrameworkDebug(ctx, "Provider has deferred response configured, returning deferred response with modified plan.")
+			// Only set the response to the provider configured deferred reason if there is no resource configured deferred reason
+			if resp.Deferred == nil {
+				resp.Deferred = &resource.Deferred{
+					Reason: resource.DeferredReason(s.deferred.Reason),
+				}
+			} else {
+				logging.FrameworkDebug(ctx, fmt.Sprintf("Resource has deferred reason configured, "+
+					"replacing provider deferred reason: %s with resource deferred reason: %s",
+					s.deferred.Reason.String(), modifyPlanResp.Deferred.Reason.String()))
+			}
+			return
+		}
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

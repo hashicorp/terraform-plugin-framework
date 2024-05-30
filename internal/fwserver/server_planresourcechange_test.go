@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -1235,9 +1236,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		server           *fwserver.Server
-		request          *fwserver.PlanResourceChangeRequest
-		expectedResponse *fwserver.PlanResourceChangeResponse
+		server               *fwserver.Server
+		request              *fwserver.PlanResourceChangeRequest
+		expectedResponse     *fwserver.PlanResourceChangeResponse
+		configureProviderReq *provider.ConfigureRequest
 	}{
 		"resource-configure-data": {
 			server: &fwserver.Server{
@@ -3007,7 +3009,180 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedPrivate: testEmptyPrivate,
 			},
 		},
-		"create-resourcewithmodifyplan-response-deferral": {
+		"create-resourcewithmodifyplan-response-deferral-automatic-override-provider-deferral-reason": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+					},
+				},
+			},
+			configureProviderReq: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				ClientCapabilities: testDeferralAllowed,
+				ResourceBehavior: resource.ResourceBehavior{
+					ProviderDeferred: resource.ProviderDeferredBehavior{
+						EnablePlanModification: true,
+					},
+				},
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						if req.ClientCapabilities.DeferralAllowed == true {
+							resp.Deferred = &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq}
+						}
+
+						var data testSchemaData
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonAbsentPrereq},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-resourcewithmodifyplan-response-deferral-automatic-plan-modification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+					},
+				},
+			},
+			configureProviderReq: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				ResourceBehavior: resource.ResourceBehavior{
+					ProviderDeferred: resource.ProviderDeferredBehavior{
+						EnablePlanModification: true,
+					},
+				},
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonProviderConfigUnknown},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-resourcewithmodifyplan-response-deferral-automatic-skip-plan-modification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+					},
+				},
+			},
+			configureProviderReq: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						resp.Diagnostics.AddError("Test assertion failed: ", "modifyplan shouldn't be called")
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonProviderConfigUnknown},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+			},
+		},
+		"create-resourcewithmodifyplan-response-deferral-manual": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -6112,6 +6287,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			if testCase.configureProviderReq != nil {
+				configureProviderResp := &provider.ConfigureResponse{}
+				testCase.server.ConfigureProvider(context.Background(), testCase.configureProviderReq, configureProviderResp)
+			}
 
 			response := &fwserver.PlanResourceChangeResponse{}
 			testCase.server.PlanResourceChange(context.Background(), testCase.request, response)

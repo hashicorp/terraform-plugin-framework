@@ -6,6 +6,8 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
@@ -50,6 +52,29 @@ type ImportResourceStateResponse struct {
 // ImportResourceState implements the framework server ImportResourceState RPC.
 func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceStateRequest, resp *ImportResourceStateResponse) {
 	if req == nil {
+		return
+	}
+
+	if s.deferred != nil {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+		// Send an unknown value for the imported object
+		resp.ImportedResources = []ImportedResource{
+			{
+				State: tfsdk.State{
+					Raw:    tftypes.NewValue(req.EmptyState.Schema.Type().TerraformType(ctx), tftypes.UnknownValue),
+					Schema: req.EmptyState.Schema,
+				},
+				TypeName: req.TypeName,
+				Private:  &privatestate.Data{},
+			},
+		}
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
 		return
 	}
 

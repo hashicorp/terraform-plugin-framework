@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -37,6 +38,8 @@ func TestServerImportResourceState(t *testing.T) {
 		"optional": tftypes.NewValue(tftypes.String, nil),
 		"required": tftypes.NewValue(tftypes.String, nil),
 	})
+
+	testUnknownStateValue := tftypes.NewValue(testType, tftypes.UnknownValue)
 
 	testStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
 		"id":       tftypes.NewValue(tftypes.String, "test-id"),
@@ -60,6 +63,11 @@ func TestServerImportResourceState(t *testing.T) {
 
 	testEmptyState := &tfsdk.State{
 		Raw:    testEmptyStateValue,
+		Schema: testSchema,
+	}
+
+	testUnknownState := &tfsdk.State{
+		Raw:    testUnknownStateValue,
 		Schema: testSchema,
 	}
 
@@ -89,9 +97,10 @@ func TestServerImportResourceState(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		server           *fwserver.Server
-		request          *fwserver.ImportResourceStateRequest
-		expectedResponse *fwserver.ImportResourceStateResponse
+		server               *fwserver.Server
+		request              *fwserver.ImportResourceStateRequest
+		expectedResponse     *fwserver.ImportResourceStateResponse
+		configureProviderReq *provider.ConfigureRequest
 	}{
 		"nil": {
 			server: &fwserver.Server{
@@ -280,7 +289,44 @@ func TestServerImportResourceState(t *testing.T) {
 				},
 			},
 		},
-		"response-importedresources-deferral": {
+		"response-importedresources-deferral-automatic": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+					},
+				},
+			},
+			configureProviderReq: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resp.Diagnostics.AddError("Test assertion failed: ", "import shouldn't be called")
+					},
+				},
+				TypeName:           "test_resource",
+				ClientCapabilities: testDeferral,
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testUnknownState,
+						TypeName: "test_resource",
+						Private:  &privatestate.Data{},
+					},
+				},
+				Deferred: &resource.Deferred{Reason: resource.DeferredReasonProviderConfigUnknown},
+			},
+		},
+		"response-importedresources-deferral-manual": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -377,6 +423,11 @@ func TestServerImportResourceState(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			if testCase.configureProviderReq != nil {
+				configureProviderResp := &provider.ConfigureResponse{}
+				testCase.server.ConfigureProvider(context.Background(), testCase.configureProviderReq, configureProviderResp)
+			}
 
 			response := &fwserver.ImportResourceStateResponse{}
 			testCase.server.ImportResourceState(context.Background(), testCase.request, response)

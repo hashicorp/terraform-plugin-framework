@@ -56,6 +56,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov5.PlanResourceChangeRequest
+		resourceBehavior    resource.ResourceBehavior
 		resourceSchema      fwschema.Schema
 		resource            resource.Resource
 		providerMetaSchema  fwschema.Schema
@@ -241,6 +242,23 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ResourceSchema: testFwSchema,
 			},
 		},
+		"resource-behavior": {
+			input:          &tfprotov5.PlanResourceChangeRequest{},
+			resourceSchema: testFwSchema,
+			resourceBehavior: resource.ResourceBehavior{
+				ProviderDeferred: resource.ProviderDeferredBehavior{
+					EnablePlanModification: true,
+				},
+			},
+			expected: &fwserver.PlanResourceChangeRequest{
+				ResourceBehavior: resource.ResourceBehavior{
+					ProviderDeferred: resource.ProviderDeferredBehavior{
+						EnablePlanModification: true,
+					},
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -249,7 +267,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.PlanResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema)
+			got, diags := fromproto5.PlanResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.resourceBehavior)
 
 			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

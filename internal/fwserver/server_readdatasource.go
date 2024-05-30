@@ -6,6 +6,8 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -35,6 +37,25 @@ type ReadDataSourceResponse struct {
 // ReadDataSource implements the framework server ReadDataSource RPC.
 func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest, resp *ReadDataSourceResponse) {
 	if req == nil {
+		return
+	}
+
+	if s.deferred != nil {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+		// Send an unknown value for the data source. This will replace any configured values
+		// for ease of implementation as Terraform Core currently does not use these values for
+		// deferred actions, but this design could change in the future.
+		resp.State = &tfsdk.State{
+			Raw:    tftypes.NewValue(req.DataSourceSchema.Type().TerraformType(ctx), tftypes.UnknownValue),
+			Schema: req.DataSourceSchema,
+		}
+		resp.Deferred = &datasource.Deferred{
+			Reason: datasource.DeferredReason(s.deferred.Reason),
+		}
 		return
 	}
 

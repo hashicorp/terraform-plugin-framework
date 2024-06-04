@@ -1,3 +1,27 @@
+## 1.9.0 (June 04, 2024)
+
+NOTES:
+
+* resource: If plan modification was dependent on nested attribute plan modification automatically running when the nested object was null/unknown, it may be necessary to add object-level plan modification to convert the nested object to a known object first. ([#995](https://github.com/hashicorp/terraform-plugin-framework/issues/995))
+* This release contains support for deferred actions, which is an experimental feature only available in prerelease builds of Terraform 1.9 and later. This functionality is subject to change and is not protected by version compatibility guarantees. ([#999](https://github.com/hashicorp/terraform-plugin-framework/issues/999))
+
+FEATURES:
+
+* resource: Add `Deferred` field to `ReadResponse`, `ModifyPlanResponse`, and `ImportStateResponse` which indicates a resource deferred action to the Terraform client ([#999](https://github.com/hashicorp/terraform-plugin-framework/issues/999))
+* datasource: Add `Deferred` field to `ReadResponse` which indicates a data source deferred action to the Terraform client ([#999](https://github.com/hashicorp/terraform-plugin-framework/issues/999))
+* resource: Add `ClientCapabilities` field to `ReadRequest`, `ModifyPlanRequest`, and `ImportStateRequest` which specifies optionally supported protocol features for the Terraform client ([#999](https://github.com/hashicorp/terraform-plugin-framework/issues/999))
+* datasource: Add `ClientCapabilities` field to `ReadRequest` which specifies optionally supported protocol features for the Terraform client ([#999](https://github.com/hashicorp/terraform-plugin-framework/issues/999))
+* provider: Add `Deferred` field to `ConfigureResponse` which indicates a provider deferred action to the Terraform client ([#1002](https://github.com/hashicorp/terraform-plugin-framework/issues/1002))
+* provider: Add `ClientCapabilities` field to `ConfigureRequest` which specifies optionally supported protocol features for the Terraform client ([#1002](https://github.com/hashicorp/terraform-plugin-framework/issues/1002))
+
+ENHANCEMENTS:
+
+* function: Introduced implementation errors for collection and object parameters and returns which are missing type information ([#991](https://github.com/hashicorp/terraform-plugin-framework/issues/991))
+
+BUG FIXES:
+
+* resource: Prevented errant collection-based nested object conversion from null/unknown object to known object ([#995](https://github.com/hashicorp/terraform-plugin-framework/issues/995))
+
 ## 1.8.0 (April 18, 2024)
 
 BREAKING CHANGES:

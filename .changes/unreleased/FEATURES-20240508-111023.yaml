@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'datasource: Add `ClientCapabilities` field to `ReadRequest` which specifies
-  optionally supported protocol features for the Terraform client'
-time: 2024-05-08T11:10:23.66584-04:00
-custom:
-  Issue: "999"

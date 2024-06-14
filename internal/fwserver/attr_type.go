@@ -41,6 +41,21 @@ func coerceFloat64Typable(ctx context.Context, schemaPath path.Path, valuable ba
 	return typable, nil
 }
 
+func coerceInt32Typable(ctx context.Context, schemaPath path.Path, valuable basetypes.Int32Valuable) (basetypes.Int32Typable, diag.Diagnostics) {
+	typable, ok := valuable.Type(ctx).(basetypes.Int32Typable)
+
+	// Type() of a Valuable should always be a Typable to recreate the Valuable,
+	// but if for some reason it is not, raise an implementation error instead
+	// of a panic.
+	if !ok {
+		return nil, diag.Diagnostics{
+			attributePlanModificationTypableError(schemaPath, valuable),
+		}
+	}
+
+	return typable, nil
+}
+
 func coerceInt64Typable(ctx context.Context, schemaPath path.Path, valuable basetypes.Int64Valuable) (basetypes.Int64Typable, diag.Diagnostics) {
 	typable, ok := valuable.Type(ctx).(basetypes.Int64Typable)
 

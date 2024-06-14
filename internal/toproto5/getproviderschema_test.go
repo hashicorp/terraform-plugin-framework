@@ -330,6 +330,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
+		"data-source-attribute-type-int32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.Int32Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{
+					"test_data_source": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
 		"data-source-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
@@ -1353,6 +1383,33 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
+		"provider-attribute-type-int32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.Int32Attribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:     "test_attribute",
+								Required: true,
+								Type:     tftypes.Number,
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
 		"provider-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				Provider: providerschema.Schema{
@@ -2054,6 +2111,33 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ProviderMeta: metaschema.Schema{
 					Attributes: map[string]metaschema.Attribute{
 						"test_attribute": metaschema.Float64Attribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
+				ProviderMeta: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:     "test_attribute",
+								Required: true,
+								Type:     tftypes.Number,
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"provider-meta-attribute-type-int32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ProviderMeta: metaschema.Schema{
+					Attributes: map[string]metaschema.Attribute{
+						"test_attribute": metaschema.Int32Attribute{
 							Required: true,
 						},
 					},
@@ -2813,6 +2897,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_resource": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
 							"test_attribute": resourceschema.Float64Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"resource-attribute-type-int32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.Int32Attribute{
 								Required: true,
 							},
 						},

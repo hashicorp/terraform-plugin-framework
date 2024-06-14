@@ -39,6 +39,15 @@ func newFloatPointerPointer(in float64) **float64 {
 	return &floatPointer
 }
 
+func newInt32Pointer(in int32) *int32 {
+	return &in
+}
+
+func newInt32PointerPointer(in int32) **int32 {
+	intPointer := &in
+	return &intPointer
+}
+
 func newInt64Pointer(in int64) *int64 {
 	return &in
 }
@@ -108,6 +117,16 @@ func TestValueAs(t *testing.T) {
 			val:      types.Float64Value(12.3),
 			target:   newFloatPointerPointer(0.0),
 			expected: newFloatPointerPointer(12.3),
+		},
+		"primitive int32 pointer": {
+			val:      types.Int32Value(12),
+			target:   newInt32Pointer(0),
+			expected: newInt32Pointer(12),
+		},
+		"primitive int32 pointer pointer": {
+			val:      types.Int32Value(12),
+			target:   newInt32PointerPointer(0),
+			expected: newInt32PointerPointer(12),
 		},
 		"primitive int64 pointer": {
 			val:      types.Int64Value(12),

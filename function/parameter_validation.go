@@ -12,6 +12,15 @@ type ParameterWithBoolValidators interface {
 	GetValidators() []BoolParameterValidator
 }
 
+// ParameterWithInt32Validators is an optional interface on Parameter which
+// enables Int32 validation support.
+type ParameterWithInt32Validators interface {
+	Parameter
+
+	// GetValidators should return a list of Int32 validators.
+	GetValidators() []Int32ParameterValidator
+}
+
 // ParameterWithInt64Validators is an optional interface on Parameter which
 // enables Int64 validation support.
 type ParameterWithInt64Validators interface {

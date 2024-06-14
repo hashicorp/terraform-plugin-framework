@@ -23,6 +23,14 @@ type AttributeWithFloat64DefaultValue interface {
 	Float64DefaultValue() defaults.Float64
 }
 
+// AttributeWithInt32DefaultValue is an optional interface on Attribute which
+// enables Int32 default value support.
+type AttributeWithInt32DefaultValue interface {
+	Attribute
+
+	Int32DefaultValue() defaults.Int32
+}
+
 // AttributeWithInt64DefaultValue is an optional interface on Attribute which
 // enables Int64 default value support.
 type AttributeWithInt64DefaultValue interface {

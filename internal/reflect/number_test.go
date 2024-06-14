@@ -238,6 +238,17 @@ func TestNumber_int16UnderflowError(t *testing.T) {
 
 func TestNumber_int32(t *testing.T) {
 	t.Parallel()
+
+	var n int32
+
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&n).Elem().Set(result)
+	if n != 123 {
+		t.Errorf("Expected %v, got %v", 123, n)
+	}
 }
 
 func TestNumber_int32OverflowError(t *testing.T) {

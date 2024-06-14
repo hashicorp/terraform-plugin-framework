@@ -2134,6 +2134,210 @@ func TestAttributeValidateFloat64(t *testing.T) {
 	}
 }
 
+func TestAttributeValidateInt32(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute fwxschema.AttributeWithInt32Validators
+		request   ValidateAttributeRequest
+		response  *ValidateAttributeResponse
+		expected  *ValidateAttributeResponse
+	}{
+		"request-path": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(123),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-pathexpression": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.Int32Value(123),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-config": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 123),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(123),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 123),
+						},
+					),
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-configvalue": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							got := req.ConfigValue
+							expected := types.Int32Value(123)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(123),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"response-diagnostics": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(123),
+			},
+			response: &ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			AttributeValidateInt32(context.Background(), testCase.attribute, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestAttributeValidateInt64(t *testing.T) {
 	t.Parallel()
 

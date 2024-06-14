@@ -727,6 +727,258 @@ func TestDataGetAtPath(t *testing.T) {
 			target:   new(float64),
 			expected: pointer(1.2),
 		},
+		"Int32Type-types.Int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(types.Int32),
+			expected: pointer(types.Int32Null()),
+		},
+		"Int32Type-types.Int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(types.Int32),
+			expected: pointer(types.Int32Unknown()),
+		},
+		"Int32Type-types.Int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(types.Int32),
+			expected: pointer(types.Int32Value(12)),
+		},
+		"Int32Type-*int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(*int32),
+			expected: new(*int32),
+		},
+		"Int32Type-*int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(*int32),
+			expected: new(*int32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int32\nTarget Type: *int32\nSuggested Type: basetypes.Int32Value",
+				),
+			},
+		},
+		"Int32Type-*int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(*int32),
+			expected: pointer(pointer(int32(12))),
+		},
+		"Int32Type-int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(int32),
+			expected: new(int32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: int32\nTarget Type: int32\nSuggested `types` Type: basetypes.Int32Value\nSuggested Pointer Type: *int32",
+				),
+			},
+		},
+		"Int32Type-int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(int32),
+			expected: new(int32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int32\nTarget Type: int32\nSuggested Type: basetypes.Int32Value",
+				),
+			},
+		},
+		"Int32Type-int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			path:     path.Root("int32"),
+			target:   new(int32),
+			expected: pointer(int32(12)),
+		},
 		"Int64Type-types.Int64-null": {
 			data: fwschemadata.Data{
 				Schema: testschema.Schema{
@@ -6857,6 +7109,9 @@ func TestDataGetAtPath(t *testing.T) {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 				cmp.Comparer(func(i, j *types.Float64) bool {
+					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
+				}),
+				cmp.Comparer(func(i, j *types.Int32) bool {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 				cmp.Comparer(func(i, j *types.Int64) bool {

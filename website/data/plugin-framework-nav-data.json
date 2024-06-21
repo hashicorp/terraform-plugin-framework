@@ -157,6 +157,10 @@
             "path": "functions/parameters/float64"
           },
           {
+            "title": "Int32",
+            "path": "functions/parameters/int32"
+          },
+          {
             "title": "Int64",
             "path": "functions/parameters/int64"
           },
@@ -204,6 +208,10 @@
           {
             "title": "Float64",
             "path": "functions/returns/float64"
+          },
+          {
+            "title": "Int32",
+            "path": "functions/returns/int32"
           },
           {
             "title": "Int64",
@@ -278,6 +286,10 @@
           {
             "title": "Float64",
             "path": "handling-data/attributes/float64"
+          },
+          {
+            "title": "Int32",
+            "path": "handling-data/attributes/int32"
           },
           {
             "title": "Int64",
@@ -364,6 +376,10 @@
           {
             "title": "Float64",
             "path": "handling-data/types/float64"
+          },
+          {
+            "title": "Int32",
+            "path": "handling-data/types/int32"
           },
           {
             "title": "Int64",

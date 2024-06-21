@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'types/basetypes: Added `Int32Type` and `Int32Value` implementations for Int32
+  value handling.'
+time: 2024-06-21T13:21:25.992757-04:00
+custom:
+  Issue: "1010"

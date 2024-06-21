@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/Int32planmodifier: New package with built-in implementations
+  for Int32 value plan modification.'
+time: 2024-06-21T13:24:41.31229-04:00
+custom:
+  Issue: "1010"

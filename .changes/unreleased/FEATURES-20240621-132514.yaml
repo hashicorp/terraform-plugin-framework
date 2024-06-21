@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/planmodifier: New `Int32` interface for Int32 value plan modification
+  implementations.'
+time: 2024-06-21T13:25:14.959554-04:00
+custom:
+  Issue: "1010"

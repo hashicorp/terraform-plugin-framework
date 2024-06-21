@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/defaults: New `Int32` interface for Int32 schema-based default
+  implementations.'
+time: 2024-06-21T13:24:56.747674-04:00
+custom:
+  Issue: "1010"

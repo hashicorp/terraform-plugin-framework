@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'schema/validator: New `Int32` interface for Int32 value schema validation.'
+time: 2024-06-21T13:25:28.832045-04:00
+custom:
+  Issue: "1010"

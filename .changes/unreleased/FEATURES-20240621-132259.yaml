@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'resource/schema: Added `Int32Attribute` implementation for Int32 value handling.'
+time: 2024-06-21T13:22:59.609657-04:00
+custom:
+  Issue: "1010"

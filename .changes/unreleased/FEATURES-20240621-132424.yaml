@@ -1,5 +1,5 @@
 kind: FEATURES
-body: 'resource/schema/Int32default: New package with `StaticValue` implementation
+body: 'resource/schema/int32default: New package with `StaticValue` implementation
   for Int32 schema-based default values.'
 time: 2024-06-21T13:24:24.170126-04:00
 custom:

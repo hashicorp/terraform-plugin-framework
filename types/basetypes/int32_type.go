@@ -88,7 +88,7 @@ func (t Int32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return nil, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
 	}
 
-	if !(i >= math.MinInt32 && i <= math.MaxInt32) {
+	if i < math.MinInt32 || i > math.MaxInt32 {
 		return nil, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
 	}
 

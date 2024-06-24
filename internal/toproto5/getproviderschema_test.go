@@ -2190,33 +2190,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
-		"provider-meta-attribute-type-int32": {
-			input: &fwserver.GetProviderSchemaResponse{
-				ProviderMeta: metaschema.Schema{
-					Attributes: map[string]metaschema.Attribute{
-						"test_attribute": metaschema.Int32Attribute{
-							Required: true,
-						},
-					},
-				},
-			},
-			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
-				ProviderMeta: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{
-						Attributes: []*tfprotov5.SchemaAttribute{
-							{
-								Name:     "test_attribute",
-								Required: true,
-								Type:     tftypes.Number,
-							},
-						},
-					},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-			},
-		},
 		"provider-meta-attribute-type-int64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ProviderMeta: metaschema.Schema{

@@ -48,9 +48,9 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 ```
 
-If the string value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field according to the [int32 type](/terraform/plugin/framework/handling-data/types/int32). Refer to the collection attribute type documentation for additional details.
+If the int32 value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field according to the [int32 type](/terraform/plugin/framework/handling-data/types/int32). Refer to the collection attribute type documentation for additional details.
 
-If the string value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [int32 type](/terraform/plugin/framework/handling-data/types/int32). Refer to the object attribute type documentation for additional details.
+If the int32 value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [int32 type](/terraform/plugin/framework/handling-data/types/int32). Refer to the object attribute type documentation for additional details.
 
 ### Configurability
 

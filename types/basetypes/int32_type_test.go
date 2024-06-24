@@ -5,6 +5,7 @@ package basetypes
 
 import (
 	"context"
+	"math"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -36,6 +37,26 @@ func TestInt32TypeValueFromTerraform(t *testing.T) {
 		"wrongType": {
 			input:       tftypes.NewValue(tftypes.String, "oops"),
 			expectedErr: "can't unmarshal tftypes.String into *big.Float, expected *big.Float",
+		},
+		"Int32Min value": {
+			input:       tftypes.NewValue(tftypes.Number, math.MinInt32),
+			expectation: NewInt32Value(math.MinInt32),
+		},
+		"Int32Max value": {
+			input:       tftypes.NewValue(tftypes.Number, math.MaxInt32),
+			expectation: NewInt32Value(math.MaxInt32),
+		},
+		"Int32Min - 1: error": {
+			input:       tftypes.NewValue(tftypes.Number, math.MinInt32-1),
+			expectedErr: "Value %!s(*big.Float=-2147483649) cannot be represented as a 32-bit integer.",
+		},
+		"Int32Max + 1: error": {
+			input:       tftypes.NewValue(tftypes.Number, math.MaxInt32+1),
+			expectedErr: "Value %!s(*big.Float=2147483648) cannot be represented as a 32-bit integer.",
+		},
+		"float value: error": {
+			input:       tftypes.NewValue(tftypes.Number, 32.1),
+			expectedErr: "Value %!s(*big.Float=32.1) is not an integer.",
 		},
 	}
 	for name, test := range tests {

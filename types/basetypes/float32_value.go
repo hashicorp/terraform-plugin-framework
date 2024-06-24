@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -63,27 +62,9 @@ func NewFloat32Unknown() Float32Value {
 // NewFloat32Value creates a Float32 with a known value. Access the value via the Float32
 // type ValueFloat32 method. Passing a value of `NaN` will result in a panic.
 func NewFloat32Value(value float32) Float32Value {
-	fs := strconv.FormatFloat(float64(value), 'b', 23, 32)
-	f, _, err := big.ParseFloat(fs, 10, 53, big.ToNearestEven)
-	if err != nil {
-		return Float32Value{}
-	}
 	return Float32Value{
 		state: attr.ValueStateKnown,
-
-		//value: new(big.Float).SetPrec(23),
-		value: f,
-	}
-}
-
-// NewFloat32Value creates a Float32 with a known value. Access the value via the Float32
-// type ValueFloat32 method. Passing a value of `NaN` will result in a panic.
-func NewFloat32Value2(value float64) Float32Value {
-	return Float32Value{
-		state: attr.ValueStateKnown,
-
-		//value: new(big.Float).SetPrec(23),
-		value: big.NewFloat(value),
+		value: big.NewFloat(float64(value)),
 	}
 }
 

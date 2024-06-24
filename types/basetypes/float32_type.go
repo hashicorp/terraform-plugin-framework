@@ -81,8 +81,8 @@ func (t Float32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 
 	f, accuracy := bigF.Float32()
 	tflog.Debug(ctx, fmt.Sprintf("Float32 value %f, accuracy %d", f, accuracy))
-	f64, accuracy := bigF.Float64()
-	tflog.Debug(ctx, fmt.Sprintf("Float64 value %f, accuracy %d", f64, accuracy))
+	f64, f64accuracy := bigF.Float64()
+	tflog.Debug(ctx, fmt.Sprintf("Float64 value %f, accuracy %d", f64, f64accuracy))
 
 	// Underflow
 	// Reference: https://pkg.go.dev/math/big#Float.Float32

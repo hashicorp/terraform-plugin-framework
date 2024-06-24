@@ -37,6 +37,10 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			attrTyp:  testtypes.DynamicType{},
 			expected: false,
 		},
+		"custom-float32": {
+			attrTyp:  testtypes.Float32Type{},
+			expected: false,
+		},
 		"custom-float64": {
 			attrTyp:  testtypes.Float64Type{},
 			expected: false,
@@ -92,6 +96,10 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			attrTyp:  types.DynamicType,
 			expected: false,
 		},
+		"float32": {
+			attrTyp:  types.Float32Type,
+			expected: false,
+		},
 		"float64": {
 			attrTyp:  types.Float64Type,
 			expected: false,
@@ -123,6 +131,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"list-custom-dynamic": {
 			attrTyp: types.ListType{
 				ElemType: testtypes.DynamicType{},
+			},
+			expected: false,
+		},
+		"list-custom-float32": {
+			attrTyp: types.ListType{
+				ElemType: testtypes.Float32Type{},
 			},
 			expected: false,
 		},
@@ -259,6 +273,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"list-dynamic": {
 			attrTyp: types.ListType{
 				ElemType: types.DynamicType,
+			},
+			expected: false,
+		},
+		"list-float32": {
+			attrTyp: types.ListType{
+				ElemType: types.Float32Type,
 			},
 			expected: false,
 		},
@@ -411,6 +431,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			},
 			expected: false,
 		},
+		"map-custom-float32": {
+			attrTyp: types.MapType{
+				ElemType: testtypes.Float32Type{},
+			},
+			expected: false,
+		},
 		"map-custom-float64": {
 			attrTyp: types.MapType{
 				ElemType: testtypes.Float64Type{},
@@ -544,6 +570,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"map-dynamic": {
 			attrTyp: types.MapType{
 				ElemType: types.DynamicType,
+			},
+			expected: false,
+		},
+		"map-float32": {
+			attrTyp: types.MapType{
+				ElemType: types.Float32Type,
 			},
 			expected: false,
 		},
@@ -2059,6 +2091,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			},
 			expected: false,
 		},
+		"set-custom-float32": {
+			attrTyp: types.SetType{
+				ElemType: testtypes.Float32Type{},
+			},
+			expected: false,
+		},
 		"set-custom-float64": {
 			attrTyp: types.SetType{
 				ElemType: testtypes.Float64Type{},
@@ -2192,6 +2230,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"set-dynamic": {
 			attrTyp: types.SetType{
 				ElemType: types.DynamicType,
+			},
+			expected: false,
+		},
+		"set-float32": {
+			attrTyp: types.SetType{
+				ElemType: types.Float32Type,
 			},
 			expected: false,
 		},
@@ -2339,6 +2383,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"tuple-dynamic": {
 			attrTyp: types.TupleType{
 				ElemTypes: []attr.Type{types.DynamicType},
+			},
+			expected: false,
+		},
+		"tuple-float32": {
+			attrTyp: types.TupleType{
+				ElemTypes: []attr.Type{types.Float32Type},
 			},
 			expected: false,
 		},

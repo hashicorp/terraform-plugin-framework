@@ -30,6 +30,15 @@ type ParameterWithInt64Validators interface {
 	GetValidators() []Int64ParameterValidator
 }
 
+// ParameterWithFloat32Validators is an optional interface on Parameter which
+// enables Float32 validation support.
+type ParameterWithFloat32Validators interface {
+	Parameter
+
+	// GetValidators should return a list of Float64 validators.
+	GetValidators() []Float32ParameterValidator
+}
+
 // ParameterWithFloat64Validators is an optional interface on Parameter which
 // enables Float64 validation support.
 type ParameterWithFloat64Validators interface {

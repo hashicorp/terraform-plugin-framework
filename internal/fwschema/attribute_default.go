@@ -15,6 +15,14 @@ type AttributeWithBoolDefaultValue interface {
 	BoolDefaultValue() defaults.Bool
 }
 
+// AttributeWithFloat32DefaultValue is an optional interface on Attribute which
+// enables Float32 default value support.
+type AttributeWithFloat32DefaultValue interface {
+	Attribute
+
+	Float32DefaultValue() defaults.Float32
+}
+
 // AttributeWithFloat64DefaultValue is an optional interface on Attribute which
 // enables Float64 default value support.
 type AttributeWithFloat64DefaultValue interface {

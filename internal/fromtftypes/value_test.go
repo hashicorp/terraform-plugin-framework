@@ -60,6 +60,21 @@ func TestValue(t *testing.T) {
 			attrType: types.BoolType,
 			expected: types.BoolValue(true),
 		},
+		"float32-null": {
+			tfType:   tftypes.NewValue(tftypes.Number, nil),
+			attrType: types.Float32Type,
+			expected: types.Float32Null(),
+		},
+		"float32-unknown": {
+			tfType:   tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+			attrType: types.Float32Type,
+			expected: types.Float32Unknown(),
+		},
+		"float32-value": {
+			tfType:   tftypes.NewValue(tftypes.Number, big.NewFloat(1.2)),
+			attrType: types.Float32Type,
+			expected: types.Float32Value(1.2),
+		},
 		"float64-null": {
 			tfType:   tftypes.NewValue(tftypes.Number, nil),
 			attrType: types.Float64Type,

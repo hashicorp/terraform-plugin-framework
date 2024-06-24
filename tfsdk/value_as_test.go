@@ -30,11 +30,20 @@ func newBoolPointerPointer(in bool) **bool {
 	return &boolPointer
 }
 
-func newFloatPointer(in float64) *float64 {
+func newFloat32Pointer(in float32) *float32 {
 	return &in
 }
 
-func newFloatPointerPointer(in float64) **float64 {
+func newFloat32PointerPointer(in float32) **float32 {
+	floatPointer := &in
+	return &floatPointer
+}
+
+func newFloat64Pointer(in float64) *float64 {
+	return &in
+}
+
+func newFloat64PointerPointer(in float64) **float64 {
 	floatPointer := &in
 	return &floatPointer
 }
@@ -108,15 +117,25 @@ func TestValueAs(t *testing.T) {
 			target:   newBoolPointerPointer(false),
 			expected: newBoolPointerPointer(true),
 		},
+		"primitive float32 pointer": {
+			val:      types.Float32Value(12.3),
+			target:   newFloat32Pointer(0.0),
+			expected: newFloat32Pointer(12.3),
+		},
+		"primitive float32 pointer pointer": {
+			val:      types.Float32Value(12.3),
+			target:   newFloat32PointerPointer(0.0),
+			expected: newFloat32PointerPointer(12.3),
+		},
 		"primitive float64 pointer": {
 			val:      types.Float64Value(12.3),
-			target:   newFloatPointer(0.0),
-			expected: newFloatPointer(12.3),
+			target:   newFloat64Pointer(0.0),
+			expected: newFloat64Pointer(12.3),
 		},
 		"primitive float64 pointer pointer": {
 			val:      types.Float64Value(12.3),
-			target:   newFloatPointerPointer(0.0),
-			expected: newFloatPointerPointer(12.3),
+			target:   newFloat64PointerPointer(0.0),
+			expected: newFloat64PointerPointer(12.3),
 		},
 		"primitive int32 pointer": {
 			val:      types.Int32Value(12),

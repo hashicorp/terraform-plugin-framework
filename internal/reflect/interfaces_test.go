@@ -624,6 +624,16 @@ func TestFromAttributeValue(t *testing.T) {
 				diag.NewAttributeErrorDiagnostic(path.Root("test"), "Error Diagnostic", "This is an error."),
 			},
 		},
+		"Float32Type-Float32Value": {
+			typ:      types.Float32Type,
+			val:      types.Float32Null(),
+			expected: types.Float32Null(),
+		},
+		"Float32Typable-Float32Value": {
+			typ:      testtypes.Float32TypeWithSemanticEquals{},
+			val:      types.Float32Null(),
+			expected: types.Float32Null(),
+		},
 		"Float64Type-Float64Value": {
 			typ:      types.Float64Type,
 			val:      types.Float64Null(),

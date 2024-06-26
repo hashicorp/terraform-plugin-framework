@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'schema/validator: New `Float32` interface for Float32 value schema validation.'
+time: 2024-06-26T12:39:22.726132-04:00
+custom:
+  Issue: "1014"

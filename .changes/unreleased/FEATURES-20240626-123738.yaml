@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/float32default: New package with `StaticValue` implementation
+  for Float32 schema-based default values.'
+time: 2024-06-26T12:37:38.728292-04:00
+custom:
+  Issue: "1014"

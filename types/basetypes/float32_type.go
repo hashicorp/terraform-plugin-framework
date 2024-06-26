@@ -10,10 +10,10 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
 
 // Float32Typable extends attr.Type for float32 types.
@@ -80,9 +80,9 @@ func (t Float32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 	}
 
 	f, accuracy := bigF.Float32()
-	tflog.Debug(ctx, fmt.Sprintf("Float32 value %f, accuracy %d", f, accuracy))
+	logging.FrameworkDebug(ctx, fmt.Sprintf("Float32Type ValueFromTerraform Float32 value %f, accuracy %d", f, accuracy))
 	f64, f64accuracy := bigF.Float64()
-	tflog.Debug(ctx, fmt.Sprintf("Float64 value %f, accuracy %d", f64, f64accuracy))
+	logging.FrameworkDebug(ctx, fmt.Sprintf("Float32Type ValueFromTerraform Float64 value %f, accuracy %d", f64, f64accuracy))
 
 	// Underflow
 	// Reference: https://pkg.go.dev/math/big#Float.Float32

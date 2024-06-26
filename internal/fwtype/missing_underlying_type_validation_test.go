@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
@@ -38,6 +39,10 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		},
 		"custom-float64": {
 			attrTyp:  testtypes.Float64Type{},
+			expected: false,
+		},
+		"custom-int32": {
+			attrTyp:  testtypes.Int32Type{},
 			expected: false,
 		},
 		"custom-int64": {
@@ -91,8 +96,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			attrTyp:  types.Float64Type,
 			expected: false,
 		},
+		"int32": {
+			attrTyp:  types.Int32Type,
+			expected: false,
+		},
 		"int64": {
-			attrTyp:  types.Float64Type,
+			attrTyp:  types.Int64Type,
 			expected: false,
 		},
 		"list-nil": {
@@ -120,6 +129,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"list-custom-float64": {
 			attrTyp: types.ListType{
 				ElemType: testtypes.Float64Type{},
+			},
+			expected: false,
+		},
+		"list-custom-int32": {
+			attrTyp: types.ListType{
+				ElemType: testtypes.Int32Type{},
 			},
 			expected: false,
 		},
@@ -250,6 +265,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"list-float64": {
 			attrTyp: types.ListType{
 				ElemType: types.Float64Type,
+			},
+			expected: false,
+		},
+		"list-int32": {
+			attrTyp: types.ListType{
+				ElemType: types.Int32Type,
 			},
 			expected: false,
 		},
@@ -396,6 +417,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			},
 			expected: false,
 		},
+		"map-custom-int32": {
+			attrTyp: types.MapType{
+				ElemType: testtypes.Int32Type{},
+			},
+			expected: false,
+		},
 		"map-custom-int64": {
 			attrTyp: types.MapType{
 				ElemType: testtypes.Int64Type{},
@@ -523,6 +550,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"map-float64": {
 			attrTyp: types.MapType{
 				ElemType: types.Float64Type,
+			},
+			expected: false,
+		},
+		"map-int32": {
+			attrTyp: types.MapType{
+				ElemType: types.Int32Type,
 			},
 			expected: false,
 		},
@@ -2032,6 +2065,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 			},
 			expected: false,
 		},
+		"set-custom-int32": {
+			attrTyp: types.SetType{
+				ElemType: testtypes.Int32Type{},
+			},
+			expected: false,
+		},
 		"set-custom-int64": {
 			attrTyp: types.SetType{
 				ElemType: testtypes.Int64Type{},
@@ -2159,6 +2198,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"set-float64": {
 			attrTyp: types.SetType{
 				ElemType: types.Float64Type,
+			},
+			expected: false,
+		},
+		"set-int32": {
+			attrTyp: types.SetType{
+				ElemType: types.Int32Type,
 			},
 			expected: false,
 		},
@@ -2300,6 +2345,12 @@ func TestContainsMissingUnderlyingType(t *testing.T) {
 		"tuple-float64": {
 			attrTyp: types.TupleType{
 				ElemTypes: []attr.Type{types.Float64Type},
+			},
+			expected: false,
+		},
+		"tuple-int32": {
+			attrTyp: types.TupleType{
+				ElemTypes: []attr.Type{types.Int32Type},
 			},
 			expected: false,
 		},

@@ -634,6 +634,16 @@ func TestFromAttributeValue(t *testing.T) {
 			val:      types.Float64Null(),
 			expected: types.Float64Null(),
 		},
+		"Int32Type-Int32Value": {
+			typ:      types.Int32Type,
+			val:      types.Int32Null(),
+			expected: types.Int32Null(),
+		},
+		"Int32Typable-Int32Value": {
+			typ:      testtypes.Int32TypeWithSemanticEquals{},
+			val:      types.Int32Null(),
+			expected: types.Int32Null(),
+		},
 		"Int64Type-Int64Value": {
 			typ:      types.Int64Type,
 			val:      types.Int64Null(),

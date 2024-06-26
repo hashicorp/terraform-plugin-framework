@@ -48,9 +48,9 @@ func (r ThingResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 ```
 
-If the string value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the collection attribute type documentation for additional details.
+If the number value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the collection attribute type documentation for additional details.
 
-If the string value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the object attribute type documentation for additional details.
+If the number value should be a value type of an [object attribute type](/terraform/plugin/framework/handling-data/attributes#object-attribute-type), set the `AttributeTypes` map value according to the [number type](/terraform/plugin/framework/handling-data/types/number). Refer to the object attribute type documentation for additional details.
 
 ### Configurability
 

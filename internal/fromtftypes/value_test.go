@@ -11,11 +11,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestValue(t *testing.T) {
@@ -73,6 +74,21 @@ func TestValue(t *testing.T) {
 			tfType:   tftypes.NewValue(tftypes.Number, big.NewFloat(1.2)),
 			attrType: types.Float64Type,
 			expected: types.Float64Value(1.2),
+		},
+		"int32-null": {
+			tfType:   tftypes.NewValue(tftypes.Number, nil),
+			attrType: types.Int32Type,
+			expected: types.Int32Null(),
+		},
+		"int32-unknown": {
+			tfType:   tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+			attrType: types.Int32Type,
+			expected: types.Int32Unknown(),
+		},
+		"int32-value": {
+			tfType:   tftypes.NewValue(tftypes.Number, 123),
+			attrType: types.Int32Type,
+			expected: types.Int32Value(123),
 		},
 		"int64-null": {
 			tfType:   tftypes.NewValue(tftypes.Number, nil),

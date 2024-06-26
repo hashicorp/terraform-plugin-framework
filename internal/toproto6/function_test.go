@@ -352,6 +352,15 @@ func TestFunctionParameter(t *testing.T) {
 				Type: tftypes.Number,
 			},
 		},
+		"type-int32": {
+			fw: function.Int32Parameter{
+				Name: "int32",
+			},
+			expected: &tfprotov6.FunctionParameter{
+				Name: "int32",
+				Type: tftypes.Number,
+			},
+		},
 		"type-int64": {
 			fw: function.Int64Parameter{
 				Name: "int64",

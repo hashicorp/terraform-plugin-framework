@@ -1,0 +1,7 @@
+kind: FEATURES
+body: 'types/basetypes: Added interfaces `basetypes.Int32Typable`, `basetypes.Int32Valuable`,
+  and `basetypes.Int32ValuableWithSemanticEquals` for Int32 custom type and value
+  implementations.'
+time: 2024-06-21T13:22:43.724425-04:00
+custom:
+  Issue: "1010"

@@ -146,6 +146,29 @@ func (d *Data) TransformDefaults(ctx context.Context, configRaw tftypes.Value) d
 			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
 
 			return resp.PlanValue.ToTerraformValue(ctx)
+		case fwschema.AttributeWithInt32DefaultValue:
+			defaultValue := a.Int32DefaultValue()
+
+			if defaultValue == nil {
+				return tfTypeValue, nil
+			}
+
+			req := defaults.Int32Request{
+				Path: fwPath,
+			}
+			resp := defaults.Int32Response{}
+
+			defaultValue.DefaultInt32(ctx, req, &resp)
+
+			diags.Append(resp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return tfTypeValue, nil
+			}
+
+			logging.FrameworkTrace(ctx, fmt.Sprintf("setting attribute %s to default value: %s", fwPath, resp.PlanValue))
+
+			return resp.PlanValue.ToTerraformValue(ctx)
 		case fwschema.AttributeWithInt64DefaultValue:
 			defaultValue := a.Int64DefaultValue()
 

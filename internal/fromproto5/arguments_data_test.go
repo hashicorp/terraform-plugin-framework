@@ -1224,6 +1224,170 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				0, "Error Diagnostic: This is an error.",
 			),
 		},
+		"int32-parameter-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int32Parameter{
+						Validators: []function.Int32ParameterValidator{
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(1)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewInt32Value(1),
+			}),
+		},
+		"int32-parameter-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int32Parameter{
+						Validators: []function.Int32ParameterValidator{
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(2)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
+		"int32-parameter-Validators-multiple-errors": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int32Parameter{
+						Validators: []function.Int32ParameterValidator{
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(2)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: error 1.",
+										)
+									}
+								},
+							},
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(3)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: error 2.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: error 1."+
+					"\nError Diagnostic: error 2.",
+			),
+		},
+		"int32-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int32Parameter{
+						CustomType: testtypes.Int32Type{},
+						Validators: []function.Int32ParameterValidator{
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(1)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewInt32Value(1),
+			}),
+		},
+		"int32-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Int32Parameter{
+						CustomType: testtypes.Int32Type{},
+						Validators: []function.Int32ParameterValidator{
+							testvalidator.Int32{
+								ValidateMethod: func(ctx context.Context, req function.Int32ParameterValidatorRequest, resp *function.Int32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Int32Value(2)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"int64-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1)),

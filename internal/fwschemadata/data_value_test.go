@@ -1139,6 +1139,71 @@ func TestDataValueAtPath(t *testing.T) {
 			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Float64Null(),
 		},
+		"WithAttributeName-SingleBlock-null-WithAttributeName-Int32": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"other_attr": tftypes.Bool,
+						"other_block": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Bool,
+							},
+						},
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+					},
+				}, map[string]tftypes.Value{
+					"other_attr": tftypes.NewValue(tftypes.Bool, nil),
+					"other_block": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Bool,
+						},
+					}, nil),
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"other_attr": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+					Blocks: map[string]fwschema.Block{
+						"other_block": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.BoolType,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+						"test": testschema.Block{
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Int32Type,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeSingle,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.Int32Null(),
+		},
 		"WithAttributeName-SingleBlock-null-WithAttributeName-Int64": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{
@@ -1457,6 +1522,49 @@ func TestDataValueAtPath(t *testing.T) {
 			},
 			path:     path.Root("test").AtName("sub_test"),
 			expected: types.Float64Null(),
+		},
+		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int32": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test": tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"sub_test": tftypes.Number,
+							},
+						},
+						"other": tftypes.Bool,
+					},
+				}, map[string]tftypes.Value{
+					"test": tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"sub_test": tftypes.Number,
+						},
+					}, nil),
+					"other": tftypes.NewValue(tftypes.Bool, nil),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.NestedAttribute{
+							NestedObject: testschema.NestedAttributeObject{
+								Attributes: map[string]fwschema.Attribute{
+									"sub_test": testschema.Attribute{
+										Type:     types.Int32Type,
+										Optional: true,
+									},
+								},
+							},
+							NestingMode: fwschema.NestingModeSingle,
+							Optional:    true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.BoolType,
+							Optional: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test").AtName("sub_test"),
+			expected: types.Int32Null(),
 		},
 		"WithAttributeName-SingleNestedAttributes-null-WithAttributeName-Int64": {
 			data: fwschemadata.Data{

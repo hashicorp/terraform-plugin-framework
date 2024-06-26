@@ -4579,6 +4579,642 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 	}
 }
 
+func TestAttributePlanModifyInt32(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute fwxschema.AttributeWithInt32PlanModifiers
+		request   ModifyAttributePlanRequest
+		response  *ModifyAttributePlanResponse
+		expected  *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(1),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-pathexpression": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.Int32Value(1),
+				AttributePlan:           types.Int32Value(1),
+				AttributeState:          types.Int32Value(1),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-config": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(1),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-configvalue": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.ConfigValue
+							expected := types.Int32Value(1)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Null(),
+				AttributeState:  types.Int32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+		},
+		"request-plan": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(1),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-planvalue": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.PlanValue
+							expected := types.Int32Value(1)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-private": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Null(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(1),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"request-statevalue": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							got := req.StateValue
+							expected := types.Int32Value(1)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Null(),
+				AttributeState:  types.Int32Value(1),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+		},
+		"response-diagnostics": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(1),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.PlanValue = types.Int32Value(1)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Unknown(),
+				AttributeState:  types.Int32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Unknown(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+		},
+		"response-planvalue-custom-type": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.PlanValue = types.Int32Value(1)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.Int32ValueWithSemanticEquals{
+					Int32Value: types.Int32Null(),
+				},
+				AttributePlan: testtypes.Int32ValueWithSemanticEquals{
+					Int32Value: types.Int32Unknown(),
+				},
+				AttributeState: testtypes.Int32ValueWithSemanticEquals{
+					Int32Value: types.Int32Null(),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.Int32ValueWithSemanticEquals{
+					Int32Value: types.Int32Unknown(),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.Int32ValueWithSemanticEquals{
+					Int32Value: types.Int32Value(1),
+				},
+			},
+		},
+		"response-private": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Null(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				PlanModifiers: []planmodifier.Int32{
+					testplanmodifier.Int32{
+						PlanModifyInt32Method: func(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				AttributePlan:   types.Int32Value(1),
+				AttributeState:  types.Int32Value(2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Value(1),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			AttributePlanModifyInt32(context.Background(), testCase.attribute, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestAttributePlanModifyInt64(t *testing.T) {
 	t.Parallel()
 

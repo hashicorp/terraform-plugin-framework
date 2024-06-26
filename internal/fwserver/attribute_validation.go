@@ -113,6 +113,8 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		AttributeValidateBool(ctx, attributeWithValidators, req, resp)
 	case fwxschema.AttributeWithFloat64Validators:
 		AttributeValidateFloat64(ctx, attributeWithValidators, req, resp)
+	case fwxschema.AttributeWithInt32Validators:
+		AttributeValidateInt32(ctx, attributeWithValidators, req, resp)
 	case fwxschema.AttributeWithInt64Validators:
 		AttributeValidateInt64(ctx, attributeWithValidators, req, resp)
 	case fwxschema.AttributeWithListValidators:
@@ -285,6 +287,71 @@ func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.Attribute
 		logging.FrameworkTrace(
 			ctx,
 			"Called provider defined validator.Float64",
+			map[string]interface{}{
+				logging.KeyDescription: attributeValidator.Description(ctx),
+			},
+		)
+
+		resp.Diagnostics.Append(validateResp.Diagnostics...)
+	}
+}
+
+// AttributeValidateInt32 performs all types.Int32 validation.
+func AttributeValidateInt32(ctx context.Context, attribute fwxschema.AttributeWithInt32Validators, req ValidateAttributeRequest, resp *ValidateAttributeResponse) {
+	// Use basetypes.Int32Valuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(basetypes.Int32Valuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Int32 Attribute Validator Value Type",
+			"An unexpected value type was encountered while attempting to perform Int32 attribute validation. "+
+				"The value type must implement the basetypes.Int32Valuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToInt32Value(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	validateReq := validator.Int32Request{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+	}
+
+	for _, attributeValidator := range attribute.Int32Validators() {
+		// Instantiate a new response for each request to prevent validators
+		// from modifying or removing diagnostics.
+		validateResp := &validator.Int32Response{}
+
+		logging.FrameworkTrace(
+			ctx,
+			"Calling provider defined validator.Int32",
+			map[string]interface{}{
+				logging.KeyDescription: attributeValidator.Description(ctx),
+			},
+		)
+
+		attributeValidator.ValidateInt32(ctx, validateReq, validateResp)
+
+		logging.FrameworkTrace(
+			ctx,
+			"Called provider defined validator.Int32",
 			map[string]interface{}{
 				logging.KeyDescription: attributeValidator.Description(ctx),
 			},

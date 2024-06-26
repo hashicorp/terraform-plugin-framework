@@ -824,6 +824,303 @@ func TestDataGet(t *testing.T) {
 				Float64: 1.2,
 			},
 		},
+		"Int32Type-types.Int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}{
+				Int32: types.Int32Null(),
+			},
+		},
+		"Int32Type-types.Int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}{
+				Int32: types.Int32Unknown(),
+			},
+		},
+		"Int32Type-types.Int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 types.Int32 `tfsdk:"int32"`
+			}{
+				Int32: types.Int32Value(12),
+			},
+		},
+		"Int32Type-*int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}{
+				Int32: nil,
+			},
+		},
+		"Int32Type-*int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}{
+				Int32: nil,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int32\nTarget Type: *int32\nSuggested Type: basetypes.Int32Value",
+				),
+			},
+		},
+		"Int32Type-*int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 *int32 `tfsdk:"int32"`
+			}{
+				Int32: pointer(int32(12)),
+			},
+		},
+		"Int32Type-int32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 int32 `tfsdk:"int32"`
+			}{
+				Int32: 0.0,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: int32\nTarget Type: int32\nSuggested `types` Type: basetypes.Int32Value\nSuggested Pointer Type: *int32",
+				),
+			},
+		},
+		"Int32Type-int32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 int32 `tfsdk:"int32"`
+			}{
+				Int32: 0,
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("int32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: int32\nTarget Type: int32\nSuggested Type: basetypes.Int32Value",
+				),
+			},
+		},
+		"Int32Type-int32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32": tftypes.NewValue(tftypes.Number, 12),
+					},
+				),
+			},
+			target: new(struct {
+				Int32 int32 `tfsdk:"int32"`
+			}),
+			expected: &struct {
+				Int32 int32 `tfsdk:"int32"`
+			}{
+				Int32: 12,
+			},
+		},
 		"Int64Type-types.Int64-null": {
 			data: fwschemadata.Data{
 				Schema: testschema.Schema{

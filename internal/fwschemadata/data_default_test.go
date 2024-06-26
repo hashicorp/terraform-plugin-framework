@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapdefault"
@@ -747,6 +748,360 @@ func TestDataDefault(t *testing.T) {
 					},
 					map[string]tftypes.Value{
 						"float64_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+		},
+		"int32-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int32{
+								DefaultInt32Method: func(ctx context.Context, req defaults.Int32Request, resp *defaults.Int32Response) {
+									if !req.Path.Equal(path.Root("int32_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("int32_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int32{
+								DefaultInt32Method: func(ctx context.Context, req defaults.Int32Request, resp *defaults.Int32Response) {
+									if !req.Path.Equal(path.Root("int32_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("int32_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+		},
+		"int32-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int32{
+								DefaultInt32Method: func(ctx context.Context, req defaults.Int32Request, resp *defaults.Int32Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Int32{
+								DefaultInt32Method: func(ctx context.Context, req defaults.Int32Request, resp *defaults.Int32Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
+		"int32-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  int32default.StaticInt32(54321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, 54321), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  int32default.StaticInt32(54321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+		},
+		"int32-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.Int32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+		},
+		"int32-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  int32default.StaticInt32(54321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  int32default.StaticInt32(54321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 54321),
+					},
+				),
+			},
+		},
+		"int32-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"int32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"int32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"int32_attribute": testschema.AttributeWithInt32DefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"int32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"int32_attribute": tftypes.NewValue(tftypes.Number, 12345),
 					},
 				),
 			},

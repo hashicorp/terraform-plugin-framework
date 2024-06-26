@@ -181,6 +181,7 @@ func (f Float32Value) String() string {
 	}
 
 	f32 := f.ValueFloat32()
+
 	return fmt.Sprintf("%f", f32)
 }
 

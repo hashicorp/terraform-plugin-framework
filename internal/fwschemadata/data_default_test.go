@@ -39,6 +39,9 @@ import (
 func TestDataDefault(t *testing.T) {
 	t.Parallel()
 
+	var float32AttributeValue float32 = 1.2345
+	var float32DefaultValue float32 = 5.4321
+
 	testCases := map[string]struct {
 		data          *fwschemadata.Data
 		rawConfig     tftypes.Value
@@ -654,7 +657,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
 							Computed: true,
-							Default:  float32default.StaticFloat32(5.4321),
+							Default:  float32default.StaticFloat32(float32DefaultValue),
 						},
 					},
 				},
@@ -665,7 +668,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+						"float32_attribute": tftypes.NewValue(tftypes.Number, float64(float32AttributeValue)),
 					},
 				),
 			},
@@ -684,7 +687,7 @@ func TestDataDefault(t *testing.T) {
 					Attributes: map[string]fwschema.Attribute{
 						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
 							Computed: true,
-							Default:  float32default.StaticFloat32(5.4321),
+							Default:  float32default.StaticFloat32(float32DefaultValue),
 						},
 					},
 				},
@@ -695,7 +698,7 @@ func TestDataDefault(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float32_attribute": tftypes.NewValue(tftypes.Number, 5.4321),
+						"float32_attribute": tftypes.NewValue(tftypes.Number, float64(float32DefaultValue)),
 					},
 				),
 			},

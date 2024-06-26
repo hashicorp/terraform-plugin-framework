@@ -19,6 +19,8 @@ import (
 func TestFloat32TypeValueFromTerraform(t *testing.T) {
 	t.Parallel()
 
+	var v float32 = 123.456
+
 	type testCase struct {
 		input       tftypes.Value
 		expectation attr.Value
@@ -30,8 +32,8 @@ func TestFloat32TypeValueFromTerraform(t *testing.T) {
 			expectation: NewFloat32Value(float32(123.0)),
 		},
 		"value-float": {
-			input:       tftypes.NewValue(tftypes.Number, 123.456),
-			expectation: NewFloat32Value(float32(123.456)),
+			input:       tftypes.NewValue(tftypes.Number, float64(v)),
+			expectation: NewFloat32Value(v),
 		},
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
@@ -84,8 +86,8 @@ func TestFloat32TypeValueFromTerraform(t *testing.T) {
 			expectation: NewFloat32Value(math.SmallestNonzeroFloat32),
 		},
 		"SmallestNonzeroFloat32-below": {
-			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("4.9406532584124654417656879286822137236505980e-325")),
-			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 32-bit floating point.", testMustParseFloat("4.9406532584124654417656879286822137236505980e-325")),
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("1.401298464324817070923729583289916131280e-46")),
+			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 32-bit floating point.", testMustParseFloat("1.401298464324817070923729583289916131280e-46")),
 		},
 		// Reference: https://pkg.go.dev/math/big#Float.Float32
 		// Reference: https://pkg.go.dev/math#pkg-constants
@@ -94,8 +96,8 @@ func TestFloat32TypeValueFromTerraform(t *testing.T) {
 			expectation: NewFloat32Value(math.MaxFloat32),
 		},
 		"MaxFloat32-above": {
-			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
-			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 32-bit floating point.", testMustParseFloat("1.79769313486231570814527423731704356798070e+309")),
+			input:       tftypes.NewValue(tftypes.Number, testMustParseFloat("3.40282346638528859811704183484516925440e+39")),
+			expectedErr: fmt.Sprintf("Value %s cannot be represented as a 32-bit floating point.", testMustParseFloat("3.40282346638528859811704183484516925440e+39")),
 		},
 	}
 	for name, test := range tests {

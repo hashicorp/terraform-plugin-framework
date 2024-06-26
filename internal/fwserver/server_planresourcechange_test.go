@@ -423,6 +423,11 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 func TestServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 
+	var float32Value float32 = 1.2
+	var computedFloat32Value float32 = 1.2345
+	var updatedFloat32Value float32 = 5.4321
+	var configuredFloat32Value float32 = 2.4
+
 	testSchemaType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
@@ -567,7 +572,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			"test_computed_float32": schema.Float32Attribute{
 				Computed: true,
-				Default:  float32default.StaticFloat32(1.2345),
+				Default:  float32default.StaticFloat32(computedFloat32Value),
 			},
 			"test_computed_float64": schema.Float64Attribute{
 				Computed: true,
@@ -762,7 +767,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_configured_float32": schema.Float32Attribute{
 				Optional: true,
 				Computed: true,
-				Default:  float32default.StaticFloat32(1.2345),
+				Default:  float32default.StaticFloat32(computedFloat32Value),
 			},
 			"test_configured_float64": schema.Float64Attribute{
 				Optional: true,
@@ -1492,7 +1497,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -1870,7 +1875,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -2129,7 +2134,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
@@ -2288,7 +2293,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -4008,7 +4013,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -4388,7 +4393,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
@@ -4644,7 +4649,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PriorState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, false),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, 5.4321),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(updatedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 5.4321),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 54321),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 54321),
@@ -4803,7 +4808,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, false),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 2.4),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(configuredFloat32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 2.4),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 456),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 456),
@@ -5077,7 +5082,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, 1.2345),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
@@ -5236,7 +5241,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),

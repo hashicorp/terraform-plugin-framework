@@ -16,33 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func TestFloat32e(t *testing.T) {
-	t.Parallel()
-
-	type testCase struct {
-		input       *big.Float
-		expectation *big.Float
-	}
-	tests := map[string]testCase{
-		"known-int": {
-			input:       big.NewFloat(123.42),
-			expectation: big.NewFloat(123.43),
-		},
-	}
-	for name, test := range tests {
-		name, test := name, test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			if diff := cmp.Diff(test.input, test.expectation); diff != "" {
-				t.Errorf("Unexpected response (+wanted, -got): %s", diff)
-			}
-		})
-	}
-}
-
 func TestFloat32ValueToTerraformValue(t *testing.T) {
 	t.Parallel()
+
+	var Float32Val float32 = 123.456
 
 	type testCase struct {
 		input       Float32Value
@@ -54,8 +31,8 @@ func TestFloat32ValueToTerraformValue(t *testing.T) {
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"known-float": {
-			input:       NewFloat32Value(123.456),
-			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
+			input:       NewFloat32Value(Float32Val),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(float64(Float32Val))),
 		},
 		"unknown": {
 			input:       NewFloat32Unknown(),
@@ -70,8 +47,8 @@ func TestFloat32ValueToTerraformValue(t *testing.T) {
 			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.0)),
 		},
 		"deprecated-value-float": {
-			input:       NewFloat32Value(123.456),
-			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(123.456)),
+			input:       NewFloat32Value(Float32Val),
+			expectation: tftypes.NewValue(tftypes.Number, big.NewFloat(float64(Float32Val))),
 		},
 		"deprecated-unknown": {
 			input:       NewFloat32Unknown(),
@@ -324,34 +301,41 @@ func TestFloat32ValueIsUnknown(t *testing.T) {
 func TestFloat32ValueString(t *testing.T) {
 	t.Parallel()
 
+	var lessThanOne float32 = 0.12340984302980000
+	var moreThanOne float32 = 923879.32812
+	var negativeLessThanOne float32 = -0.12340984302980000
+	var negativeMoreThanOne float32 = -923879.32812
+	var smallestNonZero float32 = math.SmallestNonzeroFloat32
+	var largestFloat32 float32 = math.MaxFloat32
+
 	type testCase struct {
 		input       Float32Value
 		expectation string
 	}
 	tests := map[string]testCase{
 		"less-than-one": {
-			input:       NewFloat32Value(0.12340984302980000),
+			input:       NewFloat32Value(lessThanOne),
 			expectation: "0.123410",
 		},
 		"more-than-one": {
-			input:       NewFloat32Value(92387938173219.327663),
-			expectation: "92387938173219.328125",
-		},
-		"negative-more-than-one": {
-			input:       NewFloat32Value(-0.12340984302980000),
-			expectation: "-0.123410",
+			input:       NewFloat32Value(moreThanOne),
+			expectation: "923879.312500",
 		},
 		"negative-less-than-one": {
-			input:       NewFloat32Value(-92387938173219.327663),
-			expectation: "-92387938173219.328125",
+			input:       NewFloat32Value(negativeLessThanOne),
+			expectation: "-0.123410",
+		},
+		"negative-more-than-one": {
+			input:       NewFloat32Value(negativeMoreThanOne),
+			expectation: "-923879.312500",
 		},
 		"min-float32": {
-			input:       NewFloat32Value(math.SmallestNonzeroFloat32),
+			input:       NewFloat32Value(smallestNonZero),
 			expectation: "0.000000",
 		},
 		"max-float32": {
-			input:       NewFloat32Value(math.MaxFloat32),
-			expectation: "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382432234321326889432182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000",
+			input:       NewFloat32Value(largestFloat32),
+			expectation: "340282346638528859811704183484516925440.000000",
 		},
 		"unknown": {
 			input:       NewFloat32Unknown(),

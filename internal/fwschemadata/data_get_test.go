@@ -26,6 +26,8 @@ import (
 func TestDataGet(t *testing.T) {
 	t.Parallel()
 
+	var float32Value float32 = 1.2
+
 	testCases := map[string]struct {
 		data          fwschemadata.Data
 		target        any
@@ -604,7 +606,7 @@ func TestDataGet(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 					},
 				),
 			},
@@ -614,7 +616,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float32 types.Float32 `tfsdk:"float32"`
 			}{
-				Float32: types.Float32Value(1.2),
+				Float32: types.Float32Value(float32Value),
 			},
 		},
 		"Float32Type-*float32-null": {
@@ -703,7 +705,7 @@ func TestDataGet(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 					},
 				),
 			},
@@ -713,7 +715,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float32 *float32 `tfsdk:"float32"`
 			}{
-				Float32: pointer(float32(1.2)),
+				Float32: pointer(float32Value),
 			},
 		},
 		"Float32Type-float32-null": {
@@ -811,7 +813,7 @@ func TestDataGet(t *testing.T) {
 						},
 					},
 					map[string]tftypes.Value{
-						"float32": tftypes.NewValue(tftypes.Number, 1.2),
+						"float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 					},
 				),
 			},
@@ -821,7 +823,7 @@ func TestDataGet(t *testing.T) {
 			expected: &struct {
 				Float32 float32 `tfsdk:"float32"`
 			}{
-				Float32: 1.2,
+				Float32: float32Value,
 			},
 		},
 		"Float64Type-types.Float64-null": {

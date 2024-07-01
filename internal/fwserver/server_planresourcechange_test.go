@@ -423,6 +423,9 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 func TestServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 
+	// Float32 values need to be explicitly declared in a variable.
+	// Using a float literal results in a conversion from float64 to
+	// float32 which may result in accuracy loss.
 	var float32Value float32 = 1.2
 	var computedFloat32Value float32 = 1.2345
 	var updatedFloat32Value float32 = 5.4321

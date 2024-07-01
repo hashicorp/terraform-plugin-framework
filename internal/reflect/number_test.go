@@ -623,6 +623,25 @@ func TestNumber_float32OverflowError(t *testing.T) {
 	}
 }
 
+func TestNumber_float32OverflowNegativeError(t *testing.T) {
+	t.Parallel()
+
+	var n float32
+	expectedDiags := diag.Diagnostics{
+		diag.NewAttributeErrorDiagnostic(
+			path.Empty(),
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -3.402823466e+39 in float32",
+		),
+	}
+
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+	}
+}
+
 func TestNumber_float32UnderflowError(t *testing.T) {
 	t.Parallel()
 
@@ -636,6 +655,25 @@ func TestNumber_float32UnderflowError(t *testing.T) {
 	}
 
 	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNumber_float32UnderflowNegativeError(t *testing.T) {
+	t.Parallel()
+
+	var n float32
+	expectedDiags := diag.Diagnostics{
+		diag.NewAttributeErrorDiagnostic(
+			path.Empty(),
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1.401298464e-46 in float32",
+		),
+	}
+
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

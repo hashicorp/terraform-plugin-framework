@@ -80,9 +80,12 @@ func (t Float32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 	}
 
 	f, accuracy := bigF.Float32()
-	logging.FrameworkDebug(ctx, fmt.Sprintf("Float32Type ValueFromTerraform Float32 value %f, accuracy %d", f, accuracy))
 	f64, f64accuracy := bigF.Float64()
-	logging.FrameworkDebug(ctx, fmt.Sprintf("Float32Type ValueFromTerraform Float64 value %f, accuracy %d", f64, f64accuracy))
+
+	if accuracy == big.Exact && f64accuracy == big.Exact {
+		logging.FrameworkDebug(ctx, fmt.Sprintf("Float32Type ValueFromTerraform: big.Float value has distinct float32 and float64 representations "+
+			"(float32 value: %f, float64 value: %f)", f, f64))
+	}
 
 	// Underflow
 	// Reference: https://pkg.go.dev/math/big#Float.Float32

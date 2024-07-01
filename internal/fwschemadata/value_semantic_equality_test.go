@@ -108,6 +108,89 @@ func TestValueSemanticEquality(t *testing.T) {
 				},
 			},
 		},
+		"Float32Value": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path:             path.Root("test"),
+				PriorValue:       types.Float32Value(1.2),
+				ProposedNewValue: types.Float32Value(2.4),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.Float32Value(2.4),
+			},
+		},
+		"Float32ValuableWithSemanticEquals-true": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(1.2),
+					SemanticEquals: true,
+				},
+				ProposedNewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(2.4),
+					SemanticEquals: true,
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(1.2),
+					SemanticEquals: true,
+				},
+			},
+		},
+		"Float32ValuableWithSemanticEquals-false": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(1.2),
+					SemanticEquals: false,
+				},
+				ProposedNewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(2.4),
+					SemanticEquals: false,
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(2.4),
+					SemanticEquals: false,
+				},
+			},
+		},
+		"Float32ValuableWithSemanticEquals-diagnostics": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(1.2),
+					SemanticEquals: false,
+					SemanticEqualsDiagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+						diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+					},
+				},
+				ProposedNewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(2.4),
+					SemanticEquals: false,
+					SemanticEqualsDiagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+						diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+					},
+				},
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value:   types.Float32Value(2.4),
+					SemanticEquals: false,
+					SemanticEqualsDiagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+						diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+					},
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic("test summary 1", "test detail 1"),
+					diag.NewErrorDiagnostic("test summary 2", "test detail 2"),
+				},
+			},
+		},
 		"Float64Value": {
 			request: fwschemadata.ValueSemanticEqualityRequest{
 				Path:             path.Root("test"),

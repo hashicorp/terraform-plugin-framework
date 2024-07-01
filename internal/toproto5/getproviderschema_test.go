@@ -300,6 +300,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
+		"data-source-attribute-type-float32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.Float32Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{
+					"test_data_source": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
 		"data-source-attribute-type-float64": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
@@ -1349,6 +1379,33 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 								Name:     "test_attribute",
 								Required: true,
 								Type:     tftypes.Bool,
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"provider-attribute-type-float32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.Float32Attribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:     "test_attribute",
+								Required: true,
+								Type:     tftypes.Number,
 							},
 						},
 					},
@@ -2857,6 +2914,36 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									Name:     "test_attribute",
 									Required: true,
 									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"resource-attribute-type-float32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.Float32Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:         map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
 								},
 							},
 						},

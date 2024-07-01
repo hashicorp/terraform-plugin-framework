@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'resource/schema/defaults: New `Float32` interface for Float32 schema-based
+  default implementations.'
+time: 2024-06-26T12:38:36.234337-04:00
+custom:
+  Issue: "1014"

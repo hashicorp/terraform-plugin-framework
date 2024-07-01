@@ -226,6 +226,39 @@ func ArgumentsData(ctx context.Context, arguments []*tfprotov6.DynamicValue, def
 					))
 				}
 			}
+		case function.ParameterWithFloat32Validators:
+			for _, functionValidator := range parameterWithValidators.GetValidators() {
+				float32Valuable, ok := attrValue.(basetypes.Float32Valuable)
+				if !ok {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						"Invalid Argument Type: "+
+							"An unexpected error was encountered when converting the function argument from the protocol type. "+
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+							"Please report this to the provider developer:\n\n"+
+							fmt.Sprintf("Expected basetypes.Float32Valuable at position %d", pos),
+					))
+
+					continue
+				}
+				float32Val, diags := float32Valuable.ToFloat32Value(ctx)
+				if diags.HasError() {
+					funcError = function.ConcatFuncErrors(funcError, function.FuncErrorFromDiags(ctx, diags))
+					continue
+				}
+				req := function.Float32ParameterValidatorRequest{
+					ArgumentPosition: pos,
+					Value:            float32Val,
+				}
+				resp := &function.Float32ParameterValidatorResponse{}
+				functionValidator.ValidateParameterFloat32(ctx, req, resp)
+				if resp.Error != nil {
+					funcError = function.ConcatFuncErrors(funcError, function.NewArgumentFuncError(
+						pos,
+						resp.Error.Error(),
+					))
+				}
+			}
 		case function.ParameterWithFloat64Validators:
 			for _, functionValidator := range parameterWithValidators.GetValidators() {
 				float64Valuable, ok := attrValue.(basetypes.Float64Valuable)

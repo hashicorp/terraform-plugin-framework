@@ -343,6 +343,15 @@ func TestFunctionParameter(t *testing.T) {
 				Type: tftypes.Bool,
 			},
 		},
+		"type-float32": {
+			fw: function.Float32Parameter{
+				Name: "float32",
+			},
+			expected: &tfprotov5.FunctionParameter{
+				Name: "float32",
+				Type: tftypes.Number,
+			},
+		},
 		"type-float64": {
 			fw: function.Float64Parameter{
 				Name: "float64",

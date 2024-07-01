@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -422,6 +423,14 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 func TestServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 
+	// Float32 values need to be explicitly declared in a variable.
+	// Using a float literal results in a conversion from float64 to
+	// float32 which may result in accuracy loss.
+	var float32Value float32 = 1.2
+	var computedFloat32Value float32 = 1.2345
+	var updatedFloat32Value float32 = 5.4321
+	var configuredFloat32Value float32 = 2.4
+
 	testSchemaType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
@@ -432,6 +441,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 	testSchemaTypeDefault := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed_bool":                    tftypes.Bool,
+			"test_computed_float32":                 tftypes.Number,
 			"test_computed_float64":                 tftypes.Number,
 			"test_computed_int32":                   tftypes.Number,
 			"test_computed_int64":                   tftypes.Number,
@@ -452,6 +462,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_nested_single":           tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}},
 			"test_computed_nested_single_attribute": tftypes.Object{AttributeTypes: map[string]tftypes.Type{"string_attribute": tftypes.String}},
 			"test_configured_bool":                  tftypes.Bool,
+			"test_configured_float32":               tftypes.Number,
 			"test_configured_float64":               tftypes.Number,
 			"test_configured_int32":                 tftypes.Number,
 			"test_configured_int64":                 tftypes.Number,
@@ -561,6 +572,10 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_computed_bool": schema.BoolAttribute{
 				Computed: true,
 				Default:  booldefault.StaticBool(true),
+			},
+			"test_computed_float32": schema.Float32Attribute{
+				Computed: true,
+				Default:  float32default.StaticFloat32(computedFloat32Value),
 			},
 			"test_computed_float64": schema.Float64Attribute{
 				Computed: true,
@@ -751,6 +766,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 			"test_configured_bool": schema.BoolAttribute{
 				Optional: true,
 				Default:  booldefault.StaticBool(true),
+			},
+			"test_configured_float32": schema.Float32Attribute{
+				Optional: true,
+				Computed: true,
+				Default:  float32default.StaticFloat32(computedFloat32Value),
 			},
 			"test_configured_float64": schema.Float64Attribute{
 				Optional: true,
@@ -1356,6 +1376,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
@@ -1479,6 +1500,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -1732,6 +1754,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ProposedNewState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
@@ -1855,6 +1878,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -2113,6 +2137,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
@@ -2271,6 +2296,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -3866,6 +3892,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
@@ -3989,6 +4016,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -4244,6 +4272,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				ProposedNewState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
@@ -4367,6 +4396,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
@@ -4622,6 +4652,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PriorState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, false),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(updatedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 5.4321),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 54321),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 54321),
@@ -4780,6 +4811,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, false),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(configuredFloat32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 2.4),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 456),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 456),
@@ -5053,6 +5085,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
 						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
+						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
 						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
 						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
 						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
@@ -5211,6 +5244,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							},
 						),
 						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
 						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
 						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
 						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
@@ -6669,6 +6703,290 @@ func TestServerPlanResourceChange_AttributeRoundtrip(t *testing.T) {
 				},
 				map[string]tftypes.Value{
 					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+				},
+			),
+		}),
+		"create-float32-computed-null": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Computed: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+				},
+			),
+		}),
+		"create-float32-computed-unknown": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Computed: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+		}),
+		"create-float32-optional-null": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Optional: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+		}),
+		"create-float32-optional-unknown": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Optional: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+		}),
+		"create-float32-optional-and-computed-null": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+				},
+			),
+		}),
+		"create-float32-optional-and-computed-unknown": generateTestCase(testCaseData{
+			Schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"float32_attribute": schema.Float32Attribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
+			},
+			Config: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			ProposedNewState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+				},
+			),
+			PriorState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				nil,
+			),
+			PlannedState: tftypes.NewValue(
+				tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"float32_attribute": tftypes.Number,
+					},
+				},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 				},
 			),
 		}),

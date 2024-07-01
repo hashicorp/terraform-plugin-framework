@@ -1060,6 +1060,170 @@ func TestArgumentsData_ParameterValidators(t *testing.T) {
 				0, "Error Diagnostic: This is an error.",
 			),
 		},
+		"float32-parameter-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float32Parameter{
+						Validators: []function.Float32ParameterValidator{
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(1.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewFloat32Value(1.0),
+			}),
+		},
+		"float32-parameter-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float32Parameter{
+						Validators: []function.Float32ParameterValidator{
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(2.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
+		"float32-parameter-Validators-multiple-errors": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float32Parameter{
+						Validators: []function.Float32ParameterValidator{
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(2.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: error 1.",
+										)
+									}
+								},
+							},
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(3.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: error 2.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: error 1."+
+					"\nError Diagnostic: error 2.",
+			),
+		},
+		"float32-parameter-custom-type-Validators": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float32Parameter{
+						CustomType: testtypes.Float32Type{},
+						Validators: []function.Float32ParameterValidator{
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(1.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData([]attr.Value{
+				basetypes.NewFloat32Value(1.0),
+			}),
+		},
+		"float32-parameter-custom-type-Validators-error": {
+			input: []*tfprotov5.DynamicValue{
+				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),
+			},
+			definition: function.Definition{
+				Parameters: []function.Parameter{
+					function.Float32Parameter{
+						CustomType: testtypes.Float32Type{},
+						Validators: []function.Float32ParameterValidator{
+							testvalidator.Float32{
+								ValidateMethod: func(ctx context.Context, req function.Float32ParameterValidatorRequest, resp *function.Float32ParameterValidatorResponse) {
+									got := req.Value
+									expected := types.Float32Value(2.0)
+
+									if !got.Equal(expected) {
+										resp.Error = function.NewArgumentFuncError(
+											req.ArgumentPosition,
+											"Error Diagnostic: This is an error.",
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: function.NewArgumentsData(nil),
+			expectedFuncError: function.NewArgumentFuncError(
+				0, "Error Diagnostic: This is an error.",
+			),
+		},
 		"float64-parameter-Validators": {
 			input: []*tfprotov5.DynamicValue{
 				DynamicValueMust(tftypes.NewValue(tftypes.Number, 1.0)),

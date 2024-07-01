@@ -27,6 +27,8 @@ import (
 func TestDataGetAtPath(t *testing.T) {
 	t.Parallel()
 
+	var Float32Value float32 = 1.2
+
 	testCases := map[string]struct {
 		data          fwschemadata.Data
 		path          path.Path
@@ -474,6 +476,258 @@ func TestDataGetAtPath(t *testing.T) {
 			path:     path.Root("bool"),
 			target:   new(bool),
 			expected: pointer(true),
+		},
+		"Float32Type-types.Float32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(types.Float32),
+			expected: pointer(types.Float32Null()),
+		},
+		"Float32Type-types.Float32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(types.Float32),
+			expected: pointer(types.Float32Unknown()),
+		},
+		"Float32Type-types.Float32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, float64(Float32Value)),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(types.Float32),
+			expected: pointer(types.Float32Value(Float32Value)),
+		},
+		"Float32Type-*float32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(*float32),
+			expected: new(*float32),
+		},
+		"Float32Type-*float32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(*float32),
+			expected: new(*float32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("float32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: float32\nTarget Type: *float32\nSuggested Type: basetypes.Float32Value",
+				),
+			},
+		},
+		"Float32Type-*float32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, float64(Float32Value)),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(*float32),
+			expected: pointer(pointer(Float32Value)),
+		},
+		"Float32Type-float32-null": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(float32),
+			expected: new(float32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("float32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received null value, however the target type cannot handle null values. Use the corresponding `types` package type, a pointer type or a custom type that handles null values.\n\n"+
+						"Path: float32\nTarget Type: float32\nSuggested `types` Type: basetypes.Float32Value\nSuggested Pointer Type: *float32",
+				),
+			},
+		},
+		"Float32Type-float32-unknown": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(float32),
+			expected: new(float32),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("float32"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to build a value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Received unknown value, however the target type cannot handle unknown values. Use the corresponding `types` package type or a custom type that handles unknown values.\n\n"+
+						"Path: float32\nTarget Type: float32\nSuggested Type: basetypes.Float32Value",
+				),
+			},
+		},
+		"Float32Type-float32-value": {
+			data: fwschemadata.Data{
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32": testschema.Attribute{
+							Optional: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32": tftypes.NewValue(tftypes.Number, float64(Float32Value)),
+					},
+				),
+			},
+			path:     path.Root("float32"),
+			target:   new(float32),
+			expected: pointer(Float32Value),
 		},
 		"Float64Type-types.Float64-null": {
 			data: fwschemadata.Data{
@@ -7106,6 +7360,9 @@ func TestDataGetAtPath(t *testing.T) {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 				cmp.Comparer(func(i, j *types.Bool) bool {
+					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
+				}),
+				cmp.Comparer(func(i, j *types.Float32) bool {
 					return (i == nil && j == nil) || (i != nil && j != nil && cmp.Equal(*i, *j))
 				}),
 				cmp.Comparer(func(i, j *types.Float64) bool {

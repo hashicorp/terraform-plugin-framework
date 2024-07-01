@@ -408,6 +408,10 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			if a.BoolDefaultValue() != nil {
 				return val, nil
 			}
+		case fwschema.AttributeWithFloat32DefaultValue:
+			if a.Float32DefaultValue() != nil {
+				return val, nil
+			}
 		case fwschema.AttributeWithFloat64DefaultValue:
 			if a.Float64DefaultValue() != nil {
 				return val, nil

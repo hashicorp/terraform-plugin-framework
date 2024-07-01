@@ -153,6 +153,10 @@
             "path": "functions/parameters/dynamic"
           },
           {
+            "title": "Float32",
+            "path": "functions/parameters/float32"
+          },
+          {
             "title": "Float64",
             "path": "functions/parameters/float64"
           },
@@ -204,6 +208,10 @@
           {
             "title": "Dynamic",
             "path": "functions/returns/dynamic"
+          },
+          {
+            "title": "Float32",
+            "path": "functions/returns/float32"
           },
           {
             "title": "Float64",
@@ -282,6 +290,10 @@
           {
             "title": "Dynamic",
             "path": "handling-data/attributes/dynamic"
+          },
+          {
+            "title": "Float32",
+            "path": "handling-data/attributes/float32"
           },
           {
             "title": "Float64",
@@ -372,6 +384,10 @@
           {
             "title": "Dynamic",
             "path": "handling-data/types/dynamic"
+          },
+          {
+            "title": "Float32",
+            "path": "handling-data/types/float32"
           },
           {
             "title": "Float64",

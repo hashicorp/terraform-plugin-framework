@@ -17,6 +17,15 @@ type AttributeWithBoolValidators interface {
 	BoolValidators() []validator.Bool
 }
 
+// AttributeWithFloat32Validators is an optional interface on Attribute which
+// enables Float32 validation support.
+type AttributeWithFloat32Validators interface {
+	fwschema.Attribute
+
+	// Float32Validators should return a list of Float32 validators.
+	Float32Validators() []validator.Float32
+}
+
 // AttributeWithFloat64Validators is an optional interface on Attribute which
 // enables Float64 validation support.
 type AttributeWithFloat64Validators interface {

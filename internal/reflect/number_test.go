@@ -587,6 +587,17 @@ func TestNumber_uint64UnderflowError(t *testing.T) {
 
 func TestNumber_float32(t *testing.T) {
 	t.Parallel()
+
+	var n float32
+
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&n).Elem().Set(result)
+	if n != 123 {
+		t.Errorf("Expected %v, got %v", 123, n)
+	}
 }
 
 func TestNumber_float32OverflowError(t *testing.T) {

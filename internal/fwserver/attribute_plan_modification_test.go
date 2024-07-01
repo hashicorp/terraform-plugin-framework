@@ -3943,6 +3943,642 @@ func TestAttributePlanModifyBool(t *testing.T) {
 	}
 }
 
+func TestAttributePlanModifyFloat32(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute fwxschema.AttributeWithFloat32PlanModifiers
+		request   ModifyAttributePlanRequest
+		response  *ModifyAttributePlanResponse
+		expected  *ModifyAttributePlanResponse
+	}{
+		"request-path": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.Path
+							expected := path.Root("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.Path",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(1.2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-pathexpression": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.PathExpression
+							expected := path.MatchRoot("test")
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.PathExpression",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:           path.Root("test"),
+				AttributePathExpression: path.MatchRoot("test"),
+				AttributeConfig:         types.Float32Value(1.2),
+				AttributePlan:           types.Float32Value(1.2),
+				AttributeState:          types.Float32Value(1.2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-config": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.Config
+							expected := tfsdk.Config{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.Config",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(1.2),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-configvalue": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.ConfigValue
+							expected := types.Float32Value(1.2)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.ConfigValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Null(),
+				AttributeState:  types.Float32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+		},
+		"request-plan": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.Plan
+							expected := tfsdk.Plan{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.Plan",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(1.2),
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-planvalue": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.PlanValue
+							expected := types.Float32Value(1.2)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.PlanValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-private": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got, diags := req.Private.GetKey(ctx, "testkey")
+							expected := []byte(`{"testproperty":true}`)
+
+							resp.Diagnostics.Append(diags...)
+
+							if diff := cmp.Diff(got, expected); diff != "" {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.Private",
+									diff,
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Null(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+		},
+		"request-state": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.State
+							expected := tfsdk.State{
+								Raw: tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test": tftypes.Number,
+										},
+									},
+									map[string]tftypes.Value{
+										"test": tftypes.NewValue(tftypes.Number, 1.2),
+									},
+								),
+							}
+
+							if !got.Raw.Equal(expected.Raw) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.State",
+									fmt.Sprintf("expected %s, got: %s", expected.Raw, got.Raw),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(1.2),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"request-statevalue": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							got := req.StateValue
+							expected := types.Float32Value(1.2)
+
+							if !got.Equal(expected) {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.StateValue",
+									fmt.Sprintf("expected %s, got: %s", expected, got),
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Null(),
+				AttributeState:  types.Float32Value(1.2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+		},
+		"response-diagnostics": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.Diagnostics.AddAttributeWarning(req.Path, "New Warning Summary", "New Warning Details")
+							resp.Diagnostics.AddAttributeError(req.Path, "New Error Summary", "New Error Details")
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(1.2),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("other"),
+						"Existing Warning Summary",
+						"Existing Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("other"),
+						"Existing Error Summary",
+						"Existing Error Details",
+					),
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"New Warning Summary",
+						"New Warning Details",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"New Error Summary",
+						"New Error Details",
+					),
+				},
+			},
+		},
+		"response-planvalue": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.PlanValue = types.Float32Value(1.2)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Unknown(),
+				AttributeState:  types.Float32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Unknown(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+		},
+		"response-planvalue-custom-type": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.PlanValue = types.Float32Value(1.2)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value: types.Float32Null(),
+				},
+				AttributePlan: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value: types.Float32Unknown(),
+				},
+				AttributeState: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value: types.Float32Null(),
+				},
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value: types.Float32Unknown(),
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: testtypes.Float32ValueWithSemanticEquals{
+					Float32Value: types.Float32Value(1.2),
+				},
+			},
+		},
+		"response-private": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.Diagnostics.Append(
+								resp.Private.SetKey(ctx, "testkey", []byte(`{"newtestproperty":true}`))...,
+							)
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Null(),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`),
+					}),
+				),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"testproperty":true}`), // copied from request
+					}),
+				),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				Private: privatestate.MustProviderData(
+					context.Background(),
+					privatestate.MustMarshalToJson(map[string][]byte{
+						"testkey": []byte(`{"newtestproperty":true}`),
+					}),
+				),
+			},
+		},
+		"response-requiresreplace-add": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(2.4),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
+		"response-requiresreplace-false": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.RequiresReplace = false // same as not being set
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(2.4),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains as it should not be removed
+				},
+			},
+		},
+		"response-requiresreplace-update": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				PlanModifiers: []planmodifier.Float32{
+					testplanmodifier.Float32{
+						PlanModifyFloat32Method: func(ctx context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
+							resp.RequiresReplace = true
+						},
+					},
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(1.2),
+				AttributePlan:   types.Float32Value(1.2),
+				AttributeState:  types.Float32Value(2.4),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Set by prior plan modifier
+				},
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Value(1.2),
+				RequiresReplace: path.Paths{
+					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			AttributePlanModifyFloat32(context.Background(), testCase.attribute, testCase.request, testCase.response)
+
+			if diff := cmp.Diff(testCase.response, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestAttributePlanModifyFloat64(t *testing.T) {
 	t.Parallel()
 

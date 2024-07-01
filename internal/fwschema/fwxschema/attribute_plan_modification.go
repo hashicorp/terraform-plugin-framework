@@ -17,6 +17,15 @@ type AttributeWithBoolPlanModifiers interface {
 	BoolPlanModifiers() []planmodifier.Bool
 }
 
+// AttributeWithFloat32PlanModifiers is an optional interface on Attribute which
+// enables Float32 plan modifier support.
+type AttributeWithFloat32PlanModifiers interface {
+	fwschema.Attribute
+
+	// Float32PlanModifiers should return a list of Float32 plan modifiers.
+	Float32PlanModifiers() []planmodifier.Float32
+}
+
 // AttributeWithFloat64PlanModifiers is an optional interface on Attribute which
 // enables Float64 plan modifier support.
 type AttributeWithFloat64PlanModifiers interface {

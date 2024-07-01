@@ -22,6 +22,8 @@ import (
 func TestValue(t *testing.T) {
 	t.Parallel()
 
+	var float32Value float32 = 1.2
+
 	testCases := map[string]struct {
 		tfType        tftypes.Value
 		attrType      attr.Type
@@ -59,6 +61,21 @@ func TestValue(t *testing.T) {
 			tfType:   tftypes.NewValue(tftypes.Bool, true),
 			attrType: types.BoolType,
 			expected: types.BoolValue(true),
+		},
+		"float32-null": {
+			tfType:   tftypes.NewValue(tftypes.Number, nil),
+			attrType: types.Float32Type,
+			expected: types.Float32Null(),
+		},
+		"float32-unknown": {
+			tfType:   tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+			attrType: types.Float32Type,
+			expected: types.Float32Unknown(),
+		},
+		"float32-value": {
+			tfType:   tftypes.NewValue(tftypes.Number, big.NewFloat(float64(float32Value))),
+			attrType: types.Float32Type,
+			expected: types.Float32Value(float32Value),
 		},
 		"float64-null": {
 			tfType:   tftypes.NewValue(tftypes.Number, nil),

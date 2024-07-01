@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -37,6 +38,9 @@ import (
 
 func TestDataDefault(t *testing.T) {
 	t.Parallel()
+
+	var float32AttributeValue float32 = 1.2345
+	var float32DefaultValue float32 = 5.4321
 
 	testCases := map[string]struct {
 		data          *fwschemadata.Data
@@ -394,6 +398,360 @@ func TestDataDefault(t *testing.T) {
 					},
 					map[string]tftypes.Value{
 						"bool_attribute": tftypes.NewValue(tftypes.Bool, false),
+					},
+				),
+			},
+		},
+		"float32-attribute-request-path": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float32{
+								DefaultFloat32Method: func(ctx context.Context, req defaults.Float32Request, resp *defaults.Float32Response) {
+									if !req.Path.Equal(path.Root("float32_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("float32_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float32{
+								DefaultFloat32Method: func(ctx context.Context, req defaults.Float32Request, resp *defaults.Float32Response) {
+									if !req.Path.Equal(path.Root("float32_attribute")) {
+										resp.Diagnostics.AddError(
+											"unexpected req.Path value",
+											fmt.Sprintf("expected %s, got: %s", path.Root("float32_attribute"), req.Path),
+										)
+									}
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+		},
+		"float32-attribute-response-diagnostics": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float32{
+								DefaultFloat32Method: func(ctx context.Context, req defaults.Float32Request, resp *defaults.Float32Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionPlan,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Optional: true,
+							Computed: true,
+							Default: testdefaults.Float32{
+								DefaultFloat32Method: func(ctx context.Context, req defaults.Float32Request, resp *defaults.Float32Response) {
+									resp.Diagnostics.AddError("test error summary", "test error detail")
+									resp.Diagnostics.AddWarning("test warning summary", "test warning detail")
+								},
+							},
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("test error summary", "test error detail"),
+				diag.NewWarningDiagnostic("test warning summary", "test warning detail"),
+			},
+		},
+		"float32-attribute-not-null-unmodified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  float32default.StaticFloat32(5.4321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, 5.4321), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  float32default.StaticFloat32(5.4321),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+		},
+		"float32-attribute-null-unmodified-no-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.Attribute{
+							Computed: true,
+							Type:     types.Float32Type,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+		},
+		"float32-attribute-null-modified-default": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  float32default.StaticFloat32(float32DefaultValue),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, float64(float32AttributeValue)),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  float32default.StaticFloat32(float32DefaultValue),
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, float64(float32DefaultValue)),
+					},
+				),
+			},
+		},
+		"float32-attribute-null-unmodified-default-nil": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
+					},
+				),
+			},
+			rawConfig: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"float32_attribute": tftypes.Number,
+				},
+			},
+				map[string]tftypes.Value{
+					"float32_attribute": tftypes.NewValue(tftypes.Number, nil), // value in rawConfig
+				},
+			),
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionState,
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"float32_attribute": testschema.AttributeWithFloat32DefaultValue{
+							Computed: true,
+							Default:  nil,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"float32_attribute": tftypes.Number,
+						},
+					},
+					map[string]tftypes.Value{
+						"float32_attribute": tftypes.NewValue(tftypes.Number, 1.2345),
 					},
 				),
 			},

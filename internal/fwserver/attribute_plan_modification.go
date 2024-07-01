@@ -92,6 +92,8 @@ func AttributeModifyPlan(ctx context.Context, a fwschema.Attribute, req ModifyAt
 	switch attributeWithPlanModifiers := a.(type) {
 	case fwxschema.AttributeWithBoolPlanModifiers:
 		AttributePlanModifyBool(ctx, attributeWithPlanModifiers, req, resp)
+	case fwxschema.AttributeWithFloat32PlanModifiers:
+		AttributePlanModifyFloat32(ctx, attributeWithPlanModifiers, req, resp)
 	case fwxschema.AttributeWithFloat64PlanModifiers:
 		AttributePlanModifyFloat64(ctx, attributeWithPlanModifiers, req, resp)
 	case fwxschema.AttributeWithInt32PlanModifiers:
@@ -831,6 +833,166 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 		// later correctness errors.
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/754
 		valuable, valueFromDiags := typable.ValueFromBool(ctx, planModifyResp.PlanValue)
+
+		resp.Diagnostics.Append(valueFromDiags...)
+
+		// Only on new errors.
+		if valueFromDiags.HasError() {
+			return
+		}
+
+		resp.AttributePlan = valuable
+	}
+}
+
+// AttributePlanModifyFloat32 performs all types.Float32 plan modification.
+func AttributePlanModifyFloat32(ctx context.Context, attribute fwxschema.AttributeWithFloat32PlanModifiers, req ModifyAttributePlanRequest, resp *ModifyAttributePlanResponse) {
+	// Use basetypes.Float32Valuable until custom types cannot re-implement
+	// ValueFromTerraform. Until then, custom types are not technically
+	// required to implement this interface. This opts to enforce the
+	// requirement before compatibility promises would interfere.
+	configValuable, ok := req.AttributeConfig.(basetypes.Float32Valuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Float32 Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Float32 attribute plan modification. "+
+				"The value type must implement the basetypes.Float32Valuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeConfig),
+		)
+
+		return
+	}
+
+	configValue, diags := configValuable.ToFloat32Value(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	planValuable, ok := req.AttributePlan.(basetypes.Float32Valuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Float32 Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Float32 attribute plan modification. "+
+				"The value type must implement the basetypes.Float32Valuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributePlan),
+		)
+
+		return
+	}
+
+	planValue, diags := planValuable.ToFloat32Value(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	stateValuable, ok := req.AttributeState.(basetypes.Float32Valuable)
+
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Float32 Attribute Plan Modifier Value Type",
+			"An unexpected value type was encountered while attempting to perform Float32 attribute plan modification. "+
+				"The value type must implement the basetypes.Float32Valuable interface. "+
+				"Please report this to the provider developers.\n\n"+
+				fmt.Sprintf("Incoming Value Type: %T", req.AttributeState),
+		)
+
+		return
+	}
+
+	stateValue, diags := stateValuable.ToFloat32Value(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	typable, diags := coerceFloat32Typable(ctx, req.AttributePath, planValuable)
+
+	resp.Diagnostics.Append(diags...)
+
+	// Only return early on new errors as the resp.Diagnostics may have errors
+	// from other attributes.
+	if diags.HasError() {
+		return
+	}
+
+	planModifyReq := planmodifier.Float32Request{
+		Config:         req.Config,
+		ConfigValue:    configValue,
+		Path:           req.AttributePath,
+		PathExpression: req.AttributePathExpression,
+		Plan:           req.Plan,
+		PlanValue:      planValue,
+		Private:        req.Private,
+		State:          req.State,
+		StateValue:     stateValue,
+	}
+
+	for _, planModifier := range attribute.Float32PlanModifiers() {
+		// Instantiate a new response for each request to prevent plan modifiers
+		// from modifying or removing diagnostics.
+		planModifyResp := &planmodifier.Float32Response{
+			PlanValue: planModifyReq.PlanValue,
+			Private:   resp.Private,
+		}
+
+		logging.FrameworkTrace(
+			ctx,
+			"Calling provider defined planmodifier.Float32",
+			map[string]interface{}{
+				logging.KeyDescription: planModifier.Description(ctx),
+			},
+		)
+
+		planModifier.PlanModifyFloat32(ctx, planModifyReq, planModifyResp)
+
+		logging.FrameworkTrace(
+			ctx,
+			"Called provider defined planmodifier.Float32",
+			map[string]interface{}{
+				logging.KeyDescription: planModifier.Description(ctx),
+			},
+		)
+
+		// Prepare next request with base type.
+		planModifyReq.PlanValue = planModifyResp.PlanValue
+
+		resp.Diagnostics.Append(planModifyResp.Diagnostics...)
+		resp.Private = planModifyResp.Private
+
+		if planModifyResp.RequiresReplace {
+			resp.RequiresReplace.Append(req.AttributePath)
+		}
+
+		// Only on new errors.
+		if planModifyResp.Diagnostics.HasError() {
+			return
+		}
+
+		// A custom value type must be returned in the final response to prevent
+		// later correctness errors.
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/754
+		valuable, valueFromDiags := typable.ValueFromFloat32(ctx, planModifyResp.PlanValue)
 
 		resp.Diagnostics.Append(valueFromDiags...)
 

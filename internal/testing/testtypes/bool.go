@@ -116,6 +116,10 @@ func (b Bool) IsUnknown() bool {
 	return b.Bool.IsUnknown()
 }
 
+func (b Bool) IsFullyNullableKnown() bool {
+	return b.Bool.IsFullyNullableKnown()
+}
+
 func (b Bool) String() string {
 	return b.Bool.String()
 }

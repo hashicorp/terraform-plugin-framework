@@ -120,7 +120,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
-	for field, structFieldPos := range targetFields {
+	for field := range targetFields {
 		attrType, ok := attrTypes[field]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
@@ -130,7 +130,18 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			}))
 			return target, diags
 		}
-		structField := result.Field(structFieldPos)
+
+		fieldName, err := getFieldNameByTag(result.Type(), field)
+		if err != nil {
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        object,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("error getting field name by tag: %w", err),
+			}))
+			return target, diags
+		}
+
+		structField := result.FieldByName(*fieldName)
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
@@ -211,9 +222,21 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		return nil, diags
 	}
 
-	for name, fieldNo := range targetFields {
+	for name := range targetFields {
 		path := path.AtName(name)
-		fieldValue := val.Field(fieldNo)
+
+		fieldName, err := getFieldNameByTag(val.Type(), name)
+		if err != nil {
+			err = fmt.Errorf("error getting field name by tag: %w", err)
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
+
+		fieldValue := val.FieldByName(*fieldName)
 
 		// If the attr implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
 		// and the attr does not validate then diagnostics will be added here and returned
@@ -307,4 +330,29 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 	}
 
 	return ret, diags
+}
+
+func getFieldNameByTag(t reflect.Type, tag string) (*string, error) {
+	// Return if not struct or pointer to struct.
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("error trying to extract fields from struct. Not a struct")
+	}
+	// Iterate through fields to find the tag.
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		if sf.Tag.Get("tfsdk") == tag {
+			return &sf.Name, nil
+		}
+		// Recurse into anonymous fields.
+		if sf.Anonymous {
+			fieldName, err := getFieldNameByTag(sf.Type, tag)
+			if err == nil {
+				return fieldName, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("error trying to extract fields from struct. Could not find match for tag: %s", tag)
 }

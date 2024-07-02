@@ -22,13 +22,17 @@ import (
 )
 
 var (
-	overflowInt, _, _            = big.ParseFloat("9223372036854775808", 10, 53, big.ToPositiveInf)
-	overflowUint, _, _           = big.ParseFloat("18446744073709551616", 10, 53, big.ToPositiveInf)
-	overflowFloat, _, _          = big.ParseFloat("1e10000", 10, 53, big.ToPositiveInf)
-	overflowNegativeFloat, _, _  = big.ParseFloat("-1e10000", 10, 53, big.ToPositiveInf)
-	underflowInt, _, _           = big.ParseFloat("-9223372036854775809", 10, 53, big.ToNegativeInf)
-	underflowFloat, _, _         = big.ParseFloat("1e-1000", 10, 0, big.ToNegativeInf)
-	underflowNegativeFloat, _, _ = big.ParseFloat("-1e-1000", 10, 0, big.ToNegativeInf)
+	overflowInt, _, _              = big.ParseFloat("9223372036854775808", 10, 53, big.ToPositiveInf)
+	overflowUint, _, _             = big.ParseFloat("18446744073709551616", 10, 53, big.ToPositiveInf)
+	overflowFloat32, _, _          = big.ParseFloat("3.40282346638528859811704183484516925440e+39", 10, 24, big.ToPositiveInf)
+	overflowFloat64, _, _          = big.ParseFloat("1e10000", 10, 53, big.ToPositiveInf)
+	overflowNegativeFloat32, _, _  = big.ParseFloat("-3.40282346638528859811704183484516925440e+39", 10, 53, big.ToPositiveInf)
+	overflowNegativeFloat64, _, _  = big.ParseFloat("-1e10000", 10, 53, big.ToPositiveInf)
+	underflowInt, _, _             = big.ParseFloat("-9223372036854775809", 10, 53, big.ToNegativeInf)
+	underflowFloat32, _, _         = big.ParseFloat("1.401298464324817070923729583289916131280e-46", 10, 0, big.ToNegativeInf)
+	underflowFloat64, _, _         = big.ParseFloat("1e-1000", 10, 0, big.ToNegativeInf)
+	underflowNegativeFloat32, _, _ = big.ParseFloat("-1.401298464324817070923729583289916131280e-46", 10, 0, big.ToNegativeInf)
+	underflowNegativeFloat64, _, _ = big.ParseFloat("-1e-1000", 10, 0, big.ToNegativeInf)
 )
 
 func TestNumber_bigFloat(t *testing.T) {
@@ -590,13 +594,13 @@ func TestNumber_float32(t *testing.T) {
 
 	var n float32
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 1.23), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
 	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 123 {
-		t.Errorf("Expected %v, got %v", 123, n)
+	if n != 1.23 {
+		t.Errorf("Expected %v, got %v", 1.23, n)
 	}
 }
 
@@ -608,11 +612,30 @@ func TestNumber_float32OverflowError(t *testing.T) {
 		diag.NewAttributeErrorDiagnostic(
 			path.Empty(),
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1.797693135e+308 in float32",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 3.402823669e+39 in float32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.MaxFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNumber_float32OverflowNegativeError(t *testing.T) {
+	t.Parallel()
+
+	var n float32
+	expectedDiags := diag.Diagnostics{
+		diag.NewAttributeErrorDiagnostic(
+			path.Empty(),
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -3.402823466e+39 in float32",
+		),
+	}
+
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -627,11 +650,30 @@ func TestNumber_float32UnderflowError(t *testing.T) {
 		diag.NewAttributeErrorDiagnostic(
 			path.Empty(),
 			"Value Conversion Error",
-			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 4.940656458e-324 in float32",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store 1.401298464e-46 in float32",
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, math.SmallestNonzeroFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
+
+	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
+		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
+	}
+}
+
+func TestNumber_float32UnderflowNegativeError(t *testing.T) {
+	t.Parallel()
+
+	var n float32
+	expectedDiags := diag.Diagnostics{
+		diag.NewAttributeErrorDiagnostic(
+			path.Empty(),
+			"Value Conversion Error",
+			"An unexpected error was encountered trying to convert to number. This is always an error in the provider. Please report the following to the provider developer:\n\ncannot store -1.401298464e-46 in float32",
+		),
+	}
+
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat32), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -643,13 +685,13 @@ func TestNumber_float64(t *testing.T) {
 
 	var n float64
 
-	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 123), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	result, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, 1.23), reflect.ValueOf(n), refl.Options{}, path.Empty())
 	if diags.HasError() {
 		t.Errorf("Unexpected error: %v", diags)
 	}
 	reflect.ValueOf(&n).Elem().Set(result)
-	if n != 123 {
-		t.Errorf("Expected %v, got %v", 123, n)
+	if n != 1.23 {
+		t.Errorf("Expected %v, got %v", 1.23, n)
 	}
 }
 
@@ -665,7 +707,7 @@ func TestNumber_float64OverflowError(t *testing.T) {
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -684,7 +726,7 @@ func TestNumber_float64OverflowNegativeError(t *testing.T) {
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, overflowNegativeFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -703,7 +745,7 @@ func TestNumber_float64UnderflowError(t *testing.T) {
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -722,7 +764,7 @@ func TestNumber_float64UnderflowNegativeError(t *testing.T) {
 		),
 	}
 
-	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat), reflect.ValueOf(n), refl.Options{}, path.Empty())
+	_, diags := refl.Number(context.Background(), types.NumberType, tftypes.NewValue(tftypes.Number, underflowNegativeFloat64), reflect.ValueOf(n), refl.Options{}, path.Empty())
 
 	if diff := cmp.Diff(diags, expectedDiags); diff != "" {
 		t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)

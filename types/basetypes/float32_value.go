@@ -132,7 +132,23 @@ func (f Float32Value) Equal(other attr.Value) bool {
 		return f.value == o.value
 	}
 
-	return f.value.Cmp(o.value) == 0
+	// Test equality by JSON string representation
+	// Reference: https://github.com/zclconf/go-cty/blob/7b73cce468e8021d933cfb7990356837c6348146/cty/primitive_type.go#L94
+	const format = 'f'
+	const prec = -1
+	fStr := f.value.Text(format, prec)
+	oStr := o.value.Text(format, prec)
+
+	// We want -0 to always be equal to +0.
+	const posZero = "0"
+	const negZero = "-0"
+	if fStr == negZero {
+		fStr = posZero
+	}
+	if oStr == negZero {
+		oStr = posZero
+	}
+	return fStr == oStr
 }
 
 // ToTerraformValue returns the data contained in the Float32 as a tftypes.Value.

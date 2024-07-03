@@ -145,6 +145,19 @@ func TestFloat32ValueEqual(t *testing.T) {
 			},
 			expectation: false,
 		},
+		"known-known-precisiondiff-mantissa-same-stringdiff": {
+			input: NewFloat32Value(340282346638528859811704183484516925440),
+			candidate: Float32Value{
+				state: attr.ValueStateKnown,
+				value: testMustParseFloat("340282346638528859811704183484516925440"),
+			},
+			expectation: false,
+		},
+		"known-known-zero-negativezero": {
+			input:       NewFloat32Value(0),
+			candidate:   NewFloat32Value(float32(math.Copysign(0, -1))),
+			expectation: true,
+		},
 		"knownnil-known": {
 			input: Float32Value{
 				state: attr.ValueStateKnown,

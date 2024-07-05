@@ -234,7 +234,7 @@ func TestMuxServer(t *testing.T) {
                 providers := []func() tfprotov6.ProviderServer{
                     providerserver.NewProtocol6(New()), // Example terraform-plugin-framework provider
                     func() tfprotov6.ProviderServer {
-                        return upgradedSdkServer,
+                        return upgradedSdkServer
                     },
                 }
 

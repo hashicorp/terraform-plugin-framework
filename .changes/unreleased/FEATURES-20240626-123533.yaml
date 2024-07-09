@@ -1,7 +1,0 @@
-kind: FEATURES
-body: 'types/basetypes: Added interfaces `basetypes.Float32Typable`, `basetypes.Float32Valuable`,
-  and `basetypes.Float32ValuableWithSemanticEquals` for Float32 custom type and value
-  implementations.'
-time: 2024-06-26T12:35:33.490507-04:00
-custom:
-  Issue: "1014"

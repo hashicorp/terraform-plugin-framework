@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'function: Added `Float32Parameter` and `Float32Return` for Float32 value handling.'
-time: 2024-06-26T12:36:51.027757-04:00
-custom:
-  Issue: "1014"

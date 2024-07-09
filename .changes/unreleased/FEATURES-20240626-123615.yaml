@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'datasource/schema: Added `Float32Attribute` implementation for Float32 value
-  handling.'
-time: 2024-06-26T12:36:15.026076-04:00
-custom:
-  Issue: "1014"

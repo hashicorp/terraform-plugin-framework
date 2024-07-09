@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'resource/schema/float32planmodifier: New package with built-in implementations
-  for Float32 value plan modification.'
-time: 2024-06-26T12:38:20.591646-04:00
-custom:
-  Issue: "1014"

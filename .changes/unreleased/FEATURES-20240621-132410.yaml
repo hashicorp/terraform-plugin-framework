@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'function: Added `Int32Parameter` and `Int32Return` for Int32 value handling.'
-time: 2024-06-21T13:24:10.410418-04:00
-custom:
-  Issue: "1010"

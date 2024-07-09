@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'resource/schema/planmodifier: New `Float32` interface for Float32 value plan
-  modification implementations.'
-time: 2024-06-26T12:39:09.284352-04:00
-custom:
-  Issue: "1014"

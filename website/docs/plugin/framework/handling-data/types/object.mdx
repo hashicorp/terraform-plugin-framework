@@ -121,10 +121,12 @@ Otherwise, for certain framework functionality that does not require `types` imp
 * [`types.ObjectValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#ObjectValueFrom)
 * [`types.SetValueFrom()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/types#SetValueFrom)
 
-Objects can be automatically converted to any Go struct type that follows these constraints to prevent accidental data loss:
+## Automatic conversion with `tfsdk` struct tags
 
+Objects can be automatically converted to and from any Go struct type that follows these constraints to prevent accidental data loss:
+
+* Every struct field must have a `tfsdk` struct tag and every attribute in the object must have a corresponding struct tag. The `tfsdk` struct tag must name an attribute in the object that it is being mapped or be set to `-` to explicitly declare it does not map to an attribute in the object. Duplicate `tfsdk` struct tags are not allowed.
 * Every struct type must be an acceptable conversion type according to the type documentation, such as `*string` being acceptable for a string type. However, it is recommended to use framework types to simplify data modeling (one model type for accessing and setting data) and prevent errors when encountering unknown values from Terraform.
-* Every struct field must have a `tfsdk` struct tag and every attribute in the object must have a corresponding struct tag. The `tfsdk` struct tag must name an attribute in the object that it is being mapped or be set to `-` to explicitly declare it does not map to an attribute in the object.
 
 In this example, a struct is directly used to set an object attribute value:
 
@@ -163,6 +165,77 @@ value := ExampleAttributeModel{
 }
 
 objectValue, diags := types.ObjectValueFrom(ctx, value.AttributeTypes(), value)
+```
+
+### Struct Embedding
+
+Go struct types that utilize [struct embedding](https://go.dev/doc/effective_go#embedding) to promote fields with `tfsdk` tags are supported when converting to and from object types.
+
+In this example, a `types.Object` is created from a struct that embeds another struct type:
+
+```go
+type ExampleAttributeModel struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+	Attr2 types.Bool   `tfsdk:"attr_2"`
+	CommonModel // This embedded struct type promotes the Attr3 field
+}
+
+type CommonModel struct {
+	Attr3 types.Int64 `tfsdk:"attr_3"`
+}
+
+func (m ExampleAttributeModel) AttributeTypes() map[string]attr.Type {
+    return map[string]attr.Type{
+        "attr_1":  types.StringType,
+        "attr_2":  types.BoolType,
+        "attr_3":  types.Int64Type,
+    }
+}
+
+value := ExampleAttributeModel{
+    Attr1: types.StringValue("example"),
+    Attr2: types.BoolValue(true),
+}
+// This field is promoted from CommonModel
+value.Attr3 = types.Int64Value(123)
+
+objectValue, diags := types.ObjectValueFrom(ctx, value.AttributeTypes(), value)
+```
+
+#### Restrictions
+
+In addition to the constraints [listed above for object conversions](#automatic-conversion-with-tfsdk-struct-tags) using `tfsdk` tagged fields, embedded struct types have these additional restrictions:
+
+* Promoted fields cannot have duplicate `tfsdk` struct tags that conflict with any fields of structs they are embedded within.
+```go
+type thingResourceModel struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+	Attr2 types.Bool   `tfsdk:"attr_2"`
+	CommonModel
+}
+
+type CommonModel struct {
+    // This field has a duplicate tfsdk tag, conflicting with (thingResourceModel).Attr1
+    // and will raise an error diagnostic during conversion.
+	ConflictingAttr types.Int64 `tfsdk:"attr_1"`
+}
+```
+* Struct types embedded by pointers are not supported.
+```go
+type thingResourceModel struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+	Attr2 types.Bool   `tfsdk:"attr_2"`
+    // This type of struct embedding is not supported and will raise
+    // an error diagnostic during conversion.
+    //
+    // Remove the pointer to embed the struct by value.
+	*CommonModel
+}
+
+type CommonModel struct {
+	Attr3 types.Int64 `tfsdk:"attr_3"`
+	Attr4 types.List  `tfsdk:"attr_4"`
+}
 ```
 
 ## Extending

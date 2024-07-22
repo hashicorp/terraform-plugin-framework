@@ -22,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+type EmbedSingleField struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+}
+
 type embedSingleField struct {
 	Attr1 types.String `tfsdk:"attr_1"`
 }
@@ -286,7 +290,28 @@ func TestNewStruct_errors(t *testing.T) {
 				errors.New(`embedded struct "embedSingleField" promotes a field with a duplicate tfsdk tag "attr_1", conflicts with "FirstAttr1" tfsdk tag`),
 			),
 		},
-		"embedded-struct-with-pointer-not-supported": {
+		"embedded-exported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				*EmbedSingleField
+			}{}),
+			expectedError: errors.New(
+				"struct { *reflect_test.EmbedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n" +
+					"Error: reflect: indirection through nil pointer to embedded struct field EmbedSingleField",
+			),
+		},
+		"embedded-unexported-struct-with-pointer-not-supported": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"attr_1": types.StringType,
@@ -398,12 +423,12 @@ func TestNewStruct_primitives(t *testing.T) {
 func TestNewStruct_embedded_primitives(t *testing.T) {
 	t.Parallel()
 
-	type s3 struct {
+	type S3 struct {
 		C bool `tfsdk:"c"`
 	}
 	type s2 struct {
 		B *big.Float `tfsdk:"b"`
-		s3
+		S3
 	}
 	type s1 struct {
 		A string `tfsdk:"a"`
@@ -874,18 +899,24 @@ func TestFromStruct_embedded_primitives(t *testing.T) {
 	t.Parallel()
 
 	type embedFields struct {
-		Name    string `tfsdk:"name"`
-		Age     int    `tfsdk:"age"`
-		OptedIn bool   `tfsdk:"opted_in"`
+		Name string `tfsdk:"name"`
+		Age  int    `tfsdk:"age"`
+	}
+
+	type EmbedFields struct {
+		OptedIn bool `tfsdk:"opted_in"`
 	}
 
 	type disk struct {
 		embedFields
+		EmbedFields
 	}
 	disk1 := disk{
 		embedFields{
-			Name:    "myfirstdisk",
-			Age:     30,
+			Name: "myfirstdisk",
+			Age:  30,
+		},
+		EmbedFields{
 			OptedIn: true,
 		},
 	}
@@ -1936,7 +1967,29 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
-		"embedded-struct-with-pointer-not-supported": {
+		"embedded-exported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					*EmbedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("attr_1"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"struct { *reflect_test.EmbedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n"+
+						"Error: reflect: indirection through nil pointer to embedded struct field EmbedSingleField",
+				),
+			},
+		},
+		"embedded-unexported-struct-with-pointer-not-supported": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"attr_1": types.StringType,

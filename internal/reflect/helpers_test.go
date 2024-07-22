@@ -50,11 +50,11 @@ func TestGetStructTags(t *testing.T) {
 				StrField string `tfsdk:"str_field"`
 				IntField string `tfsdk:"str_field"`
 			}{},
-			expectedErr: errors.New(`str_field: can't use field name for both StrField and IntField`),
+			expectedErr: errors.New(`str_field: can't use tfsdk tag "str_field" for both StrField and IntField fields`),
 		},
 		"struct-err-invalid-field": {
 			in:          StructWithInvalidTag{},
-			expectedErr: errors.New(`*()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+			expectedErr: errors.New(`*()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
 		"embedded-struct": {
 			in: struct {
@@ -88,13 +88,13 @@ func TestGetStructTags(t *testing.T) {
 				StrField      string `tfsdk:"str_field"`
 				ExampleStruct        // Contains a `tfsdk:"str_field"`
 			}{},
-			expectedErr: errors.New(`embedded struct "ExampleStruct" contains a duplicate field name "StrField"`),
+			expectedErr: errors.New(`embedded struct "ExampleStruct" promotes a field with a duplicate tfsdk tag "str_field", conflicts with "StrField" tfsdk tag`),
 		},
 		"embedded-struct-err-invalid": {
 			in: struct {
 				StructWithInvalidTag // Contains an invalid "tfsdk" tag
 			}{},
-			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
 		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving
 		"embedded-struct-ptr": {
@@ -130,13 +130,13 @@ func TestGetStructTags(t *testing.T) {
 				StrField       string `tfsdk:"str_field"`
 				*ExampleStruct        // Contains a `tfsdk:"str_field"`
 			}{},
-			expectedErr: errors.New(`embedded struct "ExampleStruct" contains a duplicate field name "StrField"`),
+			expectedErr: errors.New(`embedded struct "ExampleStruct" promotes a field with a duplicate tfsdk tag "str_field", conflicts with "StrField" tfsdk tag`),
 		},
 		"embedded-struct-ptr-err-invalid": {
 			in: struct {
 				*StructWithInvalidTag // Contains an invalid "tfsdk" tag
 			}{},
-			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
 	}
 

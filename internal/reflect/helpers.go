@@ -69,9 +69,9 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		if !field.IsExported() && (!field.Anonymous || field.Type.Kind() != reflect.Struct) {
-			// Skip unexported fields. Anonymous unexported structs are allowed because they
-			// are embedded and may contain exported fields that are promoted; which means they can be read/set.
+		if !field.IsExported() && !field.Anonymous {
+			// Skip unexported fields. Embedded structs (anonymous fields) are allowed because they may
+			// contain exported fields that are promoted; which means they can be read/set.
 			continue
 		}
 
@@ -91,7 +91,7 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 				for k, v := range embeddedTags {
 					if other, ok := tags[k]; ok {
 						otherField := typ.FieldByIndex(other)
-						return nil, fmt.Errorf("embedded struct %q contains a duplicate field name %q", field.Name, otherField.Name)
+						return nil, fmt.Errorf("embedded struct %q promotes a field with a duplicate tfsdk tag %q, conflicts with %q tfsdk tag", field.Name, k, otherField.Name)
 					}
 
 					tags[k] = append(fieldIndexSequence, v...)
@@ -109,14 +109,14 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 		default:
 			path := path.AtName(tag)
 			if field.Anonymous {
-				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have "tfsdk" tag`, path, field.Name)
+				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have tfsdk tag`, path, field.Name)
 			}
 			if !isValidFieldName(tag) {
-				return nil, fmt.Errorf("%s: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
+				return nil, fmt.Errorf("%s: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
 			}
 			if other, ok := tags[tag]; ok {
 				otherField := typ.FieldByIndex(other)
-				return nil, fmt.Errorf("%s: can't use field name for both %s and %s", path, otherField.Name, field.Name)
+				return nil, fmt.Errorf("%s: can't use tfsdk tag %q for both %s and %s fields", path, tag, otherField.Name, field.Name)
 			}
 
 			tags[tag] = fieldIndexSequence

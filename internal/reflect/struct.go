@@ -133,10 +133,10 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 
 		structField, err := result.FieldByIndexErr(fieldIndex)
 		if err != nil {
-			// The field index that triggered the error is in an embedded struct. The most likely cause for the error
-			// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
-			// error message to nudge provider developers to use a value embedded struct.
 			if len(fieldIndex) > 1 {
+				// The field index that triggered the error is in an embedded struct. The most likely cause for the error
+				// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
+				// error message to nudge provider developers to use a value embedded struct.
 				diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 					Val:        object,
 					TargetType: target.Type(),

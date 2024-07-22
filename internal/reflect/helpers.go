@@ -69,13 +69,14 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		if !field.IsExported() {
-			// skip all unexported fields
+		if !field.IsExported() && (!field.Anonymous || field.Type.Kind() != reflect.Struct) {
+			// Skip unexported fields. Anonymous unexported structs are allowed because they
+			// are embedded and may contain exported fields that are promoted; which means they can be read/set.
 			continue
 		}
 
 		// This index sequence is the location of the field within the struct.
-		// For embedded structs, the length of this sequence will be > 1
+		// For promoted fields from an embedded struct, the length of this sequence will be > 1
 		fieldIndexSequence := []int{i}
 		tag := field.Tag.Get(`tfsdk`)
 
@@ -107,6 +108,9 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 		// validate the "tfsdk" tag and ensure there are no duplicates before storing
 		default:
 			path := path.AtName(tag)
+			if field.Anonymous {
+				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have "tfsdk" tag`, path, field.Name)
+			}
 			if !isValidFieldName(tag) {
 				return nil, fmt.Errorf("%s: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
 			}

@@ -131,9 +131,31 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			return target, diags
 		}
 
-		// TODO: this currently doesn't support pointers, if the field is an embedded struct pointer then it will panic
-		// We could safely exit by using FieldByIndexErr, but we need to decide if we want to support embedded pointer structs
-		structField := result.FieldByIndex(fieldIndex)
+		structField, err := result.FieldByIndexErr(fieldIndex)
+		if err != nil {
+			// The field index that triggered the error is in an embedded struct. The most likely cause for the error
+			// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
+			// error message to nudge provider developers to use a value embedded struct.
+			if len(fieldIndex) > 1 {
+				diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+					Val:        object,
+					TargetType: target.Type(),
+					Err: fmt.Errorf(
+						"%s contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\nError: %s",
+						target.Type(),
+						err,
+					),
+				}))
+				return target, diags
+			}
+
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        object,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("error retrieving field index %v in struct %s: %w", fieldIndex, target.Type(), err),
+			}))
+			return target, diags
+		}
 
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
@@ -217,9 +239,24 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	for name, fieldIndex := range targetFields {
 		path := path.AtName(name)
-		// TODO: this currently doesn't support pointers, if the field is an embedded struct pointer then it will panic
-		// We could safely exit by using FieldByIndexErr, but we need to decide if we want to support embedded pointer structs
-		fieldValue := val.FieldByIndex(fieldIndex)
+		fieldValue, err := val.FieldByIndexErr(fieldIndex)
+		if err != nil {
+			if len(fieldIndex) > 1 {
+				// The field index that triggered the error is in an embedded struct. The most likely cause for the error
+				// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
+				// error message to nudge provider developers to use a value embedded struct.
+				err = fmt.Errorf("%s contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\nError: %s", val.Type(), err)
+			} else {
+				err = fmt.Errorf("error retrieving field index %v in struct %s: %w", fieldIndex, val.Type(), err)
+			}
+
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
 
 		// If the attr implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
 		// and the attr does not validate then diagnostics will be added here and returned

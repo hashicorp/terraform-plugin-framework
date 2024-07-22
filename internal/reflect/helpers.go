@@ -71,7 +71,7 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		if !field.IsExported() && !field.Anonymous {
-			// Skip unexported fields. Embedded structs (anonymous fields) are allowed because they may
+			// Skip unexported fields. Unexported embedded structs (anonymous fields) are allowed because they may
 			// contain exported fields that are promoted; which means they can be read/set.
 			continue
 		}

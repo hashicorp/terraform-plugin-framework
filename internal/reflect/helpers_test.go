@@ -25,6 +25,16 @@ type ExampleStruct struct {
 	unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 }
 
+type NestedEmbed struct {
+	ListField []string `tfsdk:"list_field"`
+	DoubleNestedEmbed
+}
+
+type DoubleNestedEmbed struct {
+	Map map[string]string `tfsdk:"map_field"`
+	ExampleStruct
+}
+
 type EmbedWithDuplicates struct {
 	StrField1 string `tfsdk:"str_field"`
 	StrField2 string `tfsdk:"str_field"`
@@ -92,6 +102,20 @@ func TestGetStructTags(t *testing.T) {
 				"str_field":  {0, 0},
 				"int_field":  {0, 1},
 				"bool_field": {0, 2},
+				"field5":     {1},
+			},
+		},
+		"nested-embedded-struct": {
+			in: struct {
+				NestedEmbed
+				Field5 string `tfsdk:"field5"`
+			}{},
+			expectedTags: map[string][]int{
+				"list_field": {0, 0},
+				"map_field":  {0, 1, 0},
+				"str_field":  {0, 1, 1, 0},
+				"int_field":  {0, 1, 1, 1},
+				"bool_field": {0, 1, 1, 2},
 				"field5":     {1},
 			},
 		},

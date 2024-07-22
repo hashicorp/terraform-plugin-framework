@@ -25,6 +25,11 @@ type ExampleStruct struct {
 	unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 }
 
+type EmbedWithDuplicates struct {
+	StrField1 string `tfsdk:"str_field"`
+	StrField2 string `tfsdk:"str_field"`
+}
+
 type StructWithInvalidTag struct {
 	InvalidField string `tfsdk:"*()-"`
 }
@@ -51,6 +56,19 @@ func TestGetStructTags(t *testing.T) {
 				IntField string `tfsdk:"str_field"`
 			}{},
 			expectedErr: errors.New(`str_field: can't use tfsdk tag "str_field" for both StrField and IntField fields`),
+		},
+		"embedded-struct-err-duplicate-fields": {
+			in: struct {
+				EmbedWithDuplicates
+			}{},
+			expectedErr: errors.New(`error retrieving embedded struct "EmbedWithDuplicates" field tags: str_field: can't use tfsdk tag "str_field" for both StrField1 and StrField2 fields`),
+		},
+		"embedded-struct-err-duplicate-fields-from-promote": {
+			in: struct {
+				StrField      string `tfsdk:"str_field"`
+				ExampleStruct        // Contains a `tfsdk:"str_field"`
+			}{},
+			expectedErr: errors.New(`embedded struct "ExampleStruct" promotes a field with a duplicate tfsdk tag "str_field", conflicts with "StrField" tfsdk tag`),
 		},
 		"struct-err-invalid-field": {
 			in:          StructWithInvalidTag{},
@@ -83,20 +101,15 @@ func TestGetStructTags(t *testing.T) {
 				"field5":     {1},
 			},
 		},
-		"embedded-struct-err-duplicate-fields": {
-			in: struct {
-				StrField      string `tfsdk:"str_field"`
-				ExampleStruct        // Contains a `tfsdk:"str_field"`
-			}{},
-			expectedErr: errors.New(`embedded struct "ExampleStruct" promotes a field with a duplicate tfsdk tag "str_field", conflicts with "StrField" tfsdk tag`),
-		},
 		"embedded-struct-err-invalid": {
 			in: struct {
 				StructWithInvalidTag // Contains an invalid "tfsdk" tag
 			}{},
 			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
-		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving
+		// NOTE: The following tests are for embedded struct pointers, despite them not being explicitly supported by the framework reflect package.
+		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving them. These tests just ensure that there
+		// are no panics when retrieving the field index for an embedded struct pointer field
 		"embedded-struct-ptr": {
 			in: struct {
 				*ExampleStruct
@@ -109,7 +122,6 @@ func TestGetStructTags(t *testing.T) {
 				"field5":     {1},
 			},
 		},
-		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving
 		"embedded-struct-ptr-unexported": {
 			in: struct {
 				*ExampleStruct
@@ -126,6 +138,12 @@ func TestGetStructTags(t *testing.T) {
 			},
 		},
 		"embedded-struct-ptr-err-duplicate-fields": {
+			in: struct {
+				*EmbedWithDuplicates
+			}{},
+			expectedErr: errors.New(`error retrieving embedded struct "EmbedWithDuplicates" field tags: str_field: can't use tfsdk tag "str_field" for both StrField1 and StrField2 fields`),
+		},
+		"embedded-struct-ptr-err-duplicate-fields-from-promote": {
 			in: struct {
 				StrField       string `tfsdk:"str_field"`
 				*ExampleStruct        // Contains a `tfsdk:"str_field"`

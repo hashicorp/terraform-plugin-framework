@@ -74,6 +74,15 @@ func TestGetStructTags(t *testing.T) {
 			in:          StructWithInvalidTag{},
 			expectedErr: errors.New(`*()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
+		"ignore-embedded-struct": {
+			in: struct {
+				ExampleStruct `tfsdk:"-"`
+				Field5        string `tfsdk:"field5"`
+			}{},
+			expectedTags: map[string][]int{
+				"field5": {1},
+			},
+		},
 		"embedded-struct": {
 			in: struct {
 				ExampleStruct
@@ -110,6 +119,15 @@ func TestGetStructTags(t *testing.T) {
 		// NOTE: The following tests are for embedded struct pointers, despite them not being explicitly supported by the framework reflect package.
 		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving them. These tests just ensure that there
 		// are no panics when retrieving the field index for an embedded struct pointer field
+		"ignore-embedded-struct-ptr": {
+			in: struct {
+				*ExampleStruct `tfsdk:"-"`
+				Field5         string `tfsdk:"field5"`
+			}{},
+			expectedTags: map[string][]int{
+				"field5": {1},
+			},
+		},
 		"embedded-struct-ptr": {
 			in: struct {
 				*ExampleStruct

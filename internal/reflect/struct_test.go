@@ -817,8 +817,13 @@ func TestNewStruct_embedded_structtags_ignores(t *testing.T) {
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
+	type s2 struct {
+		unexportedField string //nolint:structcheck,unused
+	}
+
 	var s struct {
 		s1
+		*s2 `tfsdk:"-"`
 	}
 	result, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -2110,8 +2115,13 @@ func TestFromStruct_embedded_structtags_ignores(t *testing.T) {
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
+	type s2 struct {
+		unexportedField string //nolint:structcheck,unused
+	}
+
 	type s struct {
 		s1
+		*s2 `tfsdk:"-"`
 	}
 	testStruct := s{
 		s1{
@@ -2120,6 +2130,7 @@ func TestFromStruct_embedded_structtags_ignores(t *testing.T) {
 			unexportedAndTagged: "shouldntcopy",
 			ExportedAndExcluded: "shouldntcopy",
 		},
+		&s2{},
 	}
 
 	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{

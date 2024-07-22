@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'all: Added embedded struct support for object to struct conversions with `tfsdk`
+  tags'
+time: 2024-07-22T17:51:16.833264-04:00
+custom:
+  Issue: "1021"

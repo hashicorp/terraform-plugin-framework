@@ -52,6 +52,7 @@ func commaSeparatedString(in []string) string {
 // in structs. This index sequence can be used to retrieve the field with the Go "reflect" package FieldByIndex methods:
 //   - https://pkg.go.dev/reflect#Type.FieldByIndex
 //   - https://pkg.go.dev/reflect#Value.FieldByIndex
+//   - https://pkg.go.dev/reflect#Value.FieldByIndexErr
 //
 // The following are not supported and will return an error if detected in a struct (including embedded structs):
 //   - Duplicate "tfsdk" tags

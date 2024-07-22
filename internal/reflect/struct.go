@@ -75,7 +75,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, target, path)
+	targetFields, err := getStructTags(ctx, target.Type(), path)
 	if err != nil {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 			Val:        object,
@@ -120,7 +120,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
-	for field, structFieldPos := range targetFields {
+	for field, fieldIndex := range targetFields {
 		attrType, ok := attrTypes[field]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
@@ -130,7 +130,11 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			}))
 			return target, diags
 		}
-		structField := result.Field(structFieldPos)
+
+		// TODO: this currently doesn't support pointers, if the field is an embedded struct pointer then it will panic
+		// We could safely exit by using FieldByIndexErr, but we need to decide if we want to support embedded pointer structs
+		structField := result.FieldByIndex(fieldIndex)
+
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
@@ -156,7 +160,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, val, path)
+	targetFields, err := getStructTags(ctx, val.Type(), path)
 	if err != nil {
 		err = fmt.Errorf("error retrieving field names from struct tags: %w", err)
 		diags.AddAttributeError(
@@ -211,9 +215,11 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		return nil, diags
 	}
 
-	for name, fieldNo := range targetFields {
+	for name, fieldIndex := range targetFields {
 		path := path.AtName(name)
-		fieldValue := val.Field(fieldNo)
+		// TODO: this currently doesn't support pointers, if the field is an embedded struct pointer then it will panic
+		// We could safely exit by using FieldByIndexErr, but we need to decide if we want to support embedded pointer structs
+		fieldValue := val.FieldByIndex(fieldIndex)
 
 		// If the attr implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
 		// and the attr does not validate then diagnostics will be added here and returned

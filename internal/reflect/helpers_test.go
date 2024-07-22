@@ -4,10 +4,168 @@
 package reflect
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
+
+type ExampleStruct struct {
+	StrField  string `tfsdk:"str_field"`
+	IntField  int    `tfsdk:"int_field"`
+	BoolField bool   `tfsdk:"bool_field"`
+	IgnoreMe  string `tfsdk:"-"`
+
+	unexported          string //nolint:structcheck,unused
+	unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+}
+
+type StructWithInvalidTag struct {
+	InvalidField string `tfsdk:"*()-"`
+}
+
+func TestGetStructTags(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in           any
+		expectedTags map[string][]int
+		expectedErr  error
+	}{
+		"struct": {
+			in: ExampleStruct{},
+			expectedTags: map[string][]int{
+				"str_field":  {0},
+				"int_field":  {1},
+				"bool_field": {2},
+			},
+		},
+		"struct-err-duplicate-fields": {
+			in: struct {
+				StrField string `tfsdk:"str_field"`
+				IntField string `tfsdk:"str_field"`
+			}{},
+			expectedErr: errors.New(`str_field: can't use field name for both StrField and IntField`),
+		},
+		"struct-err-invalid-field": {
+			in:          StructWithInvalidTag{},
+			expectedErr: errors.New(`*()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+		},
+		"embedded-struct": {
+			in: struct {
+				ExampleStruct
+				Field5 string `tfsdk:"field5"`
+			}{},
+			expectedTags: map[string][]int{
+				"str_field":  {0, 0},
+				"int_field":  {0, 1},
+				"bool_field": {0, 2},
+				"field5":     {1},
+			},
+		},
+		"embedded-struct-unexported": {
+			in: struct {
+				ExampleStruct
+				Field5 string `tfsdk:"field5"`
+
+				unexported          string //nolint:structcheck,unused
+				unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+			}{},
+			expectedTags: map[string][]int{
+				"str_field":  {0, 0},
+				"int_field":  {0, 1},
+				"bool_field": {0, 2},
+				"field5":     {1},
+			},
+		},
+		"embedded-struct-err-duplicate-fields": {
+			in: struct {
+				StrField      string `tfsdk:"str_field"`
+				ExampleStruct        // Contains a `tfsdk:"str_field"`
+			}{},
+			expectedErr: errors.New(`embedded struct "ExampleStruct" contains a duplicate field name "StrField"`),
+		},
+		"embedded-struct-err-invalid": {
+			in: struct {
+				StructWithInvalidTag // Contains an invalid "tfsdk" tag
+			}{},
+			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+		},
+		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving
+		"embedded-struct-ptr": {
+			in: struct {
+				*ExampleStruct
+				Field5 string `tfsdk:"field5"`
+			}{},
+			expectedTags: map[string][]int{
+				"str_field":  {0, 0},
+				"int_field":  {0, 1},
+				"bool_field": {0, 2},
+				"field5":     {1},
+			},
+		},
+		// Embedded struct pointers still produce a valid field index, but are later rejected when retrieving
+		"embedded-struct-ptr-unexported": {
+			in: struct {
+				*ExampleStruct
+				Field5 string `tfsdk:"field5"`
+
+				unexported          string //nolint:structcheck,unused
+				unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+			}{},
+			expectedTags: map[string][]int{
+				"str_field":  {0, 0},
+				"int_field":  {0, 1},
+				"bool_field": {0, 2},
+				"field5":     {1},
+			},
+		},
+		"embedded-struct-ptr-err-duplicate-fields": {
+			in: struct {
+				StrField       string `tfsdk:"str_field"`
+				*ExampleStruct        // Contains a `tfsdk:"str_field"`
+			}{},
+			expectedErr: errors.New(`embedded struct "ExampleStruct" contains a duplicate field name "StrField"`),
+		},
+		"embedded-struct-ptr-err-invalid": {
+			in: struct {
+				*StructWithInvalidTag // Contains an invalid "tfsdk" tag
+			}{},
+			expectedErr: errors.New(`error retrieving embedded struct "StructWithInvalidTag" field tags: *()-: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			tags, err := getStructTags(context.Background(), reflect.TypeOf(testCase.in), path.Empty())
+			if err != nil {
+				if testCase.expectedErr == nil {
+					t.Fatalf("expected no error, got: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), testCase.expectedErr.Error()) {
+					t.Fatalf("expected error %q, got: %s", testCase.expectedErr, err)
+				}
+			}
+
+			if err == nil && testCase.expectedErr != nil {
+				t.Fatalf("got no error, expected: %s", testCase.expectedErr)
+			}
+
+			if diff := cmp.Diff(tags, testCase.expectedTags); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
 
 func TestTrueReflectValue(t *testing.T) {
 	t.Parallel()

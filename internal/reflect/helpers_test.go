@@ -134,6 +134,12 @@ func TestGetStructTags(t *testing.T) {
 				"field5":     {1},
 			},
 		},
+		"embedded-struct-err-cannot-have-tfsdk-tag": {
+			in: struct {
+				ExampleStruct `tfsdk:"example_field"` // Can't put a tfsdk tag here
+			}{},
+			expectedErr: errors.New(`example_field: embedded struct field ExampleStruct cannot have tfsdk tag`),
+		},
 		"embedded-struct-err-invalid": {
 			in: struct {
 				StructWithInvalidTag // Contains an invalid "tfsdk" tag
@@ -178,6 +184,12 @@ func TestGetStructTags(t *testing.T) {
 				"bool_field": {0, 2},
 				"field5":     {1},
 			},
+		},
+		"embedded-struct-ptr-err-cannot-have-tfsdk-tag": {
+			in: struct {
+				*ExampleStruct `tfsdk:"example_field"` // Can't put a tfsdk tag here
+			}{},
+			expectedErr: errors.New(`example_field: embedded struct field ExampleStruct cannot have tfsdk tag`),
 		},
 		"embedded-struct-ptr-err-duplicate-fields": {
 			in: struct {

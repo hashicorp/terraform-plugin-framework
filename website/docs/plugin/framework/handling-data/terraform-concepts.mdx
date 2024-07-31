@@ -119,5 +119,10 @@ value. However, by the time a resource is expected to be created, read, updated,
 deleted, only its computed attributes can be unknown. The rest are
 guaranteed to have known values (or be null).
 
-Provider configuration values can be unknown, and providers should handle that
-situation, even if that means just returning an error.
+For concepts such as resource and data source [configuration validation](/terraform/plugin/framework/validation),
+this means that Terraform guarantees to call validation for a non-computed attribute
+eventually with a known value, so the provider should typically avoid returning error diagnostics
+when encountering an unknown value during validation.
+
+Provider configuration values [can also be unknown](/terraform/plugin/framework/providers#unknown-values), and
+providers should handle that situation, even if that means just returning an error.

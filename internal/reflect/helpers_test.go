@@ -84,6 +84,18 @@ func TestGetStructTags(t *testing.T) {
 			in:          StructWithInvalidTag{},
 			expectedErr: errors.New(`*()-: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
 		},
+		"struct-err-missing-tfsdk-tag": {
+			in: struct {
+				ExampleField string
+			}{},
+			expectedErr: errors.New(`: need a struct tag for "tfsdk" on ExampleField`),
+		},
+		"struct-err-empty-tfsdk-tag": {
+			in: struct {
+				ExampleField string `tfsdk:""`
+			}{},
+			expectedErr: errors.New(`: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter`),
+		},
 		"ignore-embedded-struct": {
 			in: struct {
 				ExampleStruct `tfsdk:"-"`
@@ -133,6 +145,12 @@ func TestGetStructTags(t *testing.T) {
 				"bool_field": {0, 2},
 				"field5":     {1},
 			},
+		},
+		"embedded-struct-err-cannot-have-empty-tfsdk-tag": {
+			in: struct {
+				ExampleStruct `tfsdk:""` // Can't put a tfsdk tag here
+			}{},
+			expectedErr: errors.New(`: embedded struct field ExampleStruct cannot have tfsdk tag`),
 		},
 		"embedded-struct-err-cannot-have-tfsdk-tag": {
 			in: struct {
@@ -184,6 +202,12 @@ func TestGetStructTags(t *testing.T) {
 				"bool_field": {0, 2},
 				"field5":     {1},
 			},
+		},
+		"embedded-struct-ptr-err-cannot-have-empty-tfsdk-tag": {
+			in: struct {
+				*ExampleStruct `tfsdk:""` // Can't put a tfsdk tag here
+			}{},
+			expectedErr: errors.New(`: embedded struct field ExampleStruct cannot have tfsdk tag`),
 		},
 		"embedded-struct-ptr-err-cannot-have-tfsdk-tag": {
 			in: struct {

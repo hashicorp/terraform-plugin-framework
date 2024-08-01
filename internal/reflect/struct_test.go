@@ -223,6 +223,26 @@ func TestNewStruct_errors(t *testing.T) {
 				"error retrieving field names from struct tags: %w",
 				errors.New("invalidTag: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
 		},
+		"struct-has-empty-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:""`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New(": invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+		},
 		"embedded-struct-has-invalid-tags": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -330,6 +350,26 @@ func TestNewStruct_errors(t *testing.T) {
 			expectedError: errors.New(
 				"struct { *reflect_test.embedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n" +
 					"Error: reflect: indirection through nil pointer to embedded struct field embedSingleField",
+			),
+		},
+		"embedded-struct-has-empty-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedSingleField `tfsdk:""`
+			}{}),
+			expectedError: errors.New(
+				"error retrieving field names from struct tags: : embedded struct field embedSingleField cannot have tfsdk tag",
 			),
 		},
 		"embedded-struct-has-tfsdk-tag": {
@@ -1803,6 +1843,27 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"struct-has-empty-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:""`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+				),
+			},
+		},
 		"embedded-struct-has-invalid-tags": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -2013,6 +2074,27 @@ func TestFromStruct_errors(t *testing.T) {
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 						"struct { *reflect_test.embedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n"+
 						"Error: reflect: indirection through nil pointer to embedded struct field embedSingleField",
+				),
+			},
+		},
+		"embedded-struct-has-empty-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField `tfsdk:""`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.: embedded struct field embedSingleField cannot have tfsdk tag",
 				),
 			},
 		},

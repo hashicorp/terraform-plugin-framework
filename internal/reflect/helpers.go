@@ -79,50 +79,54 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 		// This index sequence is the location of the field within the struct.
 		// For promoted fields from an embedded struct, the length of this sequence will be > 1
 		fieldIndexSequence := []int{i}
-		tag := field.Tag.Get(`tfsdk`)
-
-		switch tag {
-		// "tfsdk" tags can only be omitted on embedded structs
-		case "":
-			if field.Anonymous {
-				embeddedTags, err := getStructTags(ctx, field.Type, path)
-				if err != nil {
-					return nil, fmt.Errorf(`error retrieving embedded struct %q field tags: %w`, field.Name, err)
-				}
-				for k, v := range embeddedTags {
-					if other, ok := tags[k]; ok {
-						otherField := typ.FieldByIndex(other)
-						return nil, fmt.Errorf("embedded struct %q promotes a field with a duplicate tfsdk tag %q, conflicts with %q tfsdk tag", field.Name, k, otherField.Name)
-					}
-
-					tags[k] = append(fieldIndexSequence, v...)
-				}
-				continue
-			}
-
-			return nil, fmt.Errorf(`%s: need a struct tag for "tfsdk" on %s`, path, field.Name)
+		tag, tagExists := field.Tag.Lookup(`tfsdk`)
 
 		// "tfsdk" tags with "-" are being explicitly excluded
-		case "-":
+		if tag == "-" {
 			continue
-
-		// validate the "tfsdk" tag and ensure there are no duplicates before storing
-		default:
-			path := path.AtName(tag)
-			if field.Anonymous {
-				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have tfsdk tag`, path, field.Name)
-			}
-			if !isValidFieldName(tag) {
-				return nil, fmt.Errorf("%s: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
-			}
-			if other, ok := tags[tag]; ok {
-				otherField := typ.FieldByIndex(other)
-				return nil, fmt.Errorf("%s: can't use tfsdk tag %q for both %s and %s fields", path, tag, otherField.Name, field.Name)
-			}
-
-			tags[tag] = fieldIndexSequence
 		}
+
+		// Handle embedded structs
+		if field.Anonymous {
+			if tagExists {
+				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have tfsdk tag`, path.AtName(tag), field.Name)
+			}
+
+			embeddedTags, err := getStructTags(ctx, field.Type, path)
+			if err != nil {
+				return nil, fmt.Errorf(`error retrieving embedded struct %q field tags: %w`, field.Name, err)
+			}
+			for k, v := range embeddedTags {
+				if other, ok := tags[k]; ok {
+					otherField := typ.FieldByIndex(other)
+					return nil, fmt.Errorf("embedded struct %q promotes a field with a duplicate tfsdk tag %q, conflicts with %q tfsdk tag", field.Name, k, otherField.Name)
+				}
+
+				tags[k] = append(fieldIndexSequence, v...)
+			}
+			continue
+		}
+
+		// All non-embedded fields must have a tfsdk tag
+		if !tagExists {
+			return nil, fmt.Errorf(`%s: need a struct tag for "tfsdk" on %s`, path, field.Name)
+		}
+
+		// Ensure the tfsdk tag has a valid name
+		path := path.AtName(tag)
+		if !isValidFieldName(tag) {
+			return nil, fmt.Errorf("%s: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
+		}
+
+		// Ensure there are no duplicate tfsdk tags
+		if other, ok := tags[tag]; ok {
+			otherField := typ.FieldByIndex(other)
+			return nil, fmt.Errorf("%s: can't use tfsdk tag %q for both %s and %s fields", path, tag, otherField.Name, field.Name)
+		}
+
+		tags[tag] = fieldIndexSequence
 	}
+
 	return tags, nil
 }
 

@@ -1,0 +1,40 @@
+kind: NOTES
+body: |
+  Framework reflection logic (`Config.Get`, `Plan.Get`, etc.) for structs with
+  `tfsdk` field tags has been updated to support embedded structs that promote exported
+  fields. For existing structs that embed unexported structs with exported fields, a tfsdk
+  ignore tag (``tfsdk:"-"``) can be added to ignore all promoted fields.  
+
+  For example, the following struct will now return an error diagnostic:
+  ```go
+  type thingResourceModel struct {
+  	Attr1 types.String `tfsdk:"attr_1"`
+  	Attr2 types.Bool   `tfsdk:"attr_2"`
+  
+  	// Previously, this embedded struct was ignored, will now promote underlying fields
+  	embeddedModel
+  }
+  
+  type embeddedModel struct {
+  	// No `tfsdk` tag
+  	ExportedField string
+  }
+  ```
+  
+  To preserve the original behavior, a tfsdk ignore tag can be added to ignore the entire embedded struct:
+  ```go
+  type thingResourceModel struct {
+  	Attr1 types.String `tfsdk:"attr_1"`
+  	Attr2 types.Bool   `tfsdk:"attr_2"`
+  
+  	// This embedded struct will now be ignored
+  	embeddedModel      `tfsdk:"-"`
+  }
+  
+  type embeddedModel struct {
+  	ExportedField string
+  }
+  ```
+time: 2024-08-01T17:16:54.043432-04:00
+custom:
+  Issue: "1021"

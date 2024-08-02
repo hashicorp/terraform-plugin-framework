@@ -22,6 +22,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+type EmbedSingleField struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+}
+
+type embedSingleField struct {
+	Attr1 types.String `tfsdk:"attr_1"`
+}
+
+type embedNoFields struct{}
+
+type embedWithUntaggedExportedField struct {
+	ExportedAndUntagged types.String
+}
+
+type embedWithInvalidTag struct {
+	A types.String `tfsdk:"invalidTag"`
+}
+
 func TestNewStruct_errors(t *testing.T) {
 	t.Parallel()
 
@@ -62,6 +80,14 @@ func TestNewStruct_errors(t *testing.T) {
 			}{}),
 			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a."),
 		},
+		"embedded-object-missing-fields": {
+			typ:    types.ObjectType{},
+			objVal: tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{}),
+			targetVal: reflect.ValueOf(struct {
+				embedSingleField
+			}{}),
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: attr_1."),
+		},
 		"struct-missing-fields": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -78,10 +104,28 @@ func TestNewStruct_errors(t *testing.T) {
 			targetVal:     reflect.ValueOf(struct{}{}),
 			expectedError: errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
 		},
-		"object-and-struct-missing-fields": {
+		"embedded-struct-missing-fields": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedNoFields
+			}{}),
+			expectedError: errors.New("mismatch between struct and object: Object defines fields not found in struct: a."),
+		},
+		"object-and-struct-missing-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"b": types.StringType,
 				},
 			},
 			objVal: tftypes.NewValue(tftypes.Object{
@@ -95,6 +139,24 @@ func TestNewStruct_errors(t *testing.T) {
 				A string `tfsdk:"a"`
 			}{}),
 			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: a. Object defines fields not found in struct: b."),
+		},
+		"embedded-object-and-struct-missing-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"b": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"b": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"b": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedSingleField
+			}{}),
+			expectedError: errors.New("mismatch between struct and object: Struct defines fields not found in object: attr_1. Object defines fields not found in struct: b."),
 		},
 		"struct-has-untagged-fields": {
 			typ: types.ObjectType{
@@ -117,6 +179,30 @@ func TestNewStruct_errors(t *testing.T) {
 				"error retrieving field names from struct tags: %w",
 				errors.New(`: need a struct tag for "tfsdk" on ExportedAndUntagged`)),
 		},
+		"embedded-struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:"a"`
+				embedWithUntaggedExportedField
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				fmt.Errorf(`error retrieving embedded struct "embedWithUntaggedExportedField" field tags: %w`,
+					errors.New(`: need a struct tag for "tfsdk" on ExportedAndUntagged`),
+				),
+			),
+		},
 		"struct-has-invalid-tags": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -135,7 +221,50 @@ func TestNewStruct_errors(t *testing.T) {
 			}{}),
 			expectedError: fmt.Errorf(
 				"error retrieving field names from struct tags: %w",
-				errors.New("invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+				errors.New("invalidTag: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+		},
+		"struct-has-empty-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				A string `tfsdk:""`
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New(": invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter")),
+		},
+		"embedded-struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedWithInvalidTag
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				fmt.Errorf(`error retrieving embedded struct "embedWithInvalidTag" field tags: %w`,
+					errors.New("invalidTag: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter"),
+				),
+			),
 		},
 		"struct-has-duplicate-tags": {
 			typ: types.ObjectType{
@@ -156,7 +285,112 @@ func TestNewStruct_errors(t *testing.T) {
 			}{}),
 			expectedError: fmt.Errorf(
 				"error retrieving field names from struct tags: %w",
-				errors.New("a: can't use field name for both A and B")),
+				errors.New(`a: can't use tfsdk tag "a" for both A and B fields`)),
+		},
+		"embedded-struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"a": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				FirstAttr1 types.String `tfsdk:"attr_1"`
+				// Also contains an attr_1 tfsdk tag
+				embedSingleField
+			}{}),
+			expectedError: fmt.Errorf(
+				"error retrieving field names from struct tags: %w",
+				errors.New(`embedded struct "embedSingleField" promotes a field with a duplicate tfsdk tag "attr_1", conflicts with "FirstAttr1" tfsdk tag`),
+			),
+		},
+		"embedded-exported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				*EmbedSingleField
+			}{}),
+			expectedError: errors.New(
+				"struct { *reflect_test.EmbedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n" +
+					"Error: reflect: indirection through nil pointer to embedded struct field EmbedSingleField",
+			),
+		},
+		"embedded-unexported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				*embedSingleField
+			}{}),
+			expectedError: errors.New(
+				"struct { *reflect_test.embedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n" +
+					"Error: reflect: indirection through nil pointer to embedded struct field embedSingleField",
+			),
+		},
+		"embedded-struct-has-empty-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedSingleField `tfsdk:""`
+			}{}),
+			expectedError: errors.New(
+				"error retrieving field names from struct tags: : embedded struct field embedSingleField cannot have tfsdk tag",
+			),
+		},
+		"embedded-struct-has-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			objVal: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"attr_1": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"attr_1": tftypes.NewValue(tftypes.String, "hello"),
+			}),
+			targetVal: reflect.ValueOf(struct {
+				embedSingleField `tfsdk:"attr_2"`
+			}{}),
+			expectedError: errors.New(
+				"error retrieving field names from struct tags: attr_2: embedded struct field embedSingleField cannot have tfsdk tag",
+			),
 		},
 	}
 
@@ -194,6 +428,54 @@ func TestNewStruct_primitives(t *testing.T) {
 		B *big.Float `tfsdk:"b"`
 		C bool       `tfsdk:"c"`
 	}
+	result, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"a": types.StringType,
+			"b": types.NumberType,
+			"c": types.BoolType,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"a": tftypes.String,
+			"b": tftypes.Number,
+			"c": tftypes.Bool,
+		},
+	}, map[string]tftypes.Value{
+		"a": tftypes.NewValue(tftypes.String, "hello"),
+		"b": tftypes.NewValue(tftypes.Number, 123),
+		"c": tftypes.NewValue(tftypes.Bool, true),
+	}), reflect.ValueOf(s), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&s).Elem().Set(result)
+	if s.A != "hello" {
+		t.Errorf("Expected s.A to be %q, was %q", "hello", s.A)
+	}
+	if s.B.Cmp(big.NewFloat(123)) != 0 {
+		t.Errorf("Expected s.B to be %v, was %v", big.NewFloat(123), s.B)
+	}
+	if s.C != true {
+		t.Errorf("Expected s.C to be %v, was %v", true, s.C)
+	}
+}
+
+func TestNewStruct_embedded_primitives(t *testing.T) {
+	t.Parallel()
+
+	type S3 struct {
+		C bool `tfsdk:"c"`
+	}
+	type s2 struct {
+		B *big.Float `tfsdk:"b"`
+		S3
+	}
+	type s1 struct {
+		A string `tfsdk:"a"`
+		s2
+	}
+	var s s1
+
 	result, diags := refl.Struct(context.Background(), types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"a": types.StringType,
@@ -565,6 +847,56 @@ func TestNewStruct_structtags_ignores(t *testing.T) {
 	}
 }
 
+func TestNewStruct_embedded_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	type s1 struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+
+	type s2 struct {
+		unexportedField string //nolint:structcheck,unused
+	}
+
+	var s struct {
+		s1
+		*s2 `tfsdk:"-"`
+	}
+	result, diags := refl.Struct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"exported_and_tagged": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"exported_and_tagged": tftypes.NewValue(tftypes.String, "hello"),
+	}), reflect.ValueOf(s), refl.Options{}, path.Empty())
+	if diags.HasError() {
+		t.Errorf("Unexpected error: %v", diags)
+	}
+	reflect.ValueOf(&s).Elem().Set(result)
+	if s.ExportedAndTagged != "hello" {
+		t.Errorf("Expected s.ExportedAndTagged to be %q, was %q", "hello", s.ExportedAndTagged)
+	}
+
+	if s.unexported != "" {
+		t.Errorf("Expected s.unexported to be empty, was %q", s.unexported)
+	}
+
+	if s.unexportedAndTagged != "" {
+		t.Errorf("Expected s.unexportedAndTagged to be empty, was %q", s.unexportedAndTagged)
+	}
+
+	if s.ExportedAndExcluded != "" {
+		t.Errorf("Expected s.ExportedAndExcluded to be empty, was %q", s.ExportedAndExcluded)
+	}
+}
+
 func TestFromStruct_primitives(t *testing.T) {
 	t.Parallel()
 
@@ -577,6 +909,61 @@ func TestFromStruct_primitives(t *testing.T) {
 		Name:    "myfirstdisk",
 		Age:     30,
 		OptedIn: true,
+	}
+
+	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"name":     types.StringType,
+			"age":      types.NumberType,
+			"opted_in": types.BoolType,
+		},
+	}, reflect.ValueOf(disk1), path.Empty())
+	if diags.HasError() {
+		t.Fatalf("Unexpected error: %v", diags)
+	}
+
+	expectedVal := types.ObjectValueMust(
+		map[string]attr.Type{
+			"name":     types.StringType,
+			"age":      types.NumberType,
+			"opted_in": types.BoolType,
+		},
+		map[string]attr.Value{
+			"name":     types.StringValue("myfirstdisk"),
+			"age":      types.NumberValue(big.NewFloat(30)),
+			"opted_in": types.BoolValue(true),
+		},
+	)
+
+	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromStruct_embedded_primitives(t *testing.T) {
+	t.Parallel()
+
+	type embedFields struct {
+		Name string `tfsdk:"name"`
+		Age  int    `tfsdk:"age"`
+	}
+
+	type EmbedFields struct {
+		OptedIn bool `tfsdk:"opted_in"`
+	}
+
+	type disk struct {
+		embedFields
+		EmbedFields
+	}
+	disk1 := disk{
+		embedFields{
+			Name: "myfirstdisk",
+			Age:  30,
+		},
+		EmbedFields{
+			OptedIn: true,
+		},
 	}
 
 	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{
@@ -970,6 +1357,29 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-struct-field-mismatch": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct into an object. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Mismatch between struct and object type: Struct defines fields not found in object: attr_1. Object defines fields not found in struct: test.\n"+
+						`Struct: struct { reflect_test.embedSingleField }`+"\n"+
+						`Object type: types.ObjectType["test":basetypes.StringType]`,
+				),
+			},
+		},
 		"struct-type-mismatch": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -993,6 +1403,29 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-struct-type-mismatch": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.BoolType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField // intentionally not types.Bool
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("attr_1"),
+					"Value Conversion Error",
+					"An unexpected error was encountered while verifying an attribute value matched its expected type to prevent unexpected behavior or panics. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"Expected framework type from provider logic: basetypes.BoolType / underlying type: tftypes.Bool\n"+
+						"Received framework type from provider logic: basetypes.StringType / underlying type: tftypes.String\n"+
+						"Path: test.attr_1",
+				),
+			},
+		},
 		"struct-validate-error": {
 			typ: testtypes.ObjectTypeWithValidateError{
 				ObjectType: types.ObjectType{
@@ -1004,6 +1437,27 @@ func TestFromStruct_errors(t *testing.T) {
 			val: reflect.ValueOf(
 				struct {
 					Test types.String `tfsdk:"test"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"embedded-struct-validate-error": {
+			typ: testtypes.ObjectTypeWithValidateError{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"attr_1": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
 				}{},
 			),
 			expectedDiags: diag.Diagnostics{
@@ -1035,6 +1489,27 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-struct-validate-attribute-error": {
+			typ: testtypes.ObjectTypeWithValidateAttributeError{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"attr_1": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
 		"struct-validate-warning": {
 			typ: testtypes.ObjectTypeWithValidateWarning{
 				ObjectType: types.ObjectType{
@@ -1056,6 +1531,39 @@ func TestFromStruct_errors(t *testing.T) {
 				},
 				map[string]attr.Value{
 					"test": types.StringValue("test"),
+				},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
+				),
+			},
+		},
+		"embedded-struct-validate-warning": {
+			typ: testtypes.ObjectTypeWithValidateWarning{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"attr_1": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
+				}{
+					embedSingleField{
+						Attr1: types.StringValue("test"),
+					},
+				},
+			),
+			expected: types.ObjectValueMust(
+				map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+				map[string]attr.Value{
+					"attr_1": types.StringValue("test"),
 				},
 			),
 			expectedDiags: diag.Diagnostics{
@@ -1099,6 +1607,41 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-struct-validate-attribute-warning": {
+			typ: testtypes.ObjectTypeWithValidateAttributeWarning{
+				ObjectType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"attr_1": types.StringType,
+					},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
+				}{
+					embedSingleField: embedSingleField{
+						Attr1: types.StringValue("test"),
+					},
+				},
+			),
+			expected: testtypes.ObjectValueWithValidateAttributeWarning{
+				Object: types.ObjectValueMust(
+					map[string]attr.Type{
+						"attr_1": types.StringType,
+					},
+					map[string]attr.Value{
+						"attr_1": types.StringValue("test"),
+					},
+				),
+			},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeWarningDiagnostic(
+					path.Root("test"),
+					"Warning Diagnostic",
+					"This is a warning.",
+				),
+			},
+		},
 		"struct-field-validate-error": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -1113,6 +1656,25 @@ func TestFromStruct_errors(t *testing.T) {
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
 					path.Root("test").AtName("test"),
+					"Error Diagnostic",
+					"This is an error.",
+				),
+			},
+		},
+		"embedded-struct-field-validate-error": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": testtypes.StringTypeWithValidateError{},
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("attr_1"),
 					"Error Diagnostic",
 					"This is an error.",
 				),
@@ -1237,6 +1799,29 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-struct-has-untagged-fields": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:"test"`
+					embedWithUntaggedExportedField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: error retrieving embedded struct \"embedWithUntaggedExportedField\" field tags: "+
+						"test: need a struct tag for \"tfsdk\" on ExportedAndUntagged",
+				),
+			},
+		},
 		"struct-has-invalid-tags": {
 			typ: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -1254,7 +1839,50 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert from struct value. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"error retrieving field names from struct tags: test.invalidTag: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+						"error retrieving field names from struct tags: test.invalidTag: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+				),
+			},
+		},
+		"struct-has-empty-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Test types.String `tfsdk:""`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter",
+				),
+			},
+		},
+		"embedded-struct-has-invalid-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"test": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedWithInvalidTag
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: error retrieving embedded struct \"embedWithInvalidTag\" field tags: "+
+						"test.invalidTag: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter",
 				),
 			},
 		},
@@ -1276,7 +1904,29 @@ func TestFromStruct_errors(t *testing.T) {
 					"Value Conversion Error",
 					"An unexpected error was encountered trying to convert from struct value. "+
 						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-						"error retrieving field names from struct tags: test.test: can't use field name for both Test and Test2",
+						"error retrieving field names from struct tags: test.test: can't use tfsdk tag \"test\" for both Test and Test2 fields",
+				),
+			},
+		},
+		"embedded-struct-has-duplicate-tags": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					Attr1 types.String `tfsdk:"attr_1"`
+					embedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: embedded struct \"embedSingleField\" promotes a field with a duplicate tfsdk tag \"attr_1\", conflicts with \"Attr1\" tfsdk tag",
 				),
 			},
 		},
@@ -1383,6 +2033,92 @@ func TestFromStruct_errors(t *testing.T) {
 				),
 			},
 		},
+		"embedded-exported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					*EmbedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("attr_1"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"struct { *reflect_test.EmbedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n"+
+						"Error: reflect: indirection through nil pointer to embedded struct field EmbedSingleField",
+				),
+			},
+		},
+		"embedded-unexported-struct-with-pointer-not-supported": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					*embedSingleField
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test").AtName("attr_1"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"struct { *reflect_test.embedSingleField } contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\n"+
+						"Error: reflect: indirection through nil pointer to embedded struct field embedSingleField",
+				),
+			},
+		},
+		"embedded-struct-has-empty-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField `tfsdk:""`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.: embedded struct field embedSingleField cannot have tfsdk tag",
+				),
+			},
+		},
+		"embedded-struct-has-tfsdk-tag": {
+			typ: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"attr_1": types.StringType,
+				},
+			},
+			val: reflect.ValueOf(
+				struct {
+					embedSingleField `tfsdk:"attr_2"`
+				}{},
+			),
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(
+					path.Root("test"),
+					"Value Conversion Error",
+					"An unexpected error was encountered trying to convert from struct value. "+
+						"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+						"error retrieving field names from struct tags: test.attr_2: embedded struct field embedSingleField cannot have tfsdk tag",
+				),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1426,6 +2162,57 @@ func TestFromStruct_structtags_ignores(t *testing.T) {
 		unexported:          "shouldntcopy",
 		unexportedAndTagged: "shouldntcopy",
 		ExportedAndExcluded: "shouldntcopy",
+	}
+
+	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+	}, reflect.ValueOf(testStruct), path.Empty())
+	if diags.HasError() {
+		t.Fatalf("Unexpected error: %v", diags)
+	}
+
+	expectedVal := types.ObjectValueMust(
+		map[string]attr.Type{
+			"exported_and_tagged": types.StringType,
+		},
+		map[string]attr.Value{
+			"exported_and_tagged": types.StringValue("thisshouldstay"),
+		},
+	)
+
+	if diff := cmp.Diff(expectedVal, actualVal); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+	}
+}
+
+func TestFromStruct_embedded_structtags_ignores(t *testing.T) {
+	t.Parallel()
+
+	type s1 struct {
+		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
+		unexported          string //nolint:structcheck,unused
+		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
+		ExportedAndExcluded string `tfsdk:"-"`
+	}
+
+	type s2 struct {
+		unexportedField string //nolint:structcheck,unused
+	}
+
+	type s struct {
+		s1
+		*s2 `tfsdk:"-"`
+	}
+	testStruct := s{
+		s1{
+			ExportedAndTagged:   "thisshouldstay",
+			unexported:          "shouldntcopy",
+			unexportedAndTagged: "shouldntcopy",
+			ExportedAndExcluded: "shouldntcopy",
+		},
+		&s2{},
 	}
 
 	actualVal, diags := refl.FromStruct(context.Background(), types.ObjectType{

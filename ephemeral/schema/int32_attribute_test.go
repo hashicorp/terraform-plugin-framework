@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -231,12 +232,12 @@ func TestInt32AttributeGetType(t *testing.T) {
 			attribute: schema.Int32Attribute{},
 			expected:  types.Int32Type,
 		},
-		// "custom-type": {
-		// 	attribute: schema.Int32Attribute{
-		// 		CustomType: testtypes.Int32Type{},
-		// 	},
-		// 	expected: testtypes.Int32Type{},
-		// },
+		"custom-type": {
+			attribute: schema.Int32Attribute{
+				CustomType: testtypes.Int32Type{},
+			},
+			expected: testtypes.Int32Type{},
+		},
 	}
 
 	for name, testCase := range testCases {

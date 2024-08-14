@@ -239,12 +239,12 @@ func TestSetAttributeGetType(t *testing.T) {
 			attribute: schema.SetAttribute{ElementType: types.StringType},
 			expected:  types.SetType{ElemType: types.StringType},
 		},
-		// "custom-type": {
-		// 	attribute: schema.SetAttribute{
-		// 		CustomType: testtypes.SetType{},
-		// 	},
-		// 	expected: testtypes.SetType{},
-		// },
+		"custom-type": {
+			attribute: schema.SetAttribute{
+				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			},
+			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

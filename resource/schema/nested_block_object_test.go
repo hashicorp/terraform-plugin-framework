@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -380,12 +381,12 @@ func TestNestedBlockObjectType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	block: schema.NestedBlockObject{
-		// 		CustomType: testtypes.SingleType{},
-		// 	},
-		// 	expected: testtypes.SingleType{},
-		// },
+		"custom-type": {
+			object: schema.NestedBlockObject{
+				CustomType: testtypes.ObjectType{},
+			},
+			expected: testtypes.ObjectType{},
+		},
 	}
 
 	for name, testCase := range testCases {

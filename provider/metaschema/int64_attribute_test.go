@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -223,12 +224,12 @@ func TestInt64AttributeGetType(t *testing.T) {
 			attribute: metaschema.Int64Attribute{},
 			expected:  types.Int64Type,
 		},
-		// "custom-type": {
-		// 	attribute: metaschema.Int64Attribute{
-		// 		CustomType: testtypes.Int64Type{},
-		// 	},
-		// 	expected: testtypes.Int64Type{},
-		// },
+		"custom-type": {
+			attribute: metaschema.Int64Attribute{
+				CustomType: testtypes.Int64Type{},
+			},
+			expected: testtypes.Int64Type{},
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -243,12 +244,12 @@ func TestSetAttributeGetType(t *testing.T) {
 			attribute: schema.SetAttribute{ElementType: types.StringType},
 			expected:  types.SetType{ElemType: types.StringType},
 		},
-		// "custom-type": {
-		// 	attribute: schema.SetAttribute{
-		// 		CustomType: testtypes.SetType{},
-		// 	},
-		// 	expected: testtypes.SetType{},
-		// },
+		"custom-type": {
+			attribute: schema.SetAttribute{
+				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			},
+			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -232,12 +232,12 @@ func TestListAttributeGetType(t *testing.T) {
 			attribute: metaschema.ListAttribute{ElementType: types.StringType},
 			expected:  types.ListType{ElemType: types.StringType},
 		},
-		// "custom-type": {
-		// 	attribute: metaschema.ListAttribute{
-		// 		CustomType: testtypes.ListType{},
-		// 	},
-		// 	expected: testtypes.ListType{},
-		// },
+		"custom-type": {
+			attribute: metaschema.ListAttribute{
+				CustomType: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+			},
+			expected: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

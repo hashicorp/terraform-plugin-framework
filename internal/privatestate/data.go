@@ -73,8 +73,8 @@ func (d *Data) Bytes(ctx context.Context) ([]byte, diag.Diagnostics) {
 				diags.AddError(
 					"Error Encoding Private State",
 					fmt.Sprintf("An error was encountered when validating private state value."+
-						fmt.Sprintf("The value associated with key %q is is not valid JSON.\n\n", k)+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer."),
+						"The value associated with key %q is is not valid JSON.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.", k),
 				)
 
 				tflog.Error(ctx, "error encoding private state: invalid JSON value", map[string]interface{}{"key": k, "value": v})

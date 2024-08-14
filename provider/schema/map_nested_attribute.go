@@ -187,7 +187,7 @@ func (a MapNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
 	return a.NestedObject
 }
 
-// GetNestingMode always returns NestingModeList.
+// GetNestingMode always returns NestingModeMap.
 func (a MapNestedAttribute) GetNestingMode() fwschema.NestingMode {
 	return fwschema.NestingModeMap
 }

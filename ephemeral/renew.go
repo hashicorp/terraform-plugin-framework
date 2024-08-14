@@ -18,9 +18,6 @@ type RenewRequest struct {
 	// resource following the latest Open or Renew operation.
 	PriorState tfsdk.EphemeralState
 
-	// TODO: Still being discussed, but we likely don't need config in the request,
-	// since PriorState should be guaranteed to contain the configuration values + state response values.
-	//
 	// Config is the configuration the user supplied for the ephemeral
 	// resource.
 	Config tfsdk.Config

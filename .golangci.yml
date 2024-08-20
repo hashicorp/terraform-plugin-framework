@@ -22,7 +22,7 @@ linters:
     - unconvert
     - unparam
     - unused
-    - vet
+    - govet
 
 run:
   # Prevent false positive timeouts in CI

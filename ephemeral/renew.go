@@ -14,9 +14,9 @@ import (
 // resource. An instance of this request struct is supplied as an argument to
 // the ephemeral resource's Renew function.
 type RenewRequest struct {
-	// PriorState is the object representing the values of the ephemeral
-	// resource following the latest Open or Renew operation.
-	PriorState tfsdk.EphemeralState
+	// State is the object representing the values of the ephemeral
+	// resource following the Open operation.
+	State tfsdk.EphemeralState
 
 	// Config is the configuration the user supplied for the ephemeral
 	// resource.
@@ -37,12 +37,6 @@ type RenewRequest struct {
 // to the ephemeral resource's Renew function, in which the provider
 // should set values on the RenewResponse as appropriate.
 type RenewResponse struct {
-	// State is the object representing the values of the ephemeral
-	// resource following the Renew operation. This field is pre-populated
-	// from RenewRequest.PriorState and should be set during the resource's
-	// Renew operation.
-	State tfsdk.EphemeralState
-
 	// RenewAt is an optional date/time field that indicates to Terraform
 	// when this ephemeral resource must be renewed at. Terraform will call
 	// the (EphemeralResource).Renew method when the current date/time is on

@@ -13,7 +13,7 @@
 // Ephemeral resources are not saved into the Terraform plan or state and can
 // only be referenced in other ephemeral values, such as provider configuration
 // attributes. Ephemeral resources are defined by a type/name, such as "examplecloud_thing",
-// a schema representing the structure and data types of configuration and lifecycle logic.
+// a schema representing the structure and data types of configuration, and lifecycle logic.
 //
 // The main starting point for implementations in this package is the
 // EphemeralResource type which represents an instance of an ephemeral resource

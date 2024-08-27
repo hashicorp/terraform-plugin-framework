@@ -12,9 +12,9 @@ import (
 // resource. An instance of this request struct is supplied as an argument to
 // the ephemeral resource's Close function.
 type CloseRequest struct {
-	// PriorState is the object representing the values of the ephemeral
-	// resource following the latest Open or Renew operation.
-	PriorState tfsdk.EphemeralState
+	// State is the object representing the values of the ephemeral
+	// resource following the Open operation.
+	State tfsdk.EphemeralState
 
 	// Private is provider-defined ephemeral resource private state data
 	// which was previously provided by the latest Open or Renew operation.

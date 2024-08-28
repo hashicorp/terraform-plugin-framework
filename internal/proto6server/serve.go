@@ -21,6 +21,28 @@ type Server struct {
 	contextCancelsMu sync.Mutex
 }
 
+// TODO: Stub for now to satisfy compiler
+//
+// CloseEphemeralResource implements tfprotov6.ProviderServer.
+func (s *Server) CloseEphemeralResource(context.Context, *tfprotov6.CloseEphemeralResourceRequest) (*tfprotov6.CloseEphemeralResourceResponse, error) {
+	panic("unimplemented")
+}
+
+// OpenEphemeralResource implements tfprotov6.ProviderServer.
+func (s *Server) OpenEphemeralResource(context.Context, *tfprotov6.OpenEphemeralResourceRequest) (*tfprotov6.OpenEphemeralResourceResponse, error) {
+	panic("unimplemented")
+}
+
+// RenewEphemeralResource implements tfprotov6.ProviderServer.
+func (s *Server) RenewEphemeralResource(context.Context, *tfprotov6.RenewEphemeralResourceRequest) (*tfprotov6.RenewEphemeralResourceResponse, error) {
+	panic("unimplemented")
+}
+
+// ValidateEphemeralResourceConfig implements tfprotov6.ProviderServer.
+func (s *Server) ValidateEphemeralResourceConfig(context.Context, *tfprotov6.ValidateEphemeralResourceConfigRequest) (*tfprotov6.ValidateEphemeralResourceConfigResponse, error) {
+	panic("unimplemented")
+}
+
 func (s *Server) registerContext(in context.Context) context.Context {
 	ctx, cancel := context.WithCancel(in)
 	s.contextCancelsMu.Lock()

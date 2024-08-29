@@ -45,6 +45,32 @@ func TestGetMetadataResponse(t *testing.T) {
 						TypeName: "test_data_source_2",
 					},
 				},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+				Functions:          []tfprotov5.FunctionMetadata{},
+				Resources:          []tfprotov5.ResourceMetadata{},
+			},
+		},
+		"ephemeralresources": {
+			input: &fwserver.GetMetadataResponse{
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{
+					{
+						TypeName: "test_ephemeral_resource_1",
+					},
+					{
+						TypeName: "test_ephemeral_resource_2",
+					},
+				},
+			},
+			expected: &tfprotov5.GetMetadataResponse{
+				DataSources: []tfprotov5.DataSourceMetadata{},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{
+					{
+						TypeName: "test_ephemeral_resource_1",
+					},
+					{
+						TypeName: "test_ephemeral_resource_2",
+					},
+				},
 				Functions: []tfprotov5.FunctionMetadata{},
 				Resources: []tfprotov5.ResourceMetadata{},
 			},
@@ -71,8 +97,9 @@ func TestGetMetadataResponse(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov5.FunctionMetadata{},
-				Resources: []tfprotov5.ResourceMetadata{},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+				Functions:          []tfprotov5.FunctionMetadata{},
+				Resources:          []tfprotov5.ResourceMetadata{},
 			},
 		},
 		"functions": {
@@ -87,7 +114,8 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetMetadataResponse{
-				DataSources: []tfprotov5.DataSourceMetadata{},
+				DataSources:        []tfprotov5.DataSourceMetadata{},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
 				Functions: []tfprotov5.FunctionMetadata{
 					{
 						Name: "function1",
@@ -111,8 +139,9 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetMetadataResponse{
-				DataSources: []tfprotov5.DataSourceMetadata{},
-				Functions:   []tfprotov5.FunctionMetadata{},
+				DataSources:        []tfprotov5.DataSourceMetadata{},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+				Functions:          []tfprotov5.FunctionMetadata{},
 				Resources: []tfprotov5.ResourceMetadata{
 					{
 						TypeName: "test_resource_1",
@@ -131,9 +160,10 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetMetadataResponse{
-				DataSources: []tfprotov5.DataSourceMetadata{},
-				Functions:   []tfprotov5.FunctionMetadata{},
-				Resources:   []tfprotov5.ResourceMetadata{},
+				DataSources:        []tfprotov5.DataSourceMetadata{},
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+				Functions:          []tfprotov5.FunctionMetadata{},
+				Resources:          []tfprotov5.ResourceMetadata{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					PlanDestroy:               true,

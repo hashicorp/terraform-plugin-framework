@@ -18,7 +18,7 @@ const (
 
 	// DataDescriptionEphemeralState is used for Data that represents
 	// an ephemeral state-based value.
-	DataDescriptionEphemeralState DataDescription = "ephemeral-state"
+	DataDescriptionEphemeralState DataDescription = "ephemeral state"
 )
 
 // DataDescription is a human friendly type for Data. Used in error

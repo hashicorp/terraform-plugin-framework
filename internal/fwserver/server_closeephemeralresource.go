@@ -66,6 +66,16 @@ func (s *Server) CloseEphemeralResource(ctx context.Context, req *CloseEphemeral
 		return
 	}
 
+	if req.State == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Close Request",
+			"An unexpected error was encountered when closing the ephemeral resource. The state was missing.\n\n"+
+				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+		)
+
+		return
+	}
+
 	privateProviderData := privatestate.EmptyProviderData(ctx)
 	if req.Private != nil && req.Private.Provider != nil {
 		privateProviderData = req.Private.Provider

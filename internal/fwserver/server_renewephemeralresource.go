@@ -70,6 +70,16 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 		return
 	}
 
+	if req.State == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Renew Request",
+			"An unexpected error was encountered when renewing the ephemeral resource. The state was missing.\n\n"+
+				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+		)
+
+		return
+	}
+
 	// Ensure that resp.Private is never nil.
 	resp.Private = privatestate.EmptyData(ctx)
 	if req.Private != nil {

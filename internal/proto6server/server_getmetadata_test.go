@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -61,8 +62,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_data_source2",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					PlanDestroy:               true,
@@ -106,8 +108,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					PlanDestroy:               true,
@@ -140,6 +143,135 @@ func TestServerGetMetadata(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Data Source Type Name Missing",
 						Detail: "The *testprovider.DataSource DataSource returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource1"
+										},
+									}
+								},
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{
+					{
+						TypeName: "test_ephemeral_resource1",
+					},
+					{
+						TypeName: "test_ephemeral_resource2",
+					},
+				},
+				Functions: []tfprotov6.FunctionMetadata{},
+				Resources: []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource"
+										},
+									}
+								},
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Duplicate Ephemeral Resource Type Defined",
+						Detail: "The test_ephemeral_resource ephemeral resource type name was returned for multiple ephemeral resources. " +
+							"Ephemeral resource type names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: []tfprotov6.FunctionMetadata{},
+				Resources: []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources-empty-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = ""
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Ephemeral Resource Type Name Missing",
+						Detail: "The *testprovider.EphemeralResource EphemeralResource returned an empty string from the Metadata method. " +
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
@@ -178,7 +310,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions: []tfprotov6.FunctionMetadata{
 					{
 						Name: "function1",
@@ -221,7 +354,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -259,7 +393,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -303,8 +438,9 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
-				Functions:   []tfprotov6.FunctionMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -346,7 +482,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -384,7 +521,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources: []tfprotov6.DataSourceMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -418,6 +556,10 @@ func TestServerGetMetadata(t *testing.T) {
 			// Prevent false positives with random map access in testing
 			sort.Slice(got.DataSources, func(i int, j int) bool {
 				return got.DataSources[i].TypeName < got.DataSources[j].TypeName
+			})
+
+			sort.Slice(got.EphemeralResources, func(i int, j int) bool {
+				return got.EphemeralResources[i].TypeName < got.EphemeralResources[j].TypeName
 			})
 
 			sort.Slice(got.Functions, func(i int, j int) bool {

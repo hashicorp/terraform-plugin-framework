@@ -660,6 +660,10 @@ func TestServerGetMetadata(t *testing.T) {
 				return response.DataSources[i].TypeName < response.DataSources[j].TypeName
 			})
 
+			sort.Slice(response.EphemeralResources, func(i int, j int) bool {
+				return response.EphemeralResources[i].TypeName < response.EphemeralResources[j].TypeName
+			})
+
 			sort.Slice(response.Functions, func(i int, j int) bool {
 				return response.Functions[i].Name < response.Functions[j].Name
 			})

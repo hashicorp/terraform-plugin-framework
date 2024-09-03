@@ -65,7 +65,7 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 		// the RenewAt response field without defining the renew function (invalid implementation).
 		resp.Diagnostics.AddError(
 			"Ephemeral Resource Renew Not Implemented",
-			"This resource does not support renew. Please contact the provider developer for additional information.",
+			"This ephemeral resource does not support renew. Please contact the provider developer for additional information.",
 		)
 		return
 	}

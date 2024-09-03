@@ -61,7 +61,7 @@ func (s *Server) CloseEphemeralResource(ctx context.Context, req *CloseEphemeral
 		// the is_closable response field incorrectly.
 		resp.Diagnostics.AddError(
 			"Ephemeral Resource Close Not Implemented",
-			"This resource does not support close. Please contact the provider developer for additional information.",
+			"This ephemeral resource does not support close. Please contact the provider developer for additional information.",
 		)
 		return
 	}

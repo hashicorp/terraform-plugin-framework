@@ -193,7 +193,9 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Ephemeral Resource Close Not Implemented",
-						"This ephemeral resource does not support close. Please contact the provider developer for additional information.",
+						"An unexpected error was encountered when closing the ephemeral resource. Terraform sent a close request for an "+
+							"ephemeral resource that has not implemented close logic.\n\n"+
+							"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 					),
 				},
 			},

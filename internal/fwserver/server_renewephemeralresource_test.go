@@ -252,7 +252,9 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Ephemeral Resource Renew Not Implemented",
-						"This ephemeral resource does not support renew. Please contact the provider developer for additional information.",
+						"An unexpected error was encountered when renewing the ephemeral resource. Terraform sent a renewal request for an "+
+							"ephemeral resource that has not implemented renewal logic.\n\n"+
+							"Please report this to the provider developer.",
 					),
 				},
 			},

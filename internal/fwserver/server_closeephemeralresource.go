@@ -56,12 +56,13 @@ func (s *Server) CloseEphemeralResource(ctx context.Context, req *CloseEphemeral
 
 	resourceWithClose, ok := req.EphemeralResource.(ephemeral.EphemeralResourceWithClose)
 	if !ok {
-		// TODO: this diagnostic should be more worded towards a core or plugin-framework bug.
-		// Either something is bugged in core and called close incorrectly, or the framework populated
-		// the is_closable response field incorrectly.
+		// The framework automatically sets the indicator to Terraform core that enables calling close using
+		// this interface, so if we get this diagnostic then there is a bug in either Terraform core or framework.
 		resp.Diagnostics.AddError(
 			"Ephemeral Resource Close Not Implemented",
-			"This ephemeral resource does not support close. Please contact the provider developer for additional information.",
+			"An unexpected error was encountered when closing the ephemeral resource. Terraform sent a close request for an "+
+				"ephemeral resource that has not implemented close logic.\n\n"+
+				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 		)
 		return
 	}

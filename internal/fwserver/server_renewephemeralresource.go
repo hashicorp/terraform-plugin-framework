@@ -60,12 +60,11 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 
 	resourceWithRenew, ok := req.EphemeralResource.(ephemeral.EphemeralResourceWithRenew)
 	if !ok {
-		// TODO: this diagnostic should be more worded towards an invalid implementation or core bug.
-		// Either something is bugged in core and called renew incorrectly, or the provider populated
-		// the RenewAt response field without defining the renew function (invalid implementation).
 		resp.Diagnostics.AddError(
 			"Ephemeral Resource Renew Not Implemented",
-			"This ephemeral resource does not support renew. Please contact the provider developer for additional information.",
+			"An unexpected error was encountered when renewing the ephemeral resource. Terraform sent a renewal request for an "+
+				"ephemeral resource that has not implemented renewal logic.\n\n"+
+				"Please report this to the provider developer.",
 		)
 		return
 	}

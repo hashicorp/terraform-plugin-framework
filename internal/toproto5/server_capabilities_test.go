@@ -32,6 +32,14 @@ func TestServerCapabilities(t *testing.T) {
 				GetProviderSchemaOptional: true,
 			},
 		},
+		"MoveResourceState": {
+			fw: &fwserver.ServerCapabilities{
+				MoveResourceState: true,
+			},
+			expected: &tfprotov5.ServerCapabilities{
+				MoveResourceState: true,
+			},
+		},
 		"PlanDestroy": {
 			fw: &fwserver.ServerCapabilities{
 				PlanDestroy: true,

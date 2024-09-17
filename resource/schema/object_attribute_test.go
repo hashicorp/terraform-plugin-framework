@@ -250,12 +250,12 @@ func TestObjectAttributeGetType(t *testing.T) {
 			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  types.ObjectType{AttrTypes: map[string]attr.Type{"testattr": types.StringType}},
 		},
-		// "custom-type": {
-		// 	attribute: schema.ObjectAttribute{
-		// 		CustomType: testtypes.ObjectType{},
-		// 	},
-		// 	expected: testtypes.ObjectType{},
-		// },
+		"custom-type": {
+			attribute: schema.ObjectAttribute{
+				CustomType: testtypes.ObjectType{},
+			},
+			expected: testtypes.ObjectType{},
+		},
 	}
 
 	for name, testCase := range testCases {

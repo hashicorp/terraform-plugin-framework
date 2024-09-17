@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -352,12 +353,12 @@ func TestFloat32AttributeGetType(t *testing.T) {
 			attribute: schema.Float32Attribute{},
 			expected:  types.Float32Type,
 		},
-		// "custom-type": {
-		// 	attribute: schema.Float32Attribute{
-		// 		CustomType: testtypes.Float32Type{},
-		// 	},
-		// 	expected: testtypes.Float32Type{},
-		// },
+		"custom-type": {
+			attribute: schema.Float32Attribute{
+				CustomType: testtypes.Float32Type{},
+			},
+			expected: testtypes.Float32Type{},
+		},
 	}
 
 	for name, testCase := range testCases {

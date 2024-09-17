@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -223,12 +224,12 @@ func TestFloat64AttributeGetType(t *testing.T) {
 			attribute: metaschema.Float64Attribute{},
 			expected:  types.Float64Type,
 		},
-		// "custom-type": {
-		// 	attribute: metaschema.Float64Attribute{
-		// 		CustomType: testtypes.Float64Type{},
-		// 	},
-		// 	expected: testtypes.Float64Type{},
-		// },
+		"custom-type": {
+			attribute: metaschema.Float64Attribute{
+				CustomType: testtypes.Float64Type{},
+			},
+			expected: testtypes.Float64Type{},
+		},
 	}
 
 	for name, testCase := range testCases {

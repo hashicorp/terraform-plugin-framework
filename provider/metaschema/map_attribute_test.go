@@ -232,12 +232,12 @@ func TestMapAttributeGetType(t *testing.T) {
 			attribute: metaschema.MapAttribute{ElementType: types.StringType},
 			expected:  types.MapType{ElemType: types.StringType},
 		},
-		// "custom-type": {
-		// 	attribute: metaschema.MapAttribute{
-		// 		CustomType: testtypes.MapType{},
-		// 	},
-		// 	expected: testtypes.MapType{},
-		// },
+		"custom-type": {
+			attribute: metaschema.MapAttribute{
+				CustomType: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+			},
+			expected: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

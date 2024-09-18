@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'providerserver: Fixed bug that prevented `moved` operation support between
-  resource types for framework-only providers.'
-time: 2024-09-17T16:37:16.161402-04:00
-custom:
-  Issue: "1039"

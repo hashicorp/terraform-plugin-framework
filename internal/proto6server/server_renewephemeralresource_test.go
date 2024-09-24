@@ -28,11 +28,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 		},
 	}
 
-	testConfigDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, nil),
-		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-	})
-
 	testEmptyDynamicValue := testNewDynamicValue(t, tftypes.Object{}, nil)
 
 	testStateDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
@@ -82,54 +77,7 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   testEmptyDynamicValue,
 				State:    testEmptyDynamicValue,
-				TypeName: "test_ephemeral_resource",
-			},
-			expectedResponse: &tfprotov6.RenewEphemeralResourceResponse{},
-		},
-		"request-config": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
-							return []func() ephemeral.EphemeralResource{
-								func() ephemeral.EphemeralResource {
-									return &testprovider.EphemeralResourceWithRenew{
-										EphemeralResource: &testprovider.EphemeralResource{
-											SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
-												resp.Schema = testSchema
-											},
-											MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-												resp.TypeName = "test_ephemeral_resource"
-											},
-										},
-										RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
-											var config struct {
-												TestComputed types.String `tfsdk:"test_computed"`
-												TestRequired types.String `tfsdk:"test_required"`
-											}
-
-											resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
-											if config.TestRequired.ValueString() != "test-config-value" {
-												resp.Diagnostics.AddError("unexpected req.Config value for test_required: %s", config.TestRequired.ValueString())
-											}
-
-											if !config.TestComputed.IsNull() {
-												resp.Diagnostics.AddError("unexpected req.Config value for test_computed: %s", config.TestComputed.ValueString())
-											}
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   testConfigDynamicValue,
-				State:    testStateDynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},
 			expectedResponse: &tfprotov6.RenewEphemeralResourceResponse{},
@@ -174,7 +122,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   testConfigDynamicValue,
 				State:    testStateDynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},
@@ -208,7 +155,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   testConfigDynamicValue,
 				State:    testStateDynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},
@@ -254,7 +200,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   testEmptyDynamicValue,
 				State:    testEmptyDynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},

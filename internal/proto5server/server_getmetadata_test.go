@@ -198,6 +198,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []tfprotov5.ResourceMetadata{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -244,6 +245,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []tfprotov5.ResourceMetadata{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -282,6 +284,7 @@ func TestServerGetMetadata(t *testing.T) {
 				Resources: []tfprotov5.ResourceMetadata{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},

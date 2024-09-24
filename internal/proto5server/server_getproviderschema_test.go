@@ -305,6 +305,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -372,6 +373,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},
@@ -413,6 +415,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
 			},

@@ -79,34 +79,6 @@ func TestRenewEphemeralResourceRequest(t *testing.T) {
 				),
 			},
 		},
-		"config-missing-schema": {
-			input: &tfprotov6.RenewEphemeralResourceRequest{
-				Config: &testProto6DynamicValue,
-			},
-			expected: nil,
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Missing EphemeralResource Schema",
-					"An unexpected error was encountered when handling the request. "+
-						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-						"Please report this to the provider developer:\n\n"+
-						"Missing schema.",
-				),
-			},
-		},
-		"config": {
-			input: &tfprotov6.RenewEphemeralResourceRequest{
-				Config: &testProto6DynamicValue,
-			},
-			ephemeralResourceSchema: testFwSchema,
-			expected: &fwserver.RenewEphemeralResourceRequest{
-				Config: &tfsdk.Config{
-					Raw:    testProto6Value,
-					Schema: testFwSchema,
-				},
-				EphemeralResourceSchema: testFwSchema,
-			},
-		},
 		"private": {
 			input: &tfprotov6.RenewEphemeralResourceRequest{
 				Private: privatestate.MustMarshalToJson(map[string][]byte{

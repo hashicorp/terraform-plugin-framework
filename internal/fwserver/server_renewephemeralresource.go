@@ -18,7 +18,6 @@ import (
 // RenewEphemeralResourceRequest is the framework server request for the
 // RenewEphemeralResource RPC.
 type RenewEphemeralResourceRequest struct {
-	Config                  *tfsdk.Config
 	State                   *tfsdk.EphemeralState
 	Private                 *privatestate.Data
 	EphemeralResourceSchema fwschema.Schema
@@ -92,9 +91,6 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 	}
 
 	renewReq := ephemeral.RenewRequest{
-		Config: tfsdk.Config{
-			Schema: req.EphemeralResourceSchema,
-		},
 		State: tfsdk.EphemeralState{
 			Schema: req.EphemeralResourceSchema,
 			Raw:    req.State.Raw.Copy(),
@@ -103,10 +99,6 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 	}
 	renewResp := ephemeral.RenewResponse{
 		Private: renewReq.Private,
-	}
-
-	if req.Config != nil {
-		renewReq.Config = *req.Config
 	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined EphemeralResource Renew")

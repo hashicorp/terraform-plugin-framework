@@ -42,12 +42,6 @@ func RenewEphemeralResourceRequest(ctx context.Context, proto6 *tfprotov6.RenewE
 		EphemeralResourceSchema: ephemeralResourceSchema,
 	}
 
-	config, configDiags := Config(ctx, proto6.Config, ephemeralResourceSchema)
-
-	diags.Append(configDiags...)
-
-	fw.Config = config
-
 	state, stateDiags := EphemeralState(ctx, proto6.State, ephemeralResourceSchema)
 
 	diags.Append(stateDiags...)

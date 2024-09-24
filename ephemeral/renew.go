@@ -18,10 +18,6 @@ type RenewRequest struct {
 	// resource following the Open operation.
 	State tfsdk.EphemeralState
 
-	// Config is the configuration the user supplied for the ephemeral
-	// resource.
-	Config tfsdk.Config
-
 	// Private is provider-defined ephemeral resource private state data
 	// which was previously provided by the latest Open or Renew operation.
 	// Any existing data is copied to RenewResponse.Private to prevent

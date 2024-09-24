@@ -34,11 +34,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 		},
 	}
 
-	testConfigValue := tftypes.NewValue(testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, nil),
-		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-	})
-
 	testStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
 		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
@@ -53,11 +48,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Required: true,
 			},
 		},
-	}
-
-	testConfig := &tfsdk.Config{
-		Raw:    testConfigValue,
-		Schema: testSchema,
 	}
 
 	testState := &tfsdk.EphemeralState{
@@ -102,39 +92,11 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.RenewEphemeralResourceResponse{},
 		},
-		"request-config": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
-				State:                   testState,
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
-					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
-						var config struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
-						if config.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
-						}
-					},
-				},
-			},
-			expectedResponse: &fwserver.RenewEphemeralResourceResponse{
-				Private: testEmptyPrivate,
-			},
-		},
 		"request-state-missing": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {},
@@ -155,7 +117,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -186,7 +147,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -214,7 +174,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -242,7 +201,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				// Doesn't implement Renew interface
@@ -265,7 +223,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithConfigureAndRenew{
@@ -304,7 +261,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -321,7 +277,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -350,7 +305,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
@@ -369,7 +323,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				Config:                  testConfig,
 				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{

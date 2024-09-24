@@ -238,12 +238,12 @@ func TestObjectAttributeGetType(t *testing.T) {
 			attribute: metaschema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  types.ObjectType{AttrTypes: map[string]attr.Type{"testattr": types.StringType}},
 		},
-		// "custom-type": {
-		// 	attribute: metaschema.ObjectAttribute{
-		// 		CustomType: testtypes.ObjectType{},
-		// 	},
-		// 	expected: testtypes.ObjectType{},
-		// },
+		"custom-type": {
+			attribute: metaschema.ObjectAttribute{
+				CustomType: testtypes.ObjectType{},
+			},
+			expected: testtypes.ObjectType{},
+		},
 	}
 
 	for name, testCase := range testCases {

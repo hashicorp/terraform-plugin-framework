@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -216,12 +217,12 @@ func TestNestedAttributeObjectType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	block: metaschema.NestedAttributeObject{
-		// 		CustomType: testtypes.SingleType{},
-		// 	},
-		// 	expected: testtypes.SingleType{},
-		// },
+		"custom-type": {
+			object: metaschema.NestedAttributeObject{
+				CustomType: testtypes.ObjectType{},
+			},
+			expected: testtypes.ObjectType{},
+		},
 	}
 
 	for name, testCase := range testCases {

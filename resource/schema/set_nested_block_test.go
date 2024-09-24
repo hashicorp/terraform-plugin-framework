@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -507,12 +508,12 @@ func TestSetNestedBlockType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	block: schema.SetNestedBlock{
-		// 		CustomType: testtypes.SetType{},
-		// 	},
-		// 	expected: testtypes.SetType{},
-		// },
+		"custom-type": {
+			block: schema.SetNestedBlock{
+				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			},
+			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

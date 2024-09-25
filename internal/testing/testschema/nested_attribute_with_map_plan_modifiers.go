@@ -27,6 +27,7 @@ type NestedAttributeWithMapPlanModifiers struct {
 	PlanModifiers       []planmodifier.Map
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Type                attr.Type
 }
 
@@ -100,6 +101,11 @@ func (a NestedAttributeWithMapPlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a NestedAttributeWithMapPlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithMapPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // MapPlanModifiers satisfies the fwxschema.AttributeWithMapPlanModifiers interface.

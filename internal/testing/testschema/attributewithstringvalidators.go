@@ -22,6 +22,7 @@ type AttributeWithStringValidators struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Validators          []validator.String
 }
 
@@ -79,6 +80,11 @@ func (a AttributeWithStringValidators) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithStringValidators) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithStringValidators) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // StringValidators satisfies the fwxschema.AttributeWithStringValidators interface.

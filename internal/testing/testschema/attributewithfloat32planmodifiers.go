@@ -23,6 +23,7 @@ type AttributeWithFloat32PlanModifiers struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	PlanModifiers       []planmodifier.Float32
 }
 
@@ -85,4 +86,9 @@ func (a AttributeWithFloat32PlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat32PlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat32PlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }

@@ -23,6 +23,7 @@ type AttributeWithMapDefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.Map
 }
 
@@ -87,4 +88,9 @@ func (a AttributeWithMapDefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithMapDefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithMapDefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

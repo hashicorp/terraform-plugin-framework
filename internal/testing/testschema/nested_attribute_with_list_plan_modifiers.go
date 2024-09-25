@@ -27,6 +27,7 @@ type NestedAttributeWithListPlanModifiers struct {
 	PlanModifiers       []planmodifier.List
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Type                attr.Type
 }
 
@@ -100,6 +101,11 @@ func (a NestedAttributeWithListPlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a NestedAttributeWithListPlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithListPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ListPlanModifiers satisfies the fwxschema.AttributeWithListPlanModifiers interface.

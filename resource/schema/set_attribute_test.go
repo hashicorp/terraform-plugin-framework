@@ -403,6 +403,40 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestSetAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SetAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.SetAttribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.SetAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestSetAttributeSetDefaultValue(t *testing.T) {
 	t.Parallel()
 

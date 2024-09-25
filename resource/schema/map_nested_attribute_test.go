@@ -574,6 +574,40 @@ func TestMapNestedAttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestMapNestedAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.MapNestedAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.MapNestedAttribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestMapNestedAttributeMapNestedDefaultValue(t *testing.T) {
 	t.Parallel()
 
@@ -905,6 +939,94 @@ func TestMapNestedAttributeValidateImplementation(t *testing.T) {
 							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
+					),
+				},
+			},
+		},
+		"writeOnly-with-child-writeOnly-no-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"writeOnly-without-child-writeOnly-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a WriteOnly nested attribute that contains a non-WriteOnly child attribute.\n\n"+
+							"Every child attribute of a WriteOnly nested attribute must also have WriteOnly set to true.",
+					),
+				},
+			},
+		},
+		"computed-without-child-writeOnly-no-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"computed-with-child-writeOnly-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a Computed nested attribute that contains a WriteOnly child attribute.\n\n"+
+							"Every child attribute of a Computed nested attribute must have WriteOnly set to false.",
 					),
 				},
 			},

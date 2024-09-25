@@ -182,7 +182,7 @@ func (a BoolAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsWriteOnly returns false (write-only attributes are not supported in data source schemas).
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
 func (a BoolAttribute) IsWriteOnly() bool {
 	return false
 }

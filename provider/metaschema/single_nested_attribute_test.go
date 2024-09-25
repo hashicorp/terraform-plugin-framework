@@ -9,13 +9,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSingleNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -503,6 +504,34 @@ func TestSingleNestedAttributeIsSensitive(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsSensitive()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSingleNestedAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.SingleNestedAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: metaschema.SingleNestedAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

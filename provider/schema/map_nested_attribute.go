@@ -223,6 +223,11 @@ func (a MapNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in provider schemas.
+func (a MapNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // MapValidators returns the Validators field value.
 func (a MapNestedAttribute) MapValidators() []validator.Map {
 	return a.Validators

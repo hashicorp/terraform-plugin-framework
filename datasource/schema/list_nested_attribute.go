@@ -231,7 +231,7 @@ func (a ListNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
-// IsWriteOnly returns false (write-only attributes are not supported in data source schemas).
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
 func (a ListNestedAttribute) IsWriteOnly() bool {
 	return false
 }

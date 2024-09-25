@@ -4,11 +4,12 @@
 package metaschema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -115,5 +116,10 @@ func (a BoolAttribute) IsRequired() bool {
 // IsSensitive always returns false as there is no plan for provider meta
 // schema data.
 func (a BoolAttribute) IsSensitive() bool {
+	return false
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in provider meta schemas.
+func (a BoolAttribute) IsWriteOnly() bool {
 	return false
 }

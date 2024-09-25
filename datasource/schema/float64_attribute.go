@@ -190,7 +190,7 @@ func (a Float64Attribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
-// IsWriteOnly returns false (write-only attributes are not supported in data source schemas).
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
 func (a Float64Attribute) IsWriteOnly() bool {
 	return false
 }

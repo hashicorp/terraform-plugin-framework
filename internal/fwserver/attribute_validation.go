@@ -65,6 +65,22 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		return
 	}
 
+	if a.IsWriteOnly() && a.IsRequired() && a.IsOptional() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+		)
+	}
+
+	if a.IsWriteOnly() && a.IsComputed() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Invalid Attribute Definition",
+			"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+		)
+	}
+
 	configData := &fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         req.Config.Schema,
@@ -97,7 +113,10 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.IsRequired() && attributeConfig.IsNull() {
+	//
+	// We don't validate Required + WriteOnly attributes here as that is
+	// done in PlanResourceChange (only on create).
+	if a.IsRequired() && !a.IsWriteOnly() && attributeConfig.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Missing Configuration for Required Attribute",

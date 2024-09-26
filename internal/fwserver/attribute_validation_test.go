@@ -1700,6 +1700,213 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"write-only-attr-with-required": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Required:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"write-only-attr-with-required-null-value": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Required:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"write-only-attr-with-optional": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Optional:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
+		"write-only-attr-with-computed": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Computed:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Invalid Attribute Definition",
+						"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+			},
+		},
+		"write-only-attr-missing-required-and-optional": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Invalid Attribute Definition",
+						"Attribute missing Required, Optional, or Computed definition. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+			},
+		},
+		"write-only-attr-with-required-and-optional": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Required:  true,
+								Optional:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Invalid Attribute Definition",
+						"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+			},
+		},
+		"write-only-attr-with-computed-required-and-optional": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.StringType,
+								WriteOnly: true,
+								Required:  true,
+								Optional:  true,
+								Computed:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Invalid Attribute Definition",
+						"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Invalid Attribute Definition",
+						"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+			},
+		},
 	}
 
 	for name, tc := range testCases {

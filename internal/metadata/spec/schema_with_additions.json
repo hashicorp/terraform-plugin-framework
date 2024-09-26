@@ -1,11 +1,19 @@
 {
     "$id": "https://github.com/hashicorp/terraform-plugin-framework/internal/metadata/schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "Terraform Provider Schema",
-    "description": "A JSON document that represents the schema of an entire Terraform provider.",
+    "title": "Provider Metadata Specification",
+    "description": "A JSON document that represents the static metadata of a Terraform provider.",
     "type": "object",
     "additionalProperties": false,
+    "required": [
+        "version"
+    ],
     "properties": {
+        "version": {
+            "description": "The Provider Metadata Specification version, based on a shortened form (MAJOR.MINOR) of semantic versioning. Major versions denote a potential backwards incompatibility for consumers. Minor versions should be considered additive.",
+            "type": "string",
+            "minLength": 3
+        },
         "provider": {
             "description": "The schema for the provider's configuration.",
             "$ref": "#/$defs/Schema"

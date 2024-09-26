@@ -1,0 +1,295 @@
+{
+    "$id": "https://github.com/hashicorp/terraform-plugin-framework/internal/metadata/schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Terraform Provider Schema",
+    "description": "A JSON document that represents the schema of an entire Terraform provider.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "provider": {
+            "description": "The schema for the provider's configuration.",
+            "$ref": "#/$defs/Schema"
+        },
+        "resource_schemas": {
+            "description": "The schemas for managed resources in this provider.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/$defs/Schema"
+            }
+        },
+        "data_source_schemas": {
+            "description": "The schemas for data sources in this provider.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/$defs/Schema"
+            }
+        },
+        "functions": {
+            "description": "The definitions for functions in this provider.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/$defs/FunctionSignature"
+            }
+        }
+    },
+    "$defs": {
+        "Schema": {
+            "description": "The representation of a particular schema (provider config, managed resource, data source)",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "version": {
+                    "description": "The version of the schema.",
+                    "type": "integer"
+                },
+                "block": {
+                    "description": "The root-level block of configuration values.",
+                    "$ref": "#/$defs/Block"
+                },
+                "deprecated": {
+                    "description": "If true, this schema is deprecated.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "version"
+            ]
+        },
+        "Block": {
+            "description": "A nested block within a particular schema.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "attributes": {
+                    "description": "The attributes defined within this block.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Attribute"
+                    }
+                },
+                "block_types": {
+                    "description": "The nested blocks defined within this block.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/BlockType"
+                    }
+                },
+                "description": {
+                    "description": "The description for this block",
+                    "type": "string"
+                },
+                "description_kind": {
+                    "description": "The format of the description. If no kind is provided, it can be assumed to be plain text.",
+                    "$ref": "#/$defs/DescriptionKind"
+                },
+                "deprecated": {
+                    "description": "If true, this block is deprecated.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "BlockType": {
+            "description": "The top-level metadata for a nested block within a schema.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "nesting_mode": {
+                    "description": "The nesting mode for this block.",
+                    "$ref": "#/$defs/NestingMode"
+                },
+                "block": {
+                    "description": "The block data for this block type, including attributes and subsequent nested blocks.",
+                    "$ref": "#/$defs/Block"
+                },
+                "min_items": {
+                    "description": "The lower limit on items that can be declared of this block type",
+                    "type": "integer"
+                },
+                "max_items": {
+                    "description": "The upper limit on items that can be declared of this block type",
+                    "type": "integer"
+                }
+            }
+        },
+        "Attribute": {
+            "description": "An attribute in a schema block, nested attribute, or nested block.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "description": "The attribute type. Either type or nested_type is set, never both.",
+                    "$ref": "#/$defs/CtyType"
+                },
+                "nested_type": {
+                    "description": "Details about a nested attribute type. Either type or nested_type is set, never both.",
+                    "$ref": "#/$defs/NestedAttributeType"
+                },
+                "description": {
+                    "description": "The description for this attribute.",
+                    "type": "string"
+                },
+                "description_kind": {
+                    "description": "The format of the description. If no kind is provided, it can be assumed to be plain text.",
+                    "$ref": "#/$defs/DescriptionKind"
+                },
+                "deprecated": {
+                    "description": "If true, this attribute is deprecated.",
+                    "type": "boolean"
+                },
+                "required": {
+                    "description": "If true, this attribute is required - it has to be entered in configuration.",
+                    "type": "boolean"
+                },
+                "optional": {
+                    "description": "If true, this attribute is optional - it does not need to be entered in configuration.",
+                    "type": "boolean"
+                },
+                "computed": {
+                    "description": "If true, this attribute is computed - it can be set by the provider. It may also be set by configuration if optional is true.",
+                    "type": "boolean"
+                },
+                "sensitive": {
+                    "description": "If true, this attribute is sensitive and will not be displayed in logs.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "NestedAttributeType": {
+            "description": "The top-level metadata for a nested attribute within a schema.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "attributes": {
+                    "description": "A map of nested attributes.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Attribute"
+                    }
+                },
+                "nesting_mode": {
+                    "description": "The nesting mode for this attribute.",
+                    "$ref": "#/$defs/NestingMode"
+                },
+                "min_items": {
+                    "description": "The lower limit on the number of items that can be declared of this attribute type (not applicable to single nesting mode).",
+                    "type": "integer"
+                },
+                "max_items": {
+                    "description": "The upper limit on number of items that can be declared of this attribute type (not applicable to single nesting mode).",
+                    "type": "integer"
+                }
+            }
+        },
+        "DescriptionKind": {
+            "description": "Describes the format type for a particular description's field. If no kind is provided, it can be assumed to be plain text.",
+            "type": "string",
+            "enum": [
+                "plain",
+                "markdown"
+            ]
+        },
+        "NestingMode": {
+            "description": "The nesting mode for a particular nested schema attribute or block.",
+            "type": "string",
+            "enum": [
+                "single",
+                "group",
+                "list",
+                "set",
+                "map"
+            ]
+        },
+        "CtyType": {
+            "$comment": "The type system for Terraform/HCL is defined in the go-cty library",
+            "description": "A type that is used by Terraform core for early validation and conversions.",
+            "oneOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "string",
+                        "number",
+                        "bool",
+                        "dynamic"
+                    ]
+                },
+                {
+                    "type": "array",
+                    "$comment": "Collections (maps, sets, lists) are represented with two items in a tuple, while objects have potentially three items in a tuple, with the final item being optional attributes.",
+                    "description": "Complex types like maps, sets, lists, objects.",
+                    "items": {
+                        "type": [
+                            "string",
+                            "object",
+                            "array"
+                        ],
+                        "minItems": 2,
+                        "maxItems": 3
+                    }
+                }
+            ]
+        },
+        "FunctionSignature": {
+            "description": "A function signature for a provider-defined function.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "description": {
+                    "description": "The human-readable description.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "A shortened description of the function.",
+                    "type": "string"
+                },
+                "deprecation_message": {
+                    "description": "A message that indicates that the function should be considered deprecated and what actions should be performed by the practitioner to handle the deprecation.",
+                    "type": "string"
+                },
+                "return_type": {
+                    "description": "The function's return type.",
+                    "$ref": "#/$defs/CtyType"
+                },
+                "parameters": {
+                    "description": "The function's fixed positional parameters.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/FunctionParameter"
+                    }
+                },
+                "variadic_parameter": {
+                    "description": "The function's variadic parameter if it is supported.",
+                    "$ref": "#/$defs/FunctionParameter"
+                }
+            },
+            "required": [
+                "return_type"
+            ]
+        },
+        "FunctionParameter": {
+            "description": "A parameter to a function.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "description": "A name for the argument.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The human-readable description of the argument.",
+                    "type": "string"
+                },
+                "is_nullable": {
+                    "description": "If true, null will be an acceptable value for the argument.",
+                    "type": "boolean"
+                },
+                "type": {
+                    "description": "A type that an argument for this parameter must conform to.",
+                    "$ref": "#/$defs/CtyType"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        }
+    }
+}

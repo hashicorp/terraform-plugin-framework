@@ -58,14 +58,6 @@
                     "description": "The root-level block of configuration values.",
                     "$ref": "#/$defs/Block"
                 },
-                "deprecated": {
-                    "description": "If true, this schema is deprecated.",
-                    "type": "boolean"
-                },
-                "deprecation_message": {
-                    "description": "A message that indicates what actions should be performed by the practitioner to handle the schema deprecation.",
-                    "type": "string"
-                },
                 "validations": {
                     "description": "A list of validations that are applied to the entire configuration at the schema-level.",
                     "type": "array",

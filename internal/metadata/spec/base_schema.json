@@ -53,10 +53,6 @@
                 "block": {
                     "description": "The root-level block of configuration values.",
                     "$ref": "#/$defs/Block"
-                },
-                "deprecated": {
-                    "description": "If true, this schema is deprecated.",
-                    "type": "boolean"
                 }
             },
             "required": [

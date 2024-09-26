@@ -308,9 +308,7 @@
                 "float32",
                 "float64",
                 "int32",
-                "int64",
-                "json",
-                "rfc3339"
+                "int64"
             ]
         },
         "FunctionSignature": {

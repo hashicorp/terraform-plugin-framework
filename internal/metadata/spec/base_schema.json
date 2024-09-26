@@ -95,7 +95,7 @@
             "properties": {
                 "nesting_mode": {
                     "description": "The nesting mode for this block.",
-                    "$ref": "#/$defs/NestingMode"
+                    "$ref": "#/$defs/NestingBlockMode"
                 },
                 "block": {
                     "description": "The block data for this block type, including attributes and subsequent nested blocks.",
@@ -168,7 +168,7 @@
                 },
                 "nesting_mode": {
                     "description": "The nesting mode for this attribute.",
-                    "$ref": "#/$defs/NestingMode"
+                    "$ref": "#/$defs/NestingAttributeMode"
                 },
                 "min_items": {
                     "description": "The lower limit on the number of items that can be declared of this attribute type (not applicable to single nesting mode).",
@@ -188,12 +188,22 @@
                 "markdown"
             ]
         },
-        "NestingMode": {
-            "description": "The nesting mode for a particular nested schema attribute or block.",
+        "NestingBlockMode": {
+            "description": "The nesting mode for a particular nested schema block.",
             "type": "string",
             "enum": [
                 "single",
-                "group",
+                "list",
+                "set",
+                "map",
+                "group"
+            ]
+        },
+        "NestingAttributeMode": {
+            "description": "The nesting mode for a particular nested schema attribute.",
+            "type": "string",
+            "enum": [
+                "single",
                 "list",
                 "set",
                 "map"

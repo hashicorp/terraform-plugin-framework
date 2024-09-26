@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	ephemeralschema "github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
@@ -80,8 +81,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-computed": {
@@ -110,8 +112,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-deprecated": {
@@ -142,8 +145,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-optional": {
@@ -172,8 +176,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-optional-computed": {
@@ -204,8 +209,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-required": {
@@ -234,8 +240,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-sensitive": {
@@ -266,8 +273,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-bool": {
@@ -296,8 +304,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-float32": {
@@ -326,8 +335,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-float64": {
@@ -356,8 +366,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-int32": {
@@ -386,8 +397,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-int64": {
@@ -416,8 +428,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-list-string": {
@@ -453,8 +466,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-nested-attributes": {
@@ -487,8 +501,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-object": {
@@ -528,8 +543,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-string": {
@@ -561,8 +577,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-map-nested-attributes": {
@@ -595,8 +612,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-map-string": {
@@ -628,8 +646,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-number": {
@@ -658,8 +677,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-object": {
@@ -695,8 +715,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-nested-attributes": {
@@ -729,8 +750,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-object": {
@@ -770,8 +792,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-set-string": {
@@ -807,8 +830,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-string": {
@@ -840,8 +864,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-single-nested-attributes": {
@@ -872,8 +897,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the data source \"test_data_source\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-string": {
@@ -902,8 +928,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-attribute-type-dynamic": {
@@ -932,8 +959,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-block-list": {
@@ -976,8 +1004,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-block-set": {
@@ -1020,8 +1049,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
 		"data-source-block-single": {
@@ -1062,6 +1092,1067 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-multiple-ephemeral-resources": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource_1": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Computed: true,
+							},
+						},
+					},
+					"test_ephemeral_resource_2": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource_1": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Computed: true,
+									Name:     "test_attribute",
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+					"test_ephemeral_resource_2": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Computed: true,
+									Name:     "test_attribute",
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-computed": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Computed: true,
+									Name:     "test_attribute",
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-deprecated": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								DeprecationMessage: "deprecated",
+								Optional:           true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Deprecated: true,
+									Name:       "test_attribute",
+									Optional:   true,
+									Type:       tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-optional": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Optional: true,
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-optional-computed": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Computed: true,
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Computed: true,
+									Name:     "test_attribute",
+									Optional: true,
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-required": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Type:     tftypes.Bool,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-sensitive": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Computed:  true,
+								Sensitive: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Computed:  true,
+									Name:      "test_attribute",
+									Sensitive: true,
+									Type:      tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-bool": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.BoolAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-float32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.Float32Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-float64": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.Float64Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-int32": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.Int32Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-int64": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.Int64Attribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-list-list-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.ListAttribute{
+								Required: true,
+								ElementType: types.ListType{
+									ElemType: types.StringType,
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.List{
+										ElementType: tftypes.List{
+											ElementType: tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-list-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.ListNestedAttribute{
+								NestedObject: ephemeralschema.NestedAttributeObject{
+									Attributes: map[string]ephemeralschema.Attribute{
+										"test_nested_attribute": ephemeralschema.StringAttribute{
+											Required: true,
+										},
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": nil,
+				},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Error converting ephemeral resource schema",
+						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-list-object": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.ListAttribute{
+								Required: true,
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.List{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"test_object_attribute": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-list-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.ListAttribute{
+								Required:    true,
+								ElementType: types.StringType,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.List{
+										ElementType: tftypes.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-map-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.MapNestedAttribute{
+								NestedObject: ephemeralschema.NestedAttributeObject{
+									Attributes: map[string]ephemeralschema.Attribute{
+										"test_nested_attribute": ephemeralschema.StringAttribute{
+											Required: true,
+										},
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": nil,
+				},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Error converting ephemeral resource schema",
+						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-map-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.MapAttribute{
+								Required:    true,
+								ElementType: types.StringType,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.Map{
+										ElementType: tftypes.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-number": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.NumberAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.Number,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-object": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.ObjectAttribute{
+								Required: true,
+								AttributeTypes: map[string]attr.Type{
+									"test_object_attribute": types.StringType,
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"test_object_attribute": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-set-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.SetNestedAttribute{
+								NestedObject: ephemeralschema.NestedAttributeObject{
+									Attributes: map[string]ephemeralschema.Attribute{
+										"test_nested_attribute": ephemeralschema.StringAttribute{
+											Required: true,
+										},
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": nil,
+				},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Error converting ephemeral resource schema",
+						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-set-object": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.SetAttribute{
+								Required: true,
+								ElementType: types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"test_object_attribute": types.StringType,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"test_object_attribute": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-set-set-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.SetAttribute{
+								Required: true,
+								ElementType: types.SetType{
+									ElemType: types.StringType,
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.Set{
+										ElementType: tftypes.Set{
+											ElementType: tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-set-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.SetAttribute{
+								Required:    true,
+								ElementType: types.StringType,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type: tftypes.Set{
+										ElementType: tftypes.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-single-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.SingleNestedAttribute{
+								Attributes: map[string]ephemeralschema.Attribute{
+									"test_nested_attribute": ephemeralschema.StringAttribute{
+										Required: true,
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": nil,
+				},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Error converting ephemeral resource schema",
+						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-attribute-type-dynamic": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test_attribute": ephemeralschema.DynamicAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Required: true,
+									Type:     tftypes.DynamicPseudoType,
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-block-list": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Blocks: map[string]ephemeralschema.Block{
+							"test_block": ephemeralschema.ListNestedBlock{
+								NestedObject: ephemeralschema.NestedBlockObject{
+									Attributes: map[string]ephemeralschema.Attribute{
+										"test_attribute": ephemeralschema.StringAttribute{
+											Required: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									Block: &tfprotov5.SchemaBlock{
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:     "test_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+									},
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+									TypeName: "test_block",
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-block-set": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Blocks: map[string]ephemeralschema.Block{
+							"test_block": ephemeralschema.SetNestedBlock{
+								NestedObject: ephemeralschema.NestedBlockObject{
+									Attributes: map[string]ephemeralschema.Attribute{
+										"test_attribute": ephemeralschema.StringAttribute{
+											Required: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									Block: &tfprotov5.SchemaBlock{
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:     "test_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+									},
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeSet,
+									TypeName: "test_block",
+								},
+							},
+						},
+					},
+				},
+				Functions:       map[string]*tfprotov5.Function{},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"ephemeral-resource-block-single": {
+			input: &fwserver.GetProviderSchemaResponse{
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource": ephemeralschema.Schema{
+						Blocks: map[string]ephemeralschema.Block{
+							"test_block": ephemeralschema.SingleNestedBlock{
+								Attributes: map[string]ephemeralschema.Attribute{
+									"test_attribute": ephemeralschema.StringAttribute{
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									Block: &tfprotov5.SchemaBlock{
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:     "test_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+									},
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+									TypeName: "test_block",
+								},
+							},
+						},
+					},
+				},
 				Functions:       map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
@@ -1078,7 +2169,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction1": {
 						Parameters: []*tfprotov5.FunctionParameter{},
@@ -1106,7 +2198,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						DeprecationMessage: "test deprecation message",
@@ -1129,7 +2222,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						Description: "test description",
@@ -1156,7 +2250,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{
@@ -1187,7 +2282,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{},
@@ -1209,7 +2305,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{},
@@ -1232,7 +2329,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
 					"testfunction": {
 						Parameters: []*tfprotov5.FunctionParameter{},
@@ -1259,8 +2357,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1287,8 +2386,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1314,8 +2414,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1342,8 +2443,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1370,8 +2472,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1397,8 +2500,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1424,8 +2528,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1451,8 +2556,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1478,8 +2584,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1508,8 +2615,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1546,7 +2654,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -1574,8 +2683,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1608,8 +2718,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1644,7 +2755,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -1668,8 +2780,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1697,8 +2810,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1727,8 +2841,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1765,7 +2880,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -1793,8 +2909,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1829,8 +2946,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1861,8 +2979,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1895,7 +3014,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -1918,8 +3038,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1945,8 +3066,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -1978,8 +3100,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -2019,8 +3142,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -2058,8 +3182,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -2093,8 +3218,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2120,8 +3246,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2147,8 +3274,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2174,8 +3302,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2201,8 +3330,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2231,8 +3361,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2269,7 +3400,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -2297,7 +3429,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2331,8 +3464,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2367,7 +3501,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -2391,8 +3526,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2420,8 +3556,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2450,8 +3587,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2488,7 +3626,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -2516,8 +3655,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2552,8 +3692,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2584,8 +3725,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2618,7 +3760,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -2641,8 +3784,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2677,8 +3821,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource_1": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2718,8 +3863,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2749,8 +3895,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2780,8 +3927,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2811,8 +3959,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2842,8 +3991,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2873,8 +4023,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2904,8 +4055,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2934,8 +4086,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2964,8 +4117,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -2994,8 +4148,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3024,8 +4179,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3057,8 +4213,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3098,7 +4255,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -3130,8 +4288,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3167,8 +4326,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3206,7 +4366,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -3234,8 +4395,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3266,8 +4428,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3299,8 +4462,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3340,7 +4504,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -3372,8 +4537,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3411,8 +4577,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3446,8 +4613,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3483,7 +4651,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -3510,8 +4679,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3540,8 +4710,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3576,8 +4747,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3620,8 +4792,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3662,8 +4835,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3696,8 +4870,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:         map[string]*tfprotov5.Function{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block:   &tfprotov5.SchemaBlock{},

@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	ephemeralschema "github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
@@ -36,10 +38,11 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas:   map[string]fwschema.Schema{},
-				FunctionDefinitions: map[string]function.Definition{},
-				Provider:            providerschema.Schema{},
-				ResourceSchemas:     map[string]fwschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -106,9 +109,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				FunctionDefinitions: map[string]function.Definition{},
-				Provider:            providerschema.Schema{},
-				ResourceSchemas:     map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -312,6 +316,290 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschema": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test1": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource1"
+									},
+								}
+							},
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test2": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"test_ephemeral_resource1": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test1": ephemeralschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_ephemeral_resource2": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test2": ephemeralschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschema-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"$": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource1"
+									},
+								}
+							},
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test2": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas:   map[string]fwschema.Schema{},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+					),
+				},
+			},
+		},
+		"ephemeralschema-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test1": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource"
+									},
+								}
+							},
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test2": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Ephemeral Resource Type Defined",
+						"The test_ephemeral_resource ephemeral resource type name was returned for multiple ephemeral resources. "+
+							"Ephemeral resource type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschema-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Ephemeral Resource Type Name Missing",
+						"The *testprovider.EphemeralResource EphemeralResource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				FunctionDefinitions: map[string]function.Definition{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschema-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+										resp.Schema = ephemeralschema.Schema{
+											Attributes: map[string]ephemeralschema.Attribute{
+												"test": ephemeralschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_ephemeral_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{
+					"testprovidertype_ephemeral_resource": ephemeralschema.Schema{
+						Attributes: map[string]ephemeralschema.Attribute{
+							"test": ephemeralschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
 				FunctionDefinitions: map[string]function.Definition{},
 				Provider:            providerschema.Schema{},
 				ResourceSchemas:     map[string]fwschema.Schema{},
@@ -357,7 +645,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]fwschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions: map[string]function.Definition{
 					"function1": {
 						Return: function.StringReturn{},
@@ -535,8 +824,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas:   map[string]fwschema.Schema{},
-				FunctionDefinitions: map[string]function.Definition{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
 				Provider: providerschema.Schema{
 					Attributes: map[string]providerschema.Attribute{
 						"test": providerschema.StringAttribute{
@@ -601,9 +891,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas:   map[string]fwschema.Schema{},
-				FunctionDefinitions: map[string]function.Definition{},
-				Provider:            providerschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
 				ProviderMeta: metaschema.Schema{
 					Attributes: map[string]metaschema.Attribute{
 						"test": metaschema.StringAttribute{
@@ -696,9 +987,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas:   map[string]fwschema.Schema{},
-				FunctionDefinitions: map[string]function.Definition{},
-				Provider:            providerschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"test_resource1": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
@@ -908,9 +1200,10 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				DataSourceSchemas:   map[string]fwschema.Schema{},
-				FunctionDefinitions: map[string]function.Definition{},
-				Provider:            providerschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				Provider:                 providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_resource": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{

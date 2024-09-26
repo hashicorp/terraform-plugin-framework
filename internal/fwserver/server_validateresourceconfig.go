@@ -15,8 +15,9 @@ import (
 // ValidateResourceConfigRequest is the framework server request for the
 // ValidateResourceConfig RPC.
 type ValidateResourceConfigRequest struct {
-	Config   *tfsdk.Config
-	Resource resource.Resource
+	ClientCapabilities resource.ValidateConfigClientCapabilities
+	Config             *tfsdk.Config
+	Resource           resource.Resource
 }
 
 // ValidateResourceConfigResponse is the framework server response for the

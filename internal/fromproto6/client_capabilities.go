@@ -75,3 +75,16 @@ func ImportStateClientCapabilities(in *tfprotov6.ImportResourceStateClientCapabi
 		DeferralAllowed: in.DeferralAllowed,
 	}
 }
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConfigClientCapabilities) resource.ValidateConfigClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return resource.ValidateConfigClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}

@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -69,6 +70,34 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 
 		return
+	}
+
+	// If the resource is planned for creation, verify that
+	// WriteOnly + Required attributes have a configuration
+	// value.
+	if req.PriorState.Raw.IsNull() && !req.Config.Raw.IsNull() {
+		var reqWriteOnlyPaths path.Paths
+
+		err := tftypes.Walk(req.Config.Raw, RequiredWriteOnlyNilsAttributePaths(ctx, req.Config.Schema, &reqWriteOnlyPaths))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error validating plan",
+				"There was an unexpected error validating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
+		for _, p := range reqWriteOnlyPaths {
+			resp.Diagnostics.AddAttributeError(
+				p,
+				"Invalid writeOnly attribute plan",
+				"Required + WriteOnly attributes must have a non-null configuration value during Create.",
+			)
+		}
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
@@ -498,6 +527,76 @@ func NormaliseRequiresReplace(ctx context.Context, rs path.Paths) path.Paths {
 	}
 
 	return ret[:j]
+}
+
+// RequiredWriteOnlyNilsAttributePaths returns a tftypes.Walk() function
+// that populates reqWriteOnlyNilsPaths with the paths of Required and WriteOnly
+// attributes that have a null value.
+func RequiredWriteOnlyNilsAttributePaths(ctx context.Context, schema fwschema.Schema, reqWriteOnlyNilsPaths *path.Paths) func(path *tftypes.AttributePath, value tftypes.Value) (bool, error) {
+	return func(attrPath *tftypes.AttributePath, value tftypes.Value) (bool, error) {
+		// we are only modifying attributes, not the entire resource
+		if len(attrPath.Steps()) < 1 {
+			return true, nil
+		}
+
+		ctx = logging.FrameworkWithAttributePath(ctx, attrPath.String())
+
+		attribute, err := schema.AttributeAtTerraformPath(ctx, attrPath)
+
+		fwPath, diags := fromtftypes.AttributePath(ctx, attrPath, schema)
+		if diags.HasError() {
+			for _, diagErr := range diags.Errors() {
+				logging.FrameworkError(ctx,
+					"Error converting tftypes.AttributePath to path.Path",
+					map[string]any{
+						logging.KeyError: diagErr.Detail(),
+					},
+				)
+			}
+			fwPath = path.Root("error")
+
+			//return false, fmt.Errorf("couldn't convert tftypes.AttributePath to path.Path")
+		}
+
+		if err != nil {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
+				// append null atomic attributes
+				if value.IsNull() {
+					reqWriteOnlyNilsPaths.Append(fwPath)
+				}
+				return true, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathIsBlock) {
+				// blocks do not have the write-only field but can contain child write-only attributes
+				return true, nil
+			}
+
+			if errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) {
+				if value.IsNull() {
+					reqWriteOnlyNilsPaths.Append(fwPath)
+				}
+				return true, nil
+			}
+
+			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
+			return false, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
+		}
+
+		if attribute.IsRequired() && attribute.IsWriteOnly() {
+			if value.IsNull() {
+				reqWriteOnlyNilsPaths.Append(fwPath)
+
+				// if the value is nil, there is no need to continue walking
+				return false, nil
+			}
+
+			// check for any required + writeOnly child values
+			return true, nil
+		}
+
+		return false, nil
+	}
 }
 
 // planToState returns a *tfsdk.State with a copied value from a tfsdk.Plan.

@@ -543,55 +543,46 @@ func RequiredWriteOnlyNilsAttributePaths(ctx context.Context, schema fwschema.Sc
 
 		attribute, err := schema.AttributeAtTerraformPath(ctx, attrPath)
 
-		fwPath, diags := fromtftypes.AttributePath(ctx, attrPath, schema)
-		if diags.HasError() {
-			for _, diagErr := range diags.Errors() {
-				logging.FrameworkError(ctx,
-					"Error converting tftypes.AttributePath to path.Path",
-					map[string]any{
-						logging.KeyError: diagErr.Detail(),
-					},
-				)
-			}
-			fwPath = path.Root("error")
-
-			//return false, fmt.Errorf("couldn't convert tftypes.AttributePath to path.Path")
-		}
-
 		if err != nil {
 			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
-				// append null atomic attributes
-				if value.IsNull() {
-					reqWriteOnlyNilsPaths.Append(fwPath)
-				}
+				// atomic attributes can be nested block objects that contain child writeOnly attributes
 				return true, nil
 			}
 
 			if errors.Is(err, fwschema.ErrPathIsBlock) {
-				// blocks do not have the write-only field but can contain child write-only attributes
+				// blocks do not have the writeOnly field but can contain child writeOnly attributes
 				return true, nil
 			}
 
 			if errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) {
-				if value.IsNull() {
-					reqWriteOnlyNilsPaths.Append(fwPath)
-				}
-				return true, nil
+				return false, nil
 			}
 
 			logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
 			return false, fmt.Errorf("couldn't find attribute in resource schema: %w", err)
 		}
 
-		if attribute.IsRequired() && attribute.IsWriteOnly() {
-			if value.IsNull() {
+		if attribute.IsWriteOnly() {
+			if attribute.IsRequired() && value.IsNull() {
+				fwPath, diags := fromtftypes.AttributePath(ctx, attrPath, schema)
+				if diags.HasError() {
+					for _, diagErr := range diags.Errors() {
+						logging.FrameworkError(ctx,
+							"Error converting tftypes.AttributePath to path.Path",
+							map[string]any{
+								logging.KeyError: diagErr.Detail(),
+							},
+						)
+					}
+
+					return false, fmt.Errorf("couldn't convert tftypes.AttributePath to path.Path")
+				}
 				reqWriteOnlyNilsPaths.Append(fwPath)
 
 				// if the value is nil, there is no need to continue walking
 				return false, nil
 			}
-
-			// check for any required + writeOnly child values
+			// check for any writeOnly child attributes
 			return true, nil
 		}
 

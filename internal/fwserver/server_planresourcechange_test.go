@@ -412,37 +412,6 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 				Required:    true,
 				WriteOnly:   true,
 			},
-			"list-value-required-writeonly-nested-list": schema.ListAttribute{
-				ElementType: types.ListType{
-					ElemType: types.StringType,
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"list-value-required-writeonly-nested-set": schema.ListAttribute{
-				ElementType: types.SetType{
-					ElemType: types.StringType,
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"list-value-required-writeonly-nested-map": schema.ListAttribute{
-				ElementType: types.MapType{
-					ElemType: types.StringType,
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"list-value-required-writeonly-nested-object": schema.ListAttribute{
-				ElementType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"string-nil": types.StringType,
-						"string-set": types.StringType,
-					},
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
 			"dynamic-value": schema.DynamicAttribute{
 				Required: true,
 			},
@@ -462,8 +431,7 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 				Required:  true,
 				WriteOnly: true,
 			},
-			// non-nil computed values should be left alone
-			// each element of this dynamic value will be visited, then skipped
+			// underlying values of dynamic attributes should be left alone
 			"dynamic-value-with-underlying-list-required-writeonly": schema.DynamicAttribute{
 				Required:  true,
 				WriteOnly: true,
@@ -480,60 +448,6 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 				AttributeTypes: map[string]attr.Type{
 					"string-nil": types.StringType,
 					"string-set": types.StringType,
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"object-value-required-writeonly-nested-list": schema.ObjectAttribute{
-				AttributeTypes: map[string]attr.Type{
-					"nested-list-nil": types.ListType{
-						ElemType: types.StringType,
-					},
-					"nested-list-set": types.ListType{
-						ElemType: types.StringType,
-					},
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"object-value-required-writeonly-nested-set": schema.ObjectAttribute{
-				AttributeTypes: map[string]attr.Type{
-					"nested-set-nil": types.SetType{
-						ElemType: types.StringType,
-					},
-					"nested-set-set": types.SetType{
-						ElemType: types.StringType,
-					},
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"object-value-required-writeonly-nested-map": schema.ObjectAttribute{
-				AttributeTypes: map[string]attr.Type{
-					"nested-map-nil": types.MapType{
-						ElemType: types.StringType,
-					},
-					"nested-map-set": types.MapType{
-						ElemType: types.StringType,
-					},
-				},
-				Required:  true,
-				WriteOnly: true,
-			},
-			"object-value-required-writeonly-nested-object": schema.ObjectAttribute{
-				AttributeTypes: map[string]attr.Type{
-					"nested-object-nil": types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"string-nil": types.StringType,
-							"string-set": types.StringType,
-						},
-					},
-					"nested-object-set": types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"string-nil": types.StringType,
-							"string-set": types.StringType,
-						},
-					},
 				},
 				Required:  true,
 				WriteOnly: true,
@@ -564,6 +478,20 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 					},
 				},
 				Required:  true,
+				WriteOnly: true,
+			},
+			"optional-nested-value-required-writeonly-attributes": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"string-nil": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+					"string-set": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+				},
+				Optional:  true,
 				WriteOnly: true,
 			},
 		},
@@ -608,73 +536,10 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 		"list-nil-optional-writeonly":     tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 		"list-value-optional-writeonly":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello, world")}),
 		"list-nil-required-writeonly":     tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-		"list-value-required-writeonly":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello, world")}),
-		"list-value-required-writeonly-nested-list": tftypes.NewValue(
-			tftypes.List{
-				ElementType: tftypes.List{
-					ElementType: tftypes.String,
-				},
-			},
-			[]tftypes.Value{
-				tftypes.NewValue(tftypes.List{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "hello, world"),
-					tftypes.NewValue(tftypes.String, nil),
-				}),
-			},
-		),
-		"list-value-required-writeonly-nested-set": tftypes.NewValue(
-			tftypes.List{
-				ElementType: tftypes.Set{
-					ElementType: tftypes.String,
-				},
-			},
-			[]tftypes.Value{
-				tftypes.NewValue(tftypes.Set{
-					ElementType: tftypes.String,
-				}, []tftypes.Value{
-					tftypes.NewValue(tftypes.String, "hello, world"),
-					tftypes.NewValue(tftypes.String, nil),
-				}),
-			},
-		),
-		"list-value-required-writeonly-nested-map": tftypes.NewValue(
-			tftypes.List{
-				ElementType: tftypes.Map{
-					ElementType: tftypes.String,
-				},
-			},
-			[]tftypes.Value{
-				tftypes.NewValue(tftypes.Map{
-					ElementType: tftypes.String,
-				}, map[string]tftypes.Value{
-					"string-nil": tftypes.NewValue(tftypes.String, nil),
-					"string-set": tftypes.NewValue(tftypes.String, "hello, world"),
-				}),
-			},
-		),
-		"list-value-required-writeonly-nested-object": tftypes.NewValue(
-			tftypes.List{
-				ElementType: tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string-nil": tftypes.String,
-						"string-set": tftypes.String,
-					},
-				},
-			},
-			[]tftypes.Value{
-				tftypes.NewValue(tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string-nil": tftypes.String,
-						"string-set": tftypes.String,
-					},
-				}, map[string]tftypes.Value{
-					"string-nil": tftypes.NewValue(tftypes.String, nil),
-					"string-set": tftypes.NewValue(tftypes.String, "hello, world"),
-				}),
-			},
-		),
+		"list-value-required-writeonly": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "hello, world"),
+			tftypes.NewValue(tftypes.String, nil),
+		}),
 		"dynamic-value":                    tftypes.NewValue(tftypes.String, "hello, world"),
 		"dynamic-nil-optional-writeonly":   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 		"dynamic-value-optional-writeonly": tftypes.NewValue(tftypes.String, "hello, world"),
@@ -704,87 +569,6 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 			"string-nil": tftypes.NewValue(tftypes.String, nil),
 			"string-set": tftypes.NewValue(tftypes.String, "foo"),
 		}),
-		"object-value-required-writeonly-nested-list": tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"nested-list-nil": tftypes.List{ElementType: tftypes.String},
-				"nested-list-set": tftypes.List{ElementType: tftypes.String},
-			},
-		}, map[string]tftypes.Value{
-			"nested-list-nil": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, nil),
-			"nested-list-set": tftypes.NewValue(tftypes.List{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, nil),
-				tftypes.NewValue(tftypes.String, "hello, world"),
-			}),
-		}),
-		"object-value-required-writeonly-nested-set": tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"nested-set-nil": tftypes.Set{ElementType: tftypes.String},
-				"nested-set-set": tftypes.Set{ElementType: tftypes.String},
-			},
-		}, map[string]tftypes.Value{
-			"nested-set-nil": tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, nil),
-			"nested-set-set": tftypes.NewValue(tftypes.Set{
-				ElementType: tftypes.String,
-			}, []tftypes.Value{
-				tftypes.NewValue(tftypes.String, "hello, world"),
-				tftypes.NewValue(tftypes.String, nil),
-			}),
-		}),
-		"object-value-required-writeonly-nested-map": tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"nested-map-nil": tftypes.Map{ElementType: tftypes.String},
-				"nested-map-set": tftypes.Map{ElementType: tftypes.String},
-			},
-		}, map[string]tftypes.Value{
-			"nested-map-nil": tftypes.NewValue(tftypes.Map{
-				ElementType: tftypes.String,
-			}, nil),
-			"nested-map-set": tftypes.NewValue(tftypes.Map{
-				ElementType: tftypes.String,
-			}, map[string]tftypes.Value{
-				"string-set": tftypes.NewValue(tftypes.String, "hello, world"),
-				"string-nil": tftypes.NewValue(tftypes.String, nil),
-			}),
-		}),
-		"object-value-required-writeonly-nested-object": tftypes.NewValue(tftypes.Object{
-			AttributeTypes: map[string]tftypes.Type{
-				"nested-object-nil": tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string-nil": tftypes.String,
-						"string-set": tftypes.String,
-					},
-				},
-				"nested-object-set": tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string-nil": tftypes.String,
-						"string-set": tftypes.String,
-					},
-				},
-			},
-		}, map[string]tftypes.Value{
-			"nested-object-nil": tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"string-nil": tftypes.String,
-					"string-set": tftypes.String,
-				},
-			}, nil),
-			"nested-object-set": tftypes.NewValue(tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"string-nil": tftypes.String,
-					"string-set": tftypes.String,
-				},
-			}, map[string]tftypes.Value{
-				"string-nil": tftypes.NewValue(tftypes.String, nil),
-				"string-set": tftypes.NewValue(tftypes.String, "hello, world"),
-			}),
-		},
-		),
 		"nested-nil-required-writeonly": tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"string-nil": tftypes.String,
@@ -792,6 +576,15 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 			},
 		}, nil),
 		"nested-value-required-writeonly": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"string-nil": tftypes.NewValue(tftypes.String, nil),
+			"string-set": tftypes.NewValue(tftypes.String, "bar"),
+		}),
+		"optional-nested-value-required-writeonly-attributes": tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"string-nil": tftypes.String,
 				"string-set": tftypes.String,
@@ -842,21 +635,9 @@ func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
 			AtName("string-nil"),
 		path.Root("dynamic-nil-required-writeonly"),
 		path.Root("list-nil-required-writeonly"),
-		path.Root("list-value-required-writeonly-nested-list").AtListIndex(0).AtListIndex(1),
-		path.Root("list-value-required-writeonly-nested-map").AtListIndex(0).AtMapKey("string-nil"),
-		path.Root("list-value-required-writeonly-nested-object").AtListIndex(0).AtName("string-nil"),
-		path.Root("list-value-required-writeonly-nested-set").AtListIndex(0).AtSetValue(types.StringNull()),
 		path.Root("nested-value-required-writeonly").AtName("string-nil"),
 		path.Root("object-nil-required-writeonly"),
-		path.Root("object-value-required-writeonly").AtName("string-nil"),
-		path.Root("object-value-required-writeonly-nested-list").AtName("nested-list-nil"),
-		path.Root("object-value-required-writeonly-nested-list").AtName("nested-list-set").AtListIndex(0),
-		path.Root("object-value-required-writeonly-nested-map").AtName("nested-map-nil"),
-		path.Root("object-value-required-writeonly-nested-map").AtName("nested-map-set").AtMapKey("string-nil"),
-		path.Root("object-value-required-writeonly-nested-object").AtName("nested-object-nil"),
-		path.Root("object-value-required-writeonly-nested-object").AtName("nested-object-set").AtName("string-nil"),
-		path.Root("object-value-required-writeonly-nested-set").AtName("nested-set-nil"),
-		path.Root("object-value-required-writeonly-nested-set").AtName("nested-set-set").AtSetValue(types.StringNull()),
+		path.Root("optional-nested-value-required-writeonly-attributes").AtName("string-nil"),
 		path.Root("string-nil-required-writeonly"),
 		path.Root("nested-nil-required-writeonly"),
 	}
@@ -1072,6 +853,13 @@ func TestServerPlanResourceChange(t *testing.T) {
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
 			"test_required": tftypes.String,
+		},
+	}
+
+	testSchemaTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_optional_write_only": tftypes.String,
+			"test_required_write_only": tftypes.String,
 		},
 	}
 
@@ -1575,6 +1363,19 @@ func TestServerPlanResourceChange(t *testing.T) {
 						Optional: true,
 					},
 				},
+			},
+		},
+	}
+
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_optional_write_only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"test_required_write_only": schema.StringAttribute{
+				Required:  true,
+				WriteOnly: true,
 			},
 		},
 	}
@@ -3962,6 +3763,36 @@ func TestServerPlanResourceChange(t *testing.T) {
 					path.Root("test_required"),
 				},
 				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-required-write-only-null-diag": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchemaWriteOnly,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(path.Root("test_required_write_only"),
+						"Invalid writeOnly attribute plan", "Required + WriteOnly attributes must have a non-null configuration value during Create."),
+				},
 			},
 		},
 		"create-resourcewithmodifyplan-attributeplanmodifier-private": {

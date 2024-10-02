@@ -12,6 +12,7 @@ import (
 )
 
 func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		nestedAttr metaschema.NestedAttribute
 		expected   bool
@@ -785,6 +786,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			if got := fwtype.ContainsAllWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
 				t.Errorf("ContainsAllWriteOnlyChildAttributes() = %v, want %v", got, tt.expected)
 			}
@@ -793,6 +795,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 }
 
 func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		nestedAttr metaschema.NestedAttribute
 		expected   bool
@@ -1438,6 +1441,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			if got := fwtype.ContainsAnyWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
 				t.Errorf("ContainsAllWriteOnlyChildAttributes() = %v, want %v", got, tt.expected)
 			}

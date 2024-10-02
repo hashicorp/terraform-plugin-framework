@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestBlockValidate(t *testing.T) {
@@ -746,6 +747,77 @@ func TestBlockValidate(t *testing.T) {
 				},
 			},
 		},
+		"list-validation-client-capabilities": {
+			req: ValidateAttributeRequest{
+				AttributePath:      path.Root("test"),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{WriteOnlyAttributesAllowed: true},
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: testschema.Schema{
+						Blocks: map[string]fwschema.Block{
+							"test": testschema.Block{
+								NestedObject: testschema.NestedBlockObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+															resp.Diagnostics.AddError(
+																"Unexpected StringRequest.ClientCapabilities",
+																"Missing WriteOnlyAttributesAllowed client capability",
+															)
+														}
+													},
+												},
+											},
+										},
+									},
+								},
+								NestingMode: fwschema.BlockNestingModeList,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
 		"set-no-validation": {
 			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -874,6 +946,77 @@ func TestBlockValidate(t *testing.T) {
 				},
 			},
 		},
+		"set-validation-client-capabilities": {
+			req: ValidateAttributeRequest{
+				AttributePath:      path.Root("test"),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{WriteOnlyAttributesAllowed: true},
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_attr": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_attr": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+										},
+									),
+								},
+							),
+						},
+					),
+					Schema: testschema.Schema{
+						Blocks: map[string]fwschema.Block{
+							"test": testschema.Block{
+								NestedObject: testschema.NestedBlockObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+															resp.Diagnostics.AddError(
+																"Unexpected StringRequest.ClientCapabilities",
+																"Missing WriteOnlyAttributesAllowed client capability",
+															)
+														}
+													},
+												},
+											},
+										},
+									},
+								},
+								NestingMode: fwschema.BlockNestingModeSet,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
 		"single-no-validation": {
 			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -975,6 +1118,64 @@ func TestBlockValidate(t *testing.T) {
 					testErrorDiagnostic1,
 				},
 			},
+		},
+		"single-validation-client-capabilities": {
+			req: ValidateAttributeRequest{
+				AttributePath:      path.Root("test"),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{WriteOnlyAttributesAllowed: true},
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_attr": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_attr": tftypes.NewValue(tftypes.String, "testvalue"),
+								},
+							),
+						},
+					),
+					Schema: testschema.Schema{
+						Blocks: map[string]fwschema.Block{
+							"test": testschema.Block{
+								NestedObject: testschema.NestedBlockObject{
+									Attributes: map[string]fwschema.Attribute{
+										"nested_attr": testschema.AttributeWithStringValidators{
+											Required: true,
+											Validators: []validator.String{
+												testvalidator.String{
+													ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+														if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+															resp.Diagnostics.AddError(
+																"Unexpected StringRequest.ClientCapabilities",
+																"Missing WriteOnlyAttributesAllowed client capability",
+															)
+														}
+													},
+												},
+											},
+										},
+									},
+								},
+								NestingMode: fwschema.BlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
 		},
 	}
 
@@ -1081,6 +1282,44 @@ func TestBlockValidateList(t *testing.T) {
 						),
 					},
 				),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-client-capabilities": {
+			block: testschema.BlockWithListValidators{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringValidators{},
+				},
+				Validators: []validator.List{
+					testvalidator.List{
+						ValidateListMethod: func(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{"testattr": types.StringType},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{"testattr": types.StringType},
+							map[string]attr.Value{"testattr": types.StringValue("test")},
+						),
+					},
+				),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 			},
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
@@ -1402,6 +1641,37 @@ func TestBlockValidateObject(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			block: testschema.BlockWithObjectValidators{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringValidators{},
+				},
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{"testattr": types.StringType},
+					map[string]attr.Value{"testattr": types.StringValue("test")},
+				),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
 		"request-config": {
 			block: testschema.BlockWithObjectValidators{
 				Attributes: map[string]fwschema.Attribute{
@@ -1675,6 +1945,44 @@ func TestBlockValidateSet(t *testing.T) {
 						),
 					},
 				),
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-client-capabilities": {
+			block: testschema.BlockWithSetValidators{
+				Attributes: map[string]fwschema.Attribute{
+					"testattr": testschema.AttributeWithStringValidators{},
+				},
+				Validators: []validator.Set{
+					testvalidator.Set{
+						ValidateSetMethod: func(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.SetValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{"testattr": types.StringType},
+					},
+					[]attr.Value{
+						types.ObjectValueMust(
+							map[string]attr.Type{"testattr": types.StringType},
+							map[string]attr.Value{"testattr": types.StringValue("test")},
+						),
+					},
+				),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 			},
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
@@ -2065,6 +2373,31 @@ func TestNestedBlockObjectValidateObject(t *testing.T) {
 				AttributePathExpression: path.MatchRoot("test"),
 				AttributeConfig:         testAttributeConfig,
 				Config:                  testConfig,
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+		"request-client-capabilities": {
+			object: testschema.NestedBlockObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 			},
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},

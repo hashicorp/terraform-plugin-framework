@@ -34,6 +34,11 @@ type ValidateAttributeRequest struct {
 
 	// Config contains the entire configuration of the data source, provider, or resource.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities validator.ValidateSchemaClientCapabilities
 }
 
 // ValidateAttributeResponse represents a response to a
@@ -219,10 +224,11 @@ func AttributeValidateBool(ctx context.Context, attribute fwxschema.AttributeWit
 	}
 
 	validateReq := validator.BoolRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.BoolValidators() {
@@ -284,10 +290,11 @@ func AttributeValidateFloat32(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.Float32Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Float32Validators() {
@@ -349,10 +356,11 @@ func AttributeValidateFloat64(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.Float64Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Float64Validators() {
@@ -414,10 +422,11 @@ func AttributeValidateInt32(ctx context.Context, attribute fwxschema.AttributeWi
 	}
 
 	validateReq := validator.Int32Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Int32Validators() {
@@ -479,10 +488,11 @@ func AttributeValidateInt64(ctx context.Context, attribute fwxschema.AttributeWi
 	}
 
 	validateReq := validator.Int64Request{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.Int64Validators() {
@@ -544,10 +554,11 @@ func AttributeValidateList(ctx context.Context, attribute fwxschema.AttributeWit
 	}
 
 	validateReq := validator.ListRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.ListValidators() {
@@ -609,10 +620,11 @@ func AttributeValidateMap(ctx context.Context, attribute fwxschema.AttributeWith
 	}
 
 	validateReq := validator.MapRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.MapValidators() {
@@ -674,10 +686,11 @@ func AttributeValidateNumber(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.NumberRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.NumberValidators() {
@@ -739,10 +752,11 @@ func AttributeValidateObject(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.ObjectRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.ObjectValidators() {
@@ -804,10 +818,11 @@ func AttributeValidateSet(ctx context.Context, attribute fwxschema.AttributeWith
 	}
 
 	validateReq := validator.SetRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.SetValidators() {
@@ -869,10 +884,11 @@ func AttributeValidateString(ctx context.Context, attribute fwxschema.AttributeW
 	}
 
 	validateReq := validator.StringRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.StringValidators() {
@@ -934,10 +950,11 @@ func AttributeValidateDynamic(ctx context.Context, attribute fwxschema.Attribute
 	}
 
 	validateReq := validator.DynamicRequest{
-		Config:         req.Config,
-		ConfigValue:    configValue,
-		Path:           req.AttributePath,
-		PathExpression: req.AttributePathExpression,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             req.Config,
+		ConfigValue:        configValue,
+		Path:               req.AttributePath,
+		PathExpression:     req.AttributePathExpression,
 	}
 
 	for _, attributeValidator := range attribute.DynamicValidators() {
@@ -1163,10 +1180,11 @@ func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttribu
 		}
 
 		validateReq := validator.ObjectRequest{
-			Config:         req.Config,
-			ConfigValue:    object,
-			Path:           req.AttributePath,
-			PathExpression: req.AttributePathExpression,
+			ClientCapabilities: req.ClientCapabilities,
+			Config:             req.Config,
+			ConfigValue:        object,
+			Path:               req.AttributePath,
+			PathExpression:     req.AttributePathExpression,
 		}
 
 		for _, objectValidator := range objectWithValidators.ObjectValidators() {

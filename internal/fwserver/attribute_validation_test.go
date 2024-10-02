@@ -1993,6 +1993,32 @@ func TestAttributeValidateBool(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithBoolValidators{
+				Validators: []validator.Bool{
+					testvalidator.Bool{
+						ValidateBoolMethod: func(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected BoolRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.BoolValue(true),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithBoolValidators{
 				Validators: []validator.Bool{
@@ -2197,6 +2223,32 @@ func TestAttributeValidateFloat32(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithFloat32Validators{
+				Validators: []validator.Float32{
+					testvalidator.Float32{
+						ValidateFloat32Method: func(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected Float32Request.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float32Value(0.1),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithFloat32Validators{
 				Validators: []validator.Float32{
@@ -2401,6 +2453,32 @@ func TestAttributeValidateFloat64(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithFloat64Validators{
+				Validators: []validator.Float64{
+					testvalidator.Float64{
+						ValidateFloat64Method: func(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected Float64Request.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Float64Value(0.2),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithFloat64Validators{
 				Validators: []validator.Float64{
@@ -2605,6 +2683,32 @@ func TestAttributeValidateInt32(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithInt32Validators{
+				Validators: []validator.Int32{
+					testvalidator.Int32{
+						ValidateInt32Method: func(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected Int32Request.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int32Value(1),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithInt32Validators{
 				Validators: []validator.Int32{
@@ -2809,6 +2913,32 @@ func TestAttributeValidateInt64(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithInt64Validators{
+				Validators: []validator.Int64{
+					testvalidator.Int64{
+						ValidateInt64Method: func(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected Int64Request.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.Int64Value(2),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithInt64Validators{
 				Validators: []validator.Int64{
@@ -3015,6 +3145,32 @@ func TestAttributeValidateList(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithListValidators{
+				Validators: []validator.List{
+					testvalidator.List{
+						ValidateListMethod: func(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ListRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithListValidators{
 				ElementType: types.StringType,
@@ -3240,6 +3396,35 @@ func TestAttributeValidateMap(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithMapValidators{
+				Validators: []validator.Map{
+					testvalidator.Map{
+						ValidateMapMethod: func(ctx context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected MapRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.MapValueMust(
+					types.StringType,
+					map[string]attr.Value{"testkey": types.StringValue("testvalue")},
+				),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithMapValidators{
 				ElementType: types.StringType,
@@ -3469,6 +3654,32 @@ func TestAttributeValidateNumber(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithNumberValidators{
+				Validators: []validator.Number{
+					testvalidator.Number{
+						ValidateNumberMethod: func(ctx context.Context, req validator.NumberRequest, resp *validator.NumberResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected NumberRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.NumberValue(big.NewFloat(1.2)),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithNumberValidators{
 				Validators: []validator.Number{
@@ -3685,6 +3896,35 @@ func TestAttributeValidateObject(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithObjectValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				AttributeConfig: types.ObjectValueMust(
+					map[string]attr.Type{"testattr": types.StringType},
+					map[string]attr.Value{"testattr": types.StringValue("testvalue")},
+				),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithObjectValidators{
 				AttributeTypes: map[string]attr.Type{
@@ -3922,6 +4162,32 @@ func TestAttributeValidateSet(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithSetValidators{
+				Validators: []validator.Set{
+					testvalidator.Set{
+						ValidateSetMethod: func(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected SetRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithSetValidators{
 				ElementType: types.StringType,
@@ -4139,6 +4405,32 @@ func TestAttributeValidateString(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithStringValidators{
+				Validators: []validator.String{
+					testvalidator.String{
+						ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected StringRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.StringValue("testVal"),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithStringValidators{
 				Validators: []validator.String{
@@ -4343,6 +4635,32 @@ func TestAttributeValidateDynamic(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			attribute: testschema.AttributeWithDynamicValidators{
+				Validators: []validator.Dynamic{
+					testvalidator.Dynamic{
+						ValidateDynamicMethod: func(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected DynamicRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: types.DynamicValue(types.StringValue("test")),
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			attribute: testschema.AttributeWithDynamicValidators{
 				Validators: []validator.Dynamic{
@@ -4580,6 +4898,32 @@ func TestNestedAttributeObjectValidateObject(t *testing.T) {
 			response: &ValidateAttributeResponse{},
 			expected: &ValidateAttributeResponse{},
 		},
+		"request-client-capabilities": {
+			object: testschema.NestedAttributeObjectWithValidators{
+				Validators: []validator.Object{
+					testvalidator.Object{
+						ValidateObjectMethod: func(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError(
+									"Unexpected ObjectRequest.ClientCapabilities",
+									"Missing WriteOnlyAttributesAllowed client capability",
+								)
+							}
+						},
+					},
+				},
+			},
+			request: ValidateAttributeRequest{
+				AttributePath:   path.Root("test"),
+				AttributeConfig: testAttributeConfig,
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			response: &ValidateAttributeResponse{},
+			expected: &ValidateAttributeResponse{},
+		},
+
 		"request-config": {
 			object: testschema.NestedAttributeObjectWithValidators{
 				Validators: []validator.Object{

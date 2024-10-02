@@ -33,6 +33,13 @@ func TestServerCreateResource(t *testing.T) {
 		},
 	}
 
+	testSchemaTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_required":   tftypes.String,
+			"test_write_only": tftypes.String,
+		},
+	}
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -76,6 +83,18 @@ func TestServerCreateResource(t *testing.T) {
 		},
 	}
 
+	testSchemaWithWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+			"test_write_only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+		},
+	}
+
 	testEmptyState := &tfsdk.State{
 		Raw:    tftypes.NewValue(testSchemaType, nil),
 		Schema: testSchema,
@@ -89,6 +108,11 @@ func TestServerCreateResource(t *testing.T) {
 	type testSchemaDataWithSemanticEquals struct {
 		TestComputed types.String                            `tfsdk:"test_computed"`
 		TestRequired testtypes.StringValueWithSemanticEquals `tfsdk:"test_required"`
+	}
+
+	type testSchemaDataWriteOnly struct {
+		TestRequired  types.String `tfsdk:"test_required"`
+		TestWriteOnly types.String `tfsdk:"test_write_only"`
 	}
 
 	testProviderMetaType := tftypes.Object{
@@ -502,6 +526,42 @@ func TestServerCreateResource(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 					}),
 					Schema: testSchemaWithSemanticEquals,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-newstate-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_required":   tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, "test-write-only-value"),
+					}),
+					Schema: testSchemaWithWriteOnly,
+				},
+				ResourceSchema: testSchemaWithWriteOnly,
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaDataWriteOnly
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_required":   tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWithWriteOnly,
 				},
 				Private: testEmptyPrivate,
 			},

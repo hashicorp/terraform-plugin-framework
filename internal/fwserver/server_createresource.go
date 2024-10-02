@@ -20,12 +20,13 @@ import (
 // CreateResourceRequest is the framework server request for a create request
 // with the ApplyResourceChange RPC.
 type CreateResourceRequest struct {
-	Config         *tfsdk.Config
-	PlannedPrivate *privatestate.Data
-	PlannedState   *tfsdk.Plan
-	ProviderMeta   *tfsdk.Config
-	ResourceSchema fwschema.Schema
-	Resource       resource.Resource
+	ClientCapabilities ApplyResourceChangeClientCapabilities
+	Config             *tfsdk.Config
+	PlannedPrivate     *privatestate.Data
+	PlannedState       *tfsdk.Plan
+	ProviderMeta       *tfsdk.Config
+	ResourceSchema     fwschema.Schema
+	Resource           resource.Resource
 }
 
 // CreateResourceResponse is the framework server response for a create request
@@ -156,11 +157,22 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		return
 	}
 
-	if semanticEqualityResp.NewData.TerraformValue.Equal(resp.NewState.Raw) {
-		return
+	if !semanticEqualityResp.NewData.TerraformValue.Equal(resp.NewState.Raw) {
+		logging.FrameworkDebug(ctx, "State updated due to semantic equality")
+
+		resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue
 	}
 
-	logging.FrameworkDebug(ctx, "State updated due to semantic equality")
+	if req.ClientCapabilities.WriteOnlyAttributesAllowed {
+		modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error modifying state",
+				"There was an unexpected error modifying the NewState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
 
-	resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue
+		resp.NewState.Raw = modifiedState
+	}
 }

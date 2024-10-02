@@ -7,9 +7,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
+
+func ApplyResourceChangeClientCapabilities(in *tfprotov5.ApplyResourceChangeClientCapabilities) fwserver.ApplyResourceChangeClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return fwserver.ApplyResourceChangeClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return fwserver.ApplyResourceChangeClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}
 
 func ConfigureProviderClientCapabilities(in *tfprotov5.ConfigureProviderClientCapabilities) provider.ConfigureProviderClientCapabilities {
 	if in == nil {

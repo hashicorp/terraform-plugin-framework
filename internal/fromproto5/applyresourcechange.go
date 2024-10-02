@@ -43,6 +43,8 @@ func ApplyResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.ApplyReso
 		Resource:       resource,
 	}
 
+	fw.ClientCapabilities = ApplyResourceChangeClientCapabilities(proto5.ClientCapabilities)
+
 	config, configDiags := Config(ctx, proto5.Config, resourceSchema)
 
 	diags.Append(configDiags...)

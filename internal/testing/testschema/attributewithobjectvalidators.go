@@ -23,6 +23,7 @@ type AttributeWithObjectValidators struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Validators          []validator.Object
 }
 
@@ -82,6 +83,11 @@ func (a AttributeWithObjectValidators) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithObjectValidators) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithObjectValidators) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ObjectValidators satisfies the fwxschema.AttributeWithObjectValidators interface.

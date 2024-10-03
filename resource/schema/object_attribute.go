@@ -170,6 +170,15 @@ type ObjectAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Object
+
+	// WriteOnly indicates that the practitioner can choose a value for this
+	// attribute, but Terraform will not store this attribute in state.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into an
@@ -232,6 +241,11 @@ func (a ObjectAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ObjectAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns the WriteOnly field value.
+func (a ObjectAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ObjectDefaultValue returns the Default field value.

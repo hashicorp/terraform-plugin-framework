@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -15,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestValidateResourceTypeConfigRequest(t *testing.T) {
@@ -82,6 +83,39 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ValidateResourceConfigRequest{
+				Config: &tfsdk.Config{
+					Raw:    testProto5Value,
+					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov5.ValidateResourceTypeConfigRequest{
+				Config: &testProto5DynamicValue,
+				ClientCapabilities: &tfprotov5.ValidateResourceTypeConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: resource.ValidateConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				Config: &tfsdk.Config{
+					Raw:    testProto5Value,
+					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities-not-set": {
+			input: &tfprotov5.ValidateResourceTypeConfigRequest{
+				Config: &testProto5DynamicValue,
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: resource.ValidateConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: false,
+				},
 				Config: &tfsdk.Config{
 					Raw:    testProto5Value,
 					Schema: testFwSchema,

@@ -23,6 +23,7 @@ type AttributeWithFloat32Validators struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Validators          []validator.Float32
 }
 
@@ -85,4 +86,9 @@ func (a AttributeWithFloat32Validators) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat32Validators) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat32Validators) IsWriteOnly() bool {
+	return a.WriteOnly
 }

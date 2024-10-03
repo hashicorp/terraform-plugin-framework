@@ -81,6 +81,30 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				),
 			},
 		},
+		"client-capabilities": {
+			input: &tfprotov6.ApplyResourceChangeRequest{
+				ClientCapabilities: &tfprotov6.ApplyResourceChangeClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
+		"client-capabilities-unset": {
+			input:          &tfprotov6.ApplyResourceChangeRequest{},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
+					WriteOnlyAttributesAllowed: false,
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
 		"config-missing-schema": {
 			input: &tfprotov6.ApplyResourceChangeRequest{
 				Config: &testProto6DynamicValue,

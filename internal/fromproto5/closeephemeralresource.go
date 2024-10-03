@@ -42,12 +42,6 @@ func CloseEphemeralResourceRequest(ctx context.Context, proto5 *tfprotov5.CloseE
 		EphemeralResourceSchema: ephemeralResourceSchema,
 	}
 
-	state, stateDiags := EphemeralState(ctx, proto5.State, ephemeralResourceSchema)
-
-	diags.Append(stateDiags...)
-
-	fw.State = state
-
 	privateData, privateDataDiags := privatestate.NewData(ctx, proto5.Private)
 
 	diags.Append(privateDataDiags...)

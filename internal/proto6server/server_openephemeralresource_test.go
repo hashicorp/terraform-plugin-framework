@@ -35,8 +35,8 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 
 	testEmptyDynamicValue := testNewDynamicValue(t, tftypes.Object{}, nil)
 
-	testStateDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
+	testResultDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
+		"test_computed": tftypes.NewValue(tftypes.String, "test-result-value"),
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
 
@@ -83,7 +83,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				TypeName: "test_ephemeral_resource",
 			},
 			expectedResponse: &tfprotov6.OpenEphemeralResourceResponse{
-				State: testEmptyDynamicValue,
+				Result: testEmptyDynamicValue,
 			},
 		},
 		"request-config": {
@@ -124,7 +124,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				TypeName: "test_ephemeral_resource",
 			},
 			expectedResponse: &tfprotov6.OpenEphemeralResourceResponse{
-				State: testConfigDynamicValue,
+				Result: testConfigDynamicValue,
 			},
 		},
 		"response-diagnostics": {
@@ -169,41 +169,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 						Detail:   "error detail",
 					},
 				},
-				State: testConfigDynamicValue,
-			},
-		},
-		"response-is-closable": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
-							return []func() ephemeral.EphemeralResource{
-								func() ephemeral.EphemeralResource {
-									// Implementing ephemeral.EphemeralResourceWithClose will set IsClosable to true
-									return &testprovider.EphemeralResourceWithClose{
-										EphemeralResource: &testprovider.EphemeralResource{
-											SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
-												resp.Schema = schema.Schema{}
-											},
-											MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-												resp.TypeName = "test_ephemeral_resource"
-											},
-										},
-										CloseMethod: func(ctx context.Context, _ ephemeral.CloseRequest, _ *ephemeral.CloseResponse) {},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov6.OpenEphemeralResourceRequest{
-				Config:   testEmptyDynamicValue,
-				TypeName: "test_ephemeral_resource",
-			},
-			expectedResponse: &tfprotov6.OpenEphemeralResourceResponse{
-				State:      testEmptyDynamicValue,
-				IsClosable: true,
+				Result: testConfigDynamicValue,
 			},
 		},
 		"response-renew-at": {
@@ -235,11 +201,11 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				TypeName: "test_ephemeral_resource",
 			},
 			expectedResponse: &tfprotov6.OpenEphemeralResourceResponse{
-				State:   testEmptyDynamicValue,
+				Result:  testEmptyDynamicValue,
 				RenewAt: time.Date(2024, 8, 29, 6, 10, 32, 0, time.UTC),
 			},
 		},
-		"response-state": {
+		"response-result": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
@@ -261,9 +227,9 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 
 											resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-											data.TestComputed = types.StringValue("test-state-value")
+											data.TestComputed = types.StringValue("test-result-value")
 
-											resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+											resp.Diagnostics.Append(resp.Result.Set(ctx, data)...)
 										},
 									}
 								},
@@ -277,7 +243,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				TypeName: "test_ephemeral_resource",
 			},
 			expectedResponse: &tfprotov6.OpenEphemeralResourceResponse{
-				State: testStateDynamicValue,
+				Result: testResultDynamicValue,
 			},
 		},
 	}

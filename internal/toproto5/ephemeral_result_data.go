@@ -12,14 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-// EphemeralState returns the *tfprotov5.DynamicValue for a *tfsdk.EphemeralState.
-func EphemeralState(ctx context.Context, fw *tfsdk.EphemeralState) (*tfprotov5.DynamicValue, diag.Diagnostics) {
+// EphemeralResultData returns the *tfprotov5.DynamicValue for a *tfsdk.EphemeralResultData.
+func EphemeralResultData(ctx context.Context, fw *tfsdk.EphemeralResultData) (*tfprotov5.DynamicValue, diag.Diagnostics) {
 	if fw == nil {
 		return nil, nil
 	}
 
 	data := &fwschemadata.Data{
-		Description:    fwschemadata.DataDescriptionEphemeralState,
+		Description:    fwschemadata.DataDescriptionEphemeralResultData,
 		Schema:         fw.Schema,
 		TerraformValue: fw.Raw,
 	}

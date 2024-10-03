@@ -100,6 +100,30 @@ func TestOpenEphemeralResourceRequest(t *testing.T) {
 				EphemeralResourceSchema: testFwSchema,
 			},
 		},
+		"client-capabilities": {
+			input: &tfprotov6.OpenEphemeralResourceRequest{
+				ClientCapabilities: &tfprotov6.OpenEphemeralResourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			ephemeralResourceSchema: testFwSchema,
+			expected: &fwserver.OpenEphemeralResourceRequest{
+				EphemeralResourceSchema: testFwSchema,
+				ClientCapabilities: ephemeral.OpenClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
+		"client-capabilities-unset": {
+			input:                   &tfprotov6.OpenEphemeralResourceRequest{},
+			ephemeralResourceSchema: testFwSchema,
+			expected: &fwserver.OpenEphemeralResourceRequest{
+				EphemeralResourceSchema: testFwSchema,
+				ClientCapabilities: ephemeral.OpenClientCapabilities{
+					DeferralAllowed: false,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

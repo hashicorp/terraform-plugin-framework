@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -18,27 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 func TestRenewEphemeralResourceRequest(t *testing.T) {
 	t.Parallel()
-
-	testProto5Type := tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"test_attribute": tftypes.String,
-		},
-	}
-
-	testProto5Value := tftypes.NewValue(testProto5Type, map[string]tftypes.Value{
-		"test_attribute": tftypes.NewValue(tftypes.String, "test-value"),
-	})
-
-	testProto5DynamicValue, err := tfprotov5.NewDynamicValue(testProto5Type, testProto5Value)
-
-	if err != nil {
-		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
-	}
 
 	testFwSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -93,34 +75,6 @@ func TestRenewEphemeralResourceRequest(t *testing.T) {
 						".frameworkKey": []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					},
 					Provider: testProviderData,
-				},
-				EphemeralResourceSchema: testFwSchema,
-			},
-		},
-		"state-missing-schema": {
-			input: &tfprotov5.RenewEphemeralResourceRequest{
-				State: &testProto5DynamicValue,
-			},
-			expected: nil,
-			expectedDiagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Missing EphemeralResource Schema",
-					"An unexpected error was encountered when handling the request. "+
-						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
-						"Please report this to the provider developer:\n\n"+
-						"Missing schema.",
-				),
-			},
-		},
-		"state": {
-			input: &tfprotov5.RenewEphemeralResourceRequest{
-				State: &testProto5DynamicValue,
-			},
-			ephemeralResourceSchema: testFwSchema,
-			expected: &fwserver.RenewEphemeralResourceRequest{
-				State: &tfsdk.EphemeralState{
-					Raw:    testProto5Value,
-					Schema: testFwSchema,
 				},
 				EphemeralResourceSchema: testFwSchema,
 			},

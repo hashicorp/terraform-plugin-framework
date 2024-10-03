@@ -7,17 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // RenewRequest represents a request for the provider to renew an ephemeral
 // resource. An instance of this request struct is supplied as an argument to
 // the ephemeral resource's Renew function.
 type RenewRequest struct {
-	// State is the object representing the values of the ephemeral
-	// resource following the Open operation.
-	State tfsdk.EphemeralState
-
 	// Private is provider-defined ephemeral resource private state data
 	// which was previously provided by the latest Open or Renew operation.
 	// Any existing data is copied to RenewResponse.Private to prevent

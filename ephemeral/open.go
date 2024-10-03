@@ -10,6 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// OpenClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the OpenEphemeralResource RPC,
+// such as forward-compatible Terraform behavior changes.
+type OpenClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	DeferralAllowed bool
+}
+
 // OpenRequest represents a request for the provider to open an ephemeral
 // resource. An instance of this request struct is supplied as an argument to
 // the ephemeral resource's Open function.
@@ -17,6 +29,10 @@ type OpenRequest struct {
 	// Config is the configuration the user supplied for the ephemeral
 	// resource.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// OpenEphemeralResource RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities OpenClientCapabilities
 }
 
 // OpenResponse represents a response to a OpenRequest. An
@@ -24,11 +40,11 @@ type OpenRequest struct {
 // to the ephemeral resource's Open function, in which the provider
 // should set values on the OpenResponse as appropriate.
 type OpenResponse struct {
-	// State is the object representing the values of the ephemeral
+	// Result is the object representing the values of the ephemeral
 	// resource following the Open operation. This field is pre-populated
 	// from OpenRequest.Config and should be set during the resource's Open
 	// operation.
-	State tfsdk.EphemeralState
+	Result tfsdk.EphemeralResultData
 
 	// Private is the private state ephemeral resource data following the
 	// Open operation. This field is not pre-populated as there is no
@@ -50,4 +66,14 @@ type OpenResponse struct {
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
+
+	// Deferred indicates that Terraform should defer opening this
+	// ephemeral resource until a followup apply operation.
+	//
+	// This field can only be set if
+	// `(ephemeral.OpenRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	Deferred *Deferred
 }

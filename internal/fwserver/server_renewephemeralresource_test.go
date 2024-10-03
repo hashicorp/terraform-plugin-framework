@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -20,24 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerRenewEphemeralResource(t *testing.T) {
 	t.Parallel()
-
-	testType := tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"test_computed": tftypes.String,
-			"test_required": tftypes.String,
-		},
-	}
-
-	testStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
-		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-	})
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -48,11 +33,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Required: true,
 			},
 		},
-	}
-
-	testState := &tfsdk.EphemeralState{
-		Raw:    testStateValue,
-		Schema: testSchema,
 	}
 
 	testPrivateFrameworkMap := map[string][]byte{
@@ -92,62 +72,11 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.RenewEphemeralResourceResponse{},
 		},
-		"request-state-missing": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.RenewEphemeralResourceRequest{
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
-					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {},
-				},
-			},
-			expectedResponse: &fwserver.RenewEphemeralResourceResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Unexpected Renew Request",
-						"An unexpected error was encountered when renewing the ephemeral resource. The state was missing.\n\n"+
-							"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-					),
-				},
-			},
-		},
-		"request-state": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
-					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-						if data.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
-						}
-
-						if data.TestComputed.ValueString() != "test-state-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestComputed.ValueString())
-						}
-					},
-				},
-			},
-			expectedResponse: &fwserver.RenewEphemeralResourceResponse{
-				Private: testEmptyPrivate,
-			},
-		},
 		"request-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
@@ -174,7 +103,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
@@ -201,7 +129,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				// Doesn't implement Renew interface
 				EphemeralResource: &testprovider.EphemeralResource{},
@@ -223,7 +150,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithConfigureAndRenew{
 					ConfigureMethod: func(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
@@ -261,7 +187,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {},
@@ -277,7 +202,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
@@ -305,7 +229,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {
@@ -323,7 +246,6 @@ func TestServerRenewEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.RenewEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithRenew{
 					RenewMethod: func(ctx context.Context, req ephemeral.RenewRequest, resp *ephemeral.RenewResponse) {

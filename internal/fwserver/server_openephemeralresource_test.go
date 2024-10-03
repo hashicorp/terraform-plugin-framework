@@ -38,10 +38,12 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
 
-	testStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
+	testResultValue := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"test_computed": tftypes.NewValue(tftypes.String, "test-result-value"),
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
+
+	testResultUnknownValue := tftypes.NewValue(testType, tftypes.UnknownValue)
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -59,14 +61,23 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 		Schema: testSchema,
 	}
 
-	testStateUnchanged := &tfsdk.EphemeralState{
+	testResultUnchanged := &tfsdk.EphemeralResultData{
 		Raw:    testConfigValue,
 		Schema: testSchema,
 	}
 
-	testState := &tfsdk.EphemeralState{
-		Raw:    testStateValue,
+	testResultUnknown := &tfsdk.EphemeralResultData{
+		Raw:    testResultUnknownValue,
 		Schema: testSchema,
+	}
+
+	testResult := &tfsdk.EphemeralResultData{
+		Raw:    testResultValue,
+		Schema: testSchema,
+	}
+
+	testDeferralAllowed := ephemeral.OpenClientCapabilities{
+		DeferralAllowed: true,
 	}
 
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
@@ -97,6 +108,35 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{},
 		},
+		"request-client-capabilities-deferral-allowed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.OpenEphemeralResourceRequest{
+				ClientCapabilities:      testDeferralAllowed,
+				Config:                  testConfig,
+				EphemeralResourceSchema: testSchema,
+				EphemeralResource: &testprovider.EphemeralResource{
+					OpenMethod: func(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+						if req.ClientCapabilities.DeferralAllowed != true {
+							resp.Diagnostics.AddError("Unexpected req.ClientCapabilities.DeferralAllowed value",
+								"expected: true but got: false")
+						}
+
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
+				Result:  testResultUnchanged,
+				Private: testEmptyPrivate,
+			},
+		},
 		"request-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -120,7 +160,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testStateUnchanged,
+				Result:  testResultUnchanged,
 				Private: testEmptyPrivate,
 			},
 		},
@@ -162,7 +202,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testStateUnchanged,
+				Result:  testResultUnchanged,
 				Private: testEmptyPrivate,
 			},
 		},
@@ -178,10 +218,69 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:      testStateUnchanged,
-				Private:    testEmptyPrivate,
-				RenewAt:    *new(time.Time),
-				IsClosable: false,
+				Result:  testResultUnchanged,
+				Private: testEmptyPrivate,
+				RenewAt: *new(time.Time),
+			},
+		},
+		"response-deferral-automatic": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.Deferred = &provider.Deferred{Reason: provider.DeferredReasonProviderConfigUnknown}
+					},
+				},
+			},
+			configureProviderReq: &provider.ConfigureRequest{
+				ClientCapabilities: provider.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			request: &fwserver.OpenEphemeralResourceRequest{
+				Config:                  testConfig,
+				EphemeralResourceSchema: testSchema,
+				EphemeralResource: &testprovider.EphemeralResource{
+					OpenMethod: func(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+						resp.Diagnostics.AddError("Test assertion failed: ", "open shouldn't be called")
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
+				Result:   testResultUnknown,
+				Deferred: &ephemeral.Deferred{Reason: ephemeral.DeferredReasonProviderConfigUnknown},
+			},
+		},
+		"response-deferral-manual": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.OpenEphemeralResourceRequest{
+				Config:                  testConfig,
+				EphemeralResourceSchema: testSchema,
+				EphemeralResource: &testprovider.EphemeralResource{
+					OpenMethod: func(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+						var config struct {
+							TestComputed types.String `tfsdk:"test_computed"`
+							TestRequired types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+
+						resp.Deferred = &ephemeral.Deferred{Reason: ephemeral.DeferredReasonAbsentPrereq}
+
+						if config.TestRequired.ValueString() != "test-config-value" {
+							resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
+						}
+					},
+				},
+				ClientCapabilities: testDeferralAllowed,
+			},
+			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
+				Result:   testResultUnchanged,
+				Private:  testEmptyPrivate,
+				Deferred: &ephemeral.Deferred{Reason: ephemeral.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-diagnostics": {
@@ -209,7 +308,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 						"error detail",
 					),
 				},
-				State:   testStateUnchanged,
+				Result:  testResultUnchanged,
 				Private: testEmptyPrivate,
 			},
 		},
@@ -227,33 +326,12 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testStateUnchanged,
+				Result:  testResultUnchanged,
 				Private: testEmptyPrivate,
 				RenewAt: time.Date(2024, 8, 29, 5, 10, 32, 0, time.UTC),
 			},
 		},
-		"response-is-closable": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.OpenEphemeralResourceRequest{
-				Config:                  testConfig,
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithClose{
-					EphemeralResource: &testprovider.EphemeralResource{
-						OpenMethod: func(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {},
-					},
-					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {},
-				},
-			},
-			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testStateUnchanged,
-				Private: testEmptyPrivate,
-				// Implements ephemeral.EphemeralResourceWithClose interface
-				IsClosable: true,
-			},
-		},
-		"response-state": {
+		"response-result": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -269,14 +347,14 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 
 						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-						data.TestComputed = types.StringValue("test-state-value")
+						data.TestComputed = types.StringValue("test-result-value")
 
-						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						resp.Diagnostics.Append(resp.Result.Set(ctx, &data)...)
 					},
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testState,
+				Result:  testResult,
 				Private: testEmptyPrivate,
 			},
 		},
@@ -296,7 +374,7 @@ func TestServerOpenEphemeralResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.OpenEphemeralResourceResponse{
-				State:   testStateUnchanged,
+				Result:  testResultUnchanged,
 				Private: testPrivateProvider,
 			},
 		},

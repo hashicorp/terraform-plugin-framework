@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -19,24 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerCloseEphemeralResource(t *testing.T) {
 	t.Parallel()
-
-	testType := tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"test_computed": tftypes.String,
-			"test_required": tftypes.String,
-		},
-	}
-
-	testStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
-		"test_computed": tftypes.NewValue(tftypes.String, "test-state-value"),
-		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-	})
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -47,11 +32,6 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 				Required: true,
 			},
 		},
-	}
-
-	testState := &tfsdk.EphemeralState{
-		Raw:    testStateValue,
-		Schema: testSchema,
 	}
 
 	testPrivateFrameworkMap := map[string][]byte{
@@ -81,60 +61,11 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.CloseEphemeralResourceResponse{},
 		},
-		"request-state-missing": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.CloseEphemeralResourceRequest{
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithClose{
-					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {},
-				},
-			},
-			expectedResponse: &fwserver.CloseEphemeralResourceResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Unexpected Close Request",
-						"An unexpected error was encountered when closing the ephemeral resource. The state was missing.\n\n"+
-							"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-					),
-				},
-			},
-		},
-		"request-state": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
-				EphemeralResourceSchema: testSchema,
-				EphemeralResource: &testprovider.EphemeralResourceWithClose{
-					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
-						var data struct {
-							TestComputed types.String `tfsdk:"test_computed"`
-							TestRequired types.String `tfsdk:"test_required"`
-						}
-
-						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-						if data.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestRequired.ValueString())
-						}
-
-						if data.TestComputed.ValueString() != "test-state-value" {
-							resp.Diagnostics.AddError("unexpected req.State value: %s", data.TestComputed.ValueString())
-						}
-					},
-				},
-			},
-			expectedResponse: &fwserver.CloseEphemeralResourceResponse{},
-		},
 		"request-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithClose{
 					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
@@ -159,7 +90,6 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithClose{
 					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
@@ -178,27 +108,17 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 			},
 			expectedResponse: &fwserver.CloseEphemeralResourceResponse{},
 		},
-		"ephemeralresource-no-close-implementation-diagnostic": {
+		"ephemeralresource-no-close-implementation": {
 			server: &fwserver.Server{
 				EphemeralResourceConfigureData: "test-provider-configure-value",
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				// Doesn't implement Close interface
 				EphemeralResource: &testprovider.EphemeralResource{},
 			},
-			expectedResponse: &fwserver.CloseEphemeralResourceResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Ephemeral Resource Close Not Implemented",
-						"An unexpected error was encountered when closing the ephemeral resource. Terraform sent a close request for an "+
-							"ephemeral resource that has not implemented close logic.\n\n"+
-							"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-					),
-				},
-			},
+			expectedResponse: &fwserver.CloseEphemeralResourceResponse{},
 		},
 		"ephemeralresource-configure-data": {
 			server: &fwserver.Server{
@@ -206,7 +126,6 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 				Provider:                       &testprovider.Provider{},
 			},
 			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithConfigureAndClose{
 					ConfigureMethod: func(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
@@ -242,7 +161,6 @@ func TestServerCloseEphemeralResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CloseEphemeralResourceRequest{
-				State:                   testState,
 				EphemeralResourceSchema: testSchema,
 				EphemeralResource: &testprovider.EphemeralResourceWithClose{
 					CloseMethod: func(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {

@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-// EphemeralState returns the *tfsdk.EphemeralState for a *tfprotov5.DynamicValue and
+// EphemeralResultData returns the *tfsdk.EphemeralResultData for a *tfprotov5.DynamicValue and
 // fwschema.Schema.
-func EphemeralState(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schema fwschema.Schema) (*tfsdk.EphemeralState, diag.Diagnostics) {
+func EphemeralResultData(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicValue, schema fwschema.Schema) (*tfsdk.EphemeralResultData, diag.Diagnostics) {
 	if proto5DynamicValue == nil {
 		return nil, nil
 	}
@@ -26,8 +26,8 @@ func EphemeralState(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicVa
 	// This should not happen, but just in case.
 	if schema == nil {
 		diags.AddError(
-			"Unable to Convert Ephemeral State",
-			"An unexpected error was encountered when converting the ephemeral state from the protocol type. "+
+			"Unable to Convert Ephemeral Result Data",
+			"An unexpected error was encountered when converting the ephemeral result data from the protocol type. "+
 				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+
 				"Missing schema.",
@@ -36,7 +36,7 @@ func EphemeralState(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicVa
 		return nil, diags
 	}
 
-	data, dynamicValueDiags := DynamicValue(ctx, proto5DynamicValue, schema, fwschemadata.DataDescriptionEphemeralState)
+	data, dynamicValueDiags := DynamicValue(ctx, proto5DynamicValue, schema, fwschemadata.DataDescriptionEphemeralResultData)
 
 	diags.Append(dynamicValueDiags...)
 
@@ -44,7 +44,7 @@ func EphemeralState(ctx context.Context, proto5DynamicValue *tfprotov5.DynamicVa
 		return nil, diags
 	}
 
-	fw := &tfsdk.EphemeralState{
+	fw := &tfsdk.EphemeralResultData{
 		Raw:    data.TerraformValue,
 		Schema: schema,
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
@@ -39,6 +40,14 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
+	testDeferral := &ephemeral.Deferred{
+		Reason: ephemeral.DeferredReasonAbsentPrereq,
+	}
+
+	testProto5Deferred := &tfprotov5.Deferred{
+		Reason: tfprotov5.DeferredReasonAbsentPrereq,
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
@@ -47,7 +56,7 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
-	testEphemeralState := &tfsdk.EphemeralState{
+	testEphemeralResult := &tfsdk.EphemeralResultData{
 		Raw: testProto5Value,
 		Schema: schema.Schema{
 			Attributes: map[string]schema.Attribute{
@@ -58,7 +67,7 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 		},
 	}
 
-	testEphemeralStateInvalid := &tfsdk.EphemeralState{
+	testEphemeralResultInvalid := &tfsdk.EphemeralResultData{
 		Raw: testProto5Value,
 		Schema: schema.Schema{
 			Attributes: map[string]schema.Attribute{
@@ -81,8 +90,7 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 			input: &fwserver.OpenEphemeralResourceResponse{},
 			expected: &tfprotov5.OpenEphemeralResourceResponse{
 				// Time zero
-				RenewAt:    *new(time.Time),
-				IsClosable: false,
+				RenewAt: *new(time.Time),
 			},
 		},
 		"diagnostics": {
@@ -107,13 +115,13 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 				},
 			},
 		},
-		"diagnostics-invalid-state": {
+		"diagnostics-invalid-result": {
 			input: &fwserver.OpenEphemeralResourceResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
 				},
-				State: testEphemeralStateInvalid,
+				Result: testEphemeralResultInvalid,
 			},
 			expected: &tfprotov5.OpenEphemeralResourceResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -129,21 +137,13 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 					},
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Unable to Convert Ephemeral State",
-						Detail: "An unexpected error was encountered when converting the ephemeral state to the protocol type. " +
+						Summary:  "Unable to Convert Ephemeral Result Data",
+						Detail: "An unexpected error was encountered when converting the ephemeral result data to the protocol type. " +
 							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
 							"Please report this to the provider developer:\n\n" +
 							"Unable to create DynamicValue: AttributeName(\"test_attribute\"): unexpected value type string, tftypes.Bool values must be of type bool",
 					},
 				},
-			},
-		},
-		"is-closable": {
-			input: &fwserver.OpenEphemeralResourceResponse{
-				IsClosable: true,
-			},
-			expected: &tfprotov5.OpenEphemeralResourceResponse{
-				IsClosable: true,
 			},
 		},
 		"renew-at": {
@@ -154,12 +154,12 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 				RenewAt: time.Date(2024, 8, 29, 5, 10, 32, 0, time.UTC),
 			},
 		},
-		"state": {
+		"result": {
 			input: &fwserver.OpenEphemeralResourceResponse{
-				State: testEphemeralState,
+				Result: testEphemeralResult,
 			},
 			expected: &tfprotov5.OpenEphemeralResourceResponse{
-				State: &testProto5DynamicValue,
+				Result: &testProto5DynamicValue,
 			},
 		},
 		"private-empty": {
@@ -186,6 +186,14 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 					".frameworkKey":  []byte(`{"fKeyOne": {"k0": "zero", "k1": 1}}`),
 					"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 				}),
+			},
+		},
+		"deferral": {
+			input: &fwserver.OpenEphemeralResourceResponse{
+				Deferred: testDeferral,
+			},
+			expected: &tfprotov5.OpenEphemeralResourceResponse{
+				Deferred: testProto5Deferred,
 			},
 		},
 	}

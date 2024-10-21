@@ -64,7 +64,7 @@ func (v StringValueWithValidateParameterError) Equal(value attr.Value) bool {
 		return false
 	}
 
-	return v == other
+	return v.Equal(other)
 }
 
 func (v StringValueWithValidateParameterError) IsNull() bool {

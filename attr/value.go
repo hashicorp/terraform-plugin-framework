@@ -6,6 +6,7 @@ package attr
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -69,3 +70,18 @@ type Value interface {
 	// compatibility guarantees within the framework.
 	String() string
 }
+
+// ValueWithNotNullRefinement defines an interface describing a Value that can contain
+// a refinement that indicates the Value is unknown, but will not be null once it becomes known.
+//
+// This interface is implemented by all base value types except for DynamicValue, as dynamic types
+// in Terraform don't support value refinements.
+type ValueWithNotNullRefinement interface {
+	Value
+
+	// NotNullRefinement returns a value refinement, if one exists, that indicates an unknown value
+	// will not be null once it becomes known.
+	NotNullRefinement() *refinement.NotNull
+}
+
+// TODO: Should we add interfaces for all the other refinements retrieval? Even though we don't need them ATM?

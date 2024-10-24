@@ -137,33 +137,47 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 
 	AttributeValidateNestedAttributes(ctx, a, req, resp)
 
-	// Show deprecation warnings only for known values.
-	if a.GetDeprecationMessage() != "" && !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
-		// Dynamic values need to perform more logic to check the config value for null/unknown-ness
-		dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
-		if !ok {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Attribute Deprecated",
-				a.GetDeprecationMessage(),
-			)
-			return
-		}
+	// Show deprecation warnings only for known values or unknown values with a "not null" refinement.
+	if a.GetDeprecationMessage() != "" {
+		if attributeConfig.IsUnknown() {
+			valWithNotNullRefn, ok := attributeConfig.(attr.ValueWithNotNullRefinement)
+			if ok {
+				if valWithNotNullRefn.NotNullRefinement() != nil {
+					resp.Diagnostics.AddAttributeWarning(
+						req.AttributePath,
+						"Attribute Deprecated",
+						a.GetDeprecationMessage(),
+					)
+					return
+				}
+			}
+		} else if !attributeConfig.IsNull() && !attributeConfig.IsUnknown() {
+			// Dynamic values need to perform more logic to check the config value for null/unknown-ness
+			dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
+			if !ok {
+				resp.Diagnostics.AddAttributeWarning(
+					req.AttributePath,
+					"Attribute Deprecated",
+					a.GetDeprecationMessage(),
+				)
+				return
+			}
 
-		dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
-		resp.Diagnostics.Append(diags...)
-		if diags.HasError() {
-			return
-		}
+			dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
+			resp.Diagnostics.Append(diags...)
+			if diags.HasError() {
+				return
+			}
 
-		// For dynamic values, it's possible to be known when only the type is known.
-		// The underlying value can still be null or unknown, so check for that here
-		if !dynamicConfigVal.IsUnderlyingValueNull() && !dynamicConfigVal.IsUnderlyingValueUnknown() {
-			resp.Diagnostics.AddAttributeWarning(
-				req.AttributePath,
-				"Attribute Deprecated",
-				a.GetDeprecationMessage(),
-			)
+			// For dynamic values, it's possible to be known when only the type is known.
+			// The underlying value can still be null or unknown, so check for that here
+			if !dynamicConfigVal.IsUnderlyingValueNull() && !dynamicConfigVal.IsUnderlyingValueUnknown() {
+				resp.Diagnostics.AddAttributeWarning(
+					req.AttributePath,
+					"Attribute Deprecated",
+					a.GetDeprecationMessage(),
+				)
+			}
 		}
 	}
 }

@@ -11,10 +11,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
-	_ StringValuable = StringValue{}
+	_ StringValuable                  = StringValue{}
+	_ attr.ValueWithNotNullRefinement = StringValue{}
 )
 
 // StringValuable extends attr.Value for string value types.
@@ -94,6 +97,9 @@ type StringValue struct {
 
 	// value contains the known value, if not null or unknown.
 	value string
+
+	// TODO: doc
+	refinements refinement.Refinements
 }
 
 // Type returns a StringType.
@@ -113,7 +119,22 @@ func (s StringValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) 
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.String, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
+		if len(s.refinements) == 0 {
+			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinements.Refinements, 0)
+		for _, refn := range s.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
+			case refinement.StringPrefix:
+				unknownValRefinements[tfrefinements.KeyStringPrefix] = tfrefinements.NewStringPrefix(refnVal.PrefixValue())
+			}
+		}
+		unknownVal := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled String state in ToTerraformValue: %s", s.state))
 	}
@@ -135,6 +156,8 @@ func (s StringValue) Equal(other attr.Value) bool {
 		return true
 	}
 
+	// TODO: compare refinements? I might not be able to... to allow future refinements?
+
 	return s.value == o.value
 }
 
@@ -155,6 +178,8 @@ func (s StringValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (s StringValue) String() string {
 	if s.IsUnknown() {
+		// TODO: Also print out unknown value refinements?
+
 		return attr.UnknownValueString
 	}
 
@@ -184,4 +209,96 @@ func (s StringValue) ValueStringPointer() *string {
 // ToStringValue returns String.
 func (s StringValue) ToStringValue(context.Context) (StringValue, diag.Diagnostics) {
 	return s, nil
+}
+
+// RefineAsNotNull will return an unknown StringValue that includes a value refinement that:
+//   - Indicates the string value will not be null once it becomes known.
+//
+// If the StringValue is not unknown, then no refinement will be added and the provided StringValue will be returned.
+func (s StringValue) RefineAsNotNull() StringValue {
+	// TODO: Should we return an error?
+	if !s.IsUnknown() {
+		return s
+	}
+
+	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
+	refns := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		refns[i] = refn
+	}
+	refns[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewStringUnknown()
+	newUnknownVal.refinements = refns
+
+	return newUnknownVal
+}
+
+// RefineWithPrefix will return an unknown StringValue that includes a value refinement that:
+//   - Indicates the string value will not be null once it becomes known.
+//   - Indicates the string value will have the specified prefix once it becomes known.
+//
+// If the StringValue is not unknown, then no refinement will be added and the provided StringValue will be returned.
+func (s StringValue) RefineWithPrefix(prefix string) StringValue {
+	// TODO: Should we return an error?
+	if !s.IsUnknown() {
+		return s
+	}
+
+	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
+	refns := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		refns[i] = refn
+	}
+	refns[refinement.KeyNotNull] = refinement.NewNotNull()
+	refns[refinement.KeyStringPrefix] = refinement.NewStringPrefix(prefix)
+
+	newUnknownVal := NewStringUnknown()
+	newUnknownVal.refinements = refns
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns a value refinement, if one exists, that indicates an unknown string value
+// will not be null once it becomes known.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (s StringValue) NotNullRefinement() *refinement.NotNull {
+	if !s.IsUnknown() {
+		return nil
+	}
+
+	refn, ok := s.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil
+	}
+
+	return &notNullRefn
+}
+
+// PrefixRefinement returns a value refinement, if one exists, that indicates an unknown string value
+// will have a specified string prefix once it becomes known.
+//
+// A StringPrefix value refinement can be added to an unknown value via the `RefineWithPrefix` method.
+func (s StringValue) PrefixRefinement() *refinement.StringPrefix {
+	if !s.IsUnknown() {
+		return nil
+	}
+
+	refn, ok := s.refinements[refinement.KeyStringPrefix]
+	if !ok {
+		return nil
+	}
+
+	prefixRefn, ok := refn.(refinement.StringPrefix)
+	if !ok {
+		return nil
+	}
+
+	return &prefixRefn
 }

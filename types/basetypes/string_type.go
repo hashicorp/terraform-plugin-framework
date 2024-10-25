@@ -71,7 +71,7 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		for _, refn := range refinements {
 			switch refnVal := refn.(type) {
 			case tfrefinements.Nullness:
-				if refnVal.NotNull() {
+				if !refnVal.Nullness() {
 					unknownVal = unknownVal.RefineAsNotNull()
 				} else {
 					// This scenario shouldn't occur, as Terraform should have already collapsed an

@@ -9,6 +9,7 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -124,7 +125,44 @@ func (t Int64Type) ValueFromInt64(_ context.Context, v Int64Value) (Int64Valuabl
 // consume the data with.
 func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewInt64Unknown(), nil
+		refinements := in.Refinements()
+		if len(refinements) == 0 {
+			return NewInt64Unknown(), nil
+		}
+
+		unknownVal := NewInt64Unknown()
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinements.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewInt64Null(), nil
+				}
+			case tfrefinements.NumberLowerBound:
+				// TODO: I don't think this is safe, but not sure what the expectation should be?
+				// Should I just chop the decimal off?
+				// Could also just directly create the refinement here, rather than using the int64 facing one?
+				// TODO: use-case, resource A sets an unknown value refinement with float, resource B receives this refinement
+				// and chops the decimal point off, thus changing the refinement, which is invalid.
+				boundVal, _ := refnVal.LowerBound().Int64()
+				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
+			case tfrefinements.NumberUpperBound:
+				// TODO: I don't think this is safe, but not sure what the expectation should be?
+				// Should I just chop the decimal off?
+				// Could also just directly create the refinement here, rather than using the int64 facing one?
+				// TODO: use-case, resource A sets an unknown value refinement with float, resource B receives this refinement
+				// and chops the decimal point off, thus changing the refinement, which is invalid.
+				boundVal, _ := refnVal.UpperBound().Int64()
+				unknownVal = unknownVal.RefineWithUpperBound(boundVal, refnVal.IsInclusive())
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {

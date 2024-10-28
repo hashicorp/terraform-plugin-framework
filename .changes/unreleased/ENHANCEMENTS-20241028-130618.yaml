@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'tfsdk: Added `EphemeralResultData` struct for representing ephemeral values
+  produced by a provider, such as from an ephemeral resource'
+time: 2024-10-28T13:06:18.799164-04:00
+custom:
+  Issue: "1050"

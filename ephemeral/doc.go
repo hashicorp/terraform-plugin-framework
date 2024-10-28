@@ -20,4 +20,7 @@
 // that has its own configuration and lifecycle logic. The [ephemeral.EphemeralResource]
 // implementations are referenced by the [provider.ProviderWithEphemeralResources] type
 // EphemeralResources method, which enables the ephemeral resource practitioner usage.
+//
+// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
+// these notices are removed.
 package ephemeral

@@ -50,6 +50,8 @@ type OpenResponse struct {
 	// Open operation. This field is not pre-populated as there is no
 	// pre-existing private state data during the ephemeral resource's
 	// Open operation.
+	//
+	// This private data will be passed to any Renew or Close operations.
 	Private *privatestate.ProviderData
 
 	// RenewAt is an optional date/time field that indicates to Terraform
@@ -62,7 +64,7 @@ type OpenResponse struct {
 	// skew.
 	RenewAt time.Time
 
-	// Diagnostics report errors or warnings related to creating the
+	// Diagnostics report errors or warnings related to opening the ephemeral
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics

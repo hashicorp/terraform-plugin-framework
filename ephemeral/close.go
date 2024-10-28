@@ -23,7 +23,7 @@ type CloseRequest struct {
 // to the ephemeral resource's Close function, in which the provider
 // should set values on the CloseResponse as appropriate.
 type CloseResponse struct {
-	// Diagnostics report errors or warnings related to creating the
+	// Diagnostics report errors or warnings related to closing the
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics

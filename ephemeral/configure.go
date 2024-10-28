@@ -27,7 +27,7 @@ type ConfigureRequest struct {
 // EphemeralResource type Configure method.
 type ConfigureResponse struct {
 	// Diagnostics report errors or warnings related to configuring of the
-	// Datasource. An empty slice indicates a successful operation with no
+	// EphemeralResource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
 }

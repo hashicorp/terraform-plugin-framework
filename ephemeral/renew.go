@@ -41,9 +41,11 @@ type RenewResponse struct {
 	// Private is the private state ephemeral resource data following the
 	// Renew operation. This field is pre-populated from RenewRequest.Private
 	// and can be modified during the ephemeral resource's Renew operation.
+	//
+	// This private data will be passed to any Renew or Close operations.
 	Private *privatestate.ProviderData
 
-	// Diagnostics report errors or warnings related to creating the
+	// Diagnostics report errors or warnings related to renewing the ephemeral
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics

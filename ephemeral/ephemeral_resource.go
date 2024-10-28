@@ -53,7 +53,7 @@ type EphemeralResourceWithRenew interface {
 
 // EphemeralResourceWithClose is an interface type that extends
 // EphemeralResource to include a method which the framework will call when
-// Terraform determines that the ephemeral values can be safely cleaned up.
+// Terraform determines that the ephemeral resource can be safely cleaned up.
 type EphemeralResourceWithClose interface {
 	EphemeralResource
 
@@ -76,7 +76,7 @@ type EphemeralResourceWithConfigure interface {
 
 // EphemeralResourceWithConfigValidators is an interface type that extends EphemeralResource to include declarative validations.
 //
-// Declaring validation using this methodology simplifies implmentation of
+// Declaring validation using this methodology simplifies implementation of
 // reusable functionality. These also include descriptions, which can be used
 // for automating documentation.
 //

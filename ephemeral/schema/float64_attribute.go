@@ -58,9 +58,7 @@ type Float64Attribute struct {
 
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
-	// in CLI output. Sensitive does not impact how values are stored, and
-	// practitioners are encouraged to store their state as if the entire
-	// file is sensitive.
+	// in CLI output.
 	Sensitive bool
 
 	// Description is used in various tooling, like the language server, to

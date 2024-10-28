@@ -8,7 +8,7 @@ const (
 	// Provider developers should not use it.
 	DeferredReasonUnknown DeferredReason = 0
 
-	// DeferredReasonEphemeralResourceConfigUnknown is used to indicate that the ephemeral resource configuration
+	// DeferredReasonEphemeralResourceConfigUnknown is used to indicate that the resource configuration
 	// is partially unknown and the real values need to be known before the change can be planned.
 	DeferredReasonEphemeralResourceConfigUnknown DeferredReason = 1
 

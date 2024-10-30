@@ -59,9 +59,8 @@ type OpenResponse struct {
 	// the (EphemeralResource).Renew method when the current date/time is on
 	// or after RenewAt during a Terraform operation.
 	//
-	// It is recommended to provide small leeway before an ephemeral resource
-	// expires, usually no more than a few minutes, to account for clock
-	// skew.
+	// It is recommended to add extra time (usually no more than a few minutes)
+	// before an ephemeral resource expires to account for latency.
 	RenewAt time.Time
 
 	// Diagnostics report errors or warnings related to opening the ephemeral

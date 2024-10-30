@@ -33,9 +33,8 @@ type RenewResponse struct {
 	// the (EphemeralResource).Renew method when the current date/time is on
 	// or after RenewAt during a Terraform operation.
 	//
-	// It is recommended to provide small leeway before an ephemeral resource
-	// expires, usually no more than a few minutes, to account for clock
-	// skew.
+	// It is recommended to add extra time (usually no more than a few minutes)
+	// before an ephemeral resource expires to account for latency.
 	RenewAt time.Time
 
 	// Private is the private state ephemeral resource data following the

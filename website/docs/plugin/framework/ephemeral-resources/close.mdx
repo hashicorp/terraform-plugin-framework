@@ -1,0 +1,94 @@
+---
+page_title: 'Plugin Development - Framework: Open Ephemeral Resources'
+description: >-
+  How to implement ephemeral resource close in the provider development framework.
+---
+
+# Close Ephemeral Resources
+
+Close is an optional part of the Terraform lifecycle for an ephemeral resource, which is different from the [managed resource lifecycle](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md). During any Terraform operation (like [`terraform plan`](/terraform/cli/commands/plan) or [`terraform apply`](/terraform/cli/commands/apply)), when an ephemeral resource's data is needed, Terraform initially retrieves that data with the [`Open`](/terraform/plugin/framework/ephemeral-resources/open) lifecycle handler. Once the ephemeral resource data is no longer needed, Terraform calls the provider `CloseEphemeralResource` RPC, in which the framework calls the [`ephemeral.EphemeralResourceWithClose` interface `Close` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithClose). The request contains any `Private` data set in the latest `Open` or `Renew` call.
+
+`Close` is an optional lifecycle implementation for an ephemeral resource, other lifecycle implementations include:
+
+- [Open](/terraform/plugin/framework/ephemeral-resources/open) an ephemeral resource by receiving Terraform configuration, retrieving a remote object, and returning ephemeral result data to Terraform.
+- [Renew](/terraform/plugin/framework/ephemeral-resources/renew) an expired remote object at a specified time.
+
+## Define Close Method
+
+The [`ephemeral.EphemeralResourceWithClose` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithClose) on the [`ephemeral.EphemeralResource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResource) implementation will enable close support for an ephemeral resource.
+
+Implement the `Close` method by:
+
+1. [Accessing private data](/terraform/plugin/framework/resources/private-state#reading-private-state-data) from [`ephemeral.CloseRequest.Private` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#CloseRequest.Private) needed to close the remote object.
+1. Performing logic or external calls to close the remote object.
+
+If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can be added into the [`ephemeral.CloseResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#CloseResponse.Diagnostics).
+
+In this example, an ephemeral resource named `examplecloud_thing` with hardcoded behavior is defined. `Private` data needed to execute `Close` is passed from the `Open` response:
+
+```go
+var _ ephemeral.EphemeralResourceWithClose = (*ThingEphemeralResource)(nil)
+
+// ThingEphemeralResource defines the ephemeral resource implementation, which also implements Close.
+type ThingEphemeralResource struct{}
+
+type ThingEphemeralResourceModel struct {
+	Name  types.String `tfsdk:"name"`
+	Token types.String `tfsdk:"token"`
+}
+
+type ThingPrivateData struct {
+	Name string `json:"name"`
+}
+
+func (e *ThingEphemeralResource) Schema(ctx context.Context, req ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
+				Description: "Name of the thing to retrieve a token for.",
+				Required:    true,
+			},
+			"token": schema.StringAttribute{
+				Description: "Token for the thing.",
+				Computed:    true,
+			},
+		},
+	}
+}
+
+func (e *ThingEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+	var data ThingEphemeralResourceModel
+
+	// Read Terraform config data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Typically ephemeral resources will make external calls and reference returned data,
+	// however this example hardcodes the setting of result and private data for brevity.
+	data.Token = types.StringValue("token-123")
+
+	// When closing, pass along this data (error handling omitted for brevity).
+	privateData, _ := json.Marshal(ThingPrivateData{Name: data.Name.ValueString()})
+	resp.Private.SetKey(ctx, "thing_data", privateData)
+
+	// Save data into ephemeral result data
+	resp.Diagnostics.Append(resp.Result.Set(ctx, &data)...)
+}
+
+func (e *ThingEphemeralResource) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
+	privateBytes, diags := req.Private.GetKey(ctx, "thing_data")
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Unmarshal private data (error handling omitted for brevity).
+	var privateData ThingPrivateData
+	json.Unmarshal(privateBytes, &privateData)
+
+	// Perform external call to close/clean up "thing" data
+}
+
+```

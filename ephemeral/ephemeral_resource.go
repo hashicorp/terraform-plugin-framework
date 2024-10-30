@@ -18,7 +18,7 @@ import (
 //
 //   - Renew: Handle renewal of an expired remote object via EphemeralResourceWithRenew.
 //     Ephemeral resources can indicate to Terraform when a renewal must occur via the RenewAt
-//     response field of the Open/Renew methods. Renew cannot return new state data for the
+//     response field of the Open/Renew methods. Renew cannot return new result data for the
 //     ephemeral resource instance, so this logic is only appropriate for remote objects like
 //     HashiCorp Vault leases, which can be renewed without changing their data.
 //
@@ -49,7 +49,7 @@ type EphemeralResourceWithRenew interface {
 	// Renew is called when the provider must renew the ephemeral resource based on
 	// the provided RenewAt time. This RenewAt response field can be set in the OpenResponse and RenewResponse.
 	//
-	// Renew cannot return new state data for the ephemeral resource instance, so this logic is only appropriate
+	// Renew cannot return new result data for the ephemeral resource instance, so this logic is only appropriate
 	// for remote objects like HashiCorp Vault leases, which can be renewed without changing their data.
 	Renew(context.Context, RenewRequest, *RenewResponse)
 }

@@ -266,6 +266,35 @@
     ]
   },
   {
+    "title": "Ephemeral Resources",
+    "routes": [
+      {
+        "title": "Overview",
+        "path": "ephemeral-resources"
+      },
+      {
+        "title": "Open",
+        "path": "ephemeral-resources/open"
+      },
+      {
+        "title": "Configure Clients",
+        "path": "ephemeral-resources/configure"
+      },
+      {
+        "title": "Validate Configuration",
+        "path": "ephemeral-resources/validate-configuration"
+      },
+      {
+        "title": "Renew",
+        "path": "ephemeral-resources/renew"
+      },
+      {
+        "title": "Close",
+        "path": "ephemeral-resources/close"
+      }
+    ]
+  },
+  {
     "title": "Handling Data",
     "routes": [
       {

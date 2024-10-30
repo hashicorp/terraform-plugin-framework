@@ -110,4 +110,4 @@ func (e *ThingEphemeralResource) Renew(ctx context.Context, req ephemeral.RenewR
 
 ## Recommendations
 
-* For the `RenewAt` response field, provide small leeway before an ephemeral resource expires, usually no more than a few minutes, to account for clock skew.
+* When setting the `RenewAt` response field, add extra time (usually no more than a few minutes) before an ephemeral resource expires to account for latency.

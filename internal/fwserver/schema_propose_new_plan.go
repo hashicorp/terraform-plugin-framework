@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type ProposeNewStateRequest struct {
@@ -59,6 +60,14 @@ func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.Attribute
 	newAttrs := proposedNewAttributes(ctx, s, s.GetAttributes(), path, prior, config)
 
 	// TODO: add block logic
+	for name, blockType := range s.GetBlocks() {
+		attrVal, _ := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		priorVal := attrVal.(tftypes.Value)
+
+		attrVal, _ = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		configVal := attrVal.(tftypes.Value)
+		newAttrs[name] = proposeNewNestedBlock(ctx, s, blockType, path, priorVal, configVal)
+	}
 
 	// TODO: validate before doing this? To avoid panic
 	return tftypes.NewValue(s.Type().TerraformType(ctx), newAttrs)
@@ -103,6 +112,32 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 	return newAttrs
 }
 
+func proposeNewNestedBlock(ctx context.Context, s fwschema.Schema, block fwschema.Block, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	// if the config isn't known at all, then we must use that value
+	if !config.IsKnown() {
+		return config
+	}
+
+	newVal := config
+
+	switch block.GetNestingMode() {
+	case fwschema.BlockNestingModeSingle:
+		if config.IsNull() {
+			break
+		}
+		newVal = proposedNewBlockObjectAttributes(ctx, s, block, path, prior, config)
+	case fwschema.BlockNestingModeList:
+		newVal = proposedNewBlockListNested(ctx, s, block, path, prior, config)
+	case fwschema.BlockNestingModeSet:
+		// TODO: handle set
+	default:
+		// TODO: Shouldn't happen, return diag
+		panic(fmt.Sprintf("unsupported attribute nesting mode %d", block.GetNestingMode()))
+	}
+
+	return newVal
+}
+
 func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwschema.NestedAttribute, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
 	// if the config isn't known at all, then we must use that value
 	if !config.IsKnown() {
@@ -126,6 +161,50 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 	default:
 		// TODO: Shouldn't happen, return diag
 		panic(fmt.Sprintf("unsupported attribute nesting mode %d", attr.GetNestingMode()))
+	}
+
+	return newVal
+}
+
+func proposedNewBlockListNested(ctx context.Context, s fwschema.Schema, block fwschema.Block, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	newVal := config
+
+	configVals := make([]tftypes.Value, 0)
+	priorVals := make([]tftypes.Value, 0)
+
+	configValLen := 0
+	if !config.IsNull() {
+		err := config.As(&configVals)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+		configValLen = len(configVals)
+	}
+
+	if !prior.IsNull() {
+		err := prior.As(&priorVals)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if configValLen > 0 {
+		newVals := make([]tftypes.Value, 0, configValLen)
+		for idx, configEV := range configVals {
+			if prior.IsKnown() && (prior.IsNull() || idx > len(priorVals)) {
+				// No corresponding prior element, take config val
+				newVals = append(newVals, configEV)
+				continue
+			}
+
+			priorEV := priorVals[idx]
+			newVals = append(newVals, proposedNewBlockObjectAttributes(ctx, s, block, path.WithElementKeyInt(idx), priorEV, configEV))
+		}
+
+		// TODO: should work for tuples + lists
+		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
 	return newVal
@@ -184,6 +263,18 @@ func proposedNewObjectAttributes(ctx context.Context, s fwschema.Schema, attr fw
 	return tftypes.NewValue(
 		attr.GetNestedObject().Type().TerraformType(ctx),
 		proposedNewAttributes(ctx, s, attr.GetNestedObject().GetAttributes(), path, prior, config),
+	)
+}
+
+func proposedNewBlockObjectAttributes(ctx context.Context, s fwschema.Schema, block fwschema.Block, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	if config.IsNull() {
+		return config
+	}
+
+	// TODO: validate before doing this? To avoid panic
+	return tftypes.NewValue(
+		block.GetNestedObject().Type().TerraformType(ctx),
+		proposedNewAttributes(ctx, s, block.GetNestedObject().GetAttributes(), path, prior, config),
 	)
 }
 

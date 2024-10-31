@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'ephemeral: New package for implementing ephemeral resources'
-time: 2024-10-28T13:03:39.23218-04:00
-custom:
-  Issue: "1050"

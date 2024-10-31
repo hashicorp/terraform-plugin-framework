@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'ephemeral/schema: New package for implementing ephemeral resource schemas'
-time: 2024-10-28T13:08:55.520004-04:00
-custom:
-  Issue: "1050"

@@ -1,6 +1,0 @@
-kind: ENHANCEMENTS
-body: 'provider: Added `ProviderWithEphemeralResources` interface for implementing
-  ephemeral resources'
-time: 2024-10-28T13:04:57.796703-04:00
-custom:
-  Issue: "1050"

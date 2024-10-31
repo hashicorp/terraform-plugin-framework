@@ -1,0 +1,6 @@
+kind: NOTES
+body: Ephemeral resource support is in technical preview and offered without compatibility
+  promises until Terraform 1.10 is generally available.
+time: 2024-10-28T13:03:08.373897-04:00
+custom:
+  Issue: "1050"

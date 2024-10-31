@@ -1,0 +1,85 @@
+---
+page_title: 'Plugin Development - Framework: Validate Ephemeral Resource Configurations'
+description: >-
+  How to validate ephemeral resource configurations with the provider development framework.
+---
+
+# Validate Configuration
+
+[Ephemeral resources](/terraform/plugin/framework/ephemeral-resources) support validating an entire practitioner configuration in either declarative or imperative logic. Feedback, such as required syntax or acceptable combinations of values, is returned via [diagnostics](/terraform/plugin/framework/diagnostics).
+
+This page describes implementation details for validating entire ephemeral resource configurations, typically referencing multiple attributes. Further documentation is available for other configuration validation concepts:
+
+- [Single attribute validation](/terraform/plugin/framework/validation#attribute-validation) is a schema-based mechanism for implementing attribute-specific validation logic.
+- [Type validation](/terraform/plugin/framework/validation#type-validation) is a schema-based mechanism for implementing reusable validation logic for any attribute using the type.
+
+-> Configuration validation in Terraform occurs without provider configuration ("offline"), therefore the ephemeral resource `Configure` method will not have been called. To implement validation with a configured API client, use logic within the `Open` method, which occurs during Terraform's planning phase when possible.
+
+## ConfigValidators Method
+
+The [`ephemeral.EphemeralResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithConfigValidators) follows a similar pattern to attribute validation and allows for a more declarative approach. This enables consistent validation logic across multiple ephemeral resources. Each validator intended for this interface must implement the [`ephemeral.ConfigValidator` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#ConfigValidator).
+
+During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider `ValidateEphemeralResourceConfig` RPC, in which the framework calls the `ConfigValidators` method on ephemeral resources that implement the [`ephemeral.EphemeralResourceWithConfigValidators` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithConfigValidators).
+
+The [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators) has a collection of common use case ephemeral resource configuration validators in the [`ephemeralvalidator` package](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators/ephemeralvalidator). These use [path expressions](/terraform/plugin/framework/path-expressions) for matching attributes.
+
+This example will raise an error if a practitioner attempts to configure both `attribute_one` and `attribute_two`:
+
+```go
+// Other methods to implement the ephemeral.EphemeralResource interface are omitted for brevity
+type ThingEphemeralResource struct {}
+
+func (d ThingEphemeralResource) ConfigValidators(ctx context.Context) []ephemeral.ConfigValidator {
+    return []ephemeral.ConfigValidator{
+        ephemeralvalidator.Conflicting(
+            path.MatchRoot("attribute_one"),
+            path.MatchRoot("attribute_two"),
+        ),
+    }
+}
+```
+
+## ValidateConfig Method
+
+The [`ephemeral.EphemeralResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithValidateConfig) is more imperative in design and is useful for validating unique functionality across multiple attributes that typically applies to a single ephemeral resource.
+
+During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan) and [`terraform apply`](/terraform/cli/commands/apply) commands, Terraform calls the provider `ValidateEphemeralResourceConfig` RPC, in which the framework calls the `ValidateConfig` method on providers that implement the [`ephemeral.EphemeralResourceWithValidateConfig` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithValidateConfig).
+
+This example will raise a warning if a practitioner attempts to configure `attribute_one`, but not `attribute_two`:
+
+```go
+// Other methods to implement the ephemeral.EphemeralResource interface are omitted for brevity
+type ThingEphemeralResource struct {}
+
+type ThingEphemeralResourceModel struct {
+    AttributeOne types.String `tfsdk:"attribute_one"`
+    AttributeTwo types.String `tfsdk:"attribute_two"`
+}
+
+func (d ThingEphemeralResource) ValidateConfig(ctx context.Context, req ephemeral.ValidateConfigRequest, resp *ephemeral.ValidateConfigResponse) {
+    var data ThingEphemeralResourceModel
+
+    resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+    if resp.Diagnostics.HasError() {
+        return
+    }
+
+    // If attribute_one is not configured, return without warning.
+    if data.AttributeOne.IsNull() || data.AttributeOne.IsUnknown() {
+        return
+    }
+
+    // If attribute_two is not null, return without warning.
+    if !data.AttributeTwo.IsNull() {
+        return
+    }
+
+    resp.Diagnostics.AddAttributeWarning(
+        path.Root("attribute_two"),
+        "Missing Attribute Configuration",
+        "Expected attribute_two to be configured with attribute_one. "+
+            "The ephemeral resource may return unexpected results.",
+    )
+}
+```

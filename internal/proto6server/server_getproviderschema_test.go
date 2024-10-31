@@ -11,6 +11,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	ephemeralschema "github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -103,7 +105,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -170,7 +173,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				Functions:                map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -208,6 +212,199 @@ func TestServerGetProviderSchema(t *testing.T) {
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Data Source Type Name Missing",
 						Detail: "The *testprovider.DataSource DataSource returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions:                map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschemas": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+											resp.Schema = ephemeralschema.Schema{
+												Attributes: map[string]ephemeralschema.Attribute{
+													"test1": ephemeralschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource1"
+										},
+									}
+								},
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+											resp.Schema = ephemeralschema.Schema{
+												Attributes: map[string]ephemeralschema.Attribute{
+													"test2": ephemeralschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
+					"test_ephemeral_resource1": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+					"test_ephemeral_resource2": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test2",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				Functions: map[string]*tfprotov6.Function{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschemas-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+											resp.Schema = ephemeralschema.Schema{
+												Attributes: map[string]ephemeralschema.Attribute{
+													"test1": ephemeralschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource"
+										},
+									}
+								},
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+											resp.Schema = ephemeralschema.Schema{
+												Attributes: map[string]ephemeralschema.Attribute{
+													"test2": ephemeralschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = "test_ephemeral_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Duplicate Ephemeral Resource Type Defined",
+						Detail: "The test_ephemeral_resource ephemeral resource type name was returned for multiple ephemeral resources. " +
+							"Ephemeral resource type names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions: map[string]*tfprotov6.Function{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralschemas-empty-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+							return []func() ephemeral.EphemeralResource{
+								func() ephemeral.EphemeralResource {
+									return &testprovider.EphemeralResource{
+										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+											resp.TypeName = ""
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Ephemeral Resource Type Name Missing",
+						Detail: "The *testprovider.EphemeralResource EphemeralResource returned an empty string from the Metadata method. " +
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
@@ -260,7 +457,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
 					"function1": {
 						Parameters: []*tfprotov6.FunctionParameter{},
@@ -323,7 +521,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -365,7 +564,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -404,8 +604,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Functions:         map[string]*tfprotov6.Function{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -444,8 +645,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Functions:         map[string]*tfprotov6.Function{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -513,8 +715,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				Functions:         map[string]*tfprotov6.Function{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -594,7 +797,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -636,7 +840,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -783,6 +988,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   "trace",
 			"@message": "Checking FunctionTypes lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking EphemeralResourceFuncs lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Checking ProviderTypeName lock",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider Metadata",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Calling provider defined Provider EphemeralResources",
+			"@module":  "sdk.framework",
+		},
+		{
+			"@level":   "trace",
+			"@message": "Called provider defined Provider EphemeralResources",
 			"@module":  "sdk.framework",
 		},
 	}

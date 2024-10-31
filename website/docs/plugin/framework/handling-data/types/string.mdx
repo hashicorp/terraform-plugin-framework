@@ -19,6 +19,7 @@ Use one of the following attribute types to directly add a string value to a [sc
 | [Data Source](/terraform/plugin/framework/data-sources) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#StringAttribute) |
 | [Provider](/terraform/plugin/framework/provider) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#StringAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#StringAttribute) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.StringAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#StringAttribute) |
 
 If the string value should be the element type of a [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElemType` field to `types.StringType` or the appropriate [custom type](#extending).
 

@@ -12,10 +12,11 @@ This page describes single attribute, parameter, and type validation concepts th
 - [Data source validation](/terraform/plugin/framework/data-sources/validate-configuration) for multiple attributes declaratively or imperatively.
 - [Provider validation](/terraform/plugin/framework/providers/validate-configuration) for multiple attributes declaratively or imperatively.
 - [Resource validation](/terraform/plugin/framework/resources/validate-configuration) for multiple attributes declaratively or imperatively.
+- [Ephemeral Resource validation](/terraform/plugin/framework/ephemeral-resources/validate-configuration) for multiple attributes declaratively or imperatively.
 
 -> **Note:** When implementing validation logic, configuration values may be [unknown](/terraform/plugin/framework/types#unknown) based on the source of the value. Implementations must account for this case, typically by returning early without returning new diagnostics.
 
-During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan), [`terraform apply`](/terraform/cli/commands/apply) and [`terraform destroy`](/terraform/cli/commands/destroy) commands, Terraform calls the provider [`ValidateProviderConfig`](/terraform/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/terraform/plugin/framework/internals/rpcs#validateresourceconfig-rpc) and [`ValidateDataResourceConfig`](/terraform/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc) RPCs.
+During execution of the [`terraform validate`](/terraform/cli/commands/validate), [`terraform plan`](/terraform/cli/commands/plan), [`terraform apply`](/terraform/cli/commands/apply) and [`terraform destroy`](/terraform/cli/commands/destroy) commands, Terraform calls the provider [`ValidateProviderConfig`](/terraform/plugin/framework/internals/rpcs#validateproviderconfig-rpc), [`ValidateResourceConfig`](/terraform/plugin/framework/internals/rpcs#validateresourceconfig-rpc), [`ValidateDataResourceConfig`](/terraform/plugin/framework/internals/rpcs#validatedataresourceconfig-rpc), and `ValidateEphemeralResourceConfig` RPCs.
 
 ## Default Terraform CLI Validation
 

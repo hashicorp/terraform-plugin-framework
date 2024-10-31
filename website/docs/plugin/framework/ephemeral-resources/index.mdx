@@ -1,0 +1,101 @@
+---
+page_title: 'Plugin Development - Framework: Ephemeral Resources'
+description: >-
+  How to build ephemeral resources in the provider development framework. Ephemeral
+  resources allow Terraform to reference external data, while guaranteeing that this
+  data will not be persisted in plan or state.
+---
+
+# Ephemeral Resources
+
+<Highlight>
+
+Ephemeral resource support is in technical preview and offered without compatibility promises until Terraform 1.10 is generally available.
+
+</Highlight>
+
+[Ephemeral resources](/terraform/language/resources/ephemeral) are an abstraction that allows Terraform to reference external data. Unlike [data sources](/terraform/language/data-sources), Terraform guarantees that ephemeral resource data will not be persisted in plan or state artifacts. The data produced by an ephemeral resource can only be referenced in [specific ephemeral contexts](/terraform/language/resources/ephemeral#referencing-ephemeral-resources) or Terraform will throw an error.
+
+This page describes the basic implementation details required for supporting an ephemeral resource within the provider. Ephemeral resources, as a part of their lifecycle, must implement:
+
+- [Open](/terraform/plugin/framework/ephemeral-resources/open) an ephemeral resource by receiving Terraform configuration, retrieving a remote object, and returning ephemeral result data to Terraform.
+
+Further documentation is available for deeper ephemeral resource concepts:
+
+- [Configure](/terraform/plugin/framework/ephemeral-resources/configure) an ephemeral resource with provider-level data types or clients.
+- [Validate](/terraform/plugin/framework/ephemeral-resources/validate-configuration) practitioner configuration against acceptable values.
+- [Renew](/terraform/plugin/framework/ephemeral-resources/renew) an expired remote object at a specified time.
+- [Close](/terraform/plugin/framework/ephemeral-resources/close) a remote object when Terraform no longer needs the data.
+
+## Define Ephemeral Resource Type
+
+Implement the [`ephemeral.EphemeralResource` interface](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResource). Ensure the [Add Ephemeral Resource To Provider](#add-ephemeral-resource-to-provider) documentation is followed so the ephemeral resource becomes part of the provider implementation, and therefore available to practitioners.
+
+### Metadata Method
+
+The [`ephemeral.EphemeralResource` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResource.Metadata) defines the ephemeral resource name as it would appear in Terraform configurations. This name should include the provider type prefix, an underscore, then the ephemeral resource specific name. For example, a provider named `examplecloud` and an ephemeral resource that reads "thing" ephemeral data would be named `examplecloud_thing`.
+
+In this example, the ephemeral resource name in an `examplecloud` provider that reads "thing" ephemeral resource data is hardcoded to `examplecloud_thing`:
+
+```go
+// With the ephemeral.EphemeralResource implementation
+func (r *ThingEphemeralResource) Metadata(ctx context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+	resp.TypeName = "examplecloud_thing"
+}
+```
+
+To simplify ephemeral resource implementations, the [`provider.MetadataResponse.TypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#MetadataResponse.TypeName) from the [`provider.Provider` interface `Metadata` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Metadata) can set the provider name so it is available in the [`ephemeral.MetadataRequest.ProviderTypeName` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#MetadataRequest.ProviderTypeName).
+
+In this example, the provider defines the `examplecloud` name for itself, and the ephemeral resource is named `examplecloud_thing`:
+
+```go
+// With the provider.Provider implementation
+func (p *ExampleCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "examplecloud"
+}
+
+// With the ephemeral.EphemeralResource implementation
+func (d *ThingEphemeralResource) Metadata(ctx context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_thing"
+}
+```
+
+### Schema Method
+
+The [`ephemeral.EphemeralResource` interface `Schema` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResource.Schema) defines a [schema](/terraform/plugin/framework/handling-data/schemas) describing what data is available in the ephemeral resource's configuration and result data.
+
+## Add Ephemeral Resource to Provider
+
+Ephemeral resources become available to practitioners when they are included in the [provider](/terraform/plugin/framework/providers) implementation via the optional [`provider.ProviderWithEphemeralResources` interface `EphemeralResources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithEphemeralResources.EphemeralResource).
+
+In this example, the `ThingEphemeralResource` type, which implements the `ephemeral.EphemeralResource` interface, is added to the provider implementation:
+
+```go
+var _ provider.ProviderWithEphemeralResources = (*ExampleCloudProvider)(nil)
+
+func (p *ExampleCloudProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{
+		func() ephemeral.EphemeralResource {
+			return &ThingResource{},
+		},
+	}
+}
+```
+
+To simplify provider implementations, a named function can be created with the ephemeral resource implementation.
+
+In this example, the `ThingEphemeralResource` code includes an additional `NewThingEphemeralResource` function, which simplifies the provider implementation:
+
+```go
+// With the provider.ProviderWithEphemeralResources implementation
+func (p *ExampleCloudProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{
+		NewThingEphemeralResource,
+	}
+}
+
+// With the ephemeral.EphemeralResource implementation
+func NewThingEphemeralResource() ephemeral.EphemeralResource {
+	return &ThingEphemeralResource{}
+}
+```

@@ -14,7 +14,7 @@ Ephemeral resource support is in technical preview and offered without compatibi
 
 </Highlight>
 
-[Ephemeral resources](/terraform/language/resources/ephemeral) are an abstraction that allows Terraform to reference external data. Unlike [data sources](/terraform/language/data-sources), Terraform guarantees that ephemeral resource data will not be persisted in plan or state artifacts. The data produced by an ephemeral resource can only be referenced in [specific ephemeral contexts](/terraform/language/resources/ephemeral#referencing-ephemeral-resources) or Terraform will throw an error.
+[Ephemeral resources](/terraform/language/v1.10.x/resources/ephemeral) are an abstraction that allows Terraform to reference external data. Unlike [data sources](/terraform/language/data-sources), Terraform guarantees that ephemeral resource data will not be persisted in plan or state artifacts. The data produced by an ephemeral resource can only be referenced in [specific ephemeral contexts](/terraform/language/v1.10.x/resources/ephemeral#referencing-ephemeral-resources) or Terraform will throw an error.
 
 This page describes the basic implementation details required for supporting an ephemeral resource within the provider. Ephemeral resources, as a part of their lifecycle, must implement:
 

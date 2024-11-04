@@ -66,7 +66,7 @@ func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.Attribute
 
 		attrVal, _ = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
 		configVal := attrVal.(tftypes.Value)
-		newAttrs[name] = proposeNewNestedBlock(ctx, s, blockType, path, priorVal, configVal)
+		newAttrs[name] = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
 	}
 
 	// TODO: validate before doing this? To avoid panic
@@ -85,12 +85,18 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], nil)
 		} else {
 			// TODO: handle error
-			attrVal, _ := priorObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+			attrVal, err := priorObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+			if err != nil {
+				panic(err)
+			}
 			priorVal = attrVal.(tftypes.Value) //nolint
 		}
 
 		// TODO: handle error
-		configIface, _ := configObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		configIface, err := configObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		if err != nil {
+			panic(err)
+		}
 		configVal := configIface.(tftypes.Value) //nolint
 
 		var newVal tftypes.Value
@@ -151,9 +157,9 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 		if config.IsNull() {
 			break
 		}
-		newVal = proposedNewObjectAttributes(ctx, s, attr, path, prior, config)
+	//	newVal = proposedNewObjectAttributes(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeList:
-		newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
+		//newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeMap:
 		// TODO: handle map
 	case fwschema.NestingModeSet:
@@ -193,7 +199,7 @@ func proposedNewBlockListNested(ctx context.Context, s fwschema.Schema, block fw
 	if configValLen > 0 {
 		newVals := make([]tftypes.Value, 0, configValLen)
 		for idx, configEV := range configVals {
-			if prior.IsKnown() && (prior.IsNull() || idx > len(priorVals)) {
+			if prior.IsKnown() && (prior.IsNull() || idx >= len(priorVals)) {
 				// No corresponding prior element, take config val
 				newVals = append(newVals, configEV)
 				continue
@@ -280,7 +286,10 @@ func proposedNewBlockObjectAttributes(ctx context.Context, s fwschema.Schema, bl
 
 func optionalValueNotComputable(ctx context.Context, s fwschema.Schema, absPath *tftypes.AttributePath, val tftypes.Value) bool {
 	// TODO: handle error
-	attr, _ := s.AttributeAtTerraformPath(ctx, absPath)
+	attr, err := s.AttributeAtTerraformPath(ctx, absPath)
+	if err != nil {
+		panic(err)
+	}
 
 	if !attr.IsOptional() { //nolint
 		return false
@@ -292,7 +301,7 @@ func optionalValueNotComputable(ctx context.Context, s fwschema.Schema, absPath 
 	}
 
 	foundNonComputedAttr := false
-	tftypes.Walk(val, func(path *tftypes.AttributePath, v tftypes.Value) (bool, error) { //nolint
+	err = tftypes.Walk(val, func(path *tftypes.AttributePath, v tftypes.Value) (bool, error) { //nolint
 		if v.IsNull() {
 			return true, nil
 		}
@@ -305,7 +314,7 @@ func optionalValueNotComputable(ctx context.Context, s fwschema.Schema, absPath 
 		attrPath := tftypes.NewAttributePathWithSteps(append(absPath.Steps(), path.Steps()...))
 		attrSchema, err := s.AttributeAtTerraformPath(ctx, attrPath)
 		if err != nil {
-			return false, nil //nolint
+			return true, nil //nolint
 		}
 
 		if !attrSchema.IsComputed() {
@@ -315,6 +324,10 @@ func optionalValueNotComputable(ctx context.Context, s fwschema.Schema, absPath 
 
 		return true, nil
 	})
+	if err != nil {
+		//TODO handle panic
+		panic(err)
+	}
 
 	return foundNonComputedAttr
 }

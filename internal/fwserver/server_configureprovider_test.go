@@ -178,6 +178,20 @@ func TestServerConfigureProvider(t *testing.T) {
 				},
 			},
 		},
+		"response-ephemeralresourcedata": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.EphemeralResourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				EphemeralResourceData: "test-provider-configure-value",
+			},
+		},
 		"response-invalid-deferral-diagnostic": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
@@ -234,6 +248,10 @@ func TestServerConfigureProvider(t *testing.T) {
 
 			if diff := cmp.Diff(testCase.server.ResourceConfigureData, testCase.expectedResponse.ResourceData); diff != "" {
 				t.Errorf("unexpected server.ResourceConfigureData difference: %s", diff)
+			}
+
+			if diff := cmp.Diff(testCase.server.EphemeralResourceConfigureData, testCase.expectedResponse.EphemeralResourceData); diff != "" {
+				t.Errorf("unexpected server.EphemeralResourceConfigureData difference: %s", diff)
 			}
 		})
 	}

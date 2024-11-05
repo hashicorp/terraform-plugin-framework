@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -32,9 +33,10 @@ func TestServerGetMetadata(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
-				Functions:   []fwserver.FunctionMetadata{},
-				Resources:   []fwserver.ResourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -75,8 +77,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_data_source2",
 					},
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -109,7 +112,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Duplicate Data Source Type Defined",
@@ -145,7 +149,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Data Source Type Name Missing",
@@ -188,6 +193,166 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "testprovidertype_data_source",
 					},
 				},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource1"
+									},
+								}
+							},
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{
+					{
+						TypeName: "test_ephemeral_resource1",
+					},
+					{
+						TypeName: "test_ephemeral_resource2",
+					},
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource"
+									},
+								}
+							},
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = "test_ephemeral_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Ephemeral Resource Type Defined",
+						"The test_ephemeral_resource ephemeral resource type name was returned for multiple ephemeral resources. "+
+							"Ephemeral resource type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Ephemeral Resource Type Name Missing",
+						"The *testprovider.EphemeralResource EphemeralResource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"ephemeralresources-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
+						return []func() ephemeral.EphemeralResource{
+							func() ephemeral.EphemeralResource {
+								return &testprovider.EphemeralResource{
+									MetadataMethod: func(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_ephemeral_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources: []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{
+					{
+						TypeName: "testprovidertype_ephemeral_resource",
+					},
+				},
 				Functions: []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -222,7 +387,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions: []fwserver.FunctionMetadata{
 					{
 						Name: "function1",
@@ -264,7 +430,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Duplicate Function Name Defined",
@@ -300,7 +467,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Function Name Missing",
@@ -342,8 +510,9 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
-				Functions:   []fwserver.FunctionMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -384,7 +553,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Duplicate Resource Type Defined",
@@ -420,7 +590,8 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Resource Type Name Missing",
@@ -458,8 +629,9 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
-				DataSources: []fwserver.DataSourceMetadata{},
-				Functions:   []fwserver.FunctionMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "testprovidertype_resource",
@@ -486,6 +658,10 @@ func TestServerGetMetadata(t *testing.T) {
 			// Prevent false positives with random map access in testing
 			sort.Slice(response.DataSources, func(i int, j int) bool {
 				return response.DataSources[i].TypeName < response.DataSources[j].TypeName
+			})
+
+			sort.Slice(response.EphemeralResources, func(i int, j int) bool {
+				return response.EphemeralResources[i].TypeName < response.EphemeralResources[j].TypeName
 			})
 
 			sort.Slice(response.Functions, func(i int, j int) bool {

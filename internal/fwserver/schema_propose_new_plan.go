@@ -138,13 +138,45 @@ func proposeNewNestedBlock(ctx context.Context, s fwschema.Schema, block fwschem
 		newVal = proposedNewBlockListNested(ctx, s, block, path, prior, config)
 	case fwschema.BlockNestingModeSet:
 		newVal = proposedNewBlockSetNested(ctx, s, block, path, prior, config)
-		// TODO: handle set
 	default:
 		// TODO: Shouldn't happen, return diag
 		panic(fmt.Sprintf("unsupported attribute nesting mode %d", block.GetNestingMode()))
 	}
 
 	return newVal
+}
+
+func proposeNewNestedBlockObject(ctx context.Context, s fwschema.Schema, nestedBlock fwschema.NestedBlockObject, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	if config.IsNull() {
+		return config
+	}
+	valuesMap := proposedNewAttributes(ctx, s, nestedBlock.GetAttributes(), path, prior, config)
+
+	for name, blockType := range nestedBlock.GetBlocks() {
+		var priorVal tftypes.Value
+		if prior.IsNull() {
+			priorObjType := prior.Type().(tftypes.Object) //nolint
+			// TODO: validate before doing this? To avoid panic
+			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], nil)
+		} else {
+			// TODO: handle error
+			attrVal, err := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+			if err != nil {
+				panic(err)
+			}
+			priorVal = attrVal.(tftypes.Value) //nolint
+		}
+
+		attrVal, _ := config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		configVal := attrVal.(tftypes.Value)
+		valuesMap[name] = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
+	}
+
+	// TODO: validate before doing this? To avoid panic
+	return tftypes.NewValue(
+		nestedBlock.Type().TerraformType(ctx),
+		valuesMap,
+	)
 }
 
 func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwschema.NestedAttribute, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
@@ -273,8 +305,9 @@ func proposedNewBlockSetNested(ctx context.Context, s fwschema.Schema, block fws
 				// TODO might have to come back to figure out how to get elem type
 				priorEV = tftypes.NewValue(block.GetNestedObject().Type().TerraformType(ctx), nil)
 			}
-
-			newVals = append(newVals, proposedNewBlockObjectAttributes(ctx, s, block, path.WithElementKeyValue(priorEV), priorEV, configEV))
+			//block.GetNestedObject().GetAttributes()
+			// TODO create proposed new nested block object
+			newVals = append(newVals, proposeNewNestedBlockObject(ctx, s, block.GetNestedObject(), path.WithElementKeyValue(priorEV), priorEV, configEV))
 		}
 
 		// TODO: should work for tuples + lists
@@ -344,11 +377,26 @@ func proposedNewBlockObjectAttributes(ctx context.Context, s fwschema.Schema, bl
 	if config.IsNull() {
 		return config
 	}
+	valuesMap := proposedNewAttributes(ctx, s, block.GetNestedObject().GetAttributes(), path, prior, config)
+
+	for name, blockType := range block.GetNestedObject().GetBlocks() {
+		//maps.Copy(valuesMap, proposedNewAttributes(ctx, s, blockType.GetNestedObject().GetAttributes(), tftypes.NewAttributePath().WithAttributeName(name).WithElementKeyInt(0), prior, config))
+		attrVal, err := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		//TODO handle panic
+		if err != nil {
+			panic(err)
+		}
+		priorVal := attrVal.(tftypes.Value)
+
+		attrVal, _ = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		configVal := attrVal.(tftypes.Value)
+		valuesMap[name] = proposeNewNestedBlock(ctx, s, blockType, tftypes.NewAttributePath().WithAttributeName(name).WithElementKeyInt(0), priorVal, configVal)
+	}
 
 	// TODO: validate before doing this? To avoid panic
 	return tftypes.NewValue(
 		block.GetNestedObject().Type().TerraformType(ctx),
-		proposedNewAttributes(ctx, s, block.GetNestedObject().GetAttributes(), path, prior, config),
+		valuesMap,
 	)
 }
 
@@ -424,7 +472,7 @@ func validPriorFromConfig(ctx context.Context, s fwschema.Schema, absPath *tftyp
 			return true, nil
 		}
 
-		configIface, err := config.ApplyTerraform5AttributePathStep(path.LastStep())
+		configIface, _, err := tftypes.WalkAttributePath(config, path)
 		if err != nil {
 			// most likely dynamic objects with different types
 			valid = false

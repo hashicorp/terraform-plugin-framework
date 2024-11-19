@@ -188,6 +188,17 @@ func (v TupleValue) IsUnknown() bool {
 	return v.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Tuple represents a currently nullable known value,
+// including all its elements, recursively.
+func (v TupleValue) IsFullyNullableKnown() bool {
+	for _, elem := range v.elements {
+		if !elem.IsFullyNullableKnown() {
+			return false
+		}
+	}
+	return true
+}
+
 // String returns a human-readable representation of the Tuple. The string returned here is not protected by any
 // compatibility guarantees, and is intended for logging and error reporting.
 func (v TupleValue) String() string {

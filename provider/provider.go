@@ -5,12 +5,65 @@ package provider
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	fwmetadata "github.com/hashicorp/terraform-plugin-framework/metadata"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/metadata"
 )
+
+func unexportedFunc() string {
+	return ""
+}
+
+func BuildMetadata(ctx context.Context, provider Provider) metadata.ProviderMetadata {
+	response := &SchemaResponse{}
+
+	provider.Schema(ctx, SchemaRequest{}, response)
+	resources := provider.Resources(ctx)
+
+	resp := metadata.ProviderMetadata{
+		DataSourceSchemas: nil,
+		Functions:         nil,
+		Provider:          nil,
+		ProviderServer:    nil,
+		ResourceSchemas:   map[string]metadata.SchemaBlock{},
+		Version:           "",
+	}
+
+	for _, resourceFunc := range resources {
+		r := resourceFunc()
+		resourceResponse := &resource.SchemaResponse{}
+		metadataResponse := &resource.MetadataResponse{}
+
+		r.Schema(ctx, resource.SchemaRequest{}, resourceResponse)
+		r.Metadata(ctx, resource.MetadataRequest{}, metadataResponse)
+
+		resourceAttributes, _ := fwmetadata.MetadataSchemaAttributes(ctx, out)
+
+		resp.ResourceSchemas[metadataResponse.TypeName] = metadata.SchemaBlock{
+			Block: &metadata.Block{
+				Attributes:         resourceAttributes,
+				BlockTypes:         nil,
+				Deprecated:         nil,
+				DeprecationMessage: nil,
+				Description:        nil,
+				DescriptionKind:    nil,
+				PlanModifications:  nil,
+				Validations:        nil,
+			},
+			SupportsImportState: nil,
+			SupportsMoveState:   nil,
+			Validations:         nil,
+			Version:             0,
+		}
+
+		// fmt.Println(resourceResponse.Schema)
+	}
+
+	return resp
+}
 
 // Provider is the core interface that all Terraform providers must implement.
 //

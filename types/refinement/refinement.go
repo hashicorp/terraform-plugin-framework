@@ -25,10 +25,25 @@ const (
 	// MAINTAINER NOTE: This is named slightly different from the terraform-plugin-go `Nullness` refinement it maps to.
 	// This is done because framework only support nullness refinements that indicate an unknown value is definitely not null.
 	// Values that are definitely null should be represented as a known null value instead.
-	KeyNotNull          = Key(1)
-	KeyStringPrefix     = Key(2)
+	KeyNotNull      = Key(1)
+	KeyStringPrefix = Key(2)
+
+	// Key is shared between:
+	// - Int64LowerBound
+	// - Int32LowerBound
+	// - Float64LowerBound
+	// - Float32LowerBound
+	// - NumberLowerBound
 	KeyNumberLowerBound = Key(3)
+
+	// Key is shared between:
+	// - Int64UpperBound
+	// - Int32UpperBound
+	// - Float64UpperBound
+	// - Float32UpperBound
+	// - NumberUpperBound
 	KeyNumberUpperBound = Key(4)
+
 	// KeyCollectionLengthLowerBound = Key(5)
 	// KeyCollectionLengthUpperBound = Key(6)
 )

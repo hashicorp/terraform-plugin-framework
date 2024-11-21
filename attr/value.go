@@ -79,9 +79,8 @@ type Value interface {
 type ValueWithNotNullRefinement interface {
 	Value
 
-	// NotNullRefinement returns a value refinement, if one exists, that indicates an unknown value
-	// will not be null once it becomes known.
-	NotNullRefinement() *refinement.NotNull
+	// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+	// exists on the given Value. If a Value contains a NotNull refinement, this indicates that the value
+	// is unknown, but the eventual known value will not be null.
+	NotNullRefinement() (*refinement.NotNull, bool)
 }
-
-// TODO: Should we add interfaces for all the other refinements retrieval? Even though we don't need them ATM?

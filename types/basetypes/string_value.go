@@ -238,7 +238,7 @@ func (s StringValue) RefineAsNotNull() StringValue {
 //   - Indicates the string value will not be null once it becomes known.
 //   - Indicates the string value will have the specified prefix once it becomes known.
 //
-// If the StringValue is not unknown, then no refinement will be added and the provided StringValue will be returned.
+// If the StringValue is not unknown, then the provided StringValue will be returned without changes.
 func (s StringValue) RefineWithPrefix(prefix string) StringValue {
 	// TODO: Should we return an error?
 	if !s.IsUnknown() {
@@ -259,46 +259,49 @@ func (s StringValue) RefineWithPrefix(prefix string) StringValue {
 	return newUnknownVal
 }
 
-// NotNullRefinement returns a value refinement, if one exists, that indicates an unknown string value
-// will not be null once it becomes known.
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given StringValue. If a StringValue contains a NotNull refinement, this indicates
+// that the string is unknown, but the eventual known value will not be null.
 //
 // A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
-func (s StringValue) NotNullRefinement() *refinement.NotNull {
+func (s StringValue) NotNullRefinement() (*refinement.NotNull, bool) {
 	if !s.IsUnknown() {
-		return nil
+		return nil, false
 	}
 
 	refn, ok := s.refinements[refinement.KeyNotNull]
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	notNullRefn, ok := refn.(refinement.NotNull)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return &notNullRefn
+	return &notNullRefn, true
 }
 
-// PrefixRefinement returns a value refinement, if one exists, that indicates an unknown string value
-// will have a specified string prefix once it becomes known.
+// PrefixRefinement returns value refinement data and a boolean indicating if a StringPrefix refinement
+// exists on the given StringValue. If a StringValue contains a StringPrefix refinement, this indicates
+// that the string is unknown, but the eventual known value will have a specified string prefix.
+// The returned boolean should be checked before accessing refinement data.
 //
 // A StringPrefix value refinement can be added to an unknown value via the `RefineWithPrefix` method.
-func (s StringValue) PrefixRefinement() *refinement.StringPrefix {
+func (s StringValue) PrefixRefinement() (*refinement.StringPrefix, bool) {
 	if !s.IsUnknown() {
-		return nil
+		return nil, false
 	}
 
 	refn, ok := s.refinements[refinement.KeyStringPrefix]
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	prefixRefn, ok := refn.(refinement.StringPrefix)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return &prefixRefn
+	return &prefixRefn, true
 }

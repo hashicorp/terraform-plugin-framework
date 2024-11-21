@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// ValidateAttributeRequest repesents a request for attribute validation.
+// ValidateAttributeRequest represents a request for attribute validation.
 type ValidateAttributeRequest struct {
 	// AttributePath contains the path of the attribute. Use this path for any
 	// response diagnostics.
@@ -140,9 +140,11 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	// Show deprecation warnings only for known values or unknown values with a "not null" refinement.
 	if a.GetDeprecationMessage() != "" {
 		if attributeConfig.IsUnknown() {
-			valWithNotNullRefn, ok := attributeConfig.(attr.ValueWithNotNullRefinement)
+			// If the attr.Value supports checking for refinements, we should check if the eventual known value will be not null.
+			val, ok := attributeConfig.(attr.ValueWithNotNullRefinement)
 			if ok {
-				if valWithNotNullRefn.NotNullRefinement() != nil {
+				if _, notNull := val.NotNullRefinement(); notNull {
+					// If the unknown value will eventually be not null, we return the deprecation message for the practitioner.
 					resp.Diagnostics.AddAttributeWarning(
 						req.AttributePath,
 						"Attribute Deprecated",

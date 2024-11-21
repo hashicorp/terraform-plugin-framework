@@ -135,10 +135,11 @@ func (i Int64Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 			switch refnVal := refn.(type) {
 			case refinement.NotNull:
 				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
-			case refinement.NumberLowerBound:
-				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
-			case refinement.NumberUpperBound:
-				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
+			case refinement.Int64LowerBound:
+				// TODO: is int64 to big.NewFloat safe? I think it is...
+				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(big.NewFloat(float64(refnVal.LowerBound())), refnVal.IsInclusive())
+			case refinement.Int64UpperBound:
+				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(big.NewFloat(float64(refnVal.UpperBound())), refnVal.IsInclusive())
 			}
 		}
 		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)
@@ -241,7 +242,7 @@ func (i Int64Value) RefineWithLowerBound(lowerBound int64, inclusive bool) Int64
 		refns[i] = refn
 	}
 	refns[refinement.KeyNotNull] = refinement.NewNotNull()
-	refns[refinement.KeyNumberLowerBound] = refinement.NewNumberLowerBound(new(big.Float).SetInt64(lowerBound), inclusive)
+	refns[refinement.KeyNumberLowerBound] = refinement.NewInt64LowerBound(lowerBound, inclusive)
 
 	newUnknownVal := NewInt64Unknown()
 	newUnknownVal.refinements = refns
@@ -266,7 +267,7 @@ func (i Int64Value) RefineWithUpperBound(upperBound int64, inclusive bool) Int64
 		refns[i] = refn
 	}
 	refns[refinement.KeyNotNull] = refinement.NewNotNull()
-	refns[refinement.KeyNumberUpperBound] = refinement.NewNumberUpperBound(new(big.Float).SetInt64(upperBound), inclusive)
+	refns[refinement.KeyNumberUpperBound] = refinement.NewInt64UpperBound(upperBound, inclusive)
 
 	newUnknownVal := NewInt64Unknown()
 	newUnknownVal.refinements = refns
@@ -274,68 +275,75 @@ func (i Int64Value) RefineWithUpperBound(upperBound int64, inclusive bool) Int64
 	return newUnknownVal
 }
 
-// NotNullRefinement returns a value refinement, if one exists, that indicates an unknown int64 value
-// will not be null once it becomes known.
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given Int64Value. If an Int64Value contains a NotNull refinement, this indicates that
+// the int64 value is unknown, but the eventual known value will not be null.
 //
 // A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
-func (i Int64Value) NotNullRefinement() *refinement.NotNull {
+func (i Int64Value) NotNullRefinement() (*refinement.NotNull, bool) {
 	if !i.IsUnknown() {
-		return nil
+		return nil, false
 	}
 
 	refn, ok := i.refinements[refinement.KeyNotNull]
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	notNullRefn, ok := refn.(refinement.NotNull)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return &notNullRefn
+	return &notNullRefn, true
 }
 
-// LowerBoundRefinement returns a value refinement, if one exists, that indicates an unknown int64 value
-// will not be less than the specified int64 value once it becomes known.
+// LowerBoundRefinement returns value refinement data and a boolean indicating if a Int64LowerBound refinement
+// exists on the given Int64Value. If an Int64Value contains a Int64LowerBound refinement, this indicates that
+// the int64 value is unknown, but the eventual known value will not be less than the specified int64 value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
 //
-// A NumberLowerBound value refinement can be added to an unknown value via the `RefineWithLowerBound` method.
-func (i Int64Value) LowerBoundRefinement() *refinement.NumberLowerBound {
+// An Int64LowerBound value refinement can be added to an unknown value via the `RefineWithLowerBound` method.
+func (i Int64Value) LowerBoundRefinement() (*refinement.Int64LowerBound, bool) {
 	if !i.IsUnknown() {
-		return nil
+		return nil, false
 	}
 
 	refn, ok := i.refinements[refinement.KeyNumberLowerBound]
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	lowerBoundRefn, ok := refn.(refinement.NumberLowerBound)
+	lowerBoundRefn, ok := refn.(refinement.Int64LowerBound)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return &lowerBoundRefn
+	return &lowerBoundRefn, true
 }
 
-// UpperBoundRefinement returns a value refinement, if one exists, that indicates an unknown int64 value
-// will not be greater than the specified int64 value once it becomes known.
+// UpperBoundRefinement returns value refinement data and a boolean indicating if a Int64UpperBound refinement
+// exists on the given Int64Value. If an Int64Value contains a Int64UpperBound refinement, this indicates that
+// the int64 value is unknown, but the eventual known value will not be greater than the specified int64 value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
 //
-// A NumberUpperBound value refinement can be added to an unknown value via the `RefineWithUpperBound` method.
-func (i Int64Value) UpperBoundRefinement() *refinement.NumberUpperBound {
+// A Int64UpperBound value refinement can be added to an unknown value via the `RefineWithUpperBound` method.
+func (i Int64Value) UpperBoundRefinement() (*refinement.Int64UpperBound, bool) {
 	if !i.IsUnknown() {
-		return nil
+		return nil, false
 	}
 
 	refn, ok := i.refinements[refinement.KeyNumberUpperBound]
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	upperBoundRefn, ok := refn.(refinement.NumberUpperBound)
+	upperBoundRefn, ok := refn.(refinement.Int64UpperBound)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
-	return &upperBoundRefn
+	return &upperBoundRefn, true
 }

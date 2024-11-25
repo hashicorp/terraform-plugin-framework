@@ -192,9 +192,9 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 		if config.IsNull() {
 			break
 		}
-	//	newVal = proposedNewObjectAttributes(ctx, s, attr, path, prior, config)
+		newVal = proposedNewObjectAttributes(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeList:
-		//newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
+		newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeMap:
 		// TODO: handle map
 	case fwschema.NestingModeSet:

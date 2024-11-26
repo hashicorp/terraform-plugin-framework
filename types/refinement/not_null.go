@@ -1,19 +1,25 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package refinement
 
+// NotNull represents an unknown value refinement that indicates the final value will not be null. This refinement
+// can be applied to a value of any type (excluding types.Dynamic).
 type NotNull struct{}
 
-func (n NotNull) Equal(Refinement) bool {
-	return false
+func (n NotNull) Equal(other Refinement) bool {
+	_, refnMatches := other.(NotNull)
+	return refnMatches
 }
 
 func (n NotNull) String() string {
-	return "todo - NotNull"
+	return "not null"
 }
 
 func (n NotNull) unimplementable() {}
 
-// TODO: Should this accept a value? If a value is unknown and the it's refined to be null
-// then the value should be a known value of null instead.
+// NewNotNull returns the NotNull unknown value refinement that indicates the final value will not be null. This refinement
+// can be applied to a value of any type (excluding types.Dynamic).
 func NewNotNull() Refinement {
 	return NotNull{}
 }

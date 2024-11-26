@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 // StringTypable extends attr.Type for string types.
@@ -62,15 +62,16 @@ func (t StringType) ValueFromString(_ context.Context, v StringValue) (StringVal
 // consume the data with.
 func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
+		unknownVal := NewStringUnknown()
 		refinements := in.Refinements()
+
 		if len(refinements) == 0 {
-			return NewStringUnknown(), nil
+			return unknownVal, nil
 		}
 
-		unknownVal := NewStringUnknown()
 		for _, refn := range refinements {
 			switch refnVal := refn.(type) {
-			case tfrefinements.Nullness:
+			case tfrefinement.Nullness:
 				if !refnVal.Nullness() {
 					unknownVal = unknownVal.RefineAsNotNull()
 				} else {
@@ -80,7 +81,7 @@ func (t StringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 					// it into a known null value here.
 					return NewStringNull(), nil
 				}
-			case tfrefinements.StringPrefix:
+			case tfrefinement.StringPrefix:
 				unknownVal = unknownVal.RefineWithPrefix(refnVal.PrefixValue())
 			}
 		}

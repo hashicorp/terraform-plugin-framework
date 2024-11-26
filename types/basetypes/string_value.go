@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
@@ -98,7 +98,8 @@ type StringValue struct {
 	// value contains the known value, if not null or unknown.
 	value string
 
-	// TODO: doc
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
 	refinements refinement.Refinements
 }
 
@@ -123,13 +124,13 @@ func (s StringValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) 
 			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
 		}
 
-		unknownValRefinements := make(tfrefinements.Refinements, 0)
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
 		for _, refn := range s.refinements {
 			switch refnVal := refn.(type) {
 			case refinement.NotNull:
-				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
 			case refinement.StringPrefix:
-				unknownValRefinements[tfrefinements.KeyStringPrefix] = tfrefinements.NewStringPrefix(refnVal.PrefixValue())
+				unknownValRefinements[tfrefinement.KeyStringPrefix] = tfrefinement.NewStringPrefix(refnVal.PrefixValue())
 			}
 		}
 		unknownVal := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
@@ -152,11 +153,17 @@ func (s StringValue) Equal(other attr.Value) bool {
 		return false
 	}
 
+	if len(s.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(s.refinements) > 0 && !s.refinements.Equal(o.refinements) {
+		return false
+	}
+
 	if s.state != attr.ValueStateKnown {
 		return true
 	}
-
-	// TODO: compare refinements? I might not be able to... to allow future refinements?
 
 	return s.value == o.value
 }
@@ -178,9 +185,11 @@ func (s StringValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (s StringValue) String() string {
 	if s.IsUnknown() {
-		// TODO: Also print out unknown value refinements?
+		if len(s.refinements) == 0 {
+			return attr.UnknownValueString
+		}
 
-		return attr.UnknownValueString
+		return fmt.Sprintf("<unknown, %s>", s.refinements.String())
 	}
 
 	if s.IsNull() {
@@ -211,25 +220,24 @@ func (s StringValue) ToStringValue(context.Context) (StringValue, diag.Diagnosti
 	return s, nil
 }
 
-// RefineAsNotNull will return an unknown StringValue that includes a value refinement that:
+// RefineAsNotNull will return a new unknown StringValue that includes a value refinement that:
 //   - Indicates the string value will not be null once it becomes known.
 //
-// If the StringValue is not unknown, then no refinement will be added and the provided StringValue will be returned.
+// If the provided StringValue is null or known, then the StringValue will be returned unchanged.
 func (s StringValue) RefineAsNotNull() StringValue {
-	// TODO: Should we return an error?
 	if !s.IsUnknown() {
 		return s
 	}
 
-	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
-	refns := make(refinement.Refinements, len(s.refinements))
+	newRefinements := make(refinement.Refinements, len(s.refinements))
 	for i, refn := range s.refinements {
-		refns[i] = refn
+		newRefinements[i] = refn
 	}
-	refns[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
 
 	newUnknownVal := NewStringUnknown()
-	newUnknownVal.refinements = refns
+	newUnknownVal.refinements = newRefinements
 
 	return newUnknownVal
 }
@@ -238,23 +246,28 @@ func (s StringValue) RefineAsNotNull() StringValue {
 //   - Indicates the string value will not be null once it becomes known.
 //   - Indicates the string value will have the specified prefix once it becomes known.
 //
-// If the StringValue is not unknown, then the provided StringValue will be returned without changes.
+// Prefixes that exceed 256 characters in length will be truncated and empty string prefixes
+// will be ignored. If the provided StringValue is null or known, then the StringValue will be
+// returned unchanged.
 func (s StringValue) RefineWithPrefix(prefix string) StringValue {
-	// TODO: Should we return an error?
 	if !s.IsUnknown() {
 		return s
 	}
 
-	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
-	refns := make(refinement.Refinements, len(s.refinements))
+	newRefinements := make(refinement.Refinements, len(s.refinements))
 	for i, refn := range s.refinements {
-		refns[i] = refn
+		newRefinements[i] = refn
 	}
-	refns[refinement.KeyNotNull] = refinement.NewNotNull()
-	refns[refinement.KeyStringPrefix] = refinement.NewStringPrefix(prefix)
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	// No need to encode an empty prefix, since terraform-plugin-go will ignore it anyways.
+	if prefix != "" {
+		newRefinements[refinement.KeyStringPrefix] = refinement.NewStringPrefix(prefix)
+	}
 
 	newUnknownVal := NewStringUnknown()
-	newUnknownVal.refinements = refns
+	newUnknownVal.refinements = newRefinements
 
 	return newUnknownVal
 }

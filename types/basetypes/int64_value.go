@@ -89,7 +89,8 @@ type Int64Value struct {
 	// value contains the known value, if not null or unknown.
 	value int64
 
-	// TODO: doc
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
 	refinements refinement.Refinements
 }
 
@@ -105,11 +106,17 @@ func (i Int64Value) Equal(other attr.Value) bool {
 		return false
 	}
 
+	if len(i.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(i.refinements) > 0 && !i.refinements.Equal(o.refinements) {
+		return false
+	}
+
 	if i.state != attr.ValueStateKnown {
 		return true
 	}
-
-	// TODO: compare refinements? I might not be able to... to allow future refinements?
 
 	return i.value == o.value
 }
@@ -136,10 +143,11 @@ func (i Int64Value) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 			case refinement.NotNull:
 				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
 			case refinement.Int64LowerBound:
-				// TODO: is int64 to big.NewFloat safe? I think it is...
-				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(big.NewFloat(float64(refnVal.LowerBound())), refnVal.IsInclusive())
+				lowerBound := new(big.Float).SetInt64(refnVal.LowerBound())
+				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(lowerBound, refnVal.IsInclusive())
 			case refinement.Int64UpperBound:
-				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(big.NewFloat(float64(refnVal.UpperBound())), refnVal.IsInclusive())
+				upperBound := new(big.Float).SetInt64(refnVal.UpperBound())
+				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(upperBound, refnVal.IsInclusive())
 			}
 		}
 		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)
@@ -170,8 +178,11 @@ func (i Int64Value) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (i Int64Value) String() string {
 	if i.IsUnknown() {
-		// TODO: Also print out unknown value refinements?
-		return attr.UnknownValueString
+		if len(i.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", i.refinements.String())
 	}
 
 	if i.IsNull() {
@@ -205,22 +216,21 @@ func (i Int64Value) ToInt64Value(context.Context) (Int64Value, diag.Diagnostics)
 // RefineAsNotNull will return an unknown Int64Value that includes a value refinement that:
 //   - Indicates the int64 value will not be null once it becomes known.
 //
-// If the Int64Value is not unknown, then no refinement will be added and the provided Int64Value will be returned.
+// If the provided Int64Value is null or known, then the Int64Value will be returned unchanged.
 func (i Int64Value) RefineAsNotNull() Int64Value {
-	// TODO: Should we return an error?
 	if !i.IsUnknown() {
 		return i
 	}
 
-	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
-	refns := make(refinement.Refinements, len(i.refinements))
+	newRefinements := make(refinement.Refinements, len(i.refinements))
 	for i, refn := range i.refinements {
-		refns[i] = refn
+		newRefinements[i] = refn
 	}
-	refns[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
 
 	newUnknownVal := NewInt64Unknown()
-	newUnknownVal.refinements = refns
+	newUnknownVal.refinements = newRefinements
 
 	return newUnknownVal
 }
@@ -229,23 +239,22 @@ func (i Int64Value) RefineAsNotNull() Int64Value {
 //   - Indicates the int64 value will not be null once it becomes known.
 //   - Indicates the int64 value will not be less than the int64 provided (lowerBound) once it becomes known.
 //
-// If the Int64Value is not unknown, then no refinement will be added and the provided Int64Value will be returned.
+// If the provided Int64Value is null or known, then the Int64Value will be returned unchanged.
 func (i Int64Value) RefineWithLowerBound(lowerBound int64, inclusive bool) Int64Value {
-	// TODO: Should we return an error?
 	if !i.IsUnknown() {
 		return i
 	}
 
-	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
-	refns := make(refinement.Refinements, len(i.refinements))
+	newRefinements := make(refinement.Refinements, len(i.refinements))
 	for i, refn := range i.refinements {
-		refns[i] = refn
+		newRefinements[i] = refn
 	}
-	refns[refinement.KeyNotNull] = refinement.NewNotNull()
-	refns[refinement.KeyNumberLowerBound] = refinement.NewInt64LowerBound(lowerBound, inclusive)
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberLowerBound] = refinement.NewInt64LowerBound(lowerBound, inclusive)
 
 	newUnknownVal := NewInt64Unknown()
-	newUnknownVal.refinements = refns
+	newUnknownVal.refinements = newRefinements
 
 	return newUnknownVal
 }
@@ -254,23 +263,22 @@ func (i Int64Value) RefineWithLowerBound(lowerBound int64, inclusive bool) Int64
 //   - Indicates the int64 value will not be null once it becomes known.
 //   - Indicates the int64 value will not be greater than the int64 provided (upperBound) once it becomes known.
 //
-// If the Int64Value is not unknown, then no refinement will be added and the provided Int64Value will be returned.
+// If the provided Int64Value is null or known, then the Int64Value will be returned unchanged.
 func (i Int64Value) RefineWithUpperBound(upperBound int64, inclusive bool) Int64Value {
-	// TODO: Should we return an error?
 	if !i.IsUnknown() {
 		return i
 	}
 
-	// TODO: Do I need to do a full copy of this map? Do we need to copy any of this at all? Since it's operating on the value struct?
-	refns := make(refinement.Refinements, len(i.refinements))
+	newRefinements := make(refinement.Refinements, len(i.refinements))
 	for i, refn := range i.refinements {
-		refns[i] = refn
+		newRefinements[i] = refn
 	}
-	refns[refinement.KeyNotNull] = refinement.NewNotNull()
-	refns[refinement.KeyNumberUpperBound] = refinement.NewInt64UpperBound(upperBound, inclusive)
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberUpperBound] = refinement.NewInt64UpperBound(upperBound, inclusive)
 
 	newUnknownVal := NewInt64Unknown()
-	newUnknownVal.refinements = refns
+	newUnknownVal.refinements = newRefinements
 
 	return newUnknownVal
 }

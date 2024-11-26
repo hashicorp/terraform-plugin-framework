@@ -125,12 +125,13 @@ func (t Int64Type) ValueFromInt64(_ context.Context, v Int64Value) (Int64Valuabl
 // consume the data with.
 func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
+		unknownVal := NewInt64Unknown()
 		refinements := in.Refinements()
+
 		if len(refinements) == 0 {
-			return NewInt64Unknown(), nil
+			return unknownVal, nil
 		}
 
-		unknownVal := NewInt64Unknown()
 		for _, refn := range refinements {
 			switch refnVal := refn.(type) {
 			case tfrefinements.Nullness:
@@ -144,20 +145,18 @@ func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 					return NewInt64Null(), nil
 				}
 			case tfrefinements.NumberLowerBound:
-				// TODO: I don't think this is safe, but not sure what the expectation should be?
-				// Should I just chop the decimal off?
-				// Could also just directly create the refinement here, rather than using the int64 facing one?
-				// TODO: use-case, resource A sets an unknown value refinement with float, resource B receives this refinement
-				// and chops the decimal point off, thus changing the refinement, which is invalid.
-				boundVal, _ := refnVal.LowerBound().Int64()
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt64(refnVal.LowerBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing lower bound refinement: %w", err)
+				}
 				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
 			case tfrefinements.NumberUpperBound:
-				// TODO: I don't think this is safe, but not sure what the expectation should be?
-				// Should I just chop the decimal off?
-				// Could also just directly create the refinement here, rather than using the int64 facing one?
-				// TODO: use-case, resource A sets an unknown value refinement with float, resource B receives this refinement
-				// and chops the decimal point off, thus changing the refinement, which is invalid.
-				boundVal, _ := refnVal.UpperBound().Int64()
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt64(refnVal.UpperBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing upper bound refinement: %w", err)
+				}
 				unknownVal = unknownVal.RefineWithUpperBound(boundVal, refnVal.IsInclusive())
 			}
 		}
@@ -176,14 +175,9 @@ func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return nil, err
 	}
 
-	if !bigF.IsInt() {
-		return nil, fmt.Errorf("Value %s is not an integer.", bigF)
-	}
-
-	i, accuracy := bigF.Int64()
-
-	if accuracy != 0 {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit integer.", bigF)
+	i, err := tryBigFloatToInt64(bigF)
+	if err != nil {
+		return nil, err
 	}
 
 	return NewInt64Value(i), nil
@@ -193,4 +187,18 @@ func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 func (t Int64Type) ValueType(_ context.Context) attr.Value {
 	// This Value does not need to be valid.
 	return Int64Value{}
+}
+
+func tryBigFloatToInt64(bigF *big.Float) (int64, error) {
+	if !bigF.IsInt() {
+		return 0, fmt.Errorf("Value %s is not an integer.", bigF)
+	}
+
+	i, accuracy := bigF.Int64()
+
+	if accuracy != 0 {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 64-bit integer.", bigF)
+	}
+
+	return i, nil
 }

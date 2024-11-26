@@ -1,5 +1,6 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
+
 package ephemeral
 
 import (
@@ -19,8 +20,8 @@ type SchemaResponse struct {
 	// Schema is the schema of the ephemeral resource.
 	Schema schema.Schema
 
-	// Diagnostics report errors or warnings related to validating the data
-	// source configuration. An empty slice indicates success, with no warnings
+	// Diagnostics report errors or warnings related to retrieving the ephemeral
+	// resource schema. An empty slice indicates success, with no warnings
 	// or errors generated.
 	Diagnostics diag.Diagnostics
 }

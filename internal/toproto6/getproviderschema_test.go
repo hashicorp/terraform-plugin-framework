@@ -1387,38 +1387,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
-		"ephemeral-resource-attribute-write-only": {
-			input: &fwserver.GetProviderSchemaResponse{
-				EphemeralResourceSchemas: map[string]fwschema.Schema{
-					"test_ephemeral_resource": ephemeralschema.Schema{
-						Attributes: map[string]ephemeralschema.Attribute{
-							"test_attribute": ephemeralschema.BoolAttribute{
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
-					"test_ephemeral_resource": {
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Computed:  true,
-									Name:      "test_attribute",
-									WriteOnly: false,
-									Type:      tftypes.Bool,
-								},
-							},
-						},
-					},
-				},
-				Functions:       map[string]*tfprotov6.Function{},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
-			},
-		},
 		"ephemeral-resource-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
 				EphemeralResourceSchemas: map[string]fwschema.Schema{

@@ -28,6 +28,8 @@ Use one of the following attribute types to directly add a single structure of a
 | [Provider](/terraform/plugin/framework/provider) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#SingleNestedBlock) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SingleNestedAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#SingleNestedBlock) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.SingleNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#SingleNestedAttribute) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.SingleNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#SingleNestedBlock) |
 
 If a wrapping collection is needed on the structure of nested attributes, any of the other nested attribute and nested block types can be used.
 
@@ -38,6 +40,7 @@ Use one of the following attribute types to directly add an object value directl
 | [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ObjectAttribute) |
 | [Provider](/terraform/plugin/framework/provider) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ObjectAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ObjectAttribute) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.ObjectAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#ObjectAttribute) |
 
 If the object value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.ObjectType{AttrTypes: /* ... */}` or the appropriate [custom type](#extending).
 

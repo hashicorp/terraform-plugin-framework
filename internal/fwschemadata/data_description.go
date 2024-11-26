@@ -16,9 +16,9 @@ const (
 	// a state-based value.
 	DataDescriptionState DataDescription = "state"
 
-	// DataDescriptionEphemeralState is used for Data that represents
-	// an ephemeral state-based value.
-	DataDescriptionEphemeralState DataDescription = "ephemeral state"
+	// DataDescriptionEphemeralResultData is used for Data that represents
+	// the result of an ephemeral operation.
+	DataDescriptionEphemeralResultData DataDescription = "ephemeral result data"
 )
 
 // DataDescription is a human friendly type for Data. Used in error
@@ -44,8 +44,8 @@ func (d DataDescription) Title() string {
 		return "Plan"
 	case DataDescriptionState:
 		return "State"
-	case DataDescriptionEphemeralState:
-		return "Ephemeral State"
+	case DataDescriptionEphemeralResultData:
+		return "Ephemeral Result Data"
 	default:
 		return "Data"
 	}

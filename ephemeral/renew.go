@@ -1,5 +1,6 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
+
 package ephemeral
 
 import (
@@ -7,17 +8,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // RenewRequest represents a request for the provider to renew an ephemeral
 // resource. An instance of this request struct is supplied as an argument to
 // the ephemeral resource's Renew function.
 type RenewRequest struct {
-	// State is the object representing the values of the ephemeral
-	// resource following the Open operation.
-	State tfsdk.EphemeralState
-
 	// Private is provider-defined ephemeral resource private state data
 	// which was previously provided by the latest Open or Renew operation.
 	// Any existing data is copied to RenewResponse.Private to prevent
@@ -38,17 +34,18 @@ type RenewResponse struct {
 	// the (EphemeralResource).Renew method when the current date/time is on
 	// or after RenewAt during a Terraform operation.
 	//
-	// It is recommended to provide small leeway before an ephemeral resource
-	// expires, usually no more than a few minutes, to account for clock
-	// skew.
+	// It is recommended to add extra time (usually no more than a few minutes)
+	// before an ephemeral resource expires to account for latency.
 	RenewAt time.Time
 
 	// Private is the private state ephemeral resource data following the
 	// Renew operation. This field is pre-populated from RenewRequest.Private
 	// and can be modified during the ephemeral resource's Renew operation.
+	//
+	// This private data will be passed to any Renew or Close operations.
 	Private *privatestate.ProviderData
 
-	// Diagnostics report errors or warnings related to creating the
+	// Diagnostics report errors or warnings related to renewing the ephemeral
 	// resource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.
 	Diagnostics diag.Diagnostics

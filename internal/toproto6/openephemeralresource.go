@@ -20,13 +20,13 @@ func OpenEphemeralResourceResponse(ctx context.Context, fw *fwserver.OpenEphemer
 	proto6 := &tfprotov6.OpenEphemeralResourceResponse{
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 		RenewAt:     fw.RenewAt,
-		IsClosable:  fw.IsClosable,
+		Deferred:    EphemeralResourceDeferred(fw.Deferred),
 	}
 
-	state, diags := EphemeralState(ctx, fw.State)
+	result, diags := EphemeralResultData(ctx, fw.Result)
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
-	proto6.State = state
+	proto6.Result = result
 
 	newPrivate, diags := fw.Private.Bytes(ctx)
 

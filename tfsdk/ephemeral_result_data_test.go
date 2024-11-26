@@ -20,20 +20,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestEphemeralStateGet(t *testing.T) {
+func TestEphemeralResultDataGet(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		ephemeralState tfsdk.EphemeralState
-		target         any
-		expected       any
-		expectedDiags  diag.Diagnostics
+		ephemeralResultData tfsdk.EphemeralResultData
+		target              any
+		expected            any
+		expectedDiags       diag.Diagnostics
 	}{
 		// Refer to fwschemadata.TestDataGet for more exhaustive unit testing.
-		// These test cases are to ensure EphemeralState schema and data values are
+		// These test cases are to ensure EphemeralResultData schema and data values are
 		// passed appropriately to the shared implementation.
 		"valid": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(
 					tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -63,7 +63,7 @@ func TestEphemeralStateGet(t *testing.T) {
 			},
 		},
 		"diagnostic": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(
 					tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
@@ -110,7 +110,7 @@ func TestEphemeralStateGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := testCase.ephemeralState.Get(context.Background(), testCase.target)
+			diags := testCase.ephemeralResultData.Get(context.Background(), testCase.target)
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -123,22 +123,22 @@ func TestEphemeralStateGet(t *testing.T) {
 	}
 }
 
-func TestEphemeralStateGetAttribute(t *testing.T) {
+func TestEphemeralResultDataGetAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		ephemeralState tfsdk.EphemeralState
-		target         interface{}
-		expected       interface{}
-		expectedDiags  diag.Diagnostics
+		ephemeralResultData tfsdk.EphemeralResultData
+		target              interface{}
+		expected            interface{}
+		expectedDiags       diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
 		// Refer to fwschemadata.TestDataGetAtPath for more exhaustive unit
-		// testing. These test cases are to ensure EphemeralState schema and data values
+		// testing. These test cases are to ensure EphemeralResultData schema and data values
 		// are passed appropriately to the shared implementation.
 		"valid": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -159,7 +159,7 @@ func TestEphemeralStateGetAttribute(t *testing.T) {
 			expected: pointer("namevalue"),
 		},
 		"diagnostics": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -187,7 +187,7 @@ func TestEphemeralStateGetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.ephemeralState.GetAttribute(context.Background(), path.Root("name"), tc.target)
+			diags := tc.ephemeralResultData.GetAttribute(context.Background(), path.Root("name"), tc.target)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
@@ -200,20 +200,20 @@ func TestEphemeralStateGetAttribute(t *testing.T) {
 	}
 }
 
-func TestEphemeralStatePathMatches(t *testing.T) {
+func TestEphemeralResultDataPathMatches(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		ephemeralState tfsdk.EphemeralState
-		expression     path.Expression
-		expected       path.Paths
-		expectedDiags  diag.Diagnostics
+		ephemeralResultData tfsdk.EphemeralResultData
+		expression          path.Expression
+		expected            path.Paths
+		expectedDiags       diag.Diagnostics
 	}{
 		// Refer to fwschemadata.TestDataPathMatches for more exhaustive unit testing.
-		// These test cases are to ensure EphemeralState schema and data values are
+		// These test cases are to ensure EphemeralResultData schema and data values are
 		// passed appropriately to the shared implementation.
 		"AttributeNameExact-match": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"test": testschema.Attribute{
@@ -238,7 +238,7 @@ func TestEphemeralStatePathMatches(t *testing.T) {
 			},
 		},
 		"AttributeNameExact-mismatch": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
 						"test": testschema.Attribute{
@@ -277,7 +277,7 @@ func TestEphemeralStatePathMatches(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := testCase.ephemeralState.PathMatches(context.Background(), testCase.expression)
+			got, diags := testCase.ephemeralResultData.PathMatches(context.Background(), testCase.expression)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -290,22 +290,22 @@ func TestEphemeralStatePathMatches(t *testing.T) {
 	}
 }
 
-func TestEphemeralStateSet(t *testing.T) {
+func TestEphemeralResultDataSet(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		ephemeralState tfsdk.EphemeralState
-		val            interface{}
-		expected       tftypes.Value
-		expectedDiags  diag.Diagnostics
+		ephemeralResultData tfsdk.EphemeralResultData
+		val                 interface{}
+		expected            tftypes.Value
+		expectedDiags       diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
 		// Refer to fwschemadata.TestDataSet for more exhaustive unit testing.
-		// These test cases are to ensure EphemeralState schema and data values are
+		// These test cases are to ensure EphemeralResultData schema and data values are
 		// passed appropriately to the shared implementation.
 		"valid": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -336,7 +336,7 @@ func TestEphemeralStateSet(t *testing.T) {
 			}),
 		},
 		"diagnostics": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.Value{},
 				Schema: testschema.Schema{
 					Attributes: map[string]fwschema.Attribute{
@@ -368,36 +368,36 @@ func TestEphemeralStateSet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.ephemeralState.Set(context.Background(), tc.val)
+			diags := tc.ephemeralResultData.Set(context.Background(), tc.val)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
-			if diff := cmp.Diff(tc.ephemeralState.Raw, tc.expected); diff != "" {
+			if diff := cmp.Diff(tc.ephemeralResultData.Raw, tc.expected); diff != "" {
 				t.Errorf("unexpected value (+wanted, -got): %s", diff)
 			}
 		})
 	}
 }
 
-func TestEphemeralStateSetAttribute(t *testing.T) {
+func TestEphemeralResultDataSetAttribute(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		ephemeralState tfsdk.EphemeralState
-		path           path.Path
-		val            interface{}
-		expected       tftypes.Value
-		expectedDiags  diag.Diagnostics
+		ephemeralResultData tfsdk.EphemeralResultData
+		path                path.Path
+		val                 interface{}
+		expected            tftypes.Value
+		expectedDiags       diag.Diagnostics
 	}
 
 	testCases := map[string]testCase{
 		// Refer to fwschemadata.TestDataSetAtPath for more exhaustive unit
-		// testing. These test cases are to ensure EphemeralState schema and data values
+		// testing. These test cases are to ensure EphemeralResultData schema and data values
 		// are passed appropriately to the shared implementation.
 		"valid": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"test":  tftypes.String,
@@ -433,7 +433,7 @@ func TestEphemeralStateSetAttribute(t *testing.T) {
 			}),
 		},
 		"diagnostics": {
-			ephemeralState: tfsdk.EphemeralState{
+			ephemeralResultData: tfsdk.EphemeralResultData{
 				Raw: tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"name": tftypes.String,
@@ -470,7 +470,7 @@ func TestEphemeralStateSetAttribute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := tc.ephemeralState.SetAttribute(context.Background(), tc.path, tc.val)
+			diags := tc.ephemeralResultData.SetAttribute(context.Background(), tc.path, tc.val)
 
 			if diff := cmp.Diff(diags, tc.expectedDiags); diff != "" {
 				for _, diagnostic := range diags {
@@ -479,7 +479,7 @@ func TestEphemeralStateSetAttribute(t *testing.T) {
 				t.Errorf("unexpected diagnostics (+wanted, -got): %s", diff)
 			}
 
-			if diff := cmp.Diff(tc.ephemeralState.Raw, tc.expected); diff != "" {
+			if diff := cmp.Diff(tc.ephemeralResultData.Raw, tc.expected); diff != "" {
 				t.Errorf("unexpected value (+wanted, -got): %s", diff)
 			}
 		})

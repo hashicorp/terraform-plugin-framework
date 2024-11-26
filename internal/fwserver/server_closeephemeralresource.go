@@ -11,13 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // CloseEphemeralResourceRequest is the framework server request for the
 // CloseEphemeralResource RPC.
 type CloseEphemeralResourceRequest struct {
-	State                   *tfsdk.EphemeralState
 	Private                 *privatestate.Data
 	EphemeralResourceSchema fwschema.Schema
 	EphemeralResource       ephemeral.EphemeralResource
@@ -56,24 +54,7 @@ func (s *Server) CloseEphemeralResource(ctx context.Context, req *CloseEphemeral
 
 	resourceWithClose, ok := req.EphemeralResource.(ephemeral.EphemeralResourceWithClose)
 	if !ok {
-		// The framework automatically sets the indicator to Terraform core that enables calling close using
-		// this interface, so if we get this diagnostic then there is a bug in either Terraform core or framework.
-		resp.Diagnostics.AddError(
-			"Ephemeral Resource Close Not Implemented",
-			"An unexpected error was encountered when closing the ephemeral resource. Terraform sent a close request for an "+
-				"ephemeral resource that has not implemented close logic.\n\n"+
-				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-		)
-		return
-	}
-
-	if req.State == nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Close Request",
-			"An unexpected error was encountered when closing the ephemeral resource. The state was missing.\n\n"+
-				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-		)
-
+		// Terraform will always give the ephemeral resource an opportunity to close, so if it's not implemented we can safely return.
 		return
 	}
 
@@ -83,10 +64,6 @@ func (s *Server) CloseEphemeralResource(ctx context.Context, req *CloseEphemeral
 	}
 
 	closeReq := ephemeral.CloseRequest{
-		State: tfsdk.EphemeralState{
-			Schema: req.EphemeralResourceSchema,
-			Raw:    req.State.Raw.Copy(),
-		},
 		Private: privateProviderData,
 	}
 	closeResp := ephemeral.CloseResponse{}

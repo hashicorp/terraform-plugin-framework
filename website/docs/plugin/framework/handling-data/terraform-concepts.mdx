@@ -10,7 +10,7 @@ This page describes Terraform concepts as they relate to handling data within fr
 
 ## Schemas
 
-Schemas specify the data structure and types of a provider, resource, or data source that is exposed to Terraform. This includes the configuration written by practitioners, any planning data, and the state stored by Terraform which can be referenced in other configuration. Providers, resources, and data sources have their own concept-specific types and available functionality.
+Schemas specify the data structure and types of a provider, resource, data source, or ephemeral resource that is exposed to Terraform. This includes the configuration written by practitioners, any planning data, and the state stored by Terraform which can be referenced in other configuration. Providers, resources, data sources, and ephemeral resources have their own concept-specific types and available functionality.
 
 Each part of the data within a schema is defined as either an attribute or block. In general, attributes set values and blocks are containers for other attributes and blocks. Each have differing configuration syntax and behaviors.
 
@@ -62,7 +62,7 @@ In Terraform operations where the plan data is available to providers, the frame
 
 <Highlight>
 
-Only managed resources and data resources implement this data concept.
+Only managed resources and data sources implement this data concept.
 
 </Highlight>
 

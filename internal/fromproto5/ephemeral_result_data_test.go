@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package toproto5_test
+package fromproto5_test
 
 import (
 	"context"
@@ -9,16 +9,16 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestEphemeralState(t *testing.T) {
+func TestEphemeralResultData(t *testing.T) {
 	t.Parallel()
 
 	testProto5Type := tftypes.Object{
@@ -37,55 +37,68 @@ func TestEphemeralState(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
-	testEphemeralState := &tfsdk.EphemeralState{
-		Raw: testProto5Value,
-		Schema: testschema.Schema{
-			Attributes: map[string]fwschema.Attribute{
-				"test_attribute": testschema.Attribute{
-					Required: true,
-					Type:     types.StringType,
-				},
+	testFwSchema := testschema.Schema{
+		Attributes: map[string]fwschema.Attribute{
+			"test_attribute": testschema.Attribute{
+				Required: true,
+				Type:     types.StringType,
 			},
 		},
 	}
 
-	testEphemeralStateInvalid := &tfsdk.EphemeralState{
-		Raw: testProto5Value,
-		Schema: testschema.Schema{
-			Attributes: map[string]fwschema.Attribute{
-				"test_attribute": testschema.Attribute{
-					Required: true,
-					Type:     types.BoolType,
-				},
+	testFwSchemaInvalid := testschema.Schema{
+		Attributes: map[string]fwschema.Attribute{
+			"test_attribute": testschema.Attribute{
+				Required: true,
+				Type:     types.BoolType,
 			},
 		},
 	}
 
 	testCases := map[string]struct {
-		input               *tfsdk.EphemeralState
-		expected            *tfprotov5.DynamicValue
+		input               *tfprotov5.DynamicValue
+		schema              fwschema.Schema
+		expected            *tfsdk.EphemeralResultData
 		expectedDiagnostics diag.Diagnostics
 	}{
 		"nil": {
 			input:    nil,
 			expected: nil,
 		},
-		"invalid-schema": {
-			input:    testEphemeralStateInvalid,
+		"missing-schema": {
+			input:    &testProto5DynamicValue,
 			expected: nil,
 			expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Unable to Convert Ephemeral State",
-					"An unexpected error was encountered when converting the ephemeral state to the protocol type. "+
+					"Unable to Convert Ephemeral Result Data",
+					"An unexpected error was encountered when converting the ephemeral result data from the protocol type. "+
 						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 						"Please report this to the provider developer:\n\n"+
-						"Unable to create DynamicValue: AttributeName(\"test_attribute\"): unexpected value type string, tftypes.Bool values must be of type bool",
+						"Missing schema.",
+				),
+			},
+		},
+		"invalid-schema": {
+			input:    &testProto5DynamicValue,
+			schema:   testFwSchemaInvalid,
+			expected: nil,
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Unable to Convert Ephemeral Result Data",
+					"An unexpected error was encountered when converting the ephemeral result data from the protocol type. "+
+						"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+						"Please report this to the provider developer:\n\n"+
+						"Unable to unmarshal DynamicValue: AttributeName(\"test_attribute\"): couldn't decode bool: msgpack: invalid code=aa decoding bool",
 				),
 			},
 		},
 		"valid": {
-			input:    testEphemeralState,
-			expected: &testProto5DynamicValue,
+			input:  &testProto5DynamicValue,
+			schema: testFwSchema,
+			expected: &tfsdk.EphemeralResultData{
+				Raw:    testProto5Value,
+				Schema: testFwSchema,
+			},
 		},
 	}
 
@@ -95,7 +108,7 @@ func TestEphemeralState(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := toproto5.EphemeralState(context.Background(), testCase.input)
+			got, diags := fromproto5.EphemeralResultData(context.Background(), testCase.input, testCase.schema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

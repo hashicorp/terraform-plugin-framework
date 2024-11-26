@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
@@ -16,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -85,9 +84,7 @@ type ListNestedAttribute struct {
 
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
-	// in CLI output. Sensitive does not impact how values are stored, and
-	// practitioners are encouraged to store their state as if the entire
-	// file is sensitive.
+	// in CLI output.
 	Sensitive bool
 
 	// Description is used in various tooling, like the language server, to

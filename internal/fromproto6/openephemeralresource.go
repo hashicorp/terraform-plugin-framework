@@ -39,6 +39,7 @@ func OpenEphemeralResourceRequest(ctx context.Context, proto6 *tfprotov6.OpenEph
 	fw := &fwserver.OpenEphemeralResourceRequest{
 		EphemeralResource:       ephemeralResource,
 		EphemeralResourceSchema: ephemeralResourceSchema,
+		ClientCapabilities:      OpenEphemeralResourceClientCapabilities(proto6.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, ephemeralResourceSchema)

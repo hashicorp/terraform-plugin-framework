@@ -1,5 +1,6 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
+
 package ephemeral
 
 import (
@@ -18,11 +19,14 @@ import (
 //
 //   - Renew: Handle renewal of an expired remote object via EphemeralResourceWithRenew.
 //     Ephemeral resources can indicate to Terraform when a renewal must occur via the RenewAt
-//     response field of the Open/Renew methods. Renew cannot return new state data for the
+//     response field of the Open/Renew methods. Renew cannot return new result data for the
 //     ephemeral resource instance, so this logic is only appropriate for remote objects like
 //     HashiCorp Vault leases, which can be renewed without changing their data.
 //
 //   - Close: Allows providers to clean up the ephemeral resource via EphemeralResourceWithClose.
+//
+// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
+// these notices are removed.
 type EphemeralResource interface {
 	// Metadata should return the full name of the ephemeral resource, such as
 	// examplecloud_thing.
@@ -46,14 +50,14 @@ type EphemeralResourceWithRenew interface {
 	// Renew is called when the provider must renew the ephemeral resource based on
 	// the provided RenewAt time. This RenewAt response field can be set in the OpenResponse and RenewResponse.
 	//
-	// Renew cannot return new state data for the ephemeral resource instance, so this logic is only appropriate
+	// Renew cannot return new result data for the ephemeral resource instance, so this logic is only appropriate
 	// for remote objects like HashiCorp Vault leases, which can be renewed without changing their data.
 	Renew(context.Context, RenewRequest, *RenewResponse)
 }
 
 // EphemeralResourceWithClose is an interface type that extends
 // EphemeralResource to include a method which the framework will call when
-// Terraform determines that the ephemeral values can be safely cleaned up.
+// Terraform determines that the ephemeral resource can be safely cleaned up.
 type EphemeralResourceWithClose interface {
 	EphemeralResource
 
@@ -76,7 +80,7 @@ type EphemeralResourceWithConfigure interface {
 
 // EphemeralResourceWithConfigValidators is an interface type that extends EphemeralResource to include declarative validations.
 //
-// Declaring validation using this methodology simplifies implmentation of
+// Declaring validation using this methodology simplifies implementation of
 // reusable functionality. These also include descriptions, which can be used
 // for automating documentation.
 //

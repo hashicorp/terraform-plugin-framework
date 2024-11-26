@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// EphemeralState represents the state for a Terraform ephemeral resource.
-type EphemeralState struct {
+// EphemeralResultData represents the data returned after opening a Terraform ephemeral resource.
+type EphemeralResultData struct {
 	Raw    tftypes.Value
 	Schema fwschema.Schema
 }
 
-// Get populates the struct passed as `target` with the entire ephemeral state.
-func (s EphemeralState) Get(ctx context.Context, target interface{}) diag.Diagnostics {
+// Get populates the struct passed as `target` with the entire ephemeral result data object.
+func (s EphemeralResultData) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return s.data().Get(ctx, target)
 }
 
@@ -31,7 +31,7 @@ func (s EphemeralState) Get(ctx context.Context, target interface{}) diag.Diagno
 //
 // Attributes or elements under null or unknown collections return null
 // values, however this behavior is not protected by compatibility promises.
-func (s EphemeralState) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
+func (s EphemeralResultData) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return s.data().GetAtPath(ctx, path, target)
 }
 
@@ -40,14 +40,14 @@ func (s EphemeralState) GetAttribute(ctx context.Context, path path.Path, target
 // If a parent path is null or unknown, which would prevent a full expression
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
-func (s EphemeralState) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func (s EphemeralResultData) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return s.data().PathMatches(ctx, pathExpr)
 }
 
-// Set populates the entire ephemeral state using the supplied Go value. The value `val`
+// Set populates the entire ephemeral result data object using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
-func (s *EphemeralState) Set(ctx context.Context, val interface{}) diag.Diagnostics {
+func (s *EphemeralResultData) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 	data := s.data()
 	diags := data.Set(ctx, val)
 
@@ -72,7 +72,7 @@ func (s *EphemeralState) Set(ctx context.Context, val interface{}) diag.Diagnost
 // use (*string)(nil) or types.StringNull().
 //
 // Lists can only have the next element added according to the current length.
-func (s *EphemeralState) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
+func (s *EphemeralResultData) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
 	data := s.data()
 	diags := data.SetAtPath(ctx, path, val)
 
@@ -85,9 +85,9 @@ func (s *EphemeralState) SetAttribute(ctx context.Context, path path.Path, val i
 	return diags
 }
 
-func (s EphemeralState) data() *fwschemadata.Data {
+func (s EphemeralResultData) data() *fwschemadata.Data {
 	return &fwschemadata.Data{
-		Description:    fwschemadata.DataDescriptionEphemeralState,
+		Description:    fwschemadata.DataDescriptionEphemeralResultData,
 		Schema:         s.Schema,
 		TerraformValue: s.Raw,
 	}

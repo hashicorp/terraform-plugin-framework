@@ -42,12 +42,6 @@ func RenewEphemeralResourceRequest(ctx context.Context, proto6 *tfprotov6.RenewE
 		EphemeralResourceSchema: ephemeralResourceSchema,
 	}
 
-	state, stateDiags := EphemeralState(ctx, proto6.State, ephemeralResourceSchema)
-
-	diags.Append(stateDiags...)
-
-	fw.State = state
-
 	privateData, privateDataDiags := privatestate.NewData(ctx, proto6.Private)
 
 	diags.Append(privateDataDiags...)

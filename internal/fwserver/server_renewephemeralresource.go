@@ -12,13 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // RenewEphemeralResourceRequest is the framework server request for the
 // RenewEphemeralResource RPC.
 type RenewEphemeralResourceRequest struct {
-	State                   *tfsdk.EphemeralState
 	Private                 *privatestate.Data
 	EphemeralResourceSchema fwschema.Schema
 	EphemeralResource       ephemeral.EphemeralResource
@@ -68,16 +66,6 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 		return
 	}
 
-	if req.State == nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Renew Request",
-			"An unexpected error was encountered when renewing the ephemeral resource. The state was missing.\n\n"+
-				"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-		)
-
-		return
-	}
-
 	// Ensure that resp.Private is never nil.
 	resp.Private = privatestate.EmptyData(ctx)
 	if req.Private != nil {
@@ -91,10 +79,6 @@ func (s *Server) RenewEphemeralResource(ctx context.Context, req *RenewEphemeral
 	}
 
 	renewReq := ephemeral.RenewRequest{
-		State: tfsdk.EphemeralState{
-			Schema: req.EphemeralResourceSchema,
-			Raw:    req.State.Raw.Copy(),
-		},
 		Private: resp.Private.Provider,
 	}
 	renewResp := ephemeral.RenewResponse{

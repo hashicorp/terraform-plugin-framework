@@ -19,6 +19,7 @@ Use one of the following attribute types to directly add a list of a single elem
 | [Data Source](/terraform/plugin/framework/data-sources) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#ListAttribute) |
 | [Provider](/terraform/plugin/framework/provider) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListAttribute) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.ListAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#ListAttribute) |
 
 Use one of the following attribute types to directly add a list of a nested attributes to a [schema](/terraform/plugin/framework/handling-data/schemas) or [nested attribute type](/terraform/plugin/framework/handling-data/attributes#nested-attribute-types):
 
@@ -30,6 +31,8 @@ Use one of the following attribute types to directly add a list of a nested attr
 | [Provider](/terraform/plugin/framework/provider) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider/schema#ListNestedBlock) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedAttribute) |
 | [Resource](/terraform/plugin/framework/resources) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource/schema#ListNestedBlock) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.ListNestedAttribute`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#ListNestedAttribute) |
+| [Ephemeral Resource](/terraform/plugin/framework/ephemeral-resources) | [`schema.ListNestedBlock`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral/schema#ListNestedBlock) |
 
 If the list value should be the element type of another [collection attribute type](/terraform/plugin/framework/handling-data/attributes#collection-attribute-types), set the `ElementType` field to `types.ListType{ElemType: /* ... */}` or the appropriate [custom type](#extending).
 

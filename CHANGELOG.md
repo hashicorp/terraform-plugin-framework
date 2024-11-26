@@ -1,3 +1,20 @@
+## 1.13.0 (October 31, 2024)
+
+NOTES:
+
+* Ephemeral resource support is in technical preview and offered without compatibility promises until Terraform 1.10 is generally available. ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+
+FEATURES:
+
+* ephemeral: New package for implementing ephemeral resources ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+* ephemeral/schema: New package for implementing ephemeral resource schemas ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+
+ENHANCEMENTS:
+
+* provider: Added `ProviderWithEphemeralResources` interface for implementing ephemeral resources ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+* tfsdk: Added `EphemeralResultData` struct for representing ephemeral values produced by a provider, such as from an ephemeral resource ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+* provider: Added `EphemeralResourceData` to `ConfigureResponse`, to pass provider-defined data to `ephemeral.EphemeralResource` implementations ([#1050](https://github.com/hashicorp/terraform-plugin-framework/issues/1050))
+
 ## 1.12.0 (September 18, 2024)
 
 NOTES:

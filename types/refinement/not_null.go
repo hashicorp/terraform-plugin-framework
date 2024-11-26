@@ -8,8 +8,8 @@ package refinement
 type NotNull struct{}
 
 func (n NotNull) Equal(other Refinement) bool {
-	_, refnMatches := other.(NotNull)
-	return refnMatches
+	_, ok := other.(NotNull)
+	return ok
 }
 
 func (n NotNull) String() string {

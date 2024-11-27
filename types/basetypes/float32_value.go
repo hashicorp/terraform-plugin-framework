@@ -259,13 +259,13 @@ func (f Float32Value) ToFloat32Value(context.Context) (Float32Value, diag.Diagno
 //   - Indicates the float32 value will not be null once it becomes known.
 //
 // If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
-func (i Float32Value) RefineAsNotNull() Float32Value {
-	if !i.IsUnknown() {
-		return i
+func (f Float32Value) RefineAsNotNull() Float32Value {
+	if !f.IsUnknown() {
+		return f
 	}
 
-	newRefinements := make(refinement.Refinements, len(i.refinements))
-	for i, refn := range i.refinements {
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
 		newRefinements[i] = refn
 	}
 
@@ -282,13 +282,13 @@ func (i Float32Value) RefineAsNotNull() Float32Value {
 //   - Indicates the float32 value will not be less than the float32 provided (lowerBound) once it becomes known.
 //
 // If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
-func (i Float32Value) RefineWithLowerBound(lowerBound float32, inclusive bool) Float32Value {
-	if !i.IsUnknown() {
-		return i
+func (f Float32Value) RefineWithLowerBound(lowerBound float32, inclusive bool) Float32Value {
+	if !f.IsUnknown() {
+		return f
 	}
 
-	newRefinements := make(refinement.Refinements, len(i.refinements))
-	for i, refn := range i.refinements {
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
 		newRefinements[i] = refn
 	}
 
@@ -306,13 +306,13 @@ func (i Float32Value) RefineWithLowerBound(lowerBound float32, inclusive bool) F
 //   - Indicates the float32 value will not be greater than the float32 provided (upperBound) once it becomes known.
 //
 // If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
-func (i Float32Value) RefineWithUpperBound(upperBound float32, inclusive bool) Float32Value {
-	if !i.IsUnknown() {
-		return i
+func (f Float32Value) RefineWithUpperBound(upperBound float32, inclusive bool) Float32Value {
+	if !f.IsUnknown() {
+		return f
 	}
 
-	newRefinements := make(refinement.Refinements, len(i.refinements))
-	for i, refn := range i.refinements {
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
 		newRefinements[i] = refn
 	}
 
@@ -330,12 +330,12 @@ func (i Float32Value) RefineWithUpperBound(upperBound float32, inclusive bool) F
 // the float32 value is unknown, but the eventual known value will not be null.
 //
 // A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
-func (i Float32Value) NotNullRefinement() (*refinement.NotNull, bool) {
-	if !i.IsUnknown() {
+func (f Float32Value) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !f.IsUnknown() {
 		return nil, false
 	}
 
-	refn, ok := i.refinements[refinement.KeyNotNull]
+	refn, ok := f.refinements[refinement.KeyNotNull]
 	if !ok {
 		return nil, false
 	}
@@ -355,12 +355,12 @@ func (i Float32Value) NotNullRefinement() (*refinement.NotNull, bool) {
 // refinement data.
 //
 // An Float32LowerBound value refinement can be added to an unknown value via the `RefineWithLowerBound` method.
-func (i Float32Value) LowerBoundRefinement() (*refinement.Float32LowerBound, bool) {
-	if !i.IsUnknown() {
+func (f Float32Value) LowerBoundRefinement() (*refinement.Float32LowerBound, bool) {
+	if !f.IsUnknown() {
 		return nil, false
 	}
 
-	refn, ok := i.refinements[refinement.KeyNumberLowerBound]
+	refn, ok := f.refinements[refinement.KeyNumberLowerBound]
 	if !ok {
 		return nil, false
 	}
@@ -380,12 +380,12 @@ func (i Float32Value) LowerBoundRefinement() (*refinement.Float32LowerBound, boo
 // refinement data.
 //
 // A Float32UpperBound value refinement can be added to an unknown value via the `RefineWithUpperBound` method.
-func (i Float32Value) UpperBoundRefinement() (*refinement.Float32UpperBound, bool) {
-	if !i.IsUnknown() {
+func (f Float32Value) UpperBoundRefinement() (*refinement.Float32UpperBound, bool) {
+	if !f.IsUnknown() {
 		return nil, false
 	}
 
-	refn, ok := i.refinements[refinement.KeyNumberUpperBound]
+	refn, ok := f.refinements[refinement.KeyNumberUpperBound]
 	if !ok {
 		return nil, false
 	}

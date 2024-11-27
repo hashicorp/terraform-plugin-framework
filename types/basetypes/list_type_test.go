@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestListTypeElementType(t *testing.T) {
@@ -144,6 +145,46 @@ func TestListTypeValueFromTerraform(t *testing.T) {
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
 			expected: NewListUnknown(StringType{}),
+		},
+		"unknown-with-notnull-refinement": {
+			receiver: ListType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expected: NewListUnknown(StringType{}).RefineAsNotNull(),
+		},
+		"unknown-with-length-lowerbound-refinement": {
+			receiver: ListType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+			}),
+			expected: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+		},
+		"unknown-with-length-upperbound-refinement": {
+			receiver: ListType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+		},
+		"unknown-with-both-length-bound-refinements": {
+			receiver: ListType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
 		},
 		"partially-unknown-list": {
 			receiver: ListType{
@@ -340,5 +381,25 @@ func TestListTypeString(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestListTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewListNull(StringType{})
+
+	got, err := ListType{ElemType: StringType{}}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

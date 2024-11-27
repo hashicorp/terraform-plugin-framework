@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
@@ -172,17 +172,17 @@ func (f Float64Value) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
 		}
 
-		unknownValRefinements := make(tfrefinements.Refinements, 0)
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
 		for _, refn := range f.refinements {
 			switch refnVal := refn.(type) {
 			case refinement.NotNull:
-				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
 			case refinement.Float64LowerBound:
 				lowerBound := big.NewFloat(refnVal.LowerBound())
-				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(lowerBound, refnVal.IsInclusive())
+				unknownValRefinements[tfrefinement.KeyNumberLowerBound] = tfrefinement.NewNumberLowerBound(lowerBound, refnVal.IsInclusive())
 			case refinement.Float64UpperBound:
 				upperBound := big.NewFloat(refnVal.UpperBound())
-				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(upperBound, refnVal.IsInclusive())
+				unknownValRefinements[tfrefinement.KeyNumberUpperBound] = tfrefinement.NewNumberUpperBound(upperBound, refnVal.IsInclusive())
 			}
 		}
 		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)

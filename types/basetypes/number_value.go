@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
@@ -114,15 +114,15 @@ func (n NumberValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) 
 			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
 		}
 
-		unknownValRefinements := make(tfrefinements.Refinements, 0)
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
 		for _, refn := range n.refinements {
 			switch refnVal := refn.(type) {
 			case refinement.NotNull:
-				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
 			case refinement.NumberLowerBound:
-				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
+				unknownValRefinements[tfrefinement.KeyNumberLowerBound] = tfrefinement.NewNumberLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
 			case refinement.NumberUpperBound:
-				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
+				unknownValRefinements[tfrefinement.KeyNumberUpperBound] = tfrefinement.NewNumberUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
 			}
 		}
 		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)

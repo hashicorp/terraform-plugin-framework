@@ -10,7 +10,7 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -139,7 +139,7 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 
 		for _, refn := range refinements {
 			switch refnVal := refn.(type) {
-			case tfrefinements.Nullness:
+			case tfrefinement.Nullness:
 				if !refnVal.Nullness() {
 					unknownVal = unknownVal.RefineAsNotNull()
 				} else {
@@ -149,13 +149,13 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 					// it into a known null value here.
 					return NewFloat64Null(), nil
 				}
-			case tfrefinements.NumberLowerBound:
+			case tfrefinement.NumberLowerBound:
 				boundVal, err := tryBigFloatAsFloat64(refnVal.LowerBound())
 				if err != nil {
 					return nil, fmt.Errorf("error parsing lower bound refinement: %w", err)
 				}
 				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
-			case tfrefinements.NumberUpperBound:
+			case tfrefinement.NumberUpperBound:
 				boundVal, err := tryBigFloatAsFloat64(refnVal.UpperBound())
 				if err != nil {
 					return nil, fmt.Errorf("error parsing upper bound refinement: %w", err)

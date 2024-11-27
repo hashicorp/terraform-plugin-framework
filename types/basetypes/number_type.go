@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 // NumberTypable extends attr.Type for number types.
@@ -72,7 +72,7 @@ func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 
 		for _, refn := range refinements {
 			switch refnVal := refn.(type) {
-			case tfrefinements.Nullness:
+			case tfrefinement.Nullness:
 				if !refnVal.Nullness() {
 					unknownVal = unknownVal.RefineAsNotNull()
 				} else {
@@ -82,9 +82,9 @@ func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 					// it into a known null value here.
 					return NewNumberNull(), nil
 				}
-			case tfrefinements.NumberLowerBound:
+			case tfrefinement.NumberLowerBound:
 				unknownVal = unknownVal.RefineWithLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
-			case tfrefinements.NumberUpperBound:
+			case tfrefinement.NumberUpperBound:
 				unknownVal = unknownVal.RefineWithUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
 			}
 		}

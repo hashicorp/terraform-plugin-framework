@@ -12,10 +12,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
-	_ NumberValuable = NumberValue{}
+	_ NumberValuable                  = NumberValue{}
+	_ attr.ValueWithNotNullRefinement = NumberValue{}
 )
 
 // NumberValuable extends attr.Value for number value types.
@@ -80,6 +83,10 @@ type NumberValue struct {
 
 	// value contains the known value, if not null or unknown.
 	value *big.Float
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Type returns a NumberType.
@@ -103,7 +110,24 @@ func (n NumberValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) 
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.Number, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
+		if len(n.refinements) == 0 {
+			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinements.Refinements, 0)
+		for _, refn := range n.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinements.KeyNullness] = tfrefinements.NewNullness(false)
+			case refinement.NumberLowerBound:
+				unknownValRefinements[tfrefinements.KeyNumberLowerBound] = tfrefinements.NewNumberLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
+			case refinement.NumberUpperBound:
+				unknownValRefinements[tfrefinements.KeyNumberUpperBound] = tfrefinements.NewNumberUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
+			}
+		}
+		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Number state in ToTerraformValue: %s", n.state))
 	}
@@ -118,6 +142,14 @@ func (n NumberValue) Equal(other attr.Value) bool {
 	}
 
 	if n.state != o.state {
+		return false
+	}
+
+	if len(n.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(n.refinements) > 0 && !n.refinements.Equal(o.refinements) {
 		return false
 	}
 
@@ -143,7 +175,11 @@ func (n NumberValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (n NumberValue) String() string {
 	if n.IsUnknown() {
-		return attr.UnknownValueString
+		if len(n.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", n.refinements.String())
 	}
 
 	if n.IsNull() {
@@ -162,4 +198,147 @@ func (n NumberValue) ValueBigFloat() *big.Float {
 // ToNumberValue returns Number.
 func (n NumberValue) ToNumberValue(context.Context) (NumberValue, diag.Diagnostics) {
 	return n, nil
+}
+
+// RefineAsNotNull will return an unknown NumberValue that includes a value refinement that:
+//   - Indicates the number value will not be null once it becomes known.
+//
+// If the provided NumberValue is null or known, then the NumberValue will be returned unchanged.
+func (n NumberValue) RefineAsNotNull() NumberValue {
+	if !n.IsUnknown() {
+		return n
+	}
+
+	newRefinements := make(refinement.Refinements, len(n.refinements))
+	for i, refn := range n.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewNumberUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLowerBound will return an unknown NumberValue that includes a value refinement that:
+//   - Indicates the number value will not be null once it becomes known.
+//   - Indicates the number value will not be less than the number provided (lowerBound) once it becomes known.
+//
+// If the provided NumberValue is null or known, then the NumberValue will be returned unchanged.
+func (n NumberValue) RefineWithLowerBound(lowerBound *big.Float, inclusive bool) NumberValue {
+	if !n.IsUnknown() {
+		return n
+	}
+
+	newRefinements := make(refinement.Refinements, len(n.refinements))
+	for i, refn := range n.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberLowerBound] = refinement.NewNumberLowerBound(lowerBound, inclusive)
+
+	newUnknownVal := NewNumberUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithUpperBound will return an unknown NumberValue that includes a value refinement that:
+//   - Indicates the number value will not be null once it becomes known.
+//   - Indicates the number value will not be greater than the number provided (upperBound) once it becomes known.
+//
+// If the provided NumberValue is null or known, then the NumberValue will be returned unchanged.
+func (n NumberValue) RefineWithUpperBound(upperBound *big.Float, inclusive bool) NumberValue {
+	if !n.IsUnknown() {
+		return n
+	}
+
+	newRefinements := make(refinement.Refinements, len(n.refinements))
+	for i, refn := range n.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberUpperBound] = refinement.NewNumberUpperBound(upperBound, inclusive)
+
+	newUnknownVal := NewNumberUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given NumberValue. If an NumberValue contains a NotNull refinement, this indicates that
+// the number value is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (n NumberValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !n.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := n.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
+}
+
+// LowerBoundRefinement returns value refinement data and a boolean indicating if a NumberLowerBound refinement
+// exists on the given NumberValue. If an NumberValue contains a NumberLowerBound refinement, this indicates that
+// the number value is unknown, but the eventual known value will not be less than the specified number value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
+//
+// An NumberLowerBound value refinement can be added to an unknown value via the `RefineWithLowerBound` method.
+func (n NumberValue) LowerBoundRefinement() (*refinement.NumberLowerBound, bool) {
+	if !n.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := n.refinements[refinement.KeyNumberLowerBound]
+	if !ok {
+		return nil, false
+	}
+
+	lowerBoundRefn, ok := refn.(refinement.NumberLowerBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &lowerBoundRefn, true
+}
+
+// UpperBoundRefinement returns value refinement data and a boolean indicating if a NumberUpperBound refinement
+// exists on the given NumberValue. If an NumberValue contains a NumberUpperBound refinement, this indicates that
+// the number value is unknown, but the eventual known value will not be greater than the specified number value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
+//
+// A NumberUpperBound value refinement can be added to an unknown value via the `RefineWithUpperBound` method.
+func (n NumberValue) UpperBoundRefinement() (*refinement.NumberUpperBound, bool) {
+	if !n.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := n.refinements[refinement.KeyNumberUpperBound]
+	if !ok {
+		return nil, false
+	}
+
+	upperBoundRefn, ok := refn.(refinement.NumberUpperBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &upperBoundRefn, true
 }

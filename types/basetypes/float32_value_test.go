@@ -11,9 +11,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 )
 
 func TestFloat32ValueToTerraformValue(t *testing.T) {
@@ -37,6 +39,34 @@ func TestFloat32ValueToTerraformValue(t *testing.T) {
 		"unknown": {
 			input:       NewFloat32Unknown(),
 			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+		},
+		"unknown-with-notnull-refinement": {
+			input: NewFloat32Unknown().RefineAsNotNull(),
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+		},
+		"unknown-with-lower-bound-refinement": {
+			input: NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberLowerBound: tfrefinement.NewNumberLowerBound(big.NewFloat(float64(float32(1.23))), true),
+			}),
+		},
+		"unknown-with-upper-bound-refinement": {
+			input: NewFloat32Unknown().RefineWithUpperBound(4.56, false),
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberUpperBound: tfrefinement.NewNumberUpperBound(big.NewFloat(float64(float32(4.56))), false),
+			}),
+		},
+		"unknown-with-both-bound-refinements": {
+			input: NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, false),
+			expectation: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberLowerBound: tfrefinement.NewNumberLowerBound(big.NewFloat(float64(float32(1.23))), true),
+				tfrefinement.KeyNumberUpperBound: tfrefinement.NewNumberUpperBound(big.NewFloat(float64(float32(4.56))), false),
+			}),
 		},
 		"null": {
 			input:       NewFloat32Null(),
@@ -192,6 +222,71 @@ func TestFloat32ValueEqual(t *testing.T) {
 			candidate:   NewFloat32Unknown(),
 			expectation: true,
 		},
+		"unknown-unknown-with-notnull-refinement": {
+			input:       NewFloat32Unknown(),
+			candidate:   NewFloat32Unknown().RefineAsNotNull(),
+			expectation: false,
+		},
+		"unknown-unknown-with-lowerbound-refinement": {
+			input:       NewFloat32Unknown(),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			expectation: false,
+		},
+		"unknown-unknown-with-upperbound-refinement": {
+			input:       NewFloat32Unknown(),
+			candidate:   NewFloat32Unknown().RefineWithUpperBound(4.56, false),
+			expectation: false,
+		},
+		"unknowns-with-matching-notnull-refinements": {
+			input:       NewFloat32Unknown().RefineAsNotNull(),
+			candidate:   NewFloat32Unknown().RefineAsNotNull(),
+			expectation: true,
+		},
+		"unknowns-with-matching-lowerbound-refinements": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			expectation: true,
+		},
+		"unknowns-with-different-lowerbound-refinements": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.24, true),
+			expectation: false,
+		},
+		"unknowns-with-different-lowerbound-refinements-inclusive": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, false),
+			expectation: false,
+		},
+		"unknowns-with-matching-upperbound-refinements": {
+			input:       NewFloat32Unknown().RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithUpperBound(4.56, true),
+			expectation: true,
+		},
+		"unknowns-with-different-upperbound-refinements": {
+			input:       NewFloat32Unknown().RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithUpperBound(4.57, true),
+			expectation: false,
+		},
+		"unknowns-with-different-upperbound-refinements-inclusive": {
+			input:       NewFloat32Unknown().RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithUpperBound(4.56, false),
+			expectation: false,
+		},
+		"unknowns-with-matching-both-bound-refinements": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, true),
+			expectation: true,
+		},
+		"unknowns-with-different-both-bound-refinements": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.57, true),
+			expectation: false,
+		},
+		"unknowns-with-different-both-bound-refinements-inclusive": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, true),
+			candidate:   NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, false),
+			expectation: false,
+		},
 		"unknown-null": {
 			input:       NewFloat32Unknown(),
 			candidate:   NewFloat32Null(),
@@ -340,6 +435,22 @@ func TestFloat32ValueString(t *testing.T) {
 		"unknown": {
 			input:       NewFloat32Unknown(),
 			expectation: "<unknown>",
+		},
+		"unknown-with-notnull-refinement": {
+			input:       NewFloat32Unknown().RefineAsNotNull(),
+			expectation: "<unknown, not null>",
+		},
+		"unknown-with-lowerbound-refinement": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			expectation: `<unknown, not null, lower bound = 1.230000 (inclusive)>`,
+		},
+		"unknown-with-upperbound-refinement": {
+			input:       NewFloat32Unknown().RefineWithUpperBound(4.56, false),
+			expectation: `<unknown, not null, upper bound = 4.560000 (exclusive)>`,
+		},
+		"unknown-with-both-bound-refinements": {
+			input:       NewFloat32Unknown().RefineWithLowerBound(1.23, true).RefineWithUpperBound(4.56, false),
+			expectation: `<unknown, not null, lower bound = 1.230000 (inclusive), upper bound = 4.560000 (exclusive)>`,
 		},
 		"null": {
 			input:       NewFloat32Null(),
@@ -539,6 +650,165 @@ func TestFloat32ValueFloat32SemanticEquals(t *testing.T) {
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diagnostics (-got, +expected): %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat32Value_NotNullRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           Float32Value
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewFloat32Value(4.56).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewFloat32Null().RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewFloat32Unknown(),
+			expectedFound: false,
+		},
+		"unknown-with-notnull-refinement": {
+			input:           NewFloat32Unknown().RefineAsNotNull(),
+			expectedRefnVal: refinement.NewNotNull(),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.NotNullRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat32Value_LowerBoundRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           Float32Value
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewFloat32Value(4.56).RefineWithLowerBound(1.23, true),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewFloat32Null().RefineWithLowerBound(1.23, true),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewFloat32Unknown(),
+			expectedFound: false,
+		},
+		"unknown-with-lowerbound-refinement": {
+			input:           NewFloat32Unknown().RefineWithLowerBound(1.23, true),
+			expectedRefnVal: refinement.NewFloat32LowerBound(1.23, true),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.LowerBoundRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat32Value_UpperBoundRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           Float32Value
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewFloat32Value(4.56).RefineWithUpperBound(1.23, true),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewFloat32Null().RefineWithUpperBound(1.23, true),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewFloat32Unknown(),
+			expectedFound: false,
+		},
+		"unknown-with-upperbound-refinement": {
+			input:           NewFloat32Unknown().RefineWithUpperBound(1.23, true),
+			expectedRefnVal: refinement.NewFloat32UpperBound(1.23, true),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.UpperBoundRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

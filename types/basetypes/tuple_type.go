@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
@@ -105,7 +106,29 @@ func (t TupleType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
 	}
 	if !in.IsKnown() {
-		return NewTupleUnknown(t.ElementTypes()), nil
+		unknownVal := NewTupleUnknown(t.ElementTypes())
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewTupleNull(t.ElementTypes()), nil
+				}
+			}
+		}
+
+		return unknownVal, nil
 	}
 	if in.IsNull() {
 		return NewTupleNull(t.ElementTypes()), nil

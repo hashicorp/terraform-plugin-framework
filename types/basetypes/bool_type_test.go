@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestBoolTypeValueFromTerraform(t *testing.T) {
@@ -31,6 +32,12 @@ func TestBoolTypeValueFromTerraform(t *testing.T) {
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
 			expectation: NewBoolUnknown(),
+		},
+		"unknown-with-notnull-refinement": {
+			input: tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expectation: NewBoolUnknown().RefineAsNotNull(),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Bool, nil),
@@ -75,5 +82,25 @@ func TestBoolTypeValueFromTerraform(t *testing.T) {
 				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
 			}
 		})
+	}
+}
+
+func TestBoolTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewBoolNull()
+
+	got, err := BoolType{}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

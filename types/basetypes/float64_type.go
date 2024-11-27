@@ -10,6 +10,7 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinements "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -129,7 +130,41 @@ func (t Float64Type) ValueFromFloat64(_ context.Context, v Float64Value) (Float6
 // consume the data with.
 func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewFloat64Unknown(), nil
+		unknownVal := NewFloat64Unknown()
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinements.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewFloat64Null(), nil
+				}
+			case tfrefinements.NumberLowerBound:
+				boundVal, err := tryBigFloatAsFloat64(refnVal.LowerBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing lower bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
+			case tfrefinements.NumberUpperBound:
+				boundVal, err := tryBigFloatAsFloat64(refnVal.UpperBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing upper bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithUpperBound(boundVal, refnVal.IsInclusive())
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {
@@ -143,18 +178,9 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return nil, err
 	}
 
-	f, accuracy := bigF.Float64()
-
-	// Underflow
-	// Reference: https://pkg.go.dev/math/big#Float.Float64
-	if f == 0 && accuracy != big.Exact {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
-	}
-
-	// Overflow
-	// Reference: https://pkg.go.dev/math/big#Float.Float64
-	if math.IsInf(f, 0) {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+	_, err = tryBigFloatAsFloat64(bigF)
+	if err != nil {
+		return nil, err
 	}
 
 	// Underlying *big.Float values are not exposed with helper functions, so creating Float64Value via struct literal
@@ -168,4 +194,22 @@ func (t Float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 func (t Float64Type) ValueType(_ context.Context) attr.Value {
 	// This Value does not need to be valid.
 	return Float64Value{}
+}
+
+func tryBigFloatAsFloat64(bigF *big.Float) (float64, error) {
+	f, accuracy := bigF.Float64()
+
+	// Underflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if f == 0 && accuracy != big.Exact {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+	}
+
+	// Overflow
+	// Reference: https://pkg.go.dev/math/big#Float.Float64
+	if math.IsInf(f, 0) {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 64-bit floating point.", bigF)
+	}
+
+	return f, nil
 }

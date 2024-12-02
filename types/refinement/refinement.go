@@ -51,10 +51,10 @@ const (
 	// This refinement is relevant for types.Int32, types.Int64, types.Float32, types.Float64, and types.Number.
 	//
 	// This Key is abstracted by the following refinements:
-	//  - Int64LowerBound
 	//  - Int32LowerBound
-	//  - Float64LowerBound
+	//  - Int64LowerBound
 	//  - Float32LowerBound
+	//  - Float64LowerBound
 	//  - NumberLowerBound
 	KeyNumberLowerBound = Key(3)
 
@@ -64,10 +64,10 @@ const (
 	// This refinement is relevant for types.Int32, types.Int64, types.Float32, types.Float64, and types.Number.
 	//
 	// This Key is abstracted by the following refinements:
-	//  - Int64UpperBound
 	//  - Int32UpperBound
-	//  - Float64UpperBound
+	//  - Int64UpperBound
 	//  - Float32UpperBound
+	//  - Float64UpperBound
 	//  - NumberUpperBound
 	KeyNumberUpperBound = Key(4)
 

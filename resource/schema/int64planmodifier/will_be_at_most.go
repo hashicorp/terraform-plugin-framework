@@ -10,7 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// TODO: docs
+// WillBeAtMost returns a plan modifier that will add a refinement to an unknown planned value
+// which promises that:
+//   - The final value will not be null.
+//   - The final value will be less than or equal to the provided maximum value.
+//
+// This unknown value refinement allows Terraform to validate more of the configuration during plan
+// and evaluate conditional logic in meta-arguments such as "count".
 func WillBeAtMost(maxVal int64) planmodifier.Int64 {
 	return willBeAtMostModifier{
 		max: maxVal,
@@ -22,11 +28,11 @@ type willBeAtMostModifier struct {
 }
 
 func (m willBeAtMostModifier) Description(_ context.Context) string {
-	return fmt.Sprintf("Promises the value will be at most %d once it becomes known", m.max)
+	return fmt.Sprintf("Promises the value of this attribute will be at most %d once it becomes known", m.max)
 }
 
 func (m willBeAtMostModifier) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("Promises the value will be at most %d once it becomes known", m.max)
+	return fmt.Sprintf("Promises the value of this attribute will be at most %d once it becomes known", m.max)
 }
 
 func (m willBeAtMostModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {

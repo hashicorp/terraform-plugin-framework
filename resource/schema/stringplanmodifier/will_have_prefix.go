@@ -13,7 +13,7 @@ import (
 // WillHavePrefix returns a plan modifier that will add a refinement to an unknown planned value
 // which promises that:
 //   - The final value will not be null.
-//   - The final value will have a specified string prefix.
+//   - The final value will have the provided string prefix.
 //
 // This unknown value refinement allows Terraform to validate more of the configuration during plan
 // and evaluate conditional logic in meta-arguments such as "count". String prefixes that exceed 256

@@ -9,7 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// TODO: docs
+// WillNotBeNull returns a plan modifier that will add a refinement to an unknown planned value
+// which promises that the final value will not be null.
+//
+// This unknown value refinement allows Terraform to validate more of the configuration during plan
+// and evaluate conditional logic in meta-arguments such as "count":
+//
+//	resource "examplecloud_thing" "b" {
+//		// Will successfully evalutate during plan with a "not null" refinement on "int64_attribute"
+//		count = examplecloud_thing.a.int64_attribute != null ? 1 : 0
+//
+//		// .. resource config
+//	}
 func WillNotBeNull() planmodifier.Int64 {
 	return willNotBeNullModifier{}
 }
@@ -17,11 +28,11 @@ func WillNotBeNull() planmodifier.Int64 {
 type willNotBeNullModifier struct{}
 
 func (m willNotBeNullModifier) Description(_ context.Context) string {
-	return "Promises the value will not be null once it becomes known"
+	return "Promises the value of this attribute will not be null once it becomes known"
 }
 
 func (m willNotBeNullModifier) MarkdownDescription(_ context.Context) string {
-	return "Promises the value will not be null once it becomes known"
+	return "Promises the value of this attribute will not be null once it becomes known"
 }
 
 func (m willNotBeNullModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {

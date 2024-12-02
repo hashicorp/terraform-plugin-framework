@@ -10,7 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// TODO: docs
+// WillBeBetween returns a plan modifier that will add a refinement to an unknown planned value
+// which promises that:
+//   - The final value will not be null.
+//   - The final value will be greater than or equal to the provided minimum value.
+//   - The final value will be less than or equal to the provided maximum value.
+//
+// This unknown value refinement allows Terraform to validate more of the configuration during plan
+// and evaluate conditional logic in meta-arguments such as "count".
 func WillBeBetween(minVal, maxVal int64) planmodifier.Int64 {
 	return willBeBetweenModifier{
 		min: minVal,
@@ -24,11 +31,11 @@ type willBeBetweenModifier struct {
 }
 
 func (m willBeBetweenModifier) Description(_ context.Context) string {
-	return fmt.Sprintf("Promises the value will be between %d and %d once it becomes known", m.min, m.max)
+	return fmt.Sprintf("Promises the value of this attribute will be between %d and %d once it becomes known", m.min, m.max)
 }
 
 func (m willBeBetweenModifier) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("Promises the value will be between %d and %d once it becomes known", m.min, m.max)
+	return fmt.Sprintf("Promises the value of this attribute will be between %d and %d once it becomes known", m.min, m.max)
 }
 
 func (m willBeBetweenModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {

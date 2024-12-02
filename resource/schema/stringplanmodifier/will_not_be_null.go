@@ -16,8 +16,8 @@ import (
 // and evaluate conditional logic in meta-arguments such as "count":
 //
 //	resource "examplecloud_thing" "b" {
-//		// Will successfully evalutate during plan with a "not null" refinement on "id"
-//		count = examplecloud_thing.a.id != null ? 1 : 0
+//		// Will successfully evalutate during plan with a "not null" refinement on "string_attribute"
+//		count = examplecloud_thing.a.string_attribute != null ? 1 : 0
 //
 //		// .. resource config
 //	}

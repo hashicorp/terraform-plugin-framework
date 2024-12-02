@@ -140,11 +140,10 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	// Show deprecation warnings only for known values or unknown values with a "not null" refinement.
 	if a.GetDeprecationMessage() != "" {
 		if attributeConfig.IsUnknown() {
-			// If the attr.Value supports checking for refinements, we should check if the eventual known value will be not null.
+			// If the unknown value will eventually be not null, we return the deprecation message for the practitioner.
 			val, ok := attributeConfig.(attr.ValueWithNotNullRefinement)
 			if ok {
 				if _, notNull := val.NotNullRefinement(); notNull {
-					// If the unknown value will eventually be not null, we return the deprecation message for the practitioner.
 					resp.Diagnostics.AddAttributeWarning(
 						req.AttributePath,
 						"Attribute Deprecated",

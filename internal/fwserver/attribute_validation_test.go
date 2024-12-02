@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -489,6 +490,40 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{},
+		},
+		"deprecation-message-unknown-with-not-null-refinement": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+							tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+						}),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:               types.StringType,
+								Optional:           true,
+								DeprecationMessage: "Use something else instead.",
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeWarningDiagnostic(
+						path.Root("test"),
+						"Attribute Deprecated",
+						"Use something else instead.",
+					),
+				},
+			},
 		},
 		"deprecation-message-dynamic-underlying-value-unknown": {
 			req: ValidateAttributeRequest{

@@ -9,7 +9,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestStringValueToTerraformValue(t *testing.T) {
@@ -27,6 +29,19 @@ func TestStringValueToTerraformValue(t *testing.T) {
 		"unknown": {
 			input:       NewStringUnknown(),
 			expectation: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		},
+		"unknown-with-notnull-refinement": {
+			input: NewStringUnknown().RefineAsNotNull(),
+			expectation: tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+		},
+		"unknown-with-prefix-refinement": {
+			input: NewStringUnknown().RefineWithPrefix("hello://"),
+			expectation: tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:     tfrefinement.NewNullness(false),
+				tfrefinement.KeyStringPrefix: tfrefinement.NewStringPrefix("hello://"),
+			}),
 		},
 		"null": {
 			input:       NewStringNull(),
@@ -89,6 +104,31 @@ func TestStringValueEqual(t *testing.T) {
 			input:       NewStringUnknown(),
 			candidate:   NewStringUnknown(),
 			expectation: true,
+		},
+		"unknown-unknown-with-notnull-refinement": {
+			input:       NewStringUnknown(),
+			candidate:   NewStringUnknown().RefineAsNotNull(),
+			expectation: false,
+		},
+		"unknown-unknown-with-prefix-refinement": {
+			input:       NewStringUnknown(),
+			candidate:   NewStringUnknown().RefineWithPrefix("hello://"),
+			expectation: false,
+		},
+		"unknowns-with-matching-notnull-refinements": {
+			input:       NewStringUnknown().RefineAsNotNull(),
+			candidate:   NewStringUnknown().RefineAsNotNull(),
+			expectation: true,
+		},
+		"unknowns-with-matching-prefix-refinements": {
+			input:       NewStringUnknown().RefineWithPrefix("hello://"),
+			candidate:   NewStringUnknown().RefineWithPrefix("hello://"),
+			expectation: true,
+		},
+		"unknowns-with-different-prefix-refinements": {
+			input:       NewStringUnknown().RefineWithPrefix("hello://"),
+			candidate:   NewStringUnknown().RefineWithPrefix("world://"),
+			expectation: false,
 		},
 		"unknown-null": {
 			input:       NewStringUnknown(),
@@ -220,6 +260,14 @@ func TestStringValueString(t *testing.T) {
 			input:       NewStringUnknown(),
 			expectation: "<unknown>",
 		},
+		"unknown-with-notnull-refinement": {
+			input:       NewStringUnknown().RefineAsNotNull(),
+			expectation: "<unknown, not null>",
+		},
+		"unknown-with-prefix-refinement": {
+			input:       NewStringUnknown().RefineWithPrefix("hello://"),
+			expectation: `<unknown, not null, prefix = "hello://">`,
+		},
 		"null": {
 			input:       NewStringNull(),
 			expectation: "<null>",
@@ -341,6 +389,116 @@ func TestNewStringPointerValue(t *testing.T) {
 			got := NewStringPointerValue(testCase.value)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestStringValue_NotNullRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           StringValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewStringValue("test").RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewStringNull().RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewStringUnknown(),
+			expectedFound: false,
+		},
+		"unknown-with-notnull-refinement": {
+			input:           NewStringUnknown().RefineAsNotNull(),
+			expectedRefnVal: refinement.NewNotNull(),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.NotNullRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestStringValue_PrefixRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           StringValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewStringValue("test").RefineWithPrefix("hello://"),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewStringNull().RefineWithPrefix("hello://"),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewStringUnknown(),
+			expectedFound: false,
+		},
+		"unknown-with-empty-prefix-refinement": {
+			input:         NewStringUnknown().RefineWithPrefix(""),
+			expectedFound: false,
+		},
+		"unknown-with-prefix-refinement": {
+			input:           NewStringUnknown().RefineWithPrefix("hello://"),
+			expectedRefnVal: refinement.NewStringPrefix("hello://"),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.PrefixRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

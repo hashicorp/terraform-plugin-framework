@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -88,7 +89,33 @@ func (st SetType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (att
 		return nil, fmt.Errorf("can't use %s as value of Set with ElementType %T, can only use %s values", in.String(), st.ElementType(), st.ElementType().TerraformType(ctx).String())
 	}
 	if !in.IsKnown() {
-		return NewSetUnknown(st.ElementType()), nil
+		unknownVal := NewSetUnknown(st.ElementType())
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewSetNull(st.ElementType()), nil
+				}
+			case tfrefinement.CollectionLengthLowerBound:
+				unknownVal = unknownVal.RefineWithLengthLowerBound(refnVal.LowerBound())
+			case tfrefinement.CollectionLengthUpperBound:
+				unknownVal = unknownVal.RefineWithLengthUpperBound(refnVal.UpperBound())
+			}
+		}
+
+		return unknownVal, nil
 	}
 	if in.IsNull() {
 		return NewSetNull(st.ElementType()), nil

@@ -10,6 +10,7 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -64,7 +65,43 @@ func (t Int32Type) ValueFromInt32(_ context.Context, v Int32Value) (Int32Valuabl
 // consume the data with.
 func (t Int32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewInt32Unknown(), nil
+		unknownVal := NewInt32Unknown()
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewInt32Null(), nil
+				}
+			case tfrefinement.NumberLowerBound:
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt32(refnVal.LowerBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing lower bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
+			case tfrefinement.NumberUpperBound:
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt32(refnVal.UpperBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing upper bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithUpperBound(boundVal, refnVal.IsInclusive())
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {
@@ -78,25 +115,34 @@ func (t Int32Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return nil, err
 	}
 
-	if !bigF.IsInt() {
-		return nil, fmt.Errorf("Value %s is not an integer.", bigF)
+	i, err := tryBigFloatToInt32(bigF)
+	if err != nil {
+		return nil, err
 	}
 
-	i, accuracy := bigF.Int64()
-
-	if accuracy != 0 {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
-	}
-
-	if i < math.MinInt32 || i > math.MaxInt32 {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
-	}
-
-	return NewInt32Value(int32(i)), nil
+	return NewInt32Value(i), nil
 }
 
 // ValueType returns the Value type.
 func (t Int32Type) ValueType(_ context.Context) attr.Value {
 	// This Value does not need to be valid.
 	return Int32Value{}
+}
+
+func tryBigFloatToInt32(bigF *big.Float) (int32, error) {
+	if !bigF.IsInt() {
+		return 0, fmt.Errorf("Value %s is not an integer.", bigF)
+	}
+
+	i, accuracy := bigF.Int64()
+
+	if accuracy != 0 {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
+	}
+
+	if i < math.MinInt32 || i > math.MaxInt32 {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 32-bit integer.", bigF)
+	}
+
+	return int32(i), nil
 }

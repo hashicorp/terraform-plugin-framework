@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 // BoolTypable extends attr.Type for bool types.
@@ -61,7 +62,29 @@ func (t BoolType) ValueFromBool(_ context.Context, v BoolValue) (BoolValuable, d
 // consume the data with.
 func (t BoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewBoolUnknown(), nil
+		unknownVal := NewBoolUnknown()
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewBoolNull(), nil
+				}
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {

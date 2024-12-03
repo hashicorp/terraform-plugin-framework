@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestObjectTypeAttributeTypes_immutable(t *testing.T) {
@@ -199,6 +200,21 @@ func TestObjectTypeValueFromTerraform(t *testing.T) {
 					"a": StringType{},
 				},
 			),
+		},
+		"unknown-with-notnull-refinement": {
+			receiver: ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"a": StringType{},
+				},
+			},
+			input: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.String,
+				},
+			}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expected: NewObjectUnknown(map[string]attr.Type{"a": StringType{}}).RefineAsNotNull(),
 		},
 		"null": {
 			receiver: ObjectType{
@@ -443,5 +459,31 @@ func TestObjectTypeString(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestObjectTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	receiver := ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"a": StringType{},
+		},
+	}
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(receiver.TerraformType(context.Background()), tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewObjectNull(receiver.AttributeTypes())
+
+	got, err := receiver.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

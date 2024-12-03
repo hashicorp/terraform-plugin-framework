@@ -535,9 +535,6 @@ func TestServerCreateResource(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.CreateResourceRequest{
-				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
-					WriteOnlyAttributesAllowed: true,
-				},
 				PlannedState: &tfsdk.Plan{
 					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
 						"test_required":   tftypes.NewValue(tftypes.String, "test-plannedstate-value"),

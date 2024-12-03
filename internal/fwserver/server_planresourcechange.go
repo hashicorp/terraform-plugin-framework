@@ -81,7 +81,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		err := tftypes.Walk(req.Config.Raw, RequiredWriteOnlyNilsAttributePaths(ctx, req.Config.Schema, &reqWriteOnlyPaths))
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error validating plan",
+				"Error Validating Plan",
 				"There was an unexpected error validating the plan. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 			)
 			return
@@ -367,6 +367,18 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
 		)
 	}
+
+	// Set any write-only attributes in the plan to null
+	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Planned State",
+			"There was an unexpected error modifying the PlannedState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+
+	resp.PlannedState.Raw = modifiedPlan
 }
 
 func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema fwschema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {

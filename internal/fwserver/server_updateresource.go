@@ -176,16 +176,15 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue
 	}
 
-	if req.ClientCapabilities.WriteOnlyAttributesAllowed {
-		modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error modifying state",
-				"There was an unexpected error modifying the NewState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-
-		resp.NewState.Raw = modifiedState
+	// Set any write-only attributes in the state to null
+	modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying State",
+			"There was an unexpected error modifying the NewState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
 	}
+
+	resp.NewState.Raw = modifiedState
 }

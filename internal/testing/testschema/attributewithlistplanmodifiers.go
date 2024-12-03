@@ -23,6 +23,7 @@ type AttributeWithListPlanModifiers struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	PlanModifiers       []planmodifier.List
 }
 
@@ -82,6 +83,11 @@ func (a AttributeWithListPlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithListPlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithListPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ListPlanModifiers satisfies the fwxschema.AttributeWithListPlanModifiers interface.

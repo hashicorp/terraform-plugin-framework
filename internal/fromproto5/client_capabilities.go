@@ -8,9 +8,23 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
+
+func ApplyResourceChangeClientCapabilities(in *tfprotov5.ApplyResourceChangeClientCapabilities) fwserver.ApplyResourceChangeClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return fwserver.ApplyResourceChangeClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return fwserver.ApplyResourceChangeClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}
 
 func ConfigureProviderClientCapabilities(in *tfprotov5.ConfigureProviderClientCapabilities) provider.ConfigureProviderClientCapabilities {
 	if in == nil {
@@ -87,5 +101,18 @@ func OpenEphemeralResourceClientCapabilities(in *tfprotov5.OpenEphemeralResource
 
 	return ephemeral.OpenClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ValidateResourceTypeConfigClientCapabilities(in *tfprotov5.ValidateResourceTypeConfigClientCapabilities) resource.ValidateConfigClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return resource.ValidateConfigClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
 	}
 }

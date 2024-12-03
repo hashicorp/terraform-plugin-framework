@@ -198,6 +198,11 @@ func (a SetAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a SetAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // SetValidators returns the Validators field value.
 func (a SetAttribute) SetValidators() []validator.Set {
 	return a.Validators

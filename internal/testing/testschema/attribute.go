@@ -4,9 +4,10 @@
 package testschema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ fwschema.Attribute = Attribute{}
@@ -19,6 +20,7 @@ type Attribute struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Type                attr.Type
 }
 
@@ -76,4 +78,9 @@ func (a Attribute) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a Attribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a Attribute) IsWriteOnly() bool {
+	return a.WriteOnly
 }

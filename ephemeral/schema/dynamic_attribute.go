@@ -180,6 +180,11 @@ func (a DynamicAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a DynamicAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // DynamicValidators returns the Validators field value.
 func (a DynamicAttribute) DynamicValidators() []validator.Dynamic {
 	return a.Validators

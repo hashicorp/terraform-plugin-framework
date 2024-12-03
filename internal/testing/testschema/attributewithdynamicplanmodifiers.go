@@ -22,6 +22,7 @@ type AttributeWithDynamicPlanModifiers struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	PlanModifiers       []planmodifier.Dynamic
 }
 
@@ -84,4 +85,9 @@ func (a AttributeWithDynamicPlanModifiers) IsSensitive() bool {
 // DynamicPlanModifiers satisfies the fwxschema.AttributeWithDynamicPlanModifiers interface.
 func (a AttributeWithDynamicPlanModifiers) DynamicPlanModifiers() []planmodifier.Dynamic {
 	return a.PlanModifiers
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }

@@ -158,7 +158,7 @@ func TestName(t *testing.T) {
 												Required:    true,
 												Description: "This is a nested test string",
 												Attributes: map[string]resourceschema.Attribute{
-													"nested_nested_attribute": resourceschema.BoolAttribute{
+													"inner_nested_attribute": resourceschema.BoolAttribute{
 														Description: "This is a bool test string",
 														Required:    true,
 													},
@@ -168,7 +168,7 @@ func TestName(t *testing.T) {
 									}
 								},
 								MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-									resp.TypeName = "nested-type-attribute"
+									resp.TypeName = "single-nested-type-attribute"
 								},
 							}
 						},
@@ -181,7 +181,7 @@ func TestName(t *testing.T) {
 				Provider:          nil,
 				ProviderServer:    nil,
 				ResourceSchemas: map[string]metadata.SchemaBlock{
-					"nested-type-attribute": metadata.SchemaBlock{
+					"single-nested-type-attribute": metadata.SchemaBlock{
 						Block: &metadata.Block{
 							Attributes: map[string]metadata.Attribute{
 								"nested_attribute": {
@@ -191,7 +191,7 @@ func TestName(t *testing.T) {
 									DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
 									NestedType: metadata.AnyPointer(metadata.NestedAttributeType{
 										Attributes: map[string]metadata.Attribute{
-											"nested_nested_attribute": metadata.Attribute{
+											"inner_nested_attribute": metadata.Attribute{
 												Computed:        metadata.BoolPointer(false),
 												Deprecated:      metadata.BoolPointer(false),
 												Description:     metadata.StringPointer("This is a bool test string"),
@@ -207,7 +207,189 @@ func TestName(t *testing.T) {
 									Optional:  metadata.BoolPointer(false),
 									Required:  metadata.BoolPointer(true),
 									Sensitive: metadata.BoolPointer(false),
-									Type:      metadata.AnyPointer(json.RawMessage([]byte(`["object",{"nested_nested_attribute":"bool"}]`))),
+									Type:      metadata.AnyPointer(json.RawMessage([]byte(`["object",{"inner_nested_attribute":"bool"}]`))),
+								},
+							},
+						},
+					},
+				},
+				Version: "",
+			},
+		},
+		"nested-list-test": {
+			input: &testprovider.Provider{
+				ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+					return []func() resource.Resource{
+						func() resource.Resource {
+							return &testprovider.Resource{
+								SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+									resp.Schema = resourceschema.Schema{
+										Attributes: map[string]resourceschema.Attribute{
+											"nested_attribute": resourceschema.ListNestedAttribute{
+												NestedObject: resourceschema.NestedAttributeObject{
+													Attributes: map[string]resourceschema.Attribute{
+														"inner_string_attribute": resourceschema.StringAttribute{
+															Description: "This is a string test string",
+															Required:    true,
+														},
+													},
+												},
+												Required:    true,
+												Description: "This is a nested list test string",
+											},
+										},
+									}
+								},
+								MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+									resp.TypeName = "nested-list-type-attribute"
+								},
+							}
+						},
+					}
+				},
+			},
+			expected: metadata.ProviderMetadata{
+				DataSourceSchemas: nil,
+				Functions:         nil,
+				Provider:          nil,
+				ProviderServer:    nil,
+				ResourceSchemas: map[string]metadata.SchemaBlock{
+					"nested-list-type-attribute": metadata.SchemaBlock{
+						Block: &metadata.Block{
+							Attributes: map[string]metadata.Attribute{
+								"nested_attribute": {
+									Computed:        metadata.BoolPointer(false),
+									Deprecated:      metadata.BoolPointer(false),
+									Description:     metadata.StringPointer("This is a nested list test string"),
+									DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+									NestedType: metadata.AnyPointer(metadata.NestedAttributeType{
+										Attributes: map[string]metadata.Attribute{
+											"inner_string_attribute": {
+												Computed:        metadata.BoolPointer(false),
+												Deprecated:      metadata.BoolPointer(false),
+												Description:     metadata.StringPointer("This is a string test string"),
+												DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+												Optional:        metadata.BoolPointer(false),
+												Required:        metadata.BoolPointer(true),
+												Sensitive:       metadata.BoolPointer(false),
+												Type:            metadata.AnyPointer(json.RawMessage([]byte(`"string"`))),
+											},
+										},
+										NestingMode: metadata.AnyPointer(metadata.PurpleList),
+									}),
+									Optional:  metadata.BoolPointer(false),
+									Required:  metadata.BoolPointer(true),
+									Sensitive: metadata.BoolPointer(false),
+									Type:      metadata.AnyPointer(json.RawMessage([]byte(`["list",["object",{"inner_string_attribute":"string"}]]`))),
+								},
+							},
+						},
+					},
+				},
+				Version: "",
+			},
+		},
+
+		"nested-two-levels-test": {
+			input: &testprovider.Provider{
+				ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+					return []func() resource.Resource{
+						func() resource.Resource {
+							return &testprovider.Resource{
+								SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+									resp.Schema = resourceschema.Schema{
+										Attributes: map[string]resourceschema.Attribute{
+											"upper_nested_attribute": resourceschema.ListNestedAttribute{
+												NestedObject: resourceschema.NestedAttributeObject{
+													Attributes: map[string]resourceschema.Attribute{
+														"inner_string_attribute": resourceschema.StringAttribute{
+															Description: "This is a string test string",
+															Required:    true,
+														},
+														"lower_nested_attribute": resourceschema.SingleNestedAttribute{
+															Required:    true,
+															Description: "This is a nested test string",
+															Attributes: map[string]resourceschema.Attribute{
+																"lower_bool_attribute": resourceschema.BoolAttribute{
+																	Description: "This is a bool test string",
+																	Required:    true,
+																},
+															},
+														},
+													},
+												},
+												Required:    true,
+												Description: "This is a nested list test string",
+											},
+										},
+									}
+								},
+								MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+									resp.TypeName = "nested-two-level-attribute"
+								},
+							}
+						},
+					}
+				},
+			},
+			expected: metadata.ProviderMetadata{
+				DataSourceSchemas: nil,
+				Functions:         nil,
+				Provider:          nil,
+				ProviderServer:    nil,
+				ResourceSchemas: map[string]metadata.SchemaBlock{
+					"nested-two-level-attribute": metadata.SchemaBlock{
+						Block: &metadata.Block{
+							Attributes: map[string]metadata.Attribute{
+								"upper_nested_attribute": {
+									Computed:        metadata.BoolPointer(false),
+									Deprecated:      metadata.BoolPointer(false),
+									Description:     metadata.StringPointer("This is a nested list test string"),
+									DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+									NestedType: metadata.AnyPointer(metadata.NestedAttributeType{
+										Attributes: map[string]metadata.Attribute{
+											"inner_string_attribute": {
+												Computed:        metadata.BoolPointer(false),
+												Deprecated:      metadata.BoolPointer(false),
+												Description:     metadata.StringPointer("This is a string test string"),
+												DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+												Optional:        metadata.BoolPointer(false),
+												Required:        metadata.BoolPointer(true),
+												Sensitive:       metadata.BoolPointer(false),
+												Type:            metadata.AnyPointer(json.RawMessage([]byte(`"string"`))),
+											},
+											"lower_nested_attribute": {
+												Computed:        metadata.BoolPointer(false),
+												Deprecated:      metadata.BoolPointer(false),
+												Description:     metadata.StringPointer("This is a nested test string"),
+												DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+												NestedType: metadata.AnyPointer(metadata.NestedAttributeType{
+													Attributes: map[string]metadata.Attribute{
+														"lower_bool_attribute": metadata.Attribute{
+															Computed:        metadata.BoolPointer(false),
+															Deprecated:      metadata.BoolPointer(false),
+															Description:     metadata.StringPointer("This is a bool test string"),
+															DescriptionKind: metadata.DescriptionPointer(metadata.Plain),
+															Optional:        metadata.BoolPointer(false),
+															Required:        metadata.BoolPointer(true),
+															Sensitive:       metadata.BoolPointer(false),
+															Type:            metadata.AnyPointer(json.RawMessage([]byte(`"bool"`))),
+														},
+													},
+													NestingMode: metadata.AnyPointer(metadata.PurpleSingle),
+												}),
+												Optional:  metadata.BoolPointer(false),
+												Required:  metadata.BoolPointer(true),
+												Sensitive: metadata.BoolPointer(false),
+												Type:      metadata.AnyPointer(json.RawMessage([]byte(`["object",{"lower_bool_attribute":"bool"}]`))),
+											},
+										},
+										NestingMode: metadata.AnyPointer(metadata.PurpleList),
+									}),
+									Optional:  metadata.BoolPointer(false),
+									Required:  metadata.BoolPointer(true),
+									Sensitive: metadata.BoolPointer(false),
+									Type:      metadata.AnyPointer(json.RawMessage([]byte(`["list",["object",{"inner_string_attribute":"string","lower_nested_attribute":["object",{"lower_bool_attribute":"bool"}]}]]`))),
 								},
 							},
 						},

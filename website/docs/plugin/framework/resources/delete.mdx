@@ -1,10 +1,10 @@
 ---
-page_title: 'Plugin Development - Framework: Delete Resources'
+page_title: Delete resources
 description: >-
-  How to implement resource deletion in the provider development framework.
+  Learn how to implement resource deletion in the Terraform provider framework.
 ---
 
-# Delete Resources
+# Delete resources
 
 Deletion is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Delete` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Delete). The request contains Terraform prior state data. The response is only for returning diagnostics. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.
 

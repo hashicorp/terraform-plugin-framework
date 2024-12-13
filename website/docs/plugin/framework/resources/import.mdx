@@ -1,10 +1,10 @@
 ---
-page_title: 'Plugin Development - Framework: Resource Import'
+page_title: Resource import
 description: >-
-  How to support resource import using the provider development framework.
+  Learn how to support resource import using the Terraform provider framework.
 ---
 
-# Resource Import
+# Resource import
 
 Practitioners can use the  [`terraform import` command](/terraform/cli/commands/import) to let Terraform begin managing existing infrastructure resources. Resources can implement the `ImportState` method, which must either specify enough Terraform state for the `Read` method to refresh [`resource.Resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource) or return an error.
 

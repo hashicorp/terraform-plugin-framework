@@ -1,11 +1,11 @@
 ---
-page_title: 'Plugin Development - Framework: State Upgrade'
+page_title: State upgrade
 description: >-
-  How to upgrade state data after breaking schema changes using the provider
-  development framework.
+  Learn how to implement upgrading state data when provider schema changes from
+  one version of your Terraform framework provider to another.
 ---
 
-# State Upgrade
+# State upgrade
 
 A resource schema captures the structure and types of the resource [state](/terraform/language/state). Any state data that does not conform to the resource schema will generate errors or may not be persisted properly. Over time, it may be necessary for resources to make breaking changes to their schemas, such as changing an attribute type. Terraform supports versioning of these resource schemas and the current version is saved into the Terraform state. When the provider advertises a newer schema version, Terraform will call back to the provider to attempt to upgrade from the saved schema version to the one advertised. This operation is performed prior to planning, but with a configured provider.
 

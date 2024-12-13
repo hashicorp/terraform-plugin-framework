@@ -1,10 +1,10 @@
 ---
-page_title: 'Plugin Development - Framework: Create Resources'
+page_title: Create resources
 description: >-
-  How to implement resource creation in the provider development framework.
+  Learn how to implement resource creation in the Terraform provider framework.
 ---
 
-# Create Resources
+# Create resources
 
 Creation is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create). The request contains Terraform configuration and plan data. The response expects the applied Terraform state data, including any computed values. The data is defined by the [schema](/terraform/plugin/framework/data-handling/schemas) of the resource.
 

@@ -9,6 +9,7 @@ import (
 	"math/big"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
@@ -124,7 +125,43 @@ func (t Int64Type) ValueFromInt64(_ context.Context, v Int64Value) (Int64Valuabl
 // consume the data with.
 func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewInt64Unknown(), nil
+		unknownVal := NewInt64Unknown()
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewInt64Null(), nil
+				}
+			case tfrefinement.NumberLowerBound:
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt64(refnVal.LowerBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing lower bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithLowerBound(boundVal, refnVal.IsInclusive())
+			case tfrefinement.NumberUpperBound:
+				// TODO: Is it possible for Terraform to create this refinement? Should we chop off the decimal point?
+				boundVal, err := tryBigFloatToInt64(refnVal.UpperBound())
+				if err != nil {
+					return nil, fmt.Errorf("error parsing upper bound refinement: %w", err)
+				}
+				unknownVal = unknownVal.RefineWithUpperBound(boundVal, refnVal.IsInclusive())
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {
@@ -138,14 +175,9 @@ func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 		return nil, err
 	}
 
-	if !bigF.IsInt() {
-		return nil, fmt.Errorf("Value %s is not an integer.", bigF)
-	}
-
-	i, accuracy := bigF.Int64()
-
-	if accuracy != 0 {
-		return nil, fmt.Errorf("Value %s cannot be represented as a 64-bit integer.", bigF)
+	i, err := tryBigFloatToInt64(bigF)
+	if err != nil {
+		return nil, err
 	}
 
 	return NewInt64Value(i), nil
@@ -155,4 +187,18 @@ func (t Int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (at
 func (t Int64Type) ValueType(_ context.Context) attr.Value {
 	// This Value does not need to be valid.
 	return Int64Value{}
+}
+
+func tryBigFloatToInt64(bigF *big.Float) (int64, error) {
+	if !bigF.IsInt() {
+		return 0, fmt.Errorf("Value %s is not an integer.", bigF)
+	}
+
+	i, accuracy := bigF.Int64()
+
+	if accuracy != 0 {
+		return 0, fmt.Errorf("Value %s cannot be represented as a 64-bit integer.", bigF)
+	}
+
+	return i, nil
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestSetTypeElementType(t *testing.T) {
@@ -164,6 +165,46 @@ func TestSetTypeValueFromTerraform(t *testing.T) {
 				ElementType: tftypes.String,
 			}, tftypes.UnknownValue),
 			expected: NewSetUnknown(StringType{}),
+		},
+		"unknown-with-notnull-refinement": {
+			receiver: SetType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expected: NewSetUnknown(StringType{}).RefineAsNotNull(),
+		},
+		"unknown-with-length-lowerbound-refinement": {
+			receiver: SetType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+			}),
+			expected: NewSetUnknown(StringType{}).RefineWithLengthLowerBound(5),
+		},
+		"unknown-with-length-upperbound-refinement": {
+			receiver: SetType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewSetUnknown(StringType{}).RefineWithLengthUpperBound(10),
+		},
+		"unknown-with-both-length-bound-refinements": {
+			receiver: SetType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewSetUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
 		},
 		"partially-unknown-set": {
 			receiver: SetType{
@@ -360,5 +401,25 @@ func TestSetTypeString(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestSetTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewSetNull(StringType{})
+
+	got, err := SetType{ElemType: StringType{}}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

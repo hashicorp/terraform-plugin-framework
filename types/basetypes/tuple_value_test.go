@@ -10,7 +10,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestNewTupleValue(t *testing.T) {
@@ -396,6 +398,16 @@ func TestTupleValueEqual(t *testing.T) {
 			input:    nil,
 			expected: false,
 		},
+		"unknown-unknown-with-notnull-refinement": {
+			receiver: NewTupleUnknown([]attr.Type{StringType{}, Int64Type{}}),
+			input:    NewTupleUnknown([]attr.Type{StringType{}, Int64Type{}}).RefineAsNotNull(),
+			expected: false,
+		},
+		"unknowns-with-matching-notnull-refinements": {
+			receiver: NewTupleUnknown([]attr.Type{StringType{}, Int64Type{}}).RefineAsNotNull(),
+			input:    NewTupleUnknown([]attr.Type{StringType{}, Int64Type{}}).RefineAsNotNull(),
+			expected: true,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -544,6 +556,10 @@ func TestTupleValueString(t *testing.T) {
 		"unknown": {
 			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
 			expectation: "<unknown>",
+		},
+		"unknown-with-notnull-refinement": {
+			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}).RefineAsNotNull(),
+			expectation: "<unknown, not null>",
 		},
 		"null": {
 			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
@@ -711,6 +727,12 @@ func TestTupleValueToTerraformValue(t *testing.T) {
 			input:       NewTupleUnknown([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
 			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType}}, tftypes.UnknownValue),
 		},
+		"unknown-with-notnull-refinement": {
+			input: NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}).RefineAsNotNull(),
+			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool}}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+		},
 		"null": {
 			input:       NewTupleNull([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
 			expectation: tftypes.NewValue(tftypes.Tuple{ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool, tftypes.DynamicPseudoType}}, nil),
@@ -742,6 +764,64 @@ func TestTupleValueToTerraformValue(t *testing.T) {
 
 			if diff := cmp.Diff(got, test.expectation); diff != "" {
 				t.Errorf("Unexpected result (+got, -expected): %s", diff)
+			}
+		})
+	}
+}
+
+func TestTupleValue_NotNullRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           TupleValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Value{
+					NewStringNull(),
+					NewBoolValue(true),
+				}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewTupleNull([]attr.Type{StringType{}, BoolType{}}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			expectedFound: false,
+		},
+		"unknown-with-notnull-refinement": {
+			input:           NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}).RefineAsNotNull(),
+			expectedRefnVal: refinement.NewNotNull(),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.NotNullRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

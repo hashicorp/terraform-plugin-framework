@@ -20,14 +20,13 @@ import (
 // UpdateResourceRequest is the framework server request for an update request
 // with the ApplyResourceChange RPC.
 type UpdateResourceRequest struct {
-	ClientCapabilities ApplyResourceChangeClientCapabilities
-	Config             *tfsdk.Config
-	PlannedPrivate     *privatestate.Data
-	PlannedState       *tfsdk.Plan
-	PriorState         *tfsdk.State
-	ProviderMeta       *tfsdk.Config
-	ResourceSchema     fwschema.Schema
-	Resource           resource.Resource
+	Config         *tfsdk.Config
+	PlannedPrivate *privatestate.Data
+	PlannedState   *tfsdk.Plan
+	PriorState     *tfsdk.State
+	ProviderMeta   *tfsdk.Config
+	ResourceSchema fwschema.Schema
+	Resource       resource.Resource
 }
 
 // UpdateResourceResponse is the framework server response for an update request

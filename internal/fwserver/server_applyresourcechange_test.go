@@ -428,9 +428,6 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.ApplyResourceChangeRequest{
-				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
-					WriteOnlyAttributesAllowed: true,
-				},
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
 						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
@@ -1339,9 +1336,6 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.ApplyResourceChangeRequest{
-				ClientCapabilities: fwserver.ApplyResourceChangeClientCapabilities{
-					WriteOnlyAttributesAllowed: true,
-				},
 				Config: &tfsdk.Config{
 					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
 						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),

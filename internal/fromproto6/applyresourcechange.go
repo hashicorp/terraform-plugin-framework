@@ -43,8 +43,6 @@ func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyReso
 		Resource:       resource,
 	}
 
-	fw.ClientCapabilities = ApplyResourceChangeClientCapabilities(proto6.ClientCapabilities)
-
 	config, configDiags := Config(ctx, proto6.Config, resourceSchema)
 
 	diags.Append(configDiags...)

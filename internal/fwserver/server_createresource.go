@@ -20,13 +20,12 @@ import (
 // CreateResourceRequest is the framework server request for a create request
 // with the ApplyResourceChange RPC.
 type CreateResourceRequest struct {
-	ClientCapabilities ApplyResourceChangeClientCapabilities
-	Config             *tfsdk.Config
-	PlannedPrivate     *privatestate.Data
-	PlannedState       *tfsdk.Plan
-	ProviderMeta       *tfsdk.Config
-	ResourceSchema     fwschema.Schema
-	Resource           resource.Resource
+	Config         *tfsdk.Config
+	PlannedPrivate *privatestate.Data
+	PlannedState   *tfsdk.Plan
+	ProviderMeta   *tfsdk.Config
+	ResourceSchema fwschema.Schema
+	Resource       resource.Resource
 }
 
 // CreateResourceResponse is the framework server response for a create request

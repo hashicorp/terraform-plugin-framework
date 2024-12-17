@@ -14,28 +14,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// ApplyResourceChangeClientCapabilities allows Terraform to publish information
-// regarding optionally supported protocol features for the
-// ApplyResourceChange RPC, such as forward-compatible Terraform behavior
-// changes.
-type ApplyResourceChangeClientCapabilities struct {
-	// WriteOnlyAttributesAllowed indicates that the Terraform client
-	// initiating the request supports write-only attributes for managed
-	// resources.
-	WriteOnlyAttributesAllowed bool
-}
-
 // ApplyResourceChangeRequest is the framework server request for the
 // ApplyResourceChange RPC.
 type ApplyResourceChangeRequest struct {
-	ClientCapabilities ApplyResourceChangeClientCapabilities
-	Config             *tfsdk.Config
-	PlannedPrivate     *privatestate.Data
-	PlannedState       *tfsdk.Plan
-	PriorState         *tfsdk.State
-	ProviderMeta       *tfsdk.Config
-	ResourceSchema     fwschema.Schema
-	Resource           resource.Resource
+	Config         *tfsdk.Config
+	PlannedPrivate *privatestate.Data
+	PlannedState   *tfsdk.Plan
+	PriorState     *tfsdk.State
+	ProviderMeta   *tfsdk.Config
+	ResourceSchema fwschema.Schema
+	Resource       resource.Resource
 }
 
 // ApplyResourceChangeResponse is the framework server response for the
@@ -57,13 +45,12 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 		logging.FrameworkTrace(ctx, "ApplyResourceChange received no PriorState, running CreateResource")
 
 		createReq := &CreateResourceRequest{
-			ClientCapabilities: req.ClientCapabilities,
-			Config:             req.Config,
-			PlannedPrivate:     req.PlannedPrivate,
-			PlannedState:       req.PlannedState,
-			ProviderMeta:       req.ProviderMeta,
-			ResourceSchema:     req.ResourceSchema,
-			Resource:           req.Resource,
+			Config:         req.Config,
+			PlannedPrivate: req.PlannedPrivate,
+			PlannedState:   req.PlannedState,
+			ProviderMeta:   req.ProviderMeta,
+			ResourceSchema: req.ResourceSchema,
+			Resource:       req.Resource,
 		}
 		createResp := &CreateResourceResponse{}
 
@@ -102,14 +89,13 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 	logging.FrameworkTrace(ctx, "ApplyResourceChange running UpdateResource")
 
 	updateReq := &UpdateResourceRequest{
-		ClientCapabilities: req.ClientCapabilities,
-		Config:             req.Config,
-		PlannedPrivate:     req.PlannedPrivate,
-		PlannedState:       req.PlannedState,
-		PriorState:         req.PriorState,
-		ProviderMeta:       req.ProviderMeta,
-		ResourceSchema:     req.ResourceSchema,
-		Resource:           req.Resource,
+		Config:         req.Config,
+		PlannedPrivate: req.PlannedPrivate,
+		PlannedState:   req.PlannedState,
+		PriorState:     req.PriorState,
+		ProviderMeta:   req.ProviderMeta,
+		ResourceSchema: req.ResourceSchema,
+		Resource:       req.Resource,
 	}
 	updateResp := &UpdateResourceResponse{}
 

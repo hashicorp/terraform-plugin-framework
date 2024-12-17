@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -384,6 +385,34 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsSensitive()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SetAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.SetAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

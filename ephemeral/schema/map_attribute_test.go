@@ -398,6 +398,34 @@ func TestMapAttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestMapAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.MapAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.MapAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestMapAttributeMapValidators(t *testing.T) {
 	t.Parallel()
 

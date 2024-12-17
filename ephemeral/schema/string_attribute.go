@@ -179,6 +179,11 @@ func (a StringAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a StringAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // StringValidators returns the Validators field value.
 func (a StringAttribute) StringValidators() []validator.String {
 	return a.Validators

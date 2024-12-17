@@ -183,6 +183,11 @@ func (a NumberAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a NumberAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // NumberValidators returns the Validators field value.
 func (a NumberAttribute) NumberValidators() []validator.Number {
 	return a.Validators

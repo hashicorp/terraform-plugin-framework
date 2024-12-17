@@ -22,6 +22,7 @@ type AttributeWithInt32DefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.Int32
 }
 
@@ -84,4 +85,9 @@ func (a AttributeWithInt32DefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithInt32DefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithInt32DefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

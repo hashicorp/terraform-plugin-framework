@@ -22,6 +22,7 @@ type AttributeWithNumberPlanModifiers struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	PlanModifiers       []planmodifier.Number
 }
 
@@ -79,6 +80,11 @@ func (a AttributeWithNumberPlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithNumberPlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithNumberPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // NumberPlanModifiers satisfies the fwxschema.AttributeWithNumberPlanModifiers interface.

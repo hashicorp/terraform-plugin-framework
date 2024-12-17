@@ -203,6 +203,11 @@ func (a MapAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a MapAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // MapValidators returns the Validators field value.
 func (a MapAttribute) MapValidators() []validator.Map {
 	return a.Validators

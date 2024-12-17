@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerValidateResourceConfig(t *testing.T) {
@@ -47,6 +48,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testClientCapabilities := resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: true,
+	}
+
 	testSchemaAttributeValidator := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test": schema.StringAttribute{
@@ -67,6 +72,28 @@ func TestServerValidateResourceConfig(t *testing.T) {
 	testConfigAttributeValidator := tfsdk.Config{
 		Raw:    testValue,
 		Schema: testSchemaAttributeValidator,
+	}
+
+	testSchemaAttributeValidatorClientCapabilities := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					testvalidator.String{
+						ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+								resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
+							}
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testConfigAttributeValidatorClientCapabilities := tfsdk.Config{
+		Raw:    testValue,
+		Schema: testSchemaAttributeValidatorClientCapabilities,
 	}
 
 	testSchemaAttributeValidatorError := schema.Schema{
@@ -128,6 +155,21 @@ func TestServerValidateResourceConfig(t *testing.T) {
 			},
 			expectedResponse: &fwserver.ValidateResourceConfigResponse{},
 		},
+		"request-config-AttributeValidator-client-capabilities": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: testClientCapabilities,
+				Config:             &testConfigAttributeValidatorClientCapabilities,
+				Resource: &testprovider.Resource{
+					SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+						resp.Schema = testSchemaAttributeValidatorClientCapabilities
+					},
+				},
+			},
+			expectedResponse: &fwserver.ValidateResourceConfigResponse{},
+		},
 		"request-config-AttributeValidator-diagnostic": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -176,6 +218,34 @@ func TestServerValidateResourceConfig(t *testing.T) {
 
 									if got.ValueString() != "test-value" {
 										resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.ValueString())
+									}
+								},
+							},
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.ValidateResourceConfigResponse{},
+		},
+		"request-config-ResourceWithConfigValidators-client-capabilities": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: testClientCapabilities,
+				Config:             &testConfig,
+				Resource: &testprovider.ResourceWithConfigValidators{
+					Resource: &testprovider.Resource{
+						SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+							resp.Schema = testSchema
+						},
+					},
+					ConfigValidatorsMethod: func(ctx context.Context) []resource.ConfigValidator {
+						return []resource.ConfigValidator{
+							&testprovider.ResourceConfigValidator{
+								ValidateResourceMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+									if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+										resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
 									}
 								},
 							},
@@ -253,6 +323,28 @@ func TestServerValidateResourceConfig(t *testing.T) {
 
 						if got.ValueString() != "test-value" {
 							resp.Diagnostics.AddError("Incorrect req.Config", "expected test-value, got "+got.ValueString())
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.ValidateResourceConfigResponse{},
+		},
+		"request-config-ResourceWithValidateConfig-client-capabilities": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: testClientCapabilities,
+				Config:             &testConfig,
+				Resource: &testprovider.ResourceWithValidateConfig{
+					Resource: &testprovider.Resource{
+						SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+							resp.Schema = testSchema
+						},
+					},
+					ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+						if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
+							resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
 						}
 					},
 				},

@@ -228,6 +228,11 @@ func (a ListNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a ListNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // ListValidators returns the Validators field value.
 func (a ListNestedAttribute) ListValidators() []validator.List {
 	return a.Validators

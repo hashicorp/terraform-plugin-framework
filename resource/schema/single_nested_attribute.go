@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -167,6 +168,15 @@ type SingleNestedAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Object
+
+	// WriteOnly indicates that the practitioner can choose a value for this
+	// attribute, but Terraform will not store this attribute in state.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -271,6 +281,11 @@ func (a SingleNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns the WriteOnly field value.
+func (a SingleNestedAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
+}
+
 // ObjectDefaultValue returns the Default field value.
 func (a SingleNestedAttribute) ObjectDefaultValue() defaults.Object {
 	return a.Default
@@ -293,6 +308,14 @@ func (a SingleNestedAttribute) ObjectValidators() []validator.Object {
 func (a SingleNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if !a.IsComputed() && a.ObjectDefaultValue() != nil {
 		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
+	}
+
+	if a.IsWriteOnly() && !fwtype.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwtype.InvalidWriteOnlyNestedAttributeDiag(req.Path))
+	}
+
+	if a.IsComputed() && fwtype.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwtype.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.ObjectDefaultValue() != nil {

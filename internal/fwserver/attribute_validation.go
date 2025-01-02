@@ -1041,6 +1041,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtListIndex(idx),
 				AttributePathExpression: req.AttributePathExpression.AtListIndex(idx),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1075,6 +1076,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtSetValue(value),
 				AttributePathExpression: req.AttributePathExpression.AtSetValue(value),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1109,6 +1111,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 				AttributePath:           req.AttributePath.AtMapKey(key),
 				AttributePathExpression: req.AttributePathExpression.AtMapKey(key),
 				Config:                  req.Config,
+				ClientCapabilities:      req.ClientCapabilities,
 			}
 			nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1146,6 +1149,7 @@ func AttributeValidateNestedAttributes(ctx context.Context, a fwschema.Attribute
 			AttributePath:           req.AttributePath,
 			AttributePathExpression: req.AttributePathExpression,
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		nestedAttributeObjectResp := &ValidateAttributeResponse{}
 
@@ -1232,6 +1236,7 @@ func NestedAttributeObjectValidate(ctx context.Context, o fwschema.NestedAttribu
 			AttributePath:           req.AttributePath.AtName(nestedName),
 			AttributePathExpression: req.AttributePathExpression.AtName(nestedName),
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		nestedAttrResp := &ValidateAttributeResponse{}
 

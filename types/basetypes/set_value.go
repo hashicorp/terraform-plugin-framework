@@ -14,9 +14,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
-var _ SetValuable = &SetValue{}
+var (
+	_ SetValuable                     = &SetValue{}
+	_ attr.ValueWithNotNullRefinement = &SetValue{}
+)
 
 // SetValuable extends attr.Value for set value types.
 // Implement this interface to create a custom Set value type.
@@ -162,6 +167,10 @@ type SetValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Elements returns a copy of the collection of elements for the Set.
@@ -242,7 +251,24 @@ func (s SetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	case attr.ValueStateNull:
 		return tftypes.NewValue(setType, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(setType, tftypes.UnknownValue), nil
+		if len(s.refinements) == 0 {
+			return tftypes.NewValue(setType, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range s.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			case refinement.CollectionLengthLowerBound:
+				unknownValRefinements[tfrefinement.KeyCollectionLengthLowerBound] = tfrefinement.NewCollectionLengthLowerBound(refnVal.LowerBound())
+			case refinement.CollectionLengthUpperBound:
+				unknownValRefinements[tfrefinement.KeyCollectionLengthUpperBound] = tfrefinement.NewCollectionLengthUpperBound(refnVal.UpperBound())
+			}
+		}
+		unknownVal := tftypes.NewValue(setType, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Set state in ToTerraformValue: %s", s.state))
 	}
@@ -268,6 +294,14 @@ func (s SetValue) Equal(o attr.Value) bool {
 	}
 
 	if s.state != other.state {
+		return false
+	}
+
+	if len(s.refinements) != len(other.refinements) {
+		return false
+	}
+
+	if len(s.refinements) > 0 && !s.refinements.Equal(other.refinements) {
 		return false
 	}
 
@@ -315,7 +349,11 @@ func (s SetValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (s SetValue) String() string {
 	if s.IsUnknown() {
-		return attr.UnknownValueString
+		if len(s.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", s.refinements.String())
 	}
 
 	if s.IsNull() {
@@ -339,4 +377,145 @@ func (s SetValue) String() string {
 // ToSetValue returns the Set.
 func (s SetValue) ToSetValue(context.Context) (SetValue, diag.Diagnostics) {
 	return s, nil
+}
+
+// RefineAsNotNull will return a new unknown SetValue that includes a value refinement that:
+//   - Indicates the set value will not be null once it becomes known.
+//
+// If the provided SetValue is null or known, then the SetValue will be returned unchanged.
+func (s SetValue) RefineAsNotNull() SetValue {
+	if !s.IsUnknown() {
+		return s
+	}
+
+	newRefinements := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewSetUnknown(s.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLengthLowerBound will return an unknown SetValue that includes a value refinement that:
+//   - Indicates the set value will not be null once it becomes known.
+//   - Indicates the length of the set value will be at least the int64 provided (lowerBound) once it becomes known.
+//
+// If the provided SetValue is null or known, then the SetValue will be returned unchanged.
+func (s SetValue) RefineWithLengthLowerBound(lowerBound int64) SetValue {
+	if !s.IsUnknown() {
+		return s
+	}
+
+	newRefinements := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyCollectionLengthLowerBound] = refinement.NewCollectionLengthLowerBound(lowerBound)
+
+	newUnknownVal := NewSetUnknown(s.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLengthUpperBound will return an unknown SetValue that includes a value refinement that:
+//   - Indicates the set value will not be null once it becomes known.
+//   - Indicates the length of the set value will be at most the int64 provided (upperBound) once it becomes known.
+//
+// If the provided SetValue is null or known, then the SetValue will be returned unchanged.
+func (s SetValue) RefineWithLengthUpperBound(upperBound int64) SetValue {
+	if !s.IsUnknown() {
+		return s
+	}
+
+	newRefinements := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyCollectionLengthUpperBound] = refinement.NewCollectionLengthUpperBound(upperBound)
+
+	newUnknownVal := NewSetUnknown(s.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given SetValue. If a SetValue contains a NotNull refinement, this indicates
+// that the set is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (s SetValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !s.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := s.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
+}
+
+// LengthLowerBoundRefinement returns value refinement data and a boolean indicating if a CollectionLengthLowerBound refinement
+// exists on the given SetValue. If a SetValue contains a CollectionLengthLowerBound refinement, this indicates that
+// the set value is unknown, but the eventual known set will have a length of at least the specified int64 value once it
+// becomes known. The returned boolean should be checked before accessing refinement data.
+//
+// A CollectionLengthLowerBound value refinement can be added to an unknown value via the `RefineWithLengthLowerBound` method.
+func (s SetValue) LengthLowerBoundRefinement() (*refinement.CollectionLengthLowerBound, bool) {
+	if !s.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := s.refinements[refinement.KeyCollectionLengthLowerBound]
+	if !ok {
+		return nil, false
+	}
+
+	lowerBoundRefn, ok := refn.(refinement.CollectionLengthLowerBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &lowerBoundRefn, true
+}
+
+// LengthUpperBoundRefinement returns value refinement data and a boolean indicating if a CollectionLengthUpperBound refinement
+// exists on the given SetValue. If a SetValue contains a CollectionLengthUpperBound refinement, this indicates that
+// the set value is unknown, but the eventual known set will have a length at most the specified int64 value once it
+// becomes known. The returned boolean should be checked before accessing refinement data.
+//
+// A CollectionLengthUpperBound value refinement can be added to an unknown value via the `RefineWithLengthUpperBound` method.
+func (s SetValue) LengthUpperBoundRefinement() (*refinement.CollectionLengthUpperBound, bool) {
+	if !s.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := s.refinements[refinement.KeyCollectionLengthUpperBound]
+	if !ok {
+		return nil, false
+	}
+
+	upperBoundRefn, ok := refn.(refinement.CollectionLengthUpperBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &upperBoundRefn, true
 }

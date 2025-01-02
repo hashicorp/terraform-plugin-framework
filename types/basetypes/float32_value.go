@@ -12,11 +12,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
 	_ Float32Valuable                   = Float32Value{}
 	_ Float32ValuableWithSemanticEquals = Float32Value{}
+	_ attr.ValueWithNotNullRefinement   = Float32Value{}
 )
 
 // Float32Valuable extends attr.Value for float32 value types.
@@ -87,6 +90,10 @@ type Float32Value struct {
 
 	// value contains the known value, if not null or unknown.
 	value *big.Float
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Float32SemanticEquals returns true if the given Float32Value is semantically equal to the current Float32Value.
@@ -123,6 +130,14 @@ func (f Float32Value) Equal(other attr.Value) bool {
 		return false
 	}
 
+	if len(f.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(f.refinements) > 0 && !f.refinements.Equal(o.refinements) {
+		return false
+	}
+
 	if f.state != attr.ValueStateKnown {
 		return true
 	}
@@ -147,7 +162,26 @@ func (f Float32Value) ToTerraformValue(ctx context.Context) (tftypes.Value, erro
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.Number, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
+		if len(f.refinements) == 0 {
+			return tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range f.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			case refinement.Float32LowerBound:
+				lowerBound := big.NewFloat(float64(refnVal.LowerBound()))
+				unknownValRefinements[tfrefinement.KeyNumberLowerBound] = tfrefinement.NewNumberLowerBound(lowerBound, refnVal.IsInclusive())
+			case refinement.Float32UpperBound:
+				upperBound := big.NewFloat(float64(refnVal.UpperBound()))
+				unknownValRefinements[tfrefinement.KeyNumberUpperBound] = tfrefinement.NewNumberUpperBound(upperBound, refnVal.IsInclusive())
+			}
+		}
+		unknownVal := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Float32 state in ToTerraformValue: %s", f.state))
 	}
@@ -173,7 +207,11 @@ func (f Float32Value) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (f Float32Value) String() string {
 	if f.IsUnknown() {
-		return attr.UnknownValueString
+		if len(f.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", f.refinements.String())
 	}
 
 	if f.IsNull() {
@@ -215,4 +253,147 @@ func (f Float32Value) ValueFloat32Pointer() *float32 {
 // ToFloat32Value returns Float32.
 func (f Float32Value) ToFloat32Value(context.Context) (Float32Value, diag.Diagnostics) {
 	return f, nil
+}
+
+// RefineAsNotNull will return an unknown Float32Value that includes a value refinement that:
+//   - Indicates the float32 value will not be null once it becomes known.
+//
+// If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
+func (f Float32Value) RefineAsNotNull() Float32Value {
+	if !f.IsUnknown() {
+		return f
+	}
+
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewFloat32Unknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLowerBound will return an unknown Float32Value that includes a value refinement that:
+//   - Indicates the float32 value will not be null once it becomes known.
+//   - Indicates the float32 value will not be less than the float32 provided (lowerBound) once it becomes known.
+//
+// If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
+func (f Float32Value) RefineWithLowerBound(lowerBound float32, inclusive bool) Float32Value {
+	if !f.IsUnknown() {
+		return f
+	}
+
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberLowerBound] = refinement.NewFloat32LowerBound(lowerBound, inclusive)
+
+	newUnknownVal := NewFloat32Unknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithUpperBound will return an unknown Float32Value that includes a value refinement that:
+//   - Indicates the float32 value will not be null once it becomes known.
+//   - Indicates the float32 value will not be greater than the float32 provided (upperBound) once it becomes known.
+//
+// If the provided Float32Value is null or known, then the Float32Value will be returned unchanged.
+func (f Float32Value) RefineWithUpperBound(upperBound float32, inclusive bool) Float32Value {
+	if !f.IsUnknown() {
+		return f
+	}
+
+	newRefinements := make(refinement.Refinements, len(f.refinements))
+	for i, refn := range f.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyNumberUpperBound] = refinement.NewFloat32UpperBound(upperBound, inclusive)
+
+	newUnknownVal := NewFloat32Unknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given Float32Value. If an Float32Value contains a NotNull refinement, this indicates that
+// the float32 value is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (f Float32Value) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !f.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := f.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
+}
+
+// LowerBoundRefinement returns value refinement data and a boolean indicating if a Float32LowerBound refinement
+// exists on the given Float32Value. If an Float32Value contains a Float32LowerBound refinement, this indicates that
+// the float32 value is unknown, but the eventual known value will not be less than the specified float32 value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
+//
+// An Float32LowerBound value refinement can be added to an unknown value via the `RefineWithLowerBound` method.
+func (f Float32Value) LowerBoundRefinement() (*refinement.Float32LowerBound, bool) {
+	if !f.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := f.refinements[refinement.KeyNumberLowerBound]
+	if !ok {
+		return nil, false
+	}
+
+	lowerBoundRefn, ok := refn.(refinement.Float32LowerBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &lowerBoundRefn, true
+}
+
+// UpperBoundRefinement returns value refinement data and a boolean indicating if a Float32UpperBound refinement
+// exists on the given Float32Value. If an Float32Value contains a Float32UpperBound refinement, this indicates that
+// the float32 value is unknown, but the eventual known value will not be greater than the specified float32 value
+// (either inclusive or exclusive) once it becomes known. The returned boolean should be checked before accessing
+// refinement data.
+//
+// A Float32UpperBound value refinement can be added to an unknown value via the `RefineWithUpperBound` method.
+func (f Float32Value) UpperBoundRefinement() (*refinement.Float32UpperBound, bool) {
+	if !f.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := f.refinements[refinement.KeyNumberUpperBound]
+	if !ok {
+		return nil, false
+	}
+
+	upperBoundRefn, ok := refn.(refinement.Float32UpperBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &upperBoundRefn, true
 }

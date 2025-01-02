@@ -9,10 +9,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 )
 
 func TestNewListValue(t *testing.T) {
@@ -298,6 +300,34 @@ func TestListValueToTerraformValue(t *testing.T) {
 		"unknown": {
 			input:       NewListUnknown(StringType{}),
 			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue),
+		},
+		"unknown-with-notnull-refinement": {
+			input: NewListUnknown(StringType{}).RefineAsNotNull(),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+		},
+		"unknown-with-length-lower-bound-refinement": {
+			input: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+			}),
+		},
+		"unknown-with-length-upper-bound-refinement": {
+			input: NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+		},
+		"unknown-with-both-length-bound-refinements": {
+			input: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+			expectation: tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
 		},
 		"null": {
 			input:       NewListNull(StringType{}),
@@ -633,6 +663,56 @@ func TestListValueEqual(t *testing.T) {
 			input:    ListValue{},
 			expected: false,
 		},
+		"unknown-unknown-with-notnull-refinement": {
+			receiver: NewListUnknown(StringType{}),
+			input:    NewListUnknown(StringType{}).RefineAsNotNull(),
+			expected: false,
+		},
+		"unknown-unknown-with-length-lowerbound-refinement": {
+			receiver: NewListUnknown(StringType{}),
+			input:    NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			expected: false,
+		},
+		"unknown-unknown-with-length-upperbound-refinement": {
+			receiver: NewListUnknown(StringType{}),
+			input:    NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			expected: false,
+		},
+		"unknowns-with-matching-notnull-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineAsNotNull(),
+			input:    NewListUnknown(StringType{}).RefineAsNotNull(),
+			expected: true,
+		},
+		"unknowns-with-matching-length-lowerbound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			input:    NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			expected: true,
+		},
+		"unknowns-with-different-length-lowerbound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			input:    NewListUnknown(StringType{}).RefineWithLengthLowerBound(6),
+			expected: false,
+		},
+		"unknowns-with-matching-length-upperbound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			input:    NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			expected: true,
+		},
+		"unknowns-with-different-length-upperbound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			input:    NewListUnknown(StringType{}).RefineWithLengthUpperBound(11),
+			expected: false,
+		},
+		"unknowns-with-matching-both-length-bound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+			input:    NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+			expected: true,
+		},
+		"unknowns-with-different-both-length-bound-refinements": {
+			receiver: NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+			input:    NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(11),
+			expected: false,
+		},
 	}
 	for name, test := range tests {
 		name, test := name, test
@@ -764,6 +844,22 @@ func TestListValueString(t *testing.T) {
 		"unknown": {
 			input:       NewListUnknown(StringType{}),
 			expectation: "<unknown>",
+		},
+		"unknown-with-notnull-refinement": {
+			input:       NewListUnknown(StringType{}).RefineAsNotNull(),
+			expectation: "<unknown, not null>",
+		},
+		"unknown-with-length-lowerbound-refinement": {
+			input:       NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			expectation: `<unknown, not null, length lower bound = 5>`,
+		},
+		"unknown-with-length-upperbound-refinement": {
+			input:       NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			expectation: `<unknown, not null, length upper bound = 10>`,
+		},
+		"unknown-with-both-length-bound-refinements": {
+			input:       NewListUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+			expectation: `<unknown, not null, length lower bound = 5, length upper bound = 10>`,
 		},
 		"null": {
 			input:       NewListNull(StringType{}),
@@ -908,6 +1004,165 @@ func TestListTypeValidate(t *testing.T) {
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("unexpected diagnostics difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListValue_NotNullRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           ListValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewListValueMust(StringType{}, []attr.Value{NewStringValue("hello")}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewListNull(StringType{}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewListUnknown(StringType{}),
+			expectedFound: false,
+		},
+		"unknown-with-notnull-refinement": {
+			input:           NewListUnknown(StringType{}).RefineAsNotNull(),
+			expectedRefnVal: refinement.NewNotNull(),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.NotNullRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListValue_LengthLowerBoundRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           ListValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewListValueMust(StringType{}, []attr.Value{NewStringValue("hello")}).RefineWithLengthLowerBound(5),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewListNull(StringType{}).RefineWithLengthLowerBound(5),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewListUnknown(StringType{}),
+			expectedFound: false,
+		},
+		"unknown-with-length-lowerbound-refinement": {
+			input:           NewListUnknown(StringType{}).RefineWithLengthLowerBound(5),
+			expectedRefnVal: refinement.NewCollectionLengthLowerBound(5),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.LengthLowerBoundRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListValue_LengthUpperBoundRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           ListValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input:         NewListValueMust(StringType{}, []attr.Value{NewStringValue("hello")}).RefineWithLengthUpperBound(10),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewListNull(StringType{}).RefineWithLengthUpperBound(10),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewListUnknown(StringType{}),
+			expectedFound: false,
+		},
+		"unknown-with-length-upperbound-refinement": {
+			input:           NewListUnknown(StringType{}).RefineWithLengthUpperBound(10),
+			expectedRefnVal: refinement.NewCollectionLengthUpperBound(10),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.LengthUpperBoundRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

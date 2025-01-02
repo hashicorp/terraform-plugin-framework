@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var _ ObjectTypable = ObjectType{}
@@ -76,12 +77,34 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, fmt.Errorf("expected %s, got %s", o.TerraformType(ctx), in.Type())
 	}
 	if !in.IsKnown() {
-		return NewObjectUnknown(o.AttrTypes), nil
+		unknownVal := NewObjectUnknown(o.AttrTypes)
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewObjectNull(o.AttrTypes), nil
+				}
+			}
+		}
+
+		return unknownVal, nil
 	}
+
 	if in.IsNull() {
 		return NewObjectNull(o.AttrTypes), nil
 	}
-	attributes := map[string]attr.Value{}
 
 	val := map[string]tftypes.Value{}
 	err := in.As(&val)
@@ -89,6 +112,7 @@ func (o ObjectType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (a
 		return nil, err
 	}
 
+	attributes := map[string]attr.Value{}
 	for k, v := range val {
 		a, err := o.AttrTypes[k].ValueFromTerraform(ctx, v)
 		if err != nil {

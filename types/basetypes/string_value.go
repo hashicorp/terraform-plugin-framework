@@ -11,10 +11,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
-	_ StringValuable = StringValue{}
+	_ StringValuable                  = StringValue{}
+	_ attr.ValueWithNotNullRefinement = StringValue{}
 )
 
 // StringValuable extends attr.Value for string value types.
@@ -94,6 +97,10 @@ type StringValue struct {
 
 	// value contains the known value, if not null or unknown.
 	value string
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Type returns a StringType.
@@ -113,7 +120,22 @@ func (s StringValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) 
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.String, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
+		if len(s.refinements) == 0 {
+			return tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range s.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			case refinement.StringPrefix:
+				unknownValRefinements[tfrefinement.KeyStringPrefix] = tfrefinement.NewStringPrefix(refnVal.PrefixValue())
+			}
+		}
+		unknownVal := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled String state in ToTerraformValue: %s", s.state))
 	}
@@ -128,6 +150,14 @@ func (s StringValue) Equal(other attr.Value) bool {
 	}
 
 	if s.state != o.state {
+		return false
+	}
+
+	if len(s.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(s.refinements) > 0 && !s.refinements.Equal(o.refinements) {
 		return false
 	}
 
@@ -155,7 +185,11 @@ func (s StringValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (s StringValue) String() string {
 	if s.IsUnknown() {
-		return attr.UnknownValueString
+		if len(s.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", s.refinements.String())
 	}
 
 	if s.IsNull() {
@@ -184,4 +218,103 @@ func (s StringValue) ValueStringPointer() *string {
 // ToStringValue returns String.
 func (s StringValue) ToStringValue(context.Context) (StringValue, diag.Diagnostics) {
 	return s, nil
+}
+
+// RefineAsNotNull will return a new unknown StringValue that includes a value refinement that:
+//   - Indicates the string value will not be null once it becomes known.
+//
+// If the provided StringValue is null or known, then the StringValue will be returned unchanged.
+func (s StringValue) RefineAsNotNull() StringValue {
+	if !s.IsUnknown() {
+		return s
+	}
+
+	newRefinements := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewStringUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithPrefix will return an unknown StringValue that includes a value refinement that:
+//   - Indicates the string value will not be null once it becomes known.
+//   - Indicates the string value will have the specified prefix once it becomes known.
+//
+// Prefixes that exceed 256 characters in length will be truncated and empty string prefixes
+// will be ignored. If the provided StringValue is null or known, then the StringValue will be
+// returned unchanged.
+func (s StringValue) RefineWithPrefix(prefix string) StringValue {
+	if !s.IsUnknown() {
+		return s
+	}
+
+	newRefinements := make(refinement.Refinements, len(s.refinements))
+	for i, refn := range s.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	// No need to encode an empty prefix, since terraform-plugin-go will ignore it anyways.
+	if prefix != "" {
+		newRefinements[refinement.KeyStringPrefix] = refinement.NewStringPrefix(prefix)
+	}
+
+	newUnknownVal := NewStringUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given StringValue. If a StringValue contains a NotNull refinement, this indicates
+// that the string is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (s StringValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !s.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := s.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
+}
+
+// PrefixRefinement returns value refinement data and a boolean indicating if a StringPrefix refinement
+// exists on the given StringValue. If a StringValue contains a StringPrefix refinement, this indicates
+// that the string is unknown, but the eventual known value will have a specified string prefix.
+// The returned boolean should be checked before accessing refinement data.
+//
+// A StringPrefix value refinement can be added to an unknown value via the `RefineWithPrefix` method.
+func (s StringValue) PrefixRefinement() (*refinement.StringPrefix, bool) {
+	if !s.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := s.refinements[refinement.KeyStringPrefix]
+	if !ok {
+		return nil, false
+	}
+
+	prefixRefn, ok := refn.(refinement.StringPrefix)
+	if !ok {
+		return nil, false
+	}
+
+	return &prefixRefn, true
 }

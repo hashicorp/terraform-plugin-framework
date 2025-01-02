@@ -28,6 +28,7 @@ type NestedAttributeWithObjectDefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Type                attr.Type
 }
 
@@ -103,6 +104,11 @@ func (a NestedAttributeWithObjectDefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a NestedAttributeWithObjectDefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithObjectDefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ObjectDefaultValue satisfies the fwschema.AttributeWithListDefaultValue interface.

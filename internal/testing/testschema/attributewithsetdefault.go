@@ -23,6 +23,7 @@ type AttributeWithSetDefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.Set
 }
 
@@ -87,4 +88,9 @@ func (a AttributeWithSetDefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithSetDefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithSetDefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

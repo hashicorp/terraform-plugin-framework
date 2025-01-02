@@ -74,7 +74,6 @@ type ListAttribute struct {
 
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
-	// in CLI output.
 	Sensitive bool
 
 	// Description is used in various tooling, like the language server, to
@@ -198,6 +197,11 @@ func (a ListAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ListAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+func (a ListAttribute) IsWriteOnly() bool {
+	return false
 }
 
 // ListValidators returns the Validators field value.

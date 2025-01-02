@@ -27,6 +27,7 @@ type NestedAttribute struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Type                attr.Type
 }
 
@@ -156,4 +157,9 @@ func (a NestedAttribute) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a NestedAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a NestedAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
 }

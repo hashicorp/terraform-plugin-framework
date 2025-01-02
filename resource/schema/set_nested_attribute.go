@@ -173,6 +173,15 @@ type SetNestedAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Set
+
+	// WriteOnly indicates that the practitioner can choose a value for this
+	// attribute, but Terraform will not store this attribute in state.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -255,6 +264,11 @@ func (a SetNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns the WriteOnly field value.
+func (a SetNestedAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
+}
+
 // SetDefaultValue returns the Default field value.
 func (a SetNestedAttribute) SetDefaultValue() defaults.Set {
 	return a.Default
@@ -277,6 +291,14 @@ func (a SetNestedAttribute) SetValidators() []validator.Set {
 func (a SetNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
+
+	if a.IsWriteOnly() && !fwtype.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwtype.InvalidWriteOnlyNestedAttributeDiag(req.Path))
+	}
+
+	if a.IsComputed() && fwtype.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwtype.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.SetDefaultValue() != nil {

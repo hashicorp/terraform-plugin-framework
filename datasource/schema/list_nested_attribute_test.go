@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestListNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -561,6 +562,34 @@ func TestListNestedAttributeIsSensitive(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsSensitive()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListNestedAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.ListNestedAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.ListNestedAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

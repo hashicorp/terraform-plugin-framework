@@ -397,6 +397,40 @@ func TestDynamicAttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestDynamicAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.DynamicAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.DynamicAttribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.DynamicAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestDynamicAttributeDynamicDefaultValue(t *testing.T) {
 	t.Parallel()
 

@@ -128,6 +128,10 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 	// Short circuit flag
 	updatedElements := false
 
+	// The underlying loop will mutate priorValueElements to avoid keeping
+	// duplicate semantically equal elements. Need the original length to avoid panicks
+	originalPriorElementsLength := len(priorValueElements)
+
 	// Loop through proposed elements by delegating to the recursive semantic
 	// equality logic. This ensures that recursion will catch a further
 	// underlying element type has its semantic equality logic checked, even if
@@ -136,33 +140,44 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 		// Ensure new value always contains all of proposed new value
 		newValueElements[idx] = proposedNewValueElement
 
-		if idx >= len(priorValueElements) {
+		if idx >= originalPriorElementsLength {
 			continue
 		}
 
-		elementReq := ValueSemanticEqualityRequest{
-			Path:             req.Path.AtSetValue(proposedNewValueElement),
-			PriorValue:       priorValueElements[idx],
-			ProposedNewValue: proposedNewValueElement,
+		// Loop through all prior value elements and see if there are any semantically equal elements
+		for pIdx, priorValue := range priorValueElements {
+			elementReq := ValueSemanticEqualityRequest{
+				Path:             req.Path.AtSetValue(proposedNewValueElement),
+				PriorValue:       priorValue,
+				ProposedNewValue: proposedNewValueElement,
+			}
+			elementResp := &ValueSemanticEqualityResponse{
+				NewValue: elementReq.ProposedNewValue,
+			}
+
+			ValueSemanticEquality(ctx, elementReq, elementResp)
+
+			resp.Diagnostics.Append(elementResp.Diagnostics...)
+
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			if elementResp.NewValue.Equal(elementReq.ProposedNewValue) {
+				// This prior value element didn't match, but there could be other elements that do
+				continue
+			}
+
+			// Prior state was kept, meaning that we found a semantically equal element
+			updatedElements = true
+
+			// Remove the semantically equal element from the slice of candidates
+			priorValueElements = append(priorValueElements[:pIdx], priorValueElements[pIdx+1:]...)
+
+			// Order doesn't matter, so we can just set the prior state element to this index
+			newValueElements[idx] = elementResp.NewValue
+			break
 		}
-		elementResp := &ValueSemanticEqualityResponse{
-			NewValue: elementReq.ProposedNewValue,
-		}
-
-		ValueSemanticEquality(ctx, elementReq, elementResp)
-
-		resp.Diagnostics.Append(elementResp.Diagnostics...)
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		if elementResp.NewValue.Equal(elementReq.ProposedNewValue) {
-			continue
-		}
-
-		updatedElements = true
-		newValueElements[idx] = elementResp.NewValue
 	}
 
 	// No changes required if the elements were not updated.

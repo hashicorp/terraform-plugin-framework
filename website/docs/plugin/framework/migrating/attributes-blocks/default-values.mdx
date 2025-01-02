@@ -1,11 +1,11 @@
 ---
-page_title: 'Attribute default values: Migrating from SDKv2 to the Framework'
+page_title: Migrating attribute default values
 description: >-
-  Specify a default when the Terraform configuration does not supply a value for resource attributes.
-  Migrate attribute defaults in SDKv2 to AttributePlanModifier in the Framework.
+  Learn how to migrate attribute default values from SDKv2 by using an
+  AttributePlanModifier in the Framework.
 ---
 
-# Default Values
+# Migrating attribute default values
 
 Default values support is only available in the Framework for resources. Handle default values for data source attributes within the [data source `Read` method](/terraform/plugin/framework/data-sources#read-method) and default values for provider attributes within the [provider `Configure` method](/terraform/plugin/framework/providers#configure-method).
 

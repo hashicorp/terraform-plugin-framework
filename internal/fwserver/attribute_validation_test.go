@@ -1702,6 +1702,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-required": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1726,6 +1729,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-required-null-value": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1750,6 +1756,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-optional": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1774,6 +1783,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-computed": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1806,6 +1818,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-missing-required-and-optional": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1837,6 +1852,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-required-and-optional": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1870,6 +1888,9 @@ func TestAttributeValidate(t *testing.T) {
 		},
 		"write-only-attr-with-computed-required-and-optional": {
 			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				AttributePath: path.Root("test"),
 				Config: tfsdk.Config{
 					Raw: tftypes.NewValue(tftypes.Object{
@@ -1903,6 +1924,43 @@ func TestAttributeValidate(t *testing.T) {
 						path.Root("test"),
 						"Invalid Attribute Definition",
 						"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+			},
+		},
+		"write-only-attr-set-no-client-capability": {
+			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					// Client indicating it doesn't support write-only attributes
+					WriteOnlyAttributesAllowed: false,
+				},
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "hello world!"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Required:  true,
+								WriteOnly: true,
+								Type:      types.StringType,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"WriteOnly Attribute Not Allowed",
+						"The resource contains a non-null value for WriteOnly attribute test. "+
+							"Write-only attributes are only supported in Terraform 1.11 and later.",
 					),
 				},
 			},

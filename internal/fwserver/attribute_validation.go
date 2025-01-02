@@ -130,6 +130,19 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		)
 	}
 
+	// If the client doesn't support write-only attributes (first supported in Terraform v1.11.0), then we raise an early validation error
+	// to avoid a confusing data consistency error when the provider attempts to return "null" for a write-only attribute in the planned/final state.
+	//
+	// Write-only attributes can only be successfully used with a supporting client, so the only option for a practitoner to utilize a write-only attribute
+	// is to upgrade their Terraform CLI version to v1.11.0 or later.
+	if !req.ClientCapabilities.WriteOnlyAttributesAllowed && a.IsWriteOnly() && !attributeConfig.IsNull() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"WriteOnly Attribute Not Allowed",
+			fmt.Sprintf("The resource contains a non-null value for WriteOnly attribute %s. Write-only attributes are only supported in Terraform 1.11 and later.", req.AttributePath.String()),
+		)
+	}
+
 	req.AttributeConfig = attributeConfig
 
 	switch attributeWithValidators := a.(type) {

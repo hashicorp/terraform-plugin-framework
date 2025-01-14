@@ -135,7 +135,8 @@ func (a ListAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly returns false as write-only attributes are not supported in provider meta schemas.
+// IsWriteOnly returns false as write-only attributes are not relevant to provider meta schemas,
+// as these schemas describe data explicitly not saved to any artifact.
 func (a ListAttribute) IsWriteOnly() bool {
 	return false
 }

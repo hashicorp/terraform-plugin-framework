@@ -183,7 +183,8 @@ func (a Float32Attribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
-// IsWriteOnly returns false as write-only attributes are not supported in provider schemas.
+// IsWriteOnly returns false as write-only attributes are not relevant to provider schemas,
+// as these schemas describe data explicitly not saved to any artifact.
 func (a Float32Attribute) IsWriteOnly() bool {
 	return false
 }

@@ -4,13 +4,14 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -180,7 +181,8 @@ func (a DynamicAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
-// IsWriteOnly returns false as write-only attributes are not supported in ephemeral resource schemas.
+// IsWriteOnly returns false as write-only attributes are not relevant to ephemeral resource schemas,
+// as these schemas describe data that is explicitly not saved to any artifact.
 func (a DynamicAttribute) IsWriteOnly() bool {
 	return false
 }

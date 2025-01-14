@@ -177,7 +177,8 @@ func (a DynamicAttribute) DynamicValidators() []validator.Dynamic {
 	return a.Validators
 }
 
-// IsWriteOnly returns false as write-only attributes are not supported in provider schemas.
+// IsWriteOnly returns false as write-only attributes are not relevant to provider schemas,
+// as these schemas describe data explicitly not saved to any artifact.
 func (a DynamicAttribute) IsWriteOnly() bool {
 	return false
 }

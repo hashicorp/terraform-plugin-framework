@@ -4250,7 +4250,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_resource": resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
 							"test_attribute": resourceschema.BoolAttribute{
-								Computed:  true,
+								Optional:  true,
 								WriteOnly: true,
 							},
 						},
@@ -4266,7 +4266,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov6.SchemaBlock{
 							Attributes: []*tfprotov6.SchemaAttribute{
 								{
-									Computed:  true,
+									Optional:  true,
 									Name:      "test_attribute",
 									WriteOnly: true,
 									Type:      tftypes.Bool,

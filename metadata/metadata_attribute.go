@@ -21,41 +21,6 @@ import (
 
 func MetadataSchemaAttribute(ctx context.Context, attr fwschema.Attribute) (*metadata.Attribute, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
-	/*nestedAttr, ok := attr.(schema.NestedAttribute)
-
-	if ok {
-		nestedAttr.GetNestedObject().GetAttributes() // more attributes to loop through
-		// nestedAttr.GetNestingMode()                  // nested mode (list, set, map, single)
-		// some examples of recursive type logic
-		// attribute validation
-		// nestedMetadataObject := newFunc() // eventual recursion
-
-		object := &tfprotov6.SchemaObject{}
-		nm := nestedAttr.GetNestingMode()
-		switch nm {
-		case fwschema.NestingModeSingle:
-			object.Nesting = tfprotov6.SchemaObjectNestingModeSingle
-		case fwschema.NestingModeList:
-			object.Nesting = tfprotov6.SchemaObjectNestingModeList
-		case fwschema.NestingModeSet:
-			object.Nesting = tfprotov6.SchemaObjectNestingModeSet
-		case fwschema.NestingModeMap:
-			object.Nesting = tfprotov6.SchemaObjectNestingModeMap
-		default:
-			diags.Append(diag.NewErrorDiagnostic("error", "unrecognized nesting mode"))
-		}
-
-		for nestedName, nestedA := range nestedAttr.GetNestedObject().GetAttributes() {
-			nestedSchemaAttribute, err := MetadataSchemaAttribute(ctx, nestedName, nestedA)
-
-			if err != nil {
-				return nil, err
-			}
-
-			return nestedSchemaAttribute, err
-		}
-
-	}*/
 
 	desc := attr.GetDescription()
 	kind := metadata.Plain
@@ -198,4 +163,101 @@ func MetadataNestedSchemaAttribute(ctx context.Context, attr fwschema.NestedAttr
 	}
 
 	return this, diags
+}
+
+func MetadataSchemaBlocks(ctx context.Context, blks map[string]fwschema.Block) (map[string]metadata.SchemaBlock, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
+	out := make(map[string]metadata.SchemaBlock, len(blks))
+
+	for name, blk := range blks {
+		block, blockDiags := MetadataSchemaBlock(ctx, blk)
+		diags = append(diags, blockDiags...)
+		out[name] = *block
+	}
+
+	return out, diags
+}
+
+func MetadataSchemaBlock(ctx context.Context, blk fwschema.Block) (*metadata.SchemaBlock, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
+
+	attrs, attrDiags := MetadataSchemaAttributes(ctx, blk.GetNestedObject().GetAttributes())
+	diags = append(diags, attrDiags...)
+
+	if len(blk.GetNestedObject().GetBlocks()) == 0 {
+		block := &metadata.SchemaBlock{
+			Block: &metadata.Block{
+				Attributes:         attrs,
+				BlockTypes:         nil,
+				Deprecated:         metadata.BoolPointer(false),
+				DeprecationMessage: nil,
+				Description:        metadata.StringPointer(blk.GetDescription()),
+				DescriptionKind:    metadata.DescriptionPointer(metadata.Plain),
+				PlanModifications:  nil,
+				Validations:        nil,
+			},
+			SupportsImportState: metadata.BoolPointer(false),
+			SupportsMoveState:   metadata.BoolPointer(false),
+			Version:             0,
+		}
+		return block, diags
+	}
+
+	blockTypes := make(map[string]metadata.BlockType)
+	for innerName, innerBlk := range blk.GetNestedObject().GetBlocks() {
+		nestedBlock, nestedBlockDiags := MetadataNestedSchemaBlock(ctx, innerBlk)
+		diags = append(diags, nestedBlockDiags...)
+		blockTypes[innerName] = *nestedBlock
+	}
+
+	block := &metadata.SchemaBlock{
+		Block: &metadata.Block{
+			Attributes:         attrs,
+			BlockTypes:         blockTypes,
+			Deprecated:         metadata.BoolPointer(false),
+			DeprecationMessage: nil,
+			Description:        metadata.StringPointer(blk.GetDescription()),
+			DescriptionKind:    metadata.DescriptionPointer(metadata.Plain),
+			PlanModifications:  nil,
+			Validations:        nil,
+		},
+		SupportsImportState: metadata.BoolPointer(false),
+		SupportsMoveState:   metadata.BoolPointer(false),
+		Version:             0,
+	}
+
+	return block, diags
+}
+
+func MetadataNestedSchemaBlock(ctx context.Context, blk fwschema.Block) (*metadata.BlockType, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
+
+	nestedAttrs, nestedAttrDiags := MetadataSchemaAttributes(ctx, blk.GetNestedObject().GetAttributes())
+	diags = append(diags, nestedAttrDiags...)
+
+	innerObject := &metadata.BlockType{
+		Block: &metadata.Block{
+			Attributes:         nestedAttrs,
+			BlockTypes:         nil,
+			Deprecated:         metadata.BoolPointer(false),
+			DeprecationMessage: nil,
+			Description:        metadata.StringPointer(blk.GetDescription()),
+			DescriptionKind:    metadata.DescriptionPointer(metadata.Plain),
+			PlanModifications:  nil,
+			Validations:        nil,
+		},
+	}
+	innerNestingMode := blk.GetNestingMode()
+	switch innerNestingMode {
+	case fwschema.BlockNestingModeSingle:
+		innerObject.NestingMode = metadata.AnyPointer(metadata.FluffySingle)
+	case fwschema.BlockNestingModeList:
+		innerObject.NestingMode = metadata.AnyPointer(metadata.FluffyList)
+	case fwschema.BlockNestingModeSet:
+		innerObject.NestingMode = metadata.AnyPointer(metadata.FluffySet)
+	default:
+		diags.Append(diag.NewErrorDiagnostic("error", "unrecognized nesting mode"))
+	}
+
+	return innerObject, diags
 }

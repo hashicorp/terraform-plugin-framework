@@ -11,7 +11,7 @@ type ValidateSchemaClientCapabilities struct {
 	// initiating the request supports write-only attributes for managed
 	// resources.
 	//
-	// This client capability is only available for resource schema
-	// attributes.
+	// This client capability is only populated during managed resource schema
+	// validation.
 	WriteOnlyAttributesAllowed bool
 }

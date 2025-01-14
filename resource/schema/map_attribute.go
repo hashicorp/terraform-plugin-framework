@@ -172,9 +172,10 @@ type MapAttribute struct {
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Map
 
-	// WriteOnly indicates that the practitioner can choose a value for this
-	// attribute, but Terraform will not store this attribute in state.
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
 	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
 	//
 	// This functionality is only supported in Terraform 1.11 and later.
 	// Practitioners that choose a value for this attribute with older

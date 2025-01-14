@@ -68,6 +68,8 @@ type Attribute interface {
 	// IsWriteOnly should return true if the attribute configuration value is
 	// write-only. This is named differently than WriteOnly to prevent a
 	// conflict with the tfsdk.Attribute field name.
+	//
+	// Write-only attributes are a managed-resource schema concept only.
 	IsWriteOnly() bool
 }
 

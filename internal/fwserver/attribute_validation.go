@@ -74,8 +74,9 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Invalid Attribute Definition",
-			"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+			"WriteOnly Attributes must be set with only one of Required or Optional. This is always a problem with the provider and should be reported to the provider developer.",
 		)
+		return
 	}
 
 	if a.IsWriteOnly() && a.IsComputed() {
@@ -84,6 +85,7 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 			"Invalid Attribute Definition",
 			"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
 		)
+		return
 	}
 
 	configData := &fwschemadata.Data{

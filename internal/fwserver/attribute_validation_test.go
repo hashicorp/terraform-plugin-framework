@@ -1881,7 +1881,7 @@ func TestAttributeValidate(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Invalid Attribute Definition",
-						"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
+						"WriteOnly Attributes must be set with only one of Required or Optional. This is always a problem with the provider and should be reported to the provider developer.",
 					),
 				},
 			},
@@ -1918,12 +1918,7 @@ func TestAttributeValidate(t *testing.T) {
 					diag.NewAttributeErrorDiagnostic(
 						path.Root("test"),
 						"Invalid Attribute Definition",
-						"WriteOnly Attributes must be set with either Required, or Optional. This is always a problem with the provider and should be reported to the provider developer.",
-					),
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test"),
-						"Invalid Attribute Definition",
-						"WriteOnly Attributes cannot be set with Computed. This is always a problem with the provider and should be reported to the provider developer.",
+						"WriteOnly Attributes must be set with only one of Required or Optional. This is always a problem with the provider and should be reported to the provider developer.",
 					),
 				},
 			},

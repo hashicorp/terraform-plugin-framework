@@ -1,34 +1,30 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package fwtype
+package fwschema
 
 import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 )
 
 // ContainsAllWriteOnlyChildAttributes will return true if all child attributes for the
 // given nested attribute have WriteOnly set to true.
-func ContainsAllWriteOnlyChildAttributes(nestedAttr metaschema.NestedAttribute) bool {
-	if !nestedAttr.IsWriteOnly() {
-		return false
-	}
+func ContainsAllWriteOnlyChildAttributes(nestedAttr NestedAttribute) bool {
 	nestedObjAttrs := nestedAttr.GetNestedObject().GetAttributes()
 
 	for _, childAttr := range nestedObjAttrs {
-		nestedAttribute, ok := childAttr.(metaschema.NestedAttribute)
+		if !childAttr.IsWriteOnly() {
+			return false
+		}
+
+		nestedAttribute, ok := childAttr.(NestedAttribute)
 		if ok {
 			if !ContainsAllWriteOnlyChildAttributes(nestedAttribute) {
 				return false
 			}
-		}
-
-		if !childAttr.IsWriteOnly() {
-			return false
 		}
 	}
 
@@ -37,22 +33,19 @@ func ContainsAllWriteOnlyChildAttributes(nestedAttr metaschema.NestedAttribute) 
 
 // ContainsAnyWriteOnlyChildAttributes will return true if any child attribute for the
 // given nested attribute has WriteOnly set to true.
-func ContainsAnyWriteOnlyChildAttributes(nestedAttr metaschema.NestedAttribute) bool {
-	if nestedAttr.IsWriteOnly() {
-		return true
-	}
+func ContainsAnyWriteOnlyChildAttributes(nestedAttr NestedAttribute) bool {
 	nestedObjAttrs := nestedAttr.GetNestedObject().GetAttributes()
 
 	for _, childAttr := range nestedObjAttrs {
-		nestedAttribute, ok := childAttr.(metaschema.NestedAttribute)
+		if childAttr.IsWriteOnly() {
+			return true
+		}
+
+		nestedAttribute, ok := childAttr.(NestedAttribute)
 		if ok {
 			if ContainsAnyWriteOnlyChildAttributes(nestedAttribute) {
 				return true
 			}
-		}
-
-		if childAttr.IsWriteOnly() {
-			return true
 		}
 	}
 

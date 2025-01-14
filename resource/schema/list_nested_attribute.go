@@ -302,12 +302,12 @@ func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fws
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
 	}
 
-	if a.IsWriteOnly() && !fwtype.ContainsAllWriteOnlyChildAttributes(a) {
-		resp.Diagnostics.Append(fwtype.InvalidWriteOnlyNestedAttributeDiag(req.Path))
+	if a.IsWriteOnly() && !fwschema.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidWriteOnlyNestedAttributeDiag(req.Path))
 	}
 
-	if a.IsComputed() && fwtype.ContainsAnyWriteOnlyChildAttributes(a) {
-		resp.Diagnostics.Append(fwtype.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
+	if a.IsComputed() && fwschema.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.ListDefaultValue() != nil {

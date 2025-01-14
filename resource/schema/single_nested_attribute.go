@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -311,12 +310,12 @@ func (a SingleNestedAttribute) ValidateImplementation(ctx context.Context, req f
 		resp.Diagnostics.Append(nonComputedAttributeWithDefaultDiag(req.Path))
 	}
 
-	if a.IsWriteOnly() && !fwtype.ContainsAllWriteOnlyChildAttributes(a) {
-		resp.Diagnostics.Append(fwtype.InvalidWriteOnlyNestedAttributeDiag(req.Path))
+	if a.IsWriteOnly() && !fwschema.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidWriteOnlyNestedAttributeDiag(req.Path))
 	}
 
-	if a.IsComputed() && fwtype.ContainsAnyWriteOnlyChildAttributes(a) {
-		resp.Diagnostics.Append(fwtype.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
+	if a.IsComputed() && fwschema.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.ObjectDefaultValue() != nil {

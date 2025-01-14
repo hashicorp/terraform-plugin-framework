@@ -1,12 +1,12 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package fwtype_test
+package schema_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -17,13 +17,12 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 		nestedAttr metaschema.NestedAttribute
 		expected   bool
 	}{
-		"empty nested attribute returns false": {
+		"empty nested attribute returns true": {
 			nestedAttr: schema.ListNestedAttribute{},
-			expected:   false,
+			expected:   true,
 		},
-		"writeOnly list nested attribute with writeOnly child attribute returns true": {
+		"list nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -34,9 +33,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly list nested attribute with non-writeOnly child attribute returns false": {
+		"list nested attribute with non-writeOnly child attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -47,7 +45,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly list nested attribute with multiple writeOnly child attributes returns true": {
+		"list nested attribute with multiple writeOnly child attributes returns true": {
 			nestedAttr: schema.ListNestedAttribute{
 				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
@@ -63,9 +61,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly list nested attribute with one non-writeOnly child attribute returns false": {
+		"list nested attribute with one non-writeOnly child attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -79,9 +76,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly list nested attribute with writeOnly child nested attributes returns true": {
+		"list nested attribute with writeOnly child nested attributes returns true": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
@@ -102,12 +98,12 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly list nested attribute with non-writeOnly child nested attribute returns false": {
+		"list nested attribute with non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -124,9 +120,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly list nested attribute with one non-writeOnly child nested attribute returns false": {
+		"list nested attribute with one non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
@@ -143,6 +138,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 							},
 						},
 						"set_nested_attribute": schema.SetNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -159,9 +155,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly list nested attribute with one non-writeOnly nested child attribute returns false": {
+		"list nested attribute with one non-writeOnly nested child attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
@@ -182,46 +177,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"non-writeOnly list nested attribute with one non-writeOnly child attribute returns false": {
-			nestedAttr: schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							WriteOnly: true,
-						},
-						"float32_attribute": schema.Float32Attribute{
-							WriteOnly: false,
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"non-writeOnly list nested attribute with writeOnly child nested attributes returns true": {
-			nestedAttr: schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"list_nested_attribute": schema.ListNestedAttribute{
-							WriteOnly: true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										WriteOnly: true,
-									},
-									"float32_attribute": schema.Float32Attribute{
-										WriteOnly: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"writeOnly set nested attribute with writeOnly child attribute returns true": {
+		"set nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -232,9 +189,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly set nested attribute with non-writeOnly child attribute returns false": {
+		"set nested attribute with non-writeOnly child attribute returns false": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -245,7 +201,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly set nested attribute with multiple writeOnly child attributes returns true": {
+		"set nested attribute with multiple writeOnly child attributes returns true": {
 			nestedAttr: schema.SetNestedAttribute{
 				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
@@ -261,7 +217,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly set nested attribute with one non-writeOnly child attribute returns false": {
+		"set nested attribute with one non-writeOnly child attribute returns false": {
 			nestedAttr: schema.SetNestedAttribute{
 				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
@@ -277,9 +233,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly set nested attribute with writeOnly child nested attributes returns true": {
+		"set nested attribute with writeOnly child nested attributes returns true": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"set_nested_attribute": schema.SetNestedAttribute{
@@ -300,12 +255,12 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly set nested attribute with non-writeOnly child nested attribute returns false": {
+		"set nested attribute with non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"set_nested_attribute": schema.SetNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -322,9 +277,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly set nested attribute with one non-writeOnly child nested attribute returns false": {
+		"set nested attribute with one non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"set_nested_attribute": schema.SetNestedAttribute{
@@ -341,6 +295,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 							},
 						},
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -357,9 +312,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly set nested attribute with one non-writeOnly nested child attribute returns false": {
+		"set nested attribute with one non-writeOnly nested child attribute returns false": {
 			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"set_nested_attribute": schema.SetNestedAttribute{
@@ -380,46 +334,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"non-writeOnly set nested attribute with one non-writeOnly child attribute returns false": {
-			nestedAttr: schema.SetNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							WriteOnly: true,
-						},
-						"float32_attribute": schema.Float32Attribute{
-							WriteOnly: false,
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"non-writeOnly set nested attribute with writeOnly child nested attributes returns true": {
-			nestedAttr: schema.SetNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"set_nested_attribute": schema.SetNestedAttribute{
-							WriteOnly: true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										WriteOnly: true,
-									},
-									"float32_attribute": schema.Float32Attribute{
-										WriteOnly: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"writeOnly map nested attribute with writeOnly child attribute returns true": {
+		"map nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -430,9 +346,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly map nested attribute with non-writeOnly child attribute returns false": {
+		"map nested attribute with non-writeOnly child attribute returns false": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -443,9 +358,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly map nested attribute with multiple writeOnly child attributes returns true": {
+		"map nested attribute with multiple writeOnly child attributes returns true": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -459,9 +373,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly map nested attribute with one non-writeOnly child attribute returns false": {
+		"map nested attribute with one non-writeOnly child attribute returns false": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"string_attribute": schema.StringAttribute{
@@ -475,9 +388,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly map nested attribute with writeOnly child nested attributes returns true": {
+		"map nested attribute with writeOnly child nested attributes returns true": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
@@ -498,12 +410,12 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly map nested attribute with non-writeOnly child nested attribute returns false": {
+		"map nested attribute with non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -520,9 +432,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly map nested attribute with one non-writeOnly child nested attribute returns false": {
+		"map nested attribute with one non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
@@ -539,6 +450,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 							},
 						},
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -555,9 +467,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly map nested attribute with one non-writeOnly nested child attribute returns false": {
+		"map nested attribute with one non-writeOnly nested child attribute returns false": {
 			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
@@ -578,46 +489,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"non-writeOnly map nested attribute with one non-writeOnly child attribute returns false": {
-			nestedAttr: schema.MapNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							WriteOnly: true,
-						},
-						"float32_attribute": schema.Float32Attribute{
-							WriteOnly: false,
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"non-writeOnly map nested attribute with writeOnly child nested attributes returns true": {
-			nestedAttr: schema.MapNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"map_nested_attribute": schema.MapNestedAttribute{
-							WriteOnly: true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"string_attribute": schema.StringAttribute{
-										WriteOnly: true,
-									},
-									"float32_attribute": schema.Float32Attribute{
-										WriteOnly: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expected: false,
-		},
-		"writeOnly single nested attribute with writeOnly child attribute returns true": {
+		"single nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						WriteOnly: true,
@@ -626,9 +499,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly single nested attribute with non-writeOnly child attribute returns false": {
+		"single nested attribute with non-writeOnly child attribute returns false": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						WriteOnly: false,
@@ -637,9 +509,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly single nested attribute with multiple writeOnly child attributes returns true": {
+		"single nested attribute with multiple writeOnly child attributes returns true": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						WriteOnly: true,
@@ -651,9 +522,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly single nested attribute with one non-writeOnly child attribute returns false": {
+		"single nested attribute with one non-writeOnly child attribute returns false": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{
 						WriteOnly: true,
@@ -665,9 +535,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly single nested attribute with writeOnly child nested attributes returns true": {
+		"single nested attribute with writeOnly child nested attributes returns true": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						WriteOnly: true,
@@ -684,11 +553,11 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"writeOnly single nested attribute with non-writeOnly child nested attribute returns false": {
+		"single nested attribute with non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
+						WriteOnly: false,
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
 								WriteOnly: true,
@@ -702,9 +571,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly single nested attribute with one non-writeOnly child nested attribute returns false": {
+		"single nested attribute with one non-writeOnly child nested attribute returns false": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						WriteOnly: true,
@@ -718,6 +586,7 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 						},
 					},
 					"list_nested_attribute": schema.ListNestedAttribute{
+						WriteOnly: false,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
@@ -733,9 +602,8 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"writeOnly single nested attribute with one non-writeOnly nested child attribute returns false": {
+		"single nested attribute with one non-writeOnly nested child attribute returns false": {
 			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						WriteOnly: true,
@@ -752,42 +620,11 @@ func TestContainsAllWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: false,
 		},
-		"non-writeOnly single nested attribute with one non-writeOnly child attribute returns false": {
-			nestedAttr: schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						WriteOnly: true,
-					},
-					"float32_attribute": schema.Float32Attribute{
-						WriteOnly: false,
-					},
-				},
-			},
-			expected: false,
-		},
-		"non-writeOnly single nested attribute with writeOnly child nested attributes returns true": {
-			nestedAttr: schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						WriteOnly: true,
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								WriteOnly: true,
-							},
-							"float32_attribute": schema.Float32Attribute{
-								WriteOnly: true,
-							},
-						},
-					},
-				},
-			},
-			expected: false,
-		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			if got := fwtype.ContainsAllWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
+			if got := fwschema.ContainsAllWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
 				t.Errorf("ContainsAllWriteOnlyChildAttributes() = %v, want %v", got, tt.expected)
 			}
 		})
@@ -803,19 +640,6 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 		"empty nested attribute returns false": {
 			nestedAttr: schema.ListNestedAttribute{},
 			expected:   false,
-		},
-		"list nested attribute with writeOnly returns true": {
-			nestedAttr: schema.ListNestedAttribute{
-				WriteOnly: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-			expected: true,
 		},
 		"list nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.ListNestedAttribute{
@@ -880,10 +704,12 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -898,13 +724,16 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -923,22 +752,27 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
 						},
 						"set_nested_attribute": schema.SetNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -953,6 +787,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -963,19 +798,6 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 									},
 								},
 							},
-						},
-					},
-				},
-			},
-			expected: true,
-		},
-		"set nested attribute with writeOnly returns true": {
-			nestedAttr: schema.SetNestedAttribute{
-				WriteOnly: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							Computed: true,
 						},
 					},
 				},
@@ -1045,10 +867,12 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1066,10 +890,12 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1088,22 +914,27 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
 						},
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1118,6 +949,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"set_nested_attribute": schema.SetNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -1128,19 +960,6 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 									},
 								},
 							},
-						},
-					},
-				},
-			},
-			expected: true,
-		},
-		"map nested attribute with writeOnly returns true": {
-			nestedAttr: schema.MapNestedAttribute{
-				WriteOnly: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"string_attribute": schema.StringAttribute{
-							Computed: true,
 						},
 					},
 				},
@@ -1210,10 +1029,12 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1228,13 +1049,16 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1253,22 +1077,27 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
 						},
 						"list_nested_attribute": schema.ListNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 									"float32_attribute": schema.Float32Attribute{
-										Computed: true,
+										WriteOnly: false,
+										Computed:  true,
 									},
 								},
 							},
@@ -1283,6 +1112,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"map_nested_attribute": schema.MapNestedAttribute{
+							WriteOnly: false,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attribute": schema.StringAttribute{
@@ -1299,17 +1129,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 			},
 			expected: true,
 		},
-		"single nested attribute with writeOnly returns true": {
-			nestedAttr: schema.SingleNestedAttribute{
-				WriteOnly: true,
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Computed: true,
-					},
-				},
-			},
-			expected: true,
-		},
+
 		"single nested attribute with writeOnly child attribute returns true": {
 			nestedAttr: schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -1363,10 +1183,12 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 						WriteOnly: true,
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 							"float32_attribute": schema.Float32Attribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 						},
 					},
@@ -1378,12 +1200,15 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 			nestedAttr: schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
+						WriteOnly: false,
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 							"float32_attribute": schema.Float32Attribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 						},
 					},
@@ -1398,21 +1223,26 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 						WriteOnly: true,
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 							"float32_attribute": schema.Float32Attribute{
-								Computed: true,
+								WriteOnly: false,
+								Computed:  true,
 							},
 						},
 					},
 					"list_nested_attribute": schema.ListNestedAttribute{
+						WriteOnly: false,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"string_attribute": schema.StringAttribute{
-									Computed: true,
+									WriteOnly: false,
+									Computed:  true,
 								},
 								"float32_attribute": schema.Float32Attribute{
-									Computed: true,
+									WriteOnly: false,
+									Computed:  true,
 								},
 							},
 						},
@@ -1425,6 +1255,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 			nestedAttr: schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
+						WriteOnly: false,
 						Attributes: map[string]schema.Attribute{
 							"string_attribute": schema.StringAttribute{
 								WriteOnly: false,
@@ -1442,7 +1273,7 @@ func TestContainsAnyWriteOnlyChildAttributes(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			if got := fwtype.ContainsAnyWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
+			if got := fwschema.ContainsAnyWriteOnlyChildAttributes(tt.nestedAttr); got != tt.expected {
 				t.Errorf("ContainsAllWriteOnlyChildAttributes() = %v, want %v", got, tt.expected)
 			}
 		})

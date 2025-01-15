@@ -856,13 +856,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	testSchemaTypeWriteOnly := tftypes.Object{
-		AttributeTypes: map[string]tftypes.Type{
-			"test_optional_write_only": tftypes.String,
-			"test_required_write_only": tftypes.String,
-		},
-	}
-
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -1363,19 +1356,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 						Optional: true,
 					},
 				},
-			},
-		},
-	}
-
-	testSchemaWriteOnly := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"test_optional_write_only": schema.StringAttribute{
-				Optional:  true,
-				WriteOnly: true,
-			},
-			"test_required_write_only": schema.StringAttribute{
-				Required:  true,
-				WriteOnly: true,
 			},
 		},
 	}
@@ -3763,36 +3743,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 					path.Root("test_required"),
 				},
 				PlannedPrivate: testEmptyPrivate,
-			},
-		},
-		"create-required-write-only-null-diag": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
-						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
-						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
-					}),
-					Schema: testSchemaWriteOnly,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
-						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
-						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
-					}),
-					Schema: testSchemaWriteOnly,
-				},
-				PriorState:     testEmptyState,
-				ResourceSchema: testSchemaWriteOnly,
-				Resource:       &testprovider.Resource{},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(path.Root("test_required_write_only"),
-						"Invalid writeOnly attribute plan", "Required + WriteOnly attributes must have a non-null configuration value during Create."),
-				},
 			},
 		},
 		"create-resourcewithmodifyplan-attributeplanmodifier-private": {

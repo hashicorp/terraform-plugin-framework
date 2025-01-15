@@ -1752,7 +1752,16 @@ func TestAttributeValidate(t *testing.T) {
 					},
 				},
 			},
-			resp: ValidateAttributeResponse{},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Missing Configuration for Required Attribute",
+						"Must set a configuration value for the test attribute as the provider has marked it as required.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+					),
+				},
+			},
 		},
 		"write-only-attr-with-optional": {
 			req: ValidateAttributeRequest{

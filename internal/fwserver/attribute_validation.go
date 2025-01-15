@@ -120,10 +120,7 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 	// until Terraform CLI versions 0.12 through the release containing the
 	// checks are considered end-of-life.
 	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	//
-	// We don't validate Required + WriteOnly attributes here as that is
-	// done in PlanResourceChange (only on create).
-	if a.IsRequired() && !a.IsWriteOnly() && attributeConfig.IsNull() {
+	if a.IsRequired() && attributeConfig.IsNull() {
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			"Missing Configuration for Required Attribute",

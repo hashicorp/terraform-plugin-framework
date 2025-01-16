@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerMoveResourceState(t *testing.T) {
@@ -39,6 +40,22 @@ func TestServerMoveResourceState(t *testing.T) {
 		},
 	}
 	schemaType := testSchema.Type().TerraformType(ctx)
+
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"write_only_attribute": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"required_attribute": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+	schemaTypeWriteOnly := testSchemaWriteOnly.Type().TerraformType(ctx)
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
@@ -754,6 +771,44 @@ func TestServerMoveResourceState(t *testing.T) {
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
 					Schema: testSchema,
+				},
+			},
+		},
+		"response-TargetState-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                   "test-id-value",
+					"write_only_attribute": nil,
+					"required_attribute":   true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("write_only_attribute"), "movestate-val")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchemaWriteOnly,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaTypeWriteOnly, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "test-id-value"),
+						"write_only_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute":   tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchemaWriteOnly,
 				},
 			},
 		},

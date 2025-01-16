@@ -225,14 +225,46 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 			return
 		}
 
+		// Set any write-only attributes in the state to null
+		modifiedState, err := tftypes.Transform(upgradedStateValue, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Modifying Upgraded Resource State",
+				"There was an unexpected error modifying the Upgraded Resource State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
 		resp.UpgradedState = &tfsdk.State{
 			Schema: req.ResourceSchema,
-			Raw:    upgradedStateValue,
+			Raw:    modifiedState,
 		}
 
 		return
 	}
 
+	if upgradeResourceStateResponse.State.Raw.Type() == nil || upgradeResourceStateResponse.State.Raw.IsNull() {
+		resp.Diagnostics.AddError(
+			"Missing Upgraded Resource State",
+			fmt.Sprintf("After attempting a resource state upgrade to version %d, the provider did not return any state data. ", req.Version)+
+				"Preventing the unexpected loss of resource state data. "+
+				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
+		)
+		return
+	}
+
+	// Set any write-only attributes in the state to null
+	modifiedState, err := tftypes.Transform(upgradeResourceStateResponse.State.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Upgraded Resource State",
+			"There was an unexpected error modifying the Upgraded Resource State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+	upgradeResourceStateResponse.State.Raw = modifiedState
+
+	// If the write-only nullification results in a null state, then this is a provider error
 	if upgradeResourceStateResponse.State.Raw.Type() == nil || upgradeResourceStateResponse.State.Raw.IsNull() {
 		resp.Diagnostics.AddError(
 			"Missing Upgraded Resource State",

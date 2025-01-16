@@ -163,7 +163,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	}
 
 	// Set any write-only attributes in the state to null
-	modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, resp.NewState.Schema))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Modifying State",

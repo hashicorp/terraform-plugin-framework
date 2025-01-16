@@ -341,7 +341,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	// Set any write-only attributes in the plan to null
-	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, resp.PlannedState.Schema))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Modifying Planned State",

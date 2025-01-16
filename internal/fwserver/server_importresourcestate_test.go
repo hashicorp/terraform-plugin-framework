@@ -33,10 +33,24 @@ func TestServerImportResourceState(t *testing.T) {
 		},
 	}
 
+	testTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"id":         tftypes.String,
+			"write-only": tftypes.String,
+			"required":   tftypes.String,
+		},
+	}
+
 	testEmptyStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
 		"id":       tftypes.NewValue(tftypes.String, nil),
 		"optional": tftypes.NewValue(tftypes.String, nil),
 		"required": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	testEmptyStateValueWriteOnly := tftypes.NewValue(testTypeWriteOnly, map[string]tftypes.Value{
+		"id":         tftypes.NewValue(tftypes.String, nil),
+		"write-only": tftypes.NewValue(tftypes.String, nil),
+		"required":   tftypes.NewValue(tftypes.String, nil),
 	})
 
 	testUnknownStateValue := tftypes.NewValue(testType, tftypes.UnknownValue)
@@ -61,9 +75,29 @@ func TestServerImportResourceState(t *testing.T) {
 		},
 	}
 
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"write-only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"required": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+
 	testEmptyState := &tfsdk.State{
 		Raw:    testEmptyStateValue,
 		Schema: testSchema,
+	}
+
+	testEmptyStateWriteOnly := &tfsdk.State{
+		Raw:    testEmptyStateValueWriteOnly,
+		Schema: testSchemaWriteOnly,
 	}
 
 	testUnknownState := &tfsdk.State{
@@ -413,6 +447,39 @@ func TestServerImportResourceState(t *testing.T) {
 						"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
 							"Resource ImportState method returned no State in response. If import is intentionally not supported, remove the Resource type ImportState method or return an error.",
 					),
+				},
+			},
+		},
+		"response-importedresources-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyStateWriteOnly,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("write-only"), "write-only-val")...)
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: tfsdk.State{
+							Raw: tftypes.NewValue(testTypeWriteOnly, map[string]tftypes.Value{
+								"id":         tftypes.NewValue(tftypes.String, "test-id"),
+								"write-only": tftypes.NewValue(tftypes.String, nil),
+								"required":   tftypes.NewValue(tftypes.String, nil),
+							}),
+							Schema: testSchemaWriteOnly,
+						},
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
 				},
 			},
 		},

@@ -1,16 +1,16 @@
 ---
-page_title: 'Plugin Development - Framework: Tuple Type'
+page_title: Tuple types
 description: >-
-  Learn the tuple value type in the provider development framework.
+  Learn how to implement tuple value types with the Terraform plugin framework.
 ---
+
+# Tuple types
 
 <Note>
 
 The tuple type doesn't have associated schema attributes as it has limited real world application. Provider developers will only encounter tuples when handling provider-defined function variadic parameters or dynamic values.
 
 </Note>
-
-# Tuple Type
 
 Tuple types store an ordered collection of elements where each element has it's own type. Values must have **exactly** the same number of elements (no more and no fewer), and the value in each position must match the specified type for that position.
 

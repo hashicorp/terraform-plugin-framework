@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func BenchmarkObjectValueToTerraformValue1000(b *testing.B) {
@@ -825,6 +827,40 @@ func TestObjectValueToTerraformValue(t *testing.T) {
 				},
 			}, tftypes.UnknownValue),
 		},
+		"unknown-with-notnull-refinement": {
+			receiver: NewObjectUnknown(
+				map[string]attr.Type{
+					"a": ListType{ElemType: StringType{}},
+					"b": StringType{},
+					"c": BoolType{},
+					"d": NumberType{},
+					"e": ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"name": StringType{},
+						},
+					},
+					"f": SetType{ElemType: StringType{}},
+					"g": DynamicType{},
+				},
+			).RefineAsNotNull(),
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"a": tftypes.List{ElementType: tftypes.String},
+					"b": tftypes.String,
+					"c": tftypes.Bool,
+					"d": tftypes.Number,
+					"e": tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"name": tftypes.String,
+						},
+					},
+					"f": tftypes.Set{ElementType: tftypes.String},
+					"g": tftypes.DynamicPseudoType,
+				},
+			}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+		},
 		"null": {
 			receiver: NewObjectNull(
 				map[string]attr.Type{
@@ -1462,6 +1498,37 @@ func TestObjectValueEqual(t *testing.T) {
 			),
 			expected: true,
 		},
+		"unknown-unknown-with-notnull-refinement": {
+			receiver: NewObjectUnknown(
+				map[string]attr.Type{
+					"string": StringType{},
+					"bool":   BoolType{},
+					"number": NumberType{},
+				},
+			),
+			arg: NewObjectUnknown(
+				map[string]attr.Type{
+					"string": StringType{},
+					"bool":   BoolType{},
+					"number": NumberType{},
+				}).RefineAsNotNull(),
+			expected: false,
+		},
+		"unknowns-with-matching-notnull-refinements": {
+			receiver: NewObjectUnknown(
+				map[string]attr.Type{
+					"string": StringType{},
+					"bool":   BoolType{},
+					"number": NumberType{},
+				}).RefineAsNotNull(),
+			arg: NewObjectUnknown(
+				map[string]attr.Type{
+					"string": StringType{},
+					"bool":   BoolType{},
+					"number": NumberType{},
+				}).RefineAsNotNull(),
+			expected: true,
+		},
 		"unknown-null": {
 			receiver: NewObjectUnknown(
 				map[string]attr.Type{
@@ -1712,6 +1779,10 @@ func TestObjectValueString(t *testing.T) {
 			input:       NewObjectUnknown(map[string]attr.Type{"test_attr": StringType{}}),
 			expectation: "<unknown>",
 		},
+		"unknown-with-notnull-refinement": {
+			input:       NewObjectUnknown(map[string]attr.Type{"test_attr": StringType{}}).RefineAsNotNull(),
+			expectation: "<unknown, not null>",
+		},
 		"null": {
 			input:       NewObjectNull(map[string]attr.Type{"test_attr": StringType{}}),
 			expectation: "<null>",
@@ -1835,6 +1906,65 @@ func TestObjectValueType(t *testing.T) {
 			got := test.input.Type(context.Background())
 			if !cmp.Equal(got, test.expectation) {
 				t.Errorf("Expected %q, got %q", test.expectation, got)
+			}
+		})
+	}
+}
+
+func TestObjectValue_NotNullRefinement(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		input           ObjectValue
+		expectedRefnVal refinement.Refinement
+		expectedFound   bool
+	}
+	tests := map[string]testCase{
+		"known-ignored": {
+			input: NewObjectValueMust(
+				map[string]attr.Type{
+					"test_attr": StringType{},
+				},
+				map[string]attr.Value{
+					"test_attr": NewStringValue("hello"),
+				}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"null-ignored": {
+			input:         NewObjectNull(map[string]attr.Type{"test_attr": StringType{}}).RefineAsNotNull(),
+			expectedFound: false,
+		},
+		"unknown-no-refinement": {
+			input:         NewObjectUnknown(map[string]attr.Type{"test_attr": StringType{}}),
+			expectedFound: false,
+		},
+		"unknown-with-notnull-refinement": {
+			input:           NewObjectUnknown(map[string]attr.Type{"test_attr": StringType{}}).RefineAsNotNull(),
+			expectedRefnVal: refinement.NewNotNull(),
+			expectedFound:   true,
+		},
+	}
+	for name, test := range tests {
+		name, test := name, test
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, found := test.input.NotNullRefinement()
+			if found != test.expectedFound {
+				t.Fatalf("Expected refinement exists to be: %t, got: %t", test.expectedFound, found)
+			}
+
+			if got == nil && test.expectedRefnVal == nil {
+				// Success!
+				return
+			}
+
+			if got == nil && test.expectedRefnVal != nil {
+				t.Fatalf("Expected refinement data: <%+v>, got: nil", test.expectedRefnVal)
+			}
+
+			if diff := cmp.Diff(*got, test.expectedRefnVal); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
 	}

@@ -13,11 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
-var _ ObjectValuable = &ObjectValue{}
+var (
+	_ ObjectValuable                  = &ObjectValue{}
+	_ attr.ValueWithNotNullRefinement = &ObjectValue{}
+)
 
 // ObjectValuable extends attr.Value for object value types.
 // Implement this interface to create a custom Object value type.
@@ -191,6 +196,10 @@ type ObjectValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // ObjectAsOptions is a collection of toggles to control the behavior of
@@ -292,7 +301,20 @@ func (o ObjectValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	case attr.ValueStateNull:
 		return tftypes.NewValue(objectType, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+		if len(o.refinements) == 0 {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range o.refinements {
+			switch refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			}
+		}
+		unknownVal := tftypes.NewValue(objectType, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", o.state))
 	}
@@ -309,6 +331,14 @@ func (o ObjectValue) Equal(c attr.Value) bool {
 	}
 
 	if o.state != other.state {
+		return false
+	}
+
+	if len(o.refinements) != len(other.refinements) {
+		return false
+	}
+
+	if len(o.refinements) > 0 && !o.refinements.Equal(other.refinements) {
 		return false
 	}
 
@@ -366,7 +396,11 @@ func (o ObjectValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (o ObjectValue) String() string {
 	if o.IsUnknown() {
-		return attr.UnknownValueString
+		if len(o.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", o.refinements.String())
 	}
 
 	if o.IsNull() {
@@ -397,4 +431,49 @@ func (o ObjectValue) String() string {
 // ToObjectValue returns the Object.
 func (o ObjectValue) ToObjectValue(context.Context) (ObjectValue, diag.Diagnostics) {
 	return o, nil
+}
+
+// RefineAsNotNull will return a new unknown ObjectValue that includes a value refinement that:
+//   - Indicates the object value will not be null once it becomes known.
+//
+// If the provided ObjectValue is null or known, then the ObjectValue will be returned unchanged.
+func (o ObjectValue) RefineAsNotNull() ObjectValue {
+	if !o.IsUnknown() {
+		return o
+	}
+
+	newRefinements := make(refinement.Refinements, len(o.refinements))
+	for i, refn := range o.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewObjectUnknown(o.AttributeTypes(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given ObjectValue. If a ObjectValue contains a NotNull refinement, this indicates
+// that the object is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (o ObjectValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !o.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := o.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
 }

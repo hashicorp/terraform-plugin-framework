@@ -64,7 +64,7 @@ func (v NumberValueWithValidateAttributeError) Equal(value attr.Value) bool {
 		return false
 	}
 
-	return v == other
+	return v.Equal(other)
 }
 
 func (v NumberValueWithValidateAttributeError) IsNull() bool {
@@ -92,7 +92,7 @@ func (t NumberTypeWithValidateAttributeWarning) Equal(o attr.Type) bool {
 	if !ok {
 		return false
 	}
-	return t == other
+	return t.NumberType.Equal(other.NumberType)
 }
 
 func (t NumberTypeWithValidateAttributeWarning) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
@@ -134,7 +134,7 @@ func (v NumberValueWithValidateAttributeWarning) Equal(value attr.Value) bool {
 		return false
 	}
 
-	return v.InternalNumber.Number.Equal(other.InternalNumber.Number)
+	return v.InternalNumber.Equal(other.InternalNumber)
 }
 
 func (v NumberValueWithValidateAttributeWarning) IsNull() bool {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestNumberTypeValueFromTerraform(t *testing.T) {
@@ -28,6 +29,34 @@ func TestNumberTypeValueFromTerraform(t *testing.T) {
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
 			expectation: NewNumberUnknown(),
+		},
+		"unknown-with-notnull-refinement": {
+			input: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expectation: NewNumberUnknown().RefineAsNotNull(),
+		},
+		"unknown-with-lowerbound-refinement": {
+			input: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberLowerBound: tfrefinement.NewNumberLowerBound(big.NewFloat(1.23), true),
+			}),
+			expectation: NewNumberUnknown().RefineWithLowerBound(big.NewFloat(1.23), true),
+		},
+		"unknown-with-upperbound-refinement": {
+			input: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberUpperBound: tfrefinement.NewNumberUpperBound(big.NewFloat(4.56), false),
+			}),
+			expectation: NewNumberUnknown().RefineWithUpperBound(big.NewFloat(4.56), false),
+		},
+		"unknown-with-both-bound-refinements": {
+			input: tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:         tfrefinement.NewNullness(false),
+				tfrefinement.KeyNumberLowerBound: tfrefinement.NewNumberLowerBound(big.NewFloat(1.23), true),
+				tfrefinement.KeyNumberUpperBound: tfrefinement.NewNumberUpperBound(big.NewFloat(4.56), false),
+			}),
+			expectation: NewNumberUnknown().RefineWithLowerBound(big.NewFloat(1.23), true).RefineWithUpperBound(big.NewFloat(4.56), false),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.Number, nil),
@@ -58,7 +87,7 @@ func TestNumberTypeValueFromTerraform(t *testing.T) {
 				// expectations, we're good
 				return
 			}
-			if err == nil && test.expectedErr != "" {
+			if test.expectedErr != "" {
 				t.Errorf("Expected error to be %q, didn't get an error", test.expectedErr)
 				return
 			}
@@ -72,5 +101,25 @@ func TestNumberTypeValueFromTerraform(t *testing.T) {
 				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
 			}
 		})
+	}
+}
+
+func TestNumberTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.Number, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewNumberNull()
+
+	got, err := NumberType{}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

@@ -6,6 +6,7 @@ package attr
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -68,4 +69,18 @@ type Value interface {
 	// logging and error reporting, as they are not protected by
 	// compatibility guarantees within the framework.
 	String() string
+}
+
+// ValueWithNotNullRefinement defines an interface describing a Value that can contain
+// a refinement that indicates the Value is unknown, but will not be null once it becomes known.
+//
+// This interface is implemented by all base value types except for DynamicValue, as dynamic types
+// in Terraform don't support value refinements.
+type ValueWithNotNullRefinement interface {
+	Value
+
+	// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+	// exists on the given Value. If a Value contains a NotNull refinement, this indicates that the value
+	// is unknown, but the eventual known value will not be null.
+	NotNullRefinement() (*refinement.NotNull, bool)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestMapTypeElementType(t *testing.T) {
@@ -174,6 +175,46 @@ func TestMapTypeValueFromTerraform(t *testing.T) {
 			}, tftypes.UnknownValue),
 			expected: NewMapUnknown(NumberType{}),
 		},
+		"unknown-with-notnull-refinement": {
+			receiver: MapType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expected: NewMapUnknown(StringType{}).RefineAsNotNull(),
+		},
+		"unknown-with-length-lowerbound-refinement": {
+			receiver: MapType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+			}),
+			expected: NewMapUnknown(StringType{}).RefineWithLengthLowerBound(5),
+		},
+		"unknown-with-length-upperbound-refinement": {
+			receiver: MapType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewMapUnknown(StringType{}).RefineWithLengthUpperBound(10),
+		},
+		"unknown-with-both-length-bound-refinements": {
+			receiver: MapType{
+				ElemType: StringType{},
+			},
+			input: tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:                   tfrefinement.NewNullness(false),
+				tfrefinement.KeyCollectionLengthLowerBound: tfrefinement.NewCollectionLengthLowerBound(5),
+				tfrefinement.KeyCollectionLengthUpperBound: tfrefinement.NewCollectionLengthUpperBound(10),
+			}),
+			expected: NewMapUnknown(StringType{}).RefineWithLengthLowerBound(5).RefineWithLengthUpperBound(10),
+		},
 		"null": {
 			receiver: MapType{
 				ElemType: NumberType{},
@@ -317,5 +358,25 @@ func TestMapTypeString(t *testing.T) {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})
+	}
+}
+
+func TestMapTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewMapNull(StringType{})
+
+	got, err := MapType{ElemType: StringType{}}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

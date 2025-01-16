@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 // NumberTypable extends attr.Type for number types.
@@ -62,7 +63,33 @@ func (t NumberType) ValueFromNumber(_ context.Context, v NumberValue) (NumberVal
 // consume the data with.
 func (t NumberType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
 	if !in.IsKnown() {
-		return NewNumberUnknown(), nil
+		unknownVal := NewNumberUnknown()
+		refinements := in.Refinements()
+
+		if len(refinements) == 0 {
+			return unknownVal, nil
+		}
+
+		for _, refn := range refinements {
+			switch refnVal := refn.(type) {
+			case tfrefinement.Nullness:
+				if !refnVal.Nullness() {
+					unknownVal = unknownVal.RefineAsNotNull()
+				} else {
+					// This scenario shouldn't occur, as Terraform should have already collapsed an
+					// unknown value with a definitely null refinement into a known null value. However,
+					// the protocol encoding does support this refinement value, so we'll also just collapse
+					// it into a known null value here.
+					return NewNumberNull(), nil
+				}
+			case tfrefinement.NumberLowerBound:
+				unknownVal = unknownVal.RefineWithLowerBound(refnVal.LowerBound(), refnVal.IsInclusive())
+			case tfrefinement.NumberUpperBound:
+				unknownVal = unknownVal.RefineWithUpperBound(refnVal.UpperBound(), refnVal.IsInclusive())
+			}
+		}
+
+		return unknownVal, nil
 	}
 
 	if in.IsNull() {

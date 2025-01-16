@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestStringTypeValueFromTerraform(t *testing.T) {
@@ -27,6 +28,19 @@ func TestStringTypeValueFromTerraform(t *testing.T) {
 		"unknown": {
 			input:       tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			expectation: NewStringUnknown(),
+		},
+		"unknown-with-notnull-refinement": {
+			input: tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expectation: NewStringUnknown().RefineAsNotNull(),
+		},
+		"unknown-with-prefix-refinement": {
+			input: tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness:     tfrefinement.NewNullness(false),
+				tfrefinement.KeyStringPrefix: tfrefinement.NewStringPrefix("hello://"),
+			}),
+			expectation: NewStringUnknown().RefineWithPrefix("hello://"),
 		},
 		"null": {
 			input:       tftypes.NewValue(tftypes.String, nil),
@@ -57,7 +71,7 @@ func TestStringTypeValueFromTerraform(t *testing.T) {
 				// expectations, we're good
 				return
 			}
-			if err == nil && test.expectedErr != "" {
+			if test.expectedErr != "" {
 				t.Errorf("Expected error to be %q, didn't get an error", test.expectedErr)
 				return
 			}
@@ -71,5 +85,25 @@ func TestStringTypeValueFromTerraform(t *testing.T) {
 				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expectation.IsUnknown(), !test.input.IsKnown())
 			}
 		})
+	}
+}
+
+func TestStringTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(tftypes.String, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewStringNull()
+
+	got, err := StringType{}.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 func TestTupleTypeEqual(t *testing.T) {
@@ -334,6 +335,17 @@ func TestTupleTypeValueFromTerraform(t *testing.T) {
 			}, tftypes.UnknownValue),
 			expected: NewTupleUnknown([]attr.Type{StringType{}, BoolType{}, DynamicType{}}),
 		},
+		"unknown-tuple-with-notnull-refinement": {
+			receiver: TupleType{
+				ElemTypes: []attr.Type{StringType{}, BoolType{}},
+			},
+			input: tftypes.NewValue(tftypes.Tuple{
+				ElementTypes: []tftypes.Type{tftypes.String, tftypes.Bool},
+			}, tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+				tfrefinement.KeyNullness: tfrefinement.NewNullness(false),
+			}),
+			expected: NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}).RefineAsNotNull(),
+		},
 		"partially-unknown-tuple": {
 			receiver: TupleType{
 				ElemTypes: []attr.Type{StringType{}, BoolType{}, DynamicType{}, DynamicType{}},
@@ -467,5 +479,29 @@ func TestTupleTypeValueFromTerraform(t *testing.T) {
 				t.Errorf("Expected unknown-ness match: expected %t, got %t", test.expected.IsUnknown(), !test.input.IsKnown())
 			}
 		})
+	}
+}
+
+func TestTupleTypeValueFromTerraform_RefinementNullCollapse(t *testing.T) {
+	t.Parallel()
+
+	receiver := TupleType{
+		ElemTypes: []attr.Type{StringType{}, BoolType{}},
+	}
+
+	// This shouldn't happen, but this test ensures that if we receive this kind of refinement, that we will
+	// convert it to a known null value.
+	input := tftypes.NewValue(receiver.TerraformType(context.Background()), tftypes.UnknownValue).Refine(tfrefinement.Refinements{
+		tfrefinement.KeyNullness: tfrefinement.NewNullness(true),
+	})
+	expectation := NewTupleNull(receiver.ElementTypes())
+
+	got, err := receiver.ValueFromTerraform(context.Background(), input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	if !got.Equal(expectation) {
+		t.Errorf("Expected %+v, got %+v", expectation, got)
 	}
 }

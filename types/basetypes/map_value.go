@@ -15,9 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
-var _ MapValuable = &MapValue{}
+var (
+	_ MapValuable                     = &MapValue{}
+	_ attr.ValueWithNotNullRefinement = &MapValue{}
+)
 
 // MapValuable extends attr.Value for map value types.
 // Implement this interface to create a custom Map value type.
@@ -164,6 +169,10 @@ type MapValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Elements returns a copy of the mapping of elements for the Map.
@@ -249,7 +258,24 @@ func (m MapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
 	case attr.ValueStateNull:
 		return tftypes.NewValue(mapType, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
+		if len(m.refinements) == 0 {
+			return tftypes.NewValue(mapType, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range m.refinements {
+			switch refnVal := refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			case refinement.CollectionLengthLowerBound:
+				unknownValRefinements[tfrefinement.KeyCollectionLengthLowerBound] = tfrefinement.NewCollectionLengthLowerBound(refnVal.LowerBound())
+			case refinement.CollectionLengthUpperBound:
+				unknownValRefinements[tfrefinement.KeyCollectionLengthUpperBound] = tfrefinement.NewCollectionLengthUpperBound(refnVal.UpperBound())
+			}
+		}
+		unknownVal := tftypes.NewValue(mapType, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Map state in ToTerraformValue: %s", m.state))
 	}
@@ -275,6 +301,14 @@ func (m MapValue) Equal(o attr.Value) bool {
 	}
 
 	if m.state != other.state {
+		return false
+	}
+
+	if len(m.refinements) != len(other.refinements) {
+		return false
+	}
+
+	if len(m.refinements) > 0 && !m.refinements.Equal(other.refinements) {
 		return false
 	}
 
@@ -314,7 +348,11 @@ func (m MapValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (m MapValue) String() string {
 	if m.IsUnknown() {
-		return attr.UnknownValueString
+		if len(m.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", m.refinements.String())
 	}
 
 	if m.IsNull() {
@@ -345,4 +383,145 @@ func (m MapValue) String() string {
 // ToMapValue returns the Map.
 func (m MapValue) ToMapValue(context.Context) (MapValue, diag.Diagnostics) {
 	return m, nil
+}
+
+// RefineAsNotNull will return a new unknown MapValue that includes a value refinement that:
+//   - Indicates the map value will not be null once it becomes known.
+//
+// If the provided MapValue is null or known, then the MapValue will be returned unchanged.
+func (m MapValue) RefineAsNotNull() MapValue {
+	if !m.IsUnknown() {
+		return m
+	}
+
+	newRefinements := make(refinement.Refinements, len(m.refinements))
+	for i, refn := range m.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewMapUnknown(m.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLengthLowerBound will return an unknown MapValue that includes a value refinement that:
+//   - Indicates the map value will not be null once it becomes known.
+//   - Indicates the length of the map value will be at least the int64 provided (lowerBound) once it becomes known.
+//
+// If the provided MapValue is null or known, then the MapValue will be returned unchanged.
+func (m MapValue) RefineWithLengthLowerBound(lowerBound int64) MapValue {
+	if !m.IsUnknown() {
+		return m
+	}
+
+	newRefinements := make(refinement.Refinements, len(m.refinements))
+	for i, refn := range m.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyCollectionLengthLowerBound] = refinement.NewCollectionLengthLowerBound(lowerBound)
+
+	newUnknownVal := NewMapUnknown(m.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// RefineWithLengthUpperBound will return an unknown MapValue that includes a value refinement that:
+//   - Indicates the map value will not be null once it becomes known.
+//   - Indicates the length of the map value will be at most the int64 provided (upperBound) once it becomes known.
+//
+// If the provided MapValue is null or known, then the MapValue will be returned unchanged.
+func (m MapValue) RefineWithLengthUpperBound(upperBound int64) MapValue {
+	if !m.IsUnknown() {
+		return m
+	}
+
+	newRefinements := make(refinement.Refinements, len(m.refinements))
+	for i, refn := range m.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+	newRefinements[refinement.KeyCollectionLengthUpperBound] = refinement.NewCollectionLengthUpperBound(upperBound)
+
+	newUnknownVal := NewMapUnknown(m.ElementType(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given MapValue. If a MapValue contains a NotNull refinement, this indicates
+// that the map is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (m MapValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !m.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := m.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
+}
+
+// LengthLowerBoundRefinement returns value refinement data and a boolean indicating if a CollectionLengthLowerBound refinement
+// exists on the given MapValue. If a MapValue contains a CollectionLengthLowerBound refinement, this indicates that
+// the map value is unknown, but the eventual known map will have a length of at least the specified int64 value once it
+// becomes known. The returned boolean should be checked before accessing refinement data.
+//
+// A CollectionLengthLowerBound value refinement can be added to an unknown value via the `RefineWithLengthLowerBound` method.
+func (m MapValue) LengthLowerBoundRefinement() (*refinement.CollectionLengthLowerBound, bool) {
+	if !m.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := m.refinements[refinement.KeyCollectionLengthLowerBound]
+	if !ok {
+		return nil, false
+	}
+
+	lowerBoundRefn, ok := refn.(refinement.CollectionLengthLowerBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &lowerBoundRefn, true
+}
+
+// LengthUpperBoundRefinement returns value refinement data and a boolean indicating if a CollectionLengthUpperBound refinement
+// exists on the given MapValue. If a MapValue contains a CollectionLengthUpperBound refinement, this indicates that
+// the map value is unknown, but the eventual known map will have a length at most the specified int64 value once it
+// becomes known. The returned boolean should be checked before accessing refinement data.
+//
+// A CollectionLengthUpperBound value refinement can be added to an unknown value via the `RefineWithLengthUpperBound` method.
+func (m MapValue) LengthUpperBoundRefinement() (*refinement.CollectionLengthUpperBound, bool) {
+	if !m.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := m.refinements[refinement.KeyCollectionLengthUpperBound]
+	if !ok {
+		return nil, false
+	}
+
+	upperBoundRefn, ok := refn.(refinement.CollectionLengthUpperBound)
+	if !ok {
+		return nil, false
+	}
+
+	return &upperBoundRefn, true
 }

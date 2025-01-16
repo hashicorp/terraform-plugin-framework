@@ -10,10 +10,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
-var _ attr.Value = TupleValue{}
+var (
+	_ attr.Value                      = TupleValue{}
+	_ attr.ValueWithNotNullRefinement = TupleValue{}
+)
 
 // NewTupleNull creates a Tuple with a null value.
 func NewTupleNull(elementTypes []attr.Type) TupleValue {
@@ -120,6 +125,10 @@ type TupleValue struct {
 	// state represents whether the value is null, unknown, or known. The
 	// zero-value is null.
 	state attr.ValueState
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Elements returns a copy of the ordered list of known values for the Tuple.
@@ -159,6 +168,14 @@ func (v TupleValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if len(v.refinements) != len(other.refinements) {
+		return false
+	}
+
+	if len(v.refinements) > 0 && !v.refinements.Equal(other.refinements) {
+		return false
+	}
+
 	if v.state != attr.ValueStateKnown {
 		return true
 	}
@@ -192,7 +209,11 @@ func (v TupleValue) IsUnknown() bool {
 // compatibility guarantees, and is intended for logging and error reporting.
 func (v TupleValue) String() string {
 	if v.IsUnknown() {
-		return attr.UnknownValueString
+		if len(v.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", v.refinements.String())
 	}
 
 	if v.IsNull() {
@@ -247,8 +268,66 @@ func (v TupleValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tupleType, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tupleType, tftypes.UnknownValue), nil
+		if len(v.refinements) == 0 {
+			return tftypes.NewValue(tupleType, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range v.refinements {
+			switch refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			}
+		}
+		unknownVal := tftypes.NewValue(tupleType, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Tuple state in ToTerraformValue: %s", v.state))
 	}
+}
+
+// RefineAsNotNull will return a new unknown TupleValue that includes a value refinement that:
+//   - Indicates the tuple value will not be null once it becomes known.
+//
+// If the provided TupleValue is null or known, then the TupleValue will be returned unchanged.
+func (v TupleValue) RefineAsNotNull() TupleValue {
+	if !v.IsUnknown() {
+		return v
+	}
+
+	newRefinements := make(refinement.Refinements, len(v.refinements))
+	for i, refn := range v.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewTupleUnknown(v.ElementTypes(context.Background()))
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given TupleValue. If a TupleValue contains a NotNull refinement, this indicates
+// that the tuple is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (v TupleValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !v.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := v.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
 }

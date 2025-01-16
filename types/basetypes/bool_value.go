@@ -9,12 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/refinement"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	tfrefinement "github.com/hashicorp/terraform-plugin-go/tftypes/refinement"
 )
 
 var (
-	_ BoolValuable = BoolValue{}
+	_ BoolValuable                    = BoolValue{}
+	_ attr.ValueWithNotNullRefinement = BoolValue{}
 )
 
 // BoolValuable extends attr.Value for boolean value types.
@@ -84,6 +87,10 @@ type BoolValue struct {
 
 	// value contains the known value, if not null or unknown.
 	value bool
+
+	// refinements represents the unknown value refinement data associated with this Value.
+	// This field is only populated for unknown values.
+	refinements refinement.Refinements
 }
 
 // Type returns a BoolType.
@@ -103,7 +110,20 @@ func (b BoolValue) ToTerraformValue(_ context.Context) (tftypes.Value, error) {
 	case attr.ValueStateNull:
 		return tftypes.NewValue(tftypes.Bool, nil), nil
 	case attr.ValueStateUnknown:
-		return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), nil
+		if len(b.refinements) == 0 {
+			return tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), nil
+		}
+
+		unknownValRefinements := make(tfrefinement.Refinements, 0)
+		for _, refn := range b.refinements {
+			switch refn.(type) {
+			case refinement.NotNull:
+				unknownValRefinements[tfrefinement.KeyNullness] = tfrefinement.NewNullness(false)
+			}
+		}
+		unknownVal := tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue)
+
+		return unknownVal.Refine(unknownValRefinements), nil
 	default:
 		panic(fmt.Sprintf("unhandled Bool state in ToTerraformValue: %s", b.state))
 	}
@@ -118,6 +138,14 @@ func (b BoolValue) Equal(other attr.Value) bool {
 	}
 
 	if b.state != o.state {
+		return false
+	}
+
+	if len(b.refinements) != len(o.refinements) {
+		return false
+	}
+
+	if len(b.refinements) > 0 && !b.refinements.Equal(o.refinements) {
 		return false
 	}
 
@@ -143,7 +171,11 @@ func (b BoolValue) IsUnknown() bool {
 // and is intended for logging and error reporting.
 func (b BoolValue) String() string {
 	if b.IsUnknown() {
-		return attr.UnknownValueString
+		if len(b.refinements) == 0 {
+			return attr.UnknownValueString
+		}
+
+		return fmt.Sprintf("<unknown, %s>", b.refinements.String())
 	}
 
 	if b.IsNull() {
@@ -172,4 +204,49 @@ func (b BoolValue) ValueBoolPointer() *bool {
 // ToBoolValue returns Bool.
 func (b BoolValue) ToBoolValue(context.Context) (BoolValue, diag.Diagnostics) {
 	return b, nil
+}
+
+// RefineAsNotNull will return a new unknown BoolValue that includes a value refinement that:
+//   - Indicates the bool value will not be null once it becomes known.
+//
+// If the provided BoolValue is null or known, then the BoolValue will be returned unchanged.
+func (b BoolValue) RefineAsNotNull() BoolValue {
+	if !b.IsUnknown() {
+		return b
+	}
+
+	newRefinements := make(refinement.Refinements, len(b.refinements))
+	for i, refn := range b.refinements {
+		newRefinements[i] = refn
+	}
+
+	newRefinements[refinement.KeyNotNull] = refinement.NewNotNull()
+
+	newUnknownVal := NewBoolUnknown()
+	newUnknownVal.refinements = newRefinements
+
+	return newUnknownVal
+}
+
+// NotNullRefinement returns value refinement data and a boolean indicating if a NotNull refinement
+// exists on the given BoolValue. If a BoolValue contains a NotNull refinement, this indicates
+// that the bool is unknown, but the eventual known value will not be null.
+//
+// A NotNull value refinement can be added to an unknown value via the `RefineAsNotNull` method.
+func (b BoolValue) NotNullRefinement() (*refinement.NotNull, bool) {
+	if !b.IsUnknown() {
+		return nil, false
+	}
+
+	refn, ok := b.refinements[refinement.KeyNotNull]
+	if !ok {
+		return nil, false
+	}
+
+	notNullRefn, ok := refn.(refinement.NotNull)
+	if !ok {
+		return nil, false
+	}
+
+	return &notNullRefn, true
 }

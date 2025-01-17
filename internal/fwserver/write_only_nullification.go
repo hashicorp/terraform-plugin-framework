@@ -15,6 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
+// NullifyWriteOnlyAttributes transforms a tftypes.Value, setting all write-only attribute values
+// to null according to the given managed resource schema. This function is called in all managed
+// resource RPCs before a response is sent to Terraform Core. Terraform Core expects all write-only
+// attribute values to be null to prevent data consistency errors. This can technically be done
+// manually by the provider developers, but the Framework is handling it instead for convenience.
 func NullifyWriteOnlyAttributes(ctx context.Context, resourceSchema fwschema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
 		ctx = logging.FrameworkWithAttributePath(ctx, path.String())
@@ -51,7 +56,7 @@ func NullifyWriteOnlyAttributes(ctx context.Context, resourceSchema fwschema.Sch
 		}
 
 		// Value type from new state to create null with
-		newValueType := val.Type()
+		newValueType := attribute.GetType().TerraformType(ctx)
 
 		// If the attribute is dynamic set the new value type to DynamicPseudoType
 		// instead of the underlying concrete type

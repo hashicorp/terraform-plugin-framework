@@ -129,7 +129,7 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 	updatedElements := false
 
 	// The underlying loop will mutate priorValueElements to avoid keeping
-	// duplicate semantically equal elements. Need the original length to avoid panicks
+	// duplicate semantically equal elements. Need the original length to avoid a panic
 	originalPriorElementsLength := len(priorValueElements)
 
 	// Loop through proposed elements by delegating to the recursive semantic

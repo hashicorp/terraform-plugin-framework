@@ -118,7 +118,7 @@ func (v StringValueWithSemanticEquals) Equal(o attr.Value) bool {
 }
 
 func (v StringValueWithSemanticEquals) StringSemanticEquals(ctx context.Context, otherV basetypes.StringValuable) (bool, diag.Diagnostics) {
-	if v.SemanticallyEqualTo != nil {
+	if v.SemanticallyEqualTo != nil && !v.SemanticallyEqualTo.IsNull() {
 		return v.SemanticallyEqualTo.Equal(otherV), v.SemanticEqualsDiagnostics
 	}
 	return v.SemanticEquals, v.SemanticEqualsDiagnostics

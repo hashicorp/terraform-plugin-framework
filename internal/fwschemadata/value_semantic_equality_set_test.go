@@ -50,6 +50,34 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 				),
 			},
 		},
+		"SetValue-diff-order": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("prior"),
+						types.StringValue("value"),
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("value"),
+						types.StringValue("new"),
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					types.StringType,
+					[]attr.Value{
+						types.StringValue("value"),
+						types.StringValue("new"),
+					},
+				),
+			},
+		},
 		// ElementType with semantic equality
 		"SetValue-StringValuableWithSemanticEquals-true": {
 			request: fwschemadata.ValueSemanticEqualityRequest{
@@ -91,6 +119,64 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 				),
 			},
 		},
+		"SetValue-StringValuableWithSemanticEquals-true-diff-order": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("keep-lowercase-123"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+							},
+						},
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("keep-lowercase-456"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+							},
+						},
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("keep-lowercase-456"),
+							},
+						},
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("keep-lowercase-123"),
+							},
+						},
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("keep-lowercase-123"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+							},
+						},
+						testtypes.StringValueWithSemanticEquals{
+							StringValue: types.StringValue("keep-lowercase-456"),
+							SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+								StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+							},
+						},
+					},
+				),
+			},
+		},
 		"SetValue-StringValuableWithSemanticEquals-false": {
 			request: fwschemadata.ValueSemanticEqualityRequest{
 				Path: path.Root("test"),
@@ -123,6 +209,58 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 						SemanticEquals: false,
 					},
 					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("new"),
+							SemanticEquals: false,
+						},
+					},
+				),
+			},
+		},
+		"SetValue-StringValuableWithSemanticEquals-false-diff-order": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{
+						SemanticEquals: false,
+					},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("prior"),
+							SemanticEquals: false,
+						},
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("value"),
+							SemanticEquals: false,
+						},
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{
+						SemanticEquals: false,
+					},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("value"),
+							SemanticEquals: false,
+						},
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("new"),
+							SemanticEquals: false,
+						},
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					testtypes.StringTypeWithSemanticEquals{
+						SemanticEquals: false,
+					},
+					[]attr.Value{
+						testtypes.StringValueWithSemanticEquals{
+							StringValue:    types.StringValue("value"),
+							SemanticEquals: false,
+						},
 						testtypes.StringValueWithSemanticEquals{
 							StringValue:    types.StringValue("new"),
 							SemanticEquals: false,
@@ -267,6 +405,136 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 				),
 			},
 		},
+		"SetValue-SetValue-StringValuableWithSemanticEquals-true-diff-order": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-123"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-456"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+									},
+								},
+							},
+						),
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-789"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-789"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-012"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-012"),
+									},
+								},
+							},
+						),
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("KEEP-LOWERCASE-012"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("keep-lowercase-012"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("KEEP-LOWERCASE-789"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("keep-lowercase-789"),
+									},
+								},
+							},
+						),
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("keep-lowercase-456"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("keep-lowercase-123"),
+									},
+								},
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-123"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-123"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-456"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-456"),
+									},
+								},
+							},
+						),
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-789"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-789"),
+									},
+								},
+								testtypes.StringValueWithSemanticEquals{
+									StringValue: types.StringValue("keep-lowercase-012"),
+									SemanticallyEqualTo: testtypes.StringValueWithSemanticEquals{
+										StringValue: types.StringValue("KEEP-LOWERCASE-012"),
+									},
+								},
+							},
+						),
+					},
+				),
+			},
+		},
 		"SetValue-SetValue-StringValuableWithSemanticEquals-false": {
 			request: fwschemadata.ValueSemanticEqualityRequest{
 				Path: path.Root("test"),
@@ -319,6 +587,106 @@ func TestValueSemanticEqualitySet(t *testing.T) {
 						},
 					},
 					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new"),
+									SemanticEquals: false,
+								},
+							},
+						),
+					},
+				),
+			},
+		},
+		"SetValue-SetValue-StringValuableWithSemanticEquals-false-diff-order": {
+			request: fwschemadata.ValueSemanticEqualityRequest{
+				Path: path.Root("test"),
+				PriorValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: false,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("prior"),
+									SemanticEquals: false,
+								},
+							},
+						),
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("value"),
+									SemanticEquals: false,
+								},
+							},
+						),
+					},
+				),
+				ProposedNewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: false,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("value"),
+									SemanticEquals: false,
+								},
+							},
+						),
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("new"),
+									SemanticEquals: false,
+								},
+							},
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.ValueSemanticEqualityResponse{
+				NewValue: types.SetValueMust(
+					types.SetType{
+						ElemType: testtypes.StringTypeWithSemanticEquals{
+							SemanticEquals: false,
+						},
+					},
+					[]attr.Value{
+						types.SetValueMust(
+							testtypes.StringTypeWithSemanticEquals{
+								SemanticEquals: false,
+							},
+							[]attr.Value{
+								testtypes.StringValueWithSemanticEquals{
+									StringValue:    types.StringValue("value"),
+									SemanticEquals: false,
+								},
+							},
+						),
 						types.SetValueMust(
 							testtypes.StringTypeWithSemanticEquals{
 								SemanticEquals: false,

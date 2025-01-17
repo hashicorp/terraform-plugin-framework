@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -25,11 +24,11 @@ var (
 type StringTypeWithSemanticEquals struct {
 	basetypes.StringType
 
-	// Will always return true for semantic equality
+	// Will always return this boolean for semantic equality
 	SemanticEquals bool
 
-	// Will only return semantic equality as true if the string matches this
-	SemanticallyEqualTo types.String
+	// Will only return semantic equality as true if the attr.Value matches this
+	SemanticallyEqualTo attr.Value
 
 	SemanticEqualsDiagnostics diag.Diagnostics
 }
@@ -98,10 +97,10 @@ func (t StringTypeWithSemanticEquals) ValueType(ctx context.Context) attr.Value 
 type StringValueWithSemanticEquals struct {
 	basetypes.StringValue
 
-	// Will always return true for semantic equality
+	// Will always return this boolean for semantic equality
 	SemanticEquals bool
 
-	// Will only return semantic equality as true if the string matches this
+	// Will only return semantic equality as true if the attr.Value matches this
 	SemanticallyEqualTo attr.Value
 
 	SemanticEqualsDiagnostics diag.Diagnostics

@@ -145,10 +145,10 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 		}
 
 		// Loop through all prior value elements and see if there are any semantically equal elements
-		for pIdx, priorValue := range priorValueElements {
+		for pIdx, priorValueElement := range priorValueElements {
 			elementReq := ValueSemanticEqualityRequest{
 				Path:             req.Path.AtSetValue(proposedNewValueElement),
-				PriorValue:       priorValue,
+				PriorValue:       priorValueElement,
 				ProposedNewValue: proposedNewValueElement,
 			}
 			elementResp := &ValueSemanticEqualityResponse{

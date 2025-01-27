@@ -1,10 +1,11 @@
 ---
-page_title: 'Plugin Development - Framework: Configure Resources'
+page_title: Configure resources
 description: >-
-  How to configure resources with provider data or clients in the provider development framework.
+  Learn how to implement resource configuration with provider or client data in
+  the Terraform plugin framework.
 ---
 
-# Configure Resources
+# Configure resources
 
 [Resources](/terraform/plugin/framework/resources) may require provider-level data or remote system clients to operate correctly. The framework supports the ability to configure this data and/or clients once within the provider, then pass that information to resources by adding the `Configure` method.
 

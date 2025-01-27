@@ -1,11 +1,12 @@
 ---
-page_title: 'Plugin Development - Framework: Provider Servers'
+page_title: Provider servers
 description: >-
-  How to implement a provider server in the provider development framework.
-  Provider servers are plugins that allow Terraform to interact with APIs.
+  Learn how to implement a provider server in the Terraform plugin
+  framework. Provider servers are plugins that allow Terraform to interact with
+  APIs.
 ---
 
-# Provider Servers
+# Provider servers
 
 Before a [provider](/terraform/plugin/framework/providers) can be used with Terraform, it must implement a [gRPC server](https://grpc.io) that supports Terraform-specific connection and handshake handling on startup. The server must then implement the [Terraform Plugin Protocol](/terraform/plugin/how-terraform-works#terraform-plugin-protocol).
 

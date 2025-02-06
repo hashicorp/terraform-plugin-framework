@@ -1,11 +1,11 @@
 ---
-page_title: 'Plugin Development - Framework: Function Errors'
-description: |-
-  How to return function errors from the Terraform provider development
-  framework.
+page_title: Returning errors from functions
+description: >-
+  Learn how to return errors from provider-defined functions with the Terraform
+  plugin framework.
 ---
 
-# Returning Function Errors
+# Returning errors from function
 
 Providers use [`FuncError`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/function#FuncError) to
 surface a practitioner-facing error generated during execution of provider-defined functions. These errors are

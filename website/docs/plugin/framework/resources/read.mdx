@@ -1,10 +1,10 @@
 ---
-page_title: 'Plugin Development - Framework: Read Resources'
+page_title: Read resources
 description: >-
-  How to implement resource read in the provider development framework.
+  Learn how to implement resource read in the Terraform plugin framework.
 ---
 
-# Read Resources
+# Read resources
 
 Read (refresh) is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply`](/terraform/cli/commands/apply), [`terraform plan`](/terraform/cli/commands/plan), and [`terraform refresh`](/terraform/cli/commands/refresh) commands, Terraform calls the provider [`ReadResource`](/terraform/plugin/framework/internals/rpcs#readresource-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Read` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Read). The `Read` method is also executed after [resource import](/terraform/plugin/framework/resources/import). The request contains Terraform prior state data. The response contains the refreshed state data. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.
 

@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // NullifyWriteOnlyAttributes transforms a tftypes.Value, setting all write-only attribute values
@@ -57,14 +56,6 @@ func NullifyWriteOnlyAttributes(ctx context.Context, resourceSchema fwschema.Sch
 
 		// Value type from new state to create null with
 		newValueType := attribute.GetType().TerraformType(ctx)
-
-		// If the attribute is dynamic set the new value type to DynamicPseudoType
-		// instead of the underlying concrete type
-		// TODO: verify if this is the correct behavior once Terraform Core implementation is complete
-		_, isDynamic := attribute.GetType().(basetypes.DynamicTypable)
-		if isDynamic {
-			newValueType = tftypes.DynamicPseudoType
-		}
 
 		if attribute.IsWriteOnly() && !val.IsNull() {
 			logging.FrameworkDebug(ctx, "Nullifying write-only attribute in the newState")

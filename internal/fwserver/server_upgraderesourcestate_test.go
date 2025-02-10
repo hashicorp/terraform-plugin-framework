@@ -42,6 +42,23 @@ func TestServerUpgradeResourceState(t *testing.T) {
 	}
 	schemaType := testSchema.Type().TerraformType(ctx)
 
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"write_only_attribute": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"required_attribute": schema.StringAttribute{
+				Required: true,
+			},
+		},
+		Version: 1, // Must be above 0
+	}
+	schemaTypeWriteOnly := testSchemaWriteOnly.Type().TerraformType(ctx)
+
 	testCases := map[string]struct {
 		server           *fwserver.Server
 		request          *fwserver.UpgradeResourceStateRequest
@@ -342,6 +359,71 @@ func TestServerUpgradeResourceState(t *testing.T) {
 				},
 			},
 		},
+		"RawState-DynamicValue-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				ResourceSchema: testSchemaWriteOnly,
+				Resource: &testprovider.ResourceWithUpgradeState{
+					Resource: &testprovider.Resource{},
+					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
+						return map[int64]resource.StateUpgrader{
+							0: {
+								StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+									var rawState struct {
+										Id                string `json:"id"`
+										RequiredAttribute bool   `json:"required_attribute"`
+									}
+
+									if err := json.Unmarshal(req.RawState.JSON, &rawState); err != nil {
+										resp.Diagnostics.AddError(
+											"Unable to Unmarshal Prior State",
+											err.Error(),
+										)
+										return
+									}
+
+									dynamicValue, err := tfprotov6.NewDynamicValue(
+										schemaTypeWriteOnly,
+										tftypes.NewValue(schemaTypeWriteOnly, map[string]tftypes.Value{
+											"id":                   tftypes.NewValue(tftypes.String, rawState.Id),
+											"write_only_attribute": tftypes.NewValue(tftypes.String, "write-only-dynamic-value"),
+											"required_attribute":   tftypes.NewValue(tftypes.String, fmt.Sprintf("%t", rawState.RequiredAttribute)),
+										}),
+									)
+
+									if err != nil {
+										resp.Diagnostics.AddError(
+											"Unable to Create Upgraded State",
+											err.Error(),
+										)
+										return
+									}
+
+									resp.DynamicValue = &dynamicValue
+								},
+							},
+						}
+					},
+				},
+				Version: 0,
+			},
+			expectedResponse: &fwserver.UpgradeResourceStateResponse{
+				UpgradedState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaTypeWriteOnly, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "test-id-value"),
+						"write_only_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute":   tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+			},
+		},
 		"ResourceType-UpgradeState-not-implemented": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -514,6 +596,72 @@ func TestServerUpgradeResourceState(t *testing.T) {
 						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 					}),
 					Schema: testSchema,
+				},
+			},
+		},
+		"PriorSchema-and-State-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpgradeResourceStateRequest{
+				RawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				ResourceSchema: testSchemaWriteOnly,
+				Resource: &testprovider.ResourceWithUpgradeState{
+					Resource: &testprovider.Resource{},
+					UpgradeStateMethod: func(ctx context.Context) map[int64]resource.StateUpgrader {
+						return map[int64]resource.StateUpgrader{
+							0: {
+								PriorSchema: &schema.Schema{
+									Attributes: map[string]schema.Attribute{
+										"id": schema.StringAttribute{
+											Computed: true,
+										},
+										"required_attribute": schema.BoolAttribute{
+											Required: true,
+										},
+									},
+								},
+								StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+									var priorStateData struct {
+										Id                string `tfsdk:"id"`
+										RequiredAttribute bool   `tfsdk:"required_attribute"`
+									}
+
+									resp.Diagnostics.Append(req.State.Get(ctx, &priorStateData)...)
+
+									if resp.Diagnostics.HasError() {
+										return
+									}
+
+									upgradedStateData := struct {
+										Id                 string `tfsdk:"id"`
+										WriteOnlyAttribute string `tfsdk:"write_only_attribute"`
+										RequiredAttribute  string `tfsdk:"required_attribute"`
+									}{
+										Id:                 priorStateData.Id,
+										WriteOnlyAttribute: "write-only-upgraded-state",
+										RequiredAttribute:  fmt.Sprintf("%t", priorStateData.RequiredAttribute),
+									}
+
+									resp.Diagnostics.Append(resp.State.Set(ctx, upgradedStateData)...)
+								},
+							},
+						}
+					},
+				},
+				Version: 0,
+			},
+			expectedResponse: &fwserver.UpgradeResourceStateResponse{
+				UpgradedState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaTypeWriteOnly, map[string]tftypes.Value{
+						"id":                   tftypes.NewValue(tftypes.String, "test-id-value"),
+						"write_only_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute":   tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchemaWriteOnly,
 				},
 			},
 		},

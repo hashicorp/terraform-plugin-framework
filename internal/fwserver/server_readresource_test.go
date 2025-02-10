@@ -34,9 +34,21 @@ func TestServerReadResource(t *testing.T) {
 		},
 	}
 
+	testTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_write_only": tftypes.String,
+			"test_required":   tftypes.String,
+		},
+	}
+
 	testCurrentStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
 		"test_computed": tftypes.NewValue(tftypes.String, nil),
 		"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
+	})
+
+	testCurrentStateValueWriteOnly := tftypes.NewValue(testTypeWriteOnly, map[string]tftypes.Value{
+		"test_write_only": tftypes.NewValue(tftypes.String, nil),
+		"test_required":   tftypes.NewValue(tftypes.String, "test-currentstate-value"),
 	})
 
 	testNewStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
@@ -48,6 +60,18 @@ func TestServerReadResource(t *testing.T) {
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
 				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_write_only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
@@ -95,6 +119,11 @@ func TestServerReadResource(t *testing.T) {
 	testCurrentState := &tfsdk.State{
 		Raw:    testCurrentStateValue,
 		Schema: testSchema,
+	}
+
+	testCurrentStateWriteOnly := &tfsdk.State{
+		Raw:    testCurrentStateValueWriteOnly,
+		Schema: testSchemaWriteOnly,
 	}
 
 	testNewState := &tfsdk.State{
@@ -558,6 +587,38 @@ func TestServerReadResource(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
 					}),
 					Schema: testSchemaWithSemanticEquals,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-state-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentStateWriteOnly,
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						var data struct {
+							TestWriteOnly types.String `tfsdk:"test_write_only"`
+							TestRequired  types.String `tfsdk:"test_required"`
+						}
+
+						resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+						data.TestWriteOnly = types.StringValue("test-write-only-value")
+
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testTypeWriteOnly, map[string]tftypes.Value{
+						"test_write_only": tftypes.NewValue(tftypes.String, nil),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-currentstate-value"),
+					}),
+					Schema: testSchemaWriteOnly,
 				},
 				Private: testEmptyPrivate,
 			},

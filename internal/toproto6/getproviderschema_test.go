@@ -278,6 +278,38 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
 			},
 		},
+		"data-source-attribute-write-only": {
+			input: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]fwschema.Schema{
+					"test_data_source": datasourceschema.Schema{
+						Attributes: map[string]datasourceschema.Attribute{
+							"test_attribute": datasourceschema.BoolAttribute{
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov6.Schema{
+					"test_data_source": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Computed:  true,
+									Name:      "test_attribute",
+									WriteOnly: false,
+									Type:      tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+				Functions:                map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+			},
+		},
 		"data-source-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
@@ -2526,6 +2558,35 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ResourceSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
+		"provider-attribute-write-only": {
+			input: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{
+					Attributes: map[string]providerschema.Attribute{
+						"test_attribute": providerschema.BoolAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name:      "test_attribute",
+								Optional:  true,
+								WriteOnly: false,
+								Type:      tftypes.Bool,
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
 		"provider-attribute-type-bool": {
 			input: &fwserver.GetProviderSchemaResponse{
 				Provider: providerschema.Schema{
@@ -4175,6 +4236,39 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									Computed:  true,
 									Name:      "test_attribute",
 									Sensitive: true,
+									Type:      tftypes.Bool,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"resource-attribute-write-only": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test_attribute": resourceschema.BoolAttribute{
+								Optional:  true,
+								WriteOnly: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ResourceSchemas: map[string]*tfprotov6.Schema{
+					"test_resource": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Optional:  true,
+									Name:      "test_attribute",
+									WriteOnly: true,
 									Type:      tftypes.Bool,
 								},
 							},

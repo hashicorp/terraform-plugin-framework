@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -15,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestValidateResourceConfigRequest(t *testing.T) {
@@ -82,6 +83,39 @@ func TestValidateResourceConfigRequest(t *testing.T) {
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ValidateResourceConfigRequest{
+				Config: &tfsdk.Config{
+					Raw:    testProto6Value,
+					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities": {
+			input: &tfprotov6.ValidateResourceConfigRequest{
+				Config: &testProto6DynamicValue,
+				ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: resource.ValidateConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				Config: &tfsdk.Config{
+					Raw:    testProto6Value,
+					Schema: testFwSchema,
+				},
+			},
+		},
+		"client-capabilities-not-set": {
+			input: &tfprotov6.ValidateResourceConfigRequest{
+				Config: &testProto6DynamicValue,
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.ValidateResourceConfigRequest{
+				ClientCapabilities: resource.ValidateConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: false,
+				},
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
 					Schema: testFwSchema,

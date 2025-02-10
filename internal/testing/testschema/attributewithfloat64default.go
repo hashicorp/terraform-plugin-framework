@@ -22,6 +22,7 @@ type AttributeWithFloat64DefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.Float64
 }
 
@@ -84,4 +85,9 @@ func (a AttributeWithFloat64DefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat64DefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat64DefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

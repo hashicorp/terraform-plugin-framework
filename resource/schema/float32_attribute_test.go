@@ -512,6 +512,40 @@ func TestFloat32AttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestFloat32AttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Float32Attribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.Float32Attribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.Float32Attribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestFloat32AttributeValidateImplementation(t *testing.T) {
 	t.Parallel()
 

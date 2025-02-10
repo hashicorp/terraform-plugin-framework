@@ -22,6 +22,7 @@ type AttributeWithStringDefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.String
 }
 
@@ -84,4 +85,9 @@ func (a AttributeWithStringDefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithStringDefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithStringDefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

@@ -4,12 +4,13 @@
 package testschema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ fwxschema.AttributeWithSetPlanModifiers = AttributeWithSetPlanModifiers{}
@@ -23,6 +24,7 @@ type AttributeWithSetPlanModifiers struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	PlanModifiers       []planmodifier.Set
 }
 
@@ -82,6 +84,11 @@ func (a AttributeWithSetPlanModifiers) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithSetPlanModifiers) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithSetPlanModifiers) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // SetPlanModifiers satisfies the fwxschema.AttributeWithSetPlanModifiers interface.

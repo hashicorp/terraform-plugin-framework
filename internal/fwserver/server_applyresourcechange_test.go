@@ -59,6 +59,31 @@ func TestServerApplyResourceChange(t *testing.T) {
 		TestRequired types.String `tfsdk:"test_required"`
 	}
 
+	testSchemaTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_optional_write_only": tftypes.String,
+			"test_required_write_only": tftypes.String,
+		},
+	}
+
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_optional_write_only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"test_required_write_only": schema.StringAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+		},
+	}
+
+	type testSchemaDataWriteOnly struct {
+		TestOptionalWriteOnly types.String `tfsdk:"test_optional_write_only"`
+		TestRequiredWriteOnly types.String `tfsdk:"test_required_write_only"`
+	}
+
 	testProviderMetaType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_provider_meta_attribute": tftypes.String,
@@ -396,6 +421,53 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 				NewState: testEmptyState,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"create-response-newstate-write-only": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PriorState:     testEmptyState,
+				ResourceSchema: testSchemaWriteOnly,
+				Resource: &testprovider.Resource{
+					CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+						var data testSchemaDataWriteOnly
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+					DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+						resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+					},
+					UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+						resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, nil),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"create-response-private": {
@@ -1257,6 +1329,59 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 				NewState: testEmptyState,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"update-response-newstate-write-only-nullification": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, "old-optional-value"),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				ResourceSchema: testSchemaWriteOnly,
+				Resource: &testprovider.Resource{
+					CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+						resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+					},
+					DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+						resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+					},
+					UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+						var data testSchemaDataWriteOnly
+
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_optional_write_only": tftypes.NewValue(tftypes.String, nil),
+						"test_required_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"update-response-private": {

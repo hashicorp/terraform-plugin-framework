@@ -512,6 +512,40 @@ func TestInt64AttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestInt64AttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Int64Attribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.Int64Attribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.Int64Attribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestInt64AttributeValidateImplementation(t *testing.T) {
 	t.Parallel()
 

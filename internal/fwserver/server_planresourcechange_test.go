@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -360,6 +361,305 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 	}
 	if len(diff) > 0 {
 		t.Errorf("Unexpected diff (value1 expected, value2 got): %v", diff)
+	}
+}
+
+func TestRequiredWriteOnlyNilsAttributePath(t *testing.T) {
+	t.Parallel()
+
+	s := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"string-value": schema.StringAttribute{
+				Required: true,
+			},
+			"string-nil-optional-writeonly": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"string-value-optional-writeonly": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"string-nil-required-writeonly": schema.StringAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+			"string-value-required-writeonly": schema.StringAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+			"list-value": schema.ListAttribute{
+				ElementType: types.StringType,
+				Required:    true,
+			},
+			"list-nil-optional-writeonly": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				WriteOnly:   true,
+			},
+			"list-value-optional-writeonly": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				WriteOnly:   true,
+			},
+			"list-nil-required-writeonly": schema.ListAttribute{
+				ElementType: types.StringType,
+				Required:    true,
+				WriteOnly:   true,
+			},
+			"list-value-required-writeonly": schema.ListAttribute{
+				ElementType: types.StringType,
+				Required:    true,
+				WriteOnly:   true,
+			},
+			"dynamic-value": schema.DynamicAttribute{
+				Required: true,
+			},
+			"dynamic-nil-optional-writeonly": schema.DynamicAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"dynamic-value-optional-writeonly": schema.DynamicAttribute{
+				Optional:  true,
+				WriteOnly: true,
+			},
+			"dynamic-nil-required-writeonly": schema.DynamicAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+			"dynamic-value-required-writeonly": schema.DynamicAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+			// underlying values of dynamic attributes should be left alone
+			"dynamic-value-with-underlying-list-required-writeonly": schema.DynamicAttribute{
+				Required:  true,
+				WriteOnly: true,
+			},
+			"object-nil-required-writeonly": schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"string-nil": types.StringType,
+					"string-set": types.StringType,
+				},
+				Required:  true,
+				WriteOnly: true,
+			},
+			"object-value-required-writeonly": schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"string-nil": types.StringType,
+					"string-set": types.StringType,
+				},
+				Required:  true,
+				WriteOnly: true,
+			},
+			"nested-nil-required-writeonly": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"string-nil": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+					"string-set": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+				},
+				Required:  true,
+				WriteOnly: true,
+			},
+			"nested-value-required-writeonly": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"string-nil": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+					"string-set": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+				},
+				Required:  true,
+				WriteOnly: true,
+			},
+			"optional-nested-value-required-writeonly-attributes": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"string-nil": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+					"string-set": schema.StringAttribute{
+						Required:  true,
+						WriteOnly: true,
+					},
+				},
+				Optional:  true,
+				WriteOnly: true,
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"block-nil-required-writeonly-attributes": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"string-nil": schema.StringAttribute{
+							Required:  true,
+							WriteOnly: true,
+						},
+						"string-set": schema.StringAttribute{
+							Required:  true,
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+			"block-value-required-writeonly-attributes": schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"string-nil": schema.StringAttribute{
+							Required:  true,
+							WriteOnly: true,
+						},
+						"string-set": schema.StringAttribute{
+							Required:  true,
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+		},
+	}
+	input := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
+		"string-value":                    tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil-optional-writeonly":   tftypes.NewValue(tftypes.String, nil),
+		"string-value-optional-writeonly": tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil-required-writeonly":   tftypes.NewValue(tftypes.String, nil),
+		"string-value-required-writeonly": tftypes.NewValue(tftypes.String, "hello, world"),
+		"list-value":                      tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello, world")}),
+		"list-nil-optional-writeonly":     tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		"list-value-optional-writeonly":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello, world")}),
+		"list-nil-required-writeonly":     tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		"list-value-required-writeonly": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+			tftypes.NewValue(tftypes.String, "hello, world"),
+			tftypes.NewValue(tftypes.String, nil),
+		}),
+		"dynamic-value":                    tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil-optional-writeonly":   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-value-optional-writeonly": tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil-required-writeonly":   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-value-required-writeonly": tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value-with-underlying-list-required-writeonly": tftypes.NewValue(
+			tftypes.List{
+				ElementType: tftypes.Bool,
+			},
+			[]tftypes.Value{
+				tftypes.NewValue(tftypes.Bool, true),
+				tftypes.NewValue(tftypes.Bool, nil),
+			},
+		),
+		"object-nil-required-writeonly": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, nil),
+		"object-value-required-writeonly": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"string-nil": tftypes.NewValue(tftypes.String, nil),
+			"string-set": tftypes.NewValue(tftypes.String, "foo"),
+		}),
+		"nested-nil-required-writeonly": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, nil),
+		"nested-value-required-writeonly": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"string-nil": tftypes.NewValue(tftypes.String, nil),
+			"string-set": tftypes.NewValue(tftypes.String, "bar"),
+		}),
+		"optional-nested-value-required-writeonly-attributes": tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"string-nil": tftypes.String,
+				"string-set": tftypes.String,
+			},
+		}, map[string]tftypes.Value{
+			"string-nil": tftypes.NewValue(tftypes.String, nil),
+			"string-set": tftypes.NewValue(tftypes.String, "bar"),
+		}),
+		"block-nil-required-writeonly-attributes": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, nil),
+		"block-value-required-writeonly-attributes": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"string-nil": tftypes.NewValue(tftypes.String, nil),
+				"string-set": tftypes.NewValue(tftypes.String, "bar"),
+			}),
+		}),
+	})
+	expected := path.Paths{
+		path.Root("block-value-required-writeonly-attributes").
+			AtSetValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"string-nil": types.StringType,
+					"string-set": types.StringType,
+				},
+				map[string]attr.Value{
+					"string-nil": types.StringNull(),
+					"string-set": types.StringValue("bar"),
+				},
+			)).
+			AtName("string-nil"),
+		path.Root("dynamic-nil-required-writeonly"),
+		path.Root("list-nil-required-writeonly"),
+		path.Root("nested-value-required-writeonly").AtName("string-nil"),
+		path.Root("object-nil-required-writeonly"),
+		path.Root("optional-nested-value-required-writeonly-attributes").AtName("string-nil"),
+		path.Root("string-nil-required-writeonly"),
+		path.Root("nested-nil-required-writeonly"),
+	}
+
+	var got path.Paths
+	err := tftypes.Walk(input, fwserver.RequiredWriteOnlyNilsAttributePaths(context.Background(), s, &got))
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+		return
+	}
+
+	sort.Slice(got, func(i, j int) bool {
+		return got[i].String() < got[j].String()
+	})
+
+	sort.Slice(expected, func(i, j int) bool {
+		return expected[i].String() < expected[j].String()
+	})
+
+	if diff := cmp.Diff(got, expected, cmpopts.EquateEmpty()); diff != "" {
+		t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
+		return
 	}
 }
 

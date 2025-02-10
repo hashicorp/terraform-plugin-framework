@@ -409,6 +409,40 @@ func TestObjectAttributeIsSensitive(t *testing.T) {
 	}
 }
 
+func TestObjectAttributeIsWriteOnly(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.ObjectAttribute
+		expected  bool
+	}{
+		"not-writeOnly": {
+			attribute: schema.ObjectAttribute{},
+			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.ObjectAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestObjectAttributeObjectDefaultValue(t *testing.T) {
 	t.Parallel()
 

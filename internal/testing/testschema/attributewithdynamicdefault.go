@@ -22,6 +22,7 @@ type AttributeWithDynamicDefaultValue struct {
 	Optional            bool
 	Required            bool
 	Sensitive           bool
+	WriteOnly           bool
 	Default             defaults.Dynamic
 }
 
@@ -84,4 +85,9 @@ func (a AttributeWithDynamicDefaultValue) IsRequired() bool {
 // IsSensitive satisfies the fwschema.Attribute interface.
 func (a AttributeWithDynamicDefaultValue) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicDefaultValue) IsWriteOnly() bool {
+	return a.WriteOnly
 }

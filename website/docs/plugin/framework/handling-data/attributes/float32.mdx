@@ -111,6 +111,18 @@ The [`float32planmodifier`](https://pkg.go.dev/github.com/hashicorp/terraform-pl
 
 Set the `Sensitive` field if the attribute value should always be considered [sensitive data](/terraform/language/state/sensitive-data). In Terraform, this will generally mask the value in practitioner output. This setting cannot be conditionally set and does not impact how data is stored in the state.
 
+### WriteOnly
+
+<Highlight>
+
+    Only managed resources implement this concept.
+
+</Highlight>
+
+Set the `WriteOnly` field to define a [write-only argument](/terraform/plugin/framework/resources/write-only-arguments).
+Write-only arguments can accept [ephemeral values](/terraform/language/resources/ephemeral)
+and are not persisted in the Terraform plan or state artifacts. Write-only arguments are supported in Terraform 1.11 and later.
+
 ### Validation
 
 Set the `Validators` field to define [validation](/terraform/plugin/framework/validation#attribute-validation). This validation logic is ran in addition to any validation contained within a [custom type](#custom-types).

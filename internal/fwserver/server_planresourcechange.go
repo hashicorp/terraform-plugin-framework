@@ -337,6 +337,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n"+
 				"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
 		)
+		return
 	}
 
 	// Set any write-only attributes in the plan to null

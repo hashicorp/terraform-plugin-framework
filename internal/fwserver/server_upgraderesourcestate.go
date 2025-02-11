@@ -264,16 +264,5 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 	}
 	upgradeResourceStateResponse.State.Raw = modifiedState
 
-	// If the write-only nullification results in a null state, then this is a provider error
-	if upgradeResourceStateResponse.State.Raw.Type() == nil || upgradeResourceStateResponse.State.Raw.IsNull() {
-		resp.Diagnostics.AddError(
-			"Missing Upgraded Resource State",
-			fmt.Sprintf("After attempting a resource state upgrade to version %d, the provider did not return any state data. ", req.Version)+
-				"Preventing the unexpected loss of resource state data. "+
-				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
-		)
-		return
-	}
-
 	resp.UpgradedState = &upgradeResourceStateResponse.State
 }

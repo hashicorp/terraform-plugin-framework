@@ -181,6 +181,29 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 		},
+		"config-computed-dynamic-underlying-null-value": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Computed: true,
+								Type:     types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{},
+		},
 		"config-optional-computed-null": {
 			req: ValidateAttributeRequest{
 				AttributePath: path.Root("test"),
@@ -330,6 +353,38 @@ func TestAttributeValidate(t *testing.T) {
 				},
 			},
 			resp: ValidateAttributeResponse{},
+		},
+		"config-required-dynamic-underlying-null-value": {
+			req: ValidateAttributeRequest{
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Required: true,
+								Type:     types.DynamicType,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Missing Configuration for Required Attribute",
+						"Must set a configuration value for the test attribute as the provider has marked it as required.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+					),
+				},
+			},
 		},
 		"no-validation": {
 			req: ValidateAttributeRequest{
@@ -1745,6 +1800,42 @@ func TestAttributeValidate(t *testing.T) {
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.Attribute{
 								Type:      types.StringType,
+								WriteOnly: true,
+								Required:  true,
+							},
+						},
+					},
+				},
+			},
+			resp: ValidateAttributeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("test"),
+						"Missing Configuration for Required Attribute",
+						"Must set a configuration value for the test attribute as the provider has marked it as required.\n\n"+
+							"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+					),
+				},
+			},
+		},
+		"write-only-attr-with-required-dynamic-underlying-null-value": {
+			req: ValidateAttributeRequest{
+				ClientCapabilities: validator.ValidateSchemaClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				AttributePath: path.Root("test"),
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.DynamicPseudoType,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.Attribute{
+								Type:      types.DynamicType,
 								WriteOnly: true,
 								Required:  true,
 							},

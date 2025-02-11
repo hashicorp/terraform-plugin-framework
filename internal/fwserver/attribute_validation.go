@@ -101,47 +101,97 @@ func AttributeValidate(ctx context.Context, a fwschema.Attribute, req ValidateAt
 		return
 	}
 
-	// Terraform CLI does not automatically perform certain configuration
-	// checks yet. If it eventually does, this logic should remain at least
-	// until Terraform CLI versions 0.12 through the release containing the
-	// checks are considered end-of-life.
-	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.IsComputed() && !a.IsOptional() && !attributeConfig.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"Invalid Configuration for Read-Only Attribute",
-			"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
-				"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
-		)
-	}
+	// Dynamic values need to perform more logic to check the config value for null/unknown-ness
+	dynamicValuable, ok := attributeConfig.(basetypes.DynamicValuable)
+	if ok {
+		dynamicConfigVal, diags := dynamicValuable.ToDynamicValue(ctx)
+		resp.Diagnostics.Append(diags...)
+		if diags.HasError() {
+			return
+		}
 
-	// Terraform CLI does not automatically perform certain configuration
-	// checks yet. If it eventually does, this logic should remain at least
-	// until Terraform CLI versions 0.12 through the release containing the
-	// checks are considered end-of-life.
-	// Reference: https://github.com/hashicorp/terraform/issues/30669
-	if a.IsRequired() && attributeConfig.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"Missing Configuration for Required Attribute",
-			fmt.Sprintf("Must set a configuration value for the %s attribute as the provider has marked it as required.\n\n", req.AttributePath.String())+
-				"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
-		)
-	}
+		// Terraform CLI does not automatically perform certain configuration
+		// checks yet. If it eventually does, this logic should remain at least
+		// until Terraform CLI versions 0.12 through the release containing the
+		// checks are considered end-of-life.
+		// Reference: https://github.com/hashicorp/terraform/issues/30669
+		if a.IsComputed() && !a.IsOptional() && !dynamicConfigVal.IsUnderlyingValueNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Invalid Configuration for Read-Only Attribute",
+				"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
+					"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
+			)
+		}
 
-	// If the client doesn't support write-only attributes (first supported in Terraform v1.11.0), then we raise an early validation error
-	// to avoid a confusing data consistency error when the provider attempts to return "null" for a write-only attribute in the planned/final state.
-	//
-	// Write-only attributes can only be successfully used with a supporting client, so the only option for a practitoner to utilize a write-only attribute
-	// is to upgrade their Terraform CLI version to v1.11.0 or later.
-	if !req.ClientCapabilities.WriteOnlyAttributesAllowed && a.IsWriteOnly() && !attributeConfig.IsNull() {
-		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
-			"WriteOnly Attribute Not Allowed",
-			fmt.Sprintf("The resource contains a non-null value for WriteOnly attribute %s. Write-only attributes are only supported in Terraform 1.11 and later.", req.AttributePath.String()),
-		)
-	}
+		// Terraform CLI does not automatically perform certain configuration
+		// checks yet. If it eventually does, this logic should remain at least
+		// until Terraform CLI versions 0.12 through the release containing the
+		// checks are considered end-of-life.
+		// Reference: https://github.com/hashicorp/terraform/issues/30669
+		if a.IsRequired() && dynamicConfigVal.IsUnderlyingValueNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Missing Configuration for Required Attribute",
+				fmt.Sprintf("Must set a configuration value for the %s attribute as the provider has marked it as required.\n\n", req.AttributePath.String())+
+					"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+			)
+		}
 
+		// If the client doesn't support write-only attributes (first supported in Terraform v1.11.0), then we raise an early validation error
+		// to avoid a confusing data consistency error when the provider attempts to return "null" for a write-only attribute in the planned/final state.
+		//
+		// Write-only attributes can only be successfully used with a supporting client, so the only option for a practitoner to utilize a write-only attribute
+		// is to upgrade their Terraform CLI version to v1.11.0 or later.
+		if !req.ClientCapabilities.WriteOnlyAttributesAllowed && a.IsWriteOnly() && !dynamicConfigVal.IsUnderlyingValueNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"WriteOnly Attribute Not Allowed",
+				fmt.Sprintf("The resource contains a non-null value for WriteOnly attribute %s. Write-only attributes are only supported in Terraform 1.11 and later.", req.AttributePath.String()),
+			)
+		}
+	} else {
+		// Terraform CLI does not automatically perform certain configuration
+		// checks yet. If it eventually does, this logic should remain at least
+		// until Terraform CLI versions 0.12 through the release containing the
+		// checks are considered end-of-life.
+		// Reference: https://github.com/hashicorp/terraform/issues/30669
+		if a.IsComputed() && !a.IsOptional() && !attributeConfig.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Invalid Configuration for Read-Only Attribute",
+				"Cannot set value for this attribute as the provider has marked it as read-only. Remove the configuration line setting the value.\n\n"+
+					"Refer to the provider documentation or contact the provider developers for additional information about configurable and read-only attributes that are supported.",
+			)
+		}
+
+		// Terraform CLI does not automatically perform certain configuration
+		// checks yet. If it eventually does, this logic should remain at least
+		// until Terraform CLI versions 0.12 through the release containing the
+		// checks are considered end-of-life.
+		// Reference: https://github.com/hashicorp/terraform/issues/30669
+		if a.IsRequired() && attributeConfig.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Missing Configuration for Required Attribute",
+				fmt.Sprintf("Must set a configuration value for the %s attribute as the provider has marked it as required.\n\n", req.AttributePath.String())+
+					"Refer to the provider documentation or contact the provider developers for additional information about configurable attributes that are required.",
+			)
+		}
+
+		// If the client doesn't support write-only attributes (first supported in Terraform v1.11.0), then we raise an early validation error
+		// to avoid a confusing data consistency error when the provider attempts to return "null" for a write-only attribute in the planned/final state.
+		//
+		// Write-only attributes can only be successfully used with a supporting client, so the only option for a practitoner to utilize a write-only attribute
+		// is to upgrade their Terraform CLI version to v1.11.0 or later.
+		if !req.ClientCapabilities.WriteOnlyAttributesAllowed && a.IsWriteOnly() && !attributeConfig.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"WriteOnly Attribute Not Allowed",
+				fmt.Sprintf("The resource contains a non-null value for WriteOnly attribute %s. Write-only attributes are only supported in Terraform 1.11 and later.", req.AttributePath.String()),
+			)
+		}
+	}
 	req.AttributeConfig = attributeConfig
 
 	switch attributeWithValidators := a.(type) {

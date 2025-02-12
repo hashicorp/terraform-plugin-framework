@@ -128,10 +128,6 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 	// Short circuit flag
 	updatedElements := false
 
-	// The underlying loop will mutate priorValueElements to avoid keeping
-	// duplicate semantically equal elements. Need the original length to avoid a panic
-	originalPriorElementsLength := len(priorValueElements)
-
 	// Loop through proposed elements by delegating to the recursive semantic
 	// equality logic. This ensures that recursion will catch a further
 	// underlying element type has its semantic equality logic checked, even if
@@ -139,10 +135,6 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 	for idx, proposedNewValueElement := range proposedNewValueElements {
 		// Ensure new value always contains all of proposed new value
 		newValueElements[idx] = proposedNewValueElement
-
-		if idx >= originalPriorElementsLength {
-			continue
-		}
 
 		// Loop through all prior value elements and see if there are any semantically equal elements
 		for pIdx, priorValueElement := range priorValueElements {

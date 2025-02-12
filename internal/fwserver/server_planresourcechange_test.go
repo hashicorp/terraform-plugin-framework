@@ -705,7 +705,6 @@ func TestNormaliseRequiresReplace(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -6643,8 +6642,6 @@ func TestServerPlanResourceChange(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -16258,8 +16255,6 @@ func TestServerPlanResourceChange_AttributeRoundtrip(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

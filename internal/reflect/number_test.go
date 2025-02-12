@@ -831,7 +831,6 @@ func TestFromInt(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromInt(context.Background(), tc.typ, tc.val, path.Empty())
@@ -907,7 +906,6 @@ func TestFromUint(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromUint(context.Background(), tc.typ, tc.val, path.Empty())
@@ -988,7 +986,6 @@ func TestFromFloat(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromFloat(context.Background(), tc.typ, tc.val, path.Empty())
@@ -1069,7 +1066,6 @@ func TestFromBigFloat(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromBigFloat(context.Background(), tc.typ, tc.val, path.Empty())
@@ -1145,7 +1141,6 @@ func TestFromBigInt(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			actualVal, diags := refl.FromBigInt(context.Background(), tc.typ, tc.val, path.Empty())

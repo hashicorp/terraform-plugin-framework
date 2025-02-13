@@ -285,7 +285,6 @@ func TestSetTypeValidate(t *testing.T) {
 		},
 	}
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -349,8 +348,6 @@ func TestNewSetValue(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -467,8 +464,6 @@ func TestNewSetValueFrom(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -596,7 +591,6 @@ func TestSetValueToTerraformValue(t *testing.T) {
 		},
 	}
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -648,8 +642,6 @@ func TestSetValueElements(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -695,8 +687,6 @@ func TestSetValueElementType(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -888,7 +878,6 @@ func TestSetValueEqual(t *testing.T) {
 		},
 	}
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -922,8 +911,6 @@ func TestSetValueIsNull(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -958,8 +945,6 @@ func TestSetValueIsUnknown(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1029,7 +1014,6 @@ func TestSetValueString(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1098,7 +1082,6 @@ func TestSetValueType(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

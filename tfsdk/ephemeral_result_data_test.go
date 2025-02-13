@@ -105,8 +105,6 @@ func TestEphemeralResultDataGet(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -183,7 +181,6 @@ func TestEphemeralResultDataGetAttribute(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -272,8 +269,6 @@ func TestEphemeralResultDataPathMatches(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -364,7 +359,6 @@ func TestEphemeralResultDataSet(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -466,7 +460,6 @@ func TestEphemeralResultDataSetAttribute(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

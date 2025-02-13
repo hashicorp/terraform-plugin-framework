@@ -60,7 +60,6 @@ func TestFloat32ValueToTerraformValue(t *testing.T) {
 		},
 	}
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
@@ -214,7 +213,6 @@ func TestFloat32ValueEqual(t *testing.T) {
 		},
 	}
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -248,8 +246,6 @@ func TestFloat32ValueIsNull(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -284,8 +280,6 @@ func TestFloat32ValueIsUnknown(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -352,7 +346,6 @@ func TestFloat32ValueString(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		name, test := name, test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -386,8 +379,6 @@ func TestFloat32ValueValueFloat32(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -422,8 +413,6 @@ func TestFloat32ValueValueFloat32Pointer(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -454,8 +443,6 @@ func TestNewFloat32PointerValue(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -527,7 +514,6 @@ func TestFloat32ValueFloat32SemanticEquals(t *testing.T) {
 		},
 	}
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

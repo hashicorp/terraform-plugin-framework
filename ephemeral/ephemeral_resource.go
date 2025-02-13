@@ -24,9 +24,6 @@ import (
 //     HashiCorp Vault leases, which can be renewed without changing their data.
 //
 //   - Close: Allows providers to clean up the ephemeral resource via EphemeralResourceWithClose.
-//
-// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
-// these notices are removed.
 type EphemeralResource interface {
 	// Metadata should return the full name of the ephemeral resource, such as
 	// examplecloud_thing.

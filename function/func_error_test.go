@@ -74,7 +74,6 @@ func TestFunctionError_Equal(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -110,7 +109,6 @@ func TestFunctionError_Error(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -219,7 +217,6 @@ func TestConcatFuncErrors(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -310,7 +307,6 @@ func TestFuncErrorFromDiags(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

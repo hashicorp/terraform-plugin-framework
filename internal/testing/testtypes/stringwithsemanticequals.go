@@ -24,7 +24,12 @@ var (
 type StringTypeWithSemanticEquals struct {
 	basetypes.StringType
 
-	SemanticEquals            bool
+	// Will always return this boolean for semantic equality
+	SemanticEquals bool
+
+	// Will only return semantic equality as true if the attr.Value matches this
+	SemanticallyEqualTo attr.Value
+
 	SemanticEqualsDiagnostics diag.Diagnostics
 }
 
@@ -52,6 +57,7 @@ func (t StringTypeWithSemanticEquals) ValueFromString(ctx context.Context, in ba
 	value := StringValueWithSemanticEquals{
 		StringValue:               in,
 		SemanticEquals:            t.SemanticEquals,
+		SemanticallyEqualTo:       t.SemanticallyEqualTo,
 		SemanticEqualsDiagnostics: t.SemanticEqualsDiagnostics,
 	}
 
@@ -83,6 +89,7 @@ func (t StringTypeWithSemanticEquals) ValueFromTerraform(ctx context.Context, in
 func (t StringTypeWithSemanticEquals) ValueType(ctx context.Context) attr.Value {
 	return StringValueWithSemanticEquals{
 		SemanticEquals:            t.SemanticEquals,
+		SemanticallyEqualTo:       t.SemanticallyEqualTo,
 		SemanticEqualsDiagnostics: t.SemanticEqualsDiagnostics,
 	}
 }
@@ -90,7 +97,12 @@ func (t StringTypeWithSemanticEquals) ValueType(ctx context.Context) attr.Value 
 type StringValueWithSemanticEquals struct {
 	basetypes.StringValue
 
-	SemanticEquals            bool
+	// Will always return this boolean for semantic equality
+	SemanticEquals bool
+
+	// Will only return semantic equality as true if the attr.Value matches this
+	SemanticallyEqualTo attr.Value
+
 	SemanticEqualsDiagnostics diag.Diagnostics
 }
 
@@ -105,6 +117,9 @@ func (v StringValueWithSemanticEquals) Equal(o attr.Value) bool {
 }
 
 func (v StringValueWithSemanticEquals) StringSemanticEquals(ctx context.Context, otherV basetypes.StringValuable) (bool, diag.Diagnostics) {
+	if v.SemanticallyEqualTo != nil && !v.SemanticallyEqualTo.IsNull() {
+		return v.SemanticallyEqualTo.Equal(otherV), v.SemanticEqualsDiagnostics
+	}
 	return v.SemanticEquals, v.SemanticEqualsDiagnostics
 }
 

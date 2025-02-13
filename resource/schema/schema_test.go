@@ -100,8 +100,6 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -269,7 +267,6 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -390,7 +387,6 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		name, tc := name, tc
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -448,8 +444,6 @@ func TestSchemaGetAttributes(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -504,8 +498,6 @@ func TestSchemaGetBlocks(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -542,8 +534,6 @@ func TestSchemaGetDeprecationMessage(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -580,8 +570,6 @@ func TestSchemaGetDescription(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -618,8 +606,6 @@ func TestSchemaGetMarkdownDescription(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -659,8 +645,6 @@ func TestSchemaGetVersion(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -707,8 +691,6 @@ func TestSchemaType(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -848,8 +830,6 @@ func TestSchemaTypeAtPath(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -981,8 +961,6 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1038,8 +1016,6 @@ func TestSchemaValidate(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1351,8 +1327,6 @@ func TestSchemaValidateImplementation(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
-
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'internal/fwserver: Fixed bug where dynamic attributes would not prompt invalid configuration error messages'
+time: 2025-02-13T16:47:00.4821-05:00
+custom:
+    Issue: "1090"

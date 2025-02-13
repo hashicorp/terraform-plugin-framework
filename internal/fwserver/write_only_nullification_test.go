@@ -39,9 +39,6 @@ func TestNullifyWriteOnlyAttributes(t *testing.T) {
 			"dynamic-nil": schema.DynamicAttribute{
 				Optional: true,
 			},
-			"dynamic-underlying-string-nil-computed": schema.DynamicAttribute{
-				WriteOnly: true,
-			},
 			"dynamic-nil-write-only": schema.DynamicAttribute{
 				Optional:  true,
 				WriteOnly: true,
@@ -131,15 +128,14 @@ func TestNullifyWriteOnlyAttributes(t *testing.T) {
 		},
 	}
 	input := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
-		"string-value":                           tftypes.NewValue(tftypes.String, "hello, world"),
-		"string-nil":                             tftypes.NewValue(tftypes.String, nil),
-		"string-nil-write-only":                  tftypes.NewValue(tftypes.String, nil),
-		"string-value-write-only":                tftypes.NewValue(tftypes.String, "hello, world"),
-		"dynamic-value":                          tftypes.NewValue(tftypes.String, "hello, world"),
-		"dynamic-nil":                            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-		"dynamic-underlying-string-nil-computed": tftypes.NewValue(tftypes.String, nil),
-		"dynamic-nil-write-only":                 tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-		"dynamic-value-write-only":               tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-value":             tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil":               tftypes.NewValue(tftypes.String, nil),
+		"string-nil-write-only":    tftypes.NewValue(tftypes.String, nil),
+		"string-value-write-only":  tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-value":            tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil":              tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-nil-write-only":   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-value-write-only": tftypes.NewValue(tftypes.String, "hello, world"),
 		"dynamic-value-with-underlying-list-write-only": tftypes.NewValue(
 			tftypes.List{
 				ElementType: tftypes.Bool,
@@ -207,15 +203,14 @@ func TestNullifyWriteOnlyAttributes(t *testing.T) {
 		}),
 	})
 	expected := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
-		"string-value":                                  tftypes.NewValue(tftypes.String, "hello, world"),
-		"string-nil":                                    tftypes.NewValue(tftypes.String, nil),
-		"string-nil-write-only":                         tftypes.NewValue(tftypes.String, nil),
-		"string-value-write-only":                       tftypes.NewValue(tftypes.String, nil),
-		"dynamic-value":                                 tftypes.NewValue(tftypes.String, "hello, world"),
-		"dynamic-nil":                                   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-		"dynamic-underlying-string-nil-computed":        tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-		"dynamic-nil-write-only":                        tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-		"dynamic-value-write-only":                      tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"string-value":             tftypes.NewValue(tftypes.String, "hello, world"),
+		"string-nil":               tftypes.NewValue(tftypes.String, nil),
+		"string-nil-write-only":    tftypes.NewValue(tftypes.String, nil),
+		"string-value-write-only":  tftypes.NewValue(tftypes.String, nil),
+		"dynamic-value":            tftypes.NewValue(tftypes.String, "hello, world"),
+		"dynamic-nil":              tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-nil-write-only":   tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"dynamic-value-write-only": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 		"dynamic-value-with-underlying-list-write-only": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 		"object-nil-write-only": tftypes.NewValue(tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{

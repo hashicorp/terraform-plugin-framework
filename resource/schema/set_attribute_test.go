@@ -394,12 +394,6 @@ func TestSetAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.SetAttribute{},
 			expected:  false,
 		},
-		"writeOnly": {
-			attribute: schema.SetAttribute{
-				WriteOnly: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {

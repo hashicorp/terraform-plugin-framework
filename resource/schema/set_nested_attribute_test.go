@@ -563,12 +563,6 @@ func TestSetNestedAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.SetNestedAttribute{},
 			expected:  false,
 		},
-		"writeOnly": {
-			attribute: schema.SetNestedAttribute{
-				WriteOnly: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -913,30 +907,13 @@ func TestSetNestedAttributeValidateImplementation(t *testing.T) {
 				},
 			},
 		},
-		"writeOnly-with-child-writeOnly-no-error-diagnostic": {
+		"child-writeOnly-attribute-error-diagnostic": {
 			attribute: schema.SetNestedAttribute{
-				WriteOnly: true,
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"test_attr": schema.StringAttribute{
 							WriteOnly: true,
-						},
-					},
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"writeOnly-without-child-writeOnly-error-diagnostic": {
-			attribute: schema.SetNestedAttribute{
-				WriteOnly: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"test_attr": schema.StringAttribute{
-							Computed: true,
 						},
 					},
 				},
@@ -951,36 +928,26 @@ func TestSetNestedAttributeValidateImplementation(t *testing.T) {
 						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a WriteOnly nested attribute that contains a non-WriteOnly child attribute.\n\n"+
-							"Every child attribute of a WriteOnly nested attribute must also have WriteOnly set to true.",
+							"\"test\" is a set nested attribute that contains a WriteOnly child attribute.\n\n"+
+							"Every child attribute of a set nested attribute must have WriteOnly set to false.",
 					),
 				},
 			},
 		},
-		"computed-without-child-writeOnly-no-error-diagnostic": {
+		"nested-attribute-with-child-writeOnly-attribute-error-diagnostic": {
 			attribute: schema.SetNestedAttribute{
-				Computed: true,
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"test_attr": schema.StringAttribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"computed-with-child-writeOnly-error-diagnostic": {
-			attribute: schema.SetNestedAttribute{
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"test_attr": schema.StringAttribute{
-							WriteOnly: true,
+						"test_nested_set": schema.SetNestedAttribute{
+							Optional: true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"test_attr": schema.StringAttribute{
+										WriteOnly: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -995,8 +962,8 @@ func TestSetNestedAttributeValidateImplementation(t *testing.T) {
 						"Invalid Schema Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is a Computed nested attribute that contains a WriteOnly child attribute.\n\n"+
-							"Every child attribute of a Computed nested attribute must have WriteOnly set to false.",
+							"\"test\" is a set nested attribute that contains a WriteOnly child attribute.\n\n"+
+							"Every child attribute of a set nested attribute must have WriteOnly set to false.",
 					),
 				},
 			},

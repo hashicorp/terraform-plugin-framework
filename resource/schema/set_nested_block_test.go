@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestSetNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
@@ -544,6 +545,32 @@ func TestSetNestedBlockValidateImplementation(t *testing.T) {
 							"\"test\" is a block that contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the \"test\" block definition with a DynamicAttribute.",
+					),
+				},
+			},
+		},
+		"nestedobject-write-only": {
+			block: schema.SetNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a set nested block that contains a WriteOnly child attribute.\n\n"+
+							"Every child attribute within a set nested block must have WriteOnly set to false.",
 					),
 				},
 			},

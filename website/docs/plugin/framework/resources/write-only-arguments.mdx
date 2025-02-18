@@ -15,7 +15,9 @@ which should either use the value by making the appropriate change to the API or
 
 The following are high level differences between `Required`/`Optional` arguments and write-only arguments:
 
-- Write-only arguments can accept ephemeral and non-ephemeral values
+- Write-only arguments can accept ephemeral and non-ephemeral values.
+
+- Write-only arguments cannot be used with set attributes, set nested attributes, and set nested blocks.
 
 - Write-only argument values are only available in the configuration. The prior state, planned state, and final state values for
 write-only arguments should always be `null`.
@@ -25,15 +27,15 @@ write-only arguments should always be `null`.
 
 - Write-only argument values cannot produce a Terraform plan difference.
   - This is because the prior state value for a write-only argument will always be `null` and the planned/final state value will also be `null`, therefore, it cannot produce a diff on its own.
-  - The one exception to this case is if the write-only argument is added to `requires_replace` during Plan Modification (i.e., using the [`RequiresReplace()`](/terraform/plugin/framework/resources/plan-modification#requiresreplace) plan modifier), in that case, the write-only argument will always cause a diff/trigger a resource recreation
+  - The one exception to this case is if the write-only argument is added to `requires_replace` during Plan Modification (i.e., using the [`RequiresReplace()`](/terraform/plugin/framework/resources/plan-modification#requiresreplace) plan modifier), in that case, the write-only argument will always cause a diff/trigger a resource recreation.
 
 - Since write-only arguments can accept ephemeral values, write-only argument configuration values are not expected to be consistent between plan and apply.
 
 ## Schema
 
 An attribute can be made write-only by setting the `WriteOnly` field to `true` in the schema. Attributes with `WriteOnly` set to `true` must also have
-one of `Required` or `Optional` set to `true`. If a nested attribute has `WriteOnly` set to `true`, all child attributes must also have `WriteOnly` set to `true`.
-`Computed` cannot be set to true for write-only arguments.
+one of `Required` or `Optional` set to `true`. If a list nested, map nested, or single nested attribute has `WriteOnly` set to `true`, all child attributes must also have `WriteOnly` set to `true`.
+A set nested block cannot have any child attributes with `WriteOnly` set to `true`. `Computed` cannot be set to true for write-only arguments.
 
 **Schema example:**
 

@@ -52,6 +52,34 @@ func ContainsAnyWriteOnlyChildAttributes(nestedAttr NestedAttribute) bool {
 	return false
 }
 
+// BlockContainsAnyWriteOnlyChildAttributes will return true if any child attribute for the
+// given nested block has WriteOnly set to true.
+func BlockContainsAnyWriteOnlyChildAttributes(block Block) bool {
+	nestedObjAttrs := block.GetNestedObject().GetAttributes()
+	nestedObjBlocks := block.GetNestedObject().GetBlocks()
+
+	for _, childAttr := range nestedObjAttrs {
+		if childAttr.IsWriteOnly() {
+			return true
+		}
+
+		nestedAttribute, ok := childAttr.(NestedAttribute)
+		if ok {
+			if ContainsAnyWriteOnlyChildAttributes(nestedAttribute) {
+				return true
+			}
+		}
+	}
+
+	for _, childBlock := range nestedObjBlocks {
+		if BlockContainsAnyWriteOnlyChildAttributes(childBlock) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func InvalidWriteOnlyNestedAttributeDiag(attributePath path.Path) diag.Diagnostic {
 	return diag.NewErrorDiagnostic(
 		"Invalid Schema Implementation",
@@ -59,6 +87,26 @@ func InvalidWriteOnlyNestedAttributeDiag(attributePath path.Path) diag.Diagnosti
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 			fmt.Sprintf("%q is a WriteOnly nested attribute that contains a non-WriteOnly child attribute.\n\n", attributePath)+
 			"Every child attribute of a WriteOnly nested attribute must also have WriteOnly set to true.",
+	)
+}
+
+func InvalidSetNestedAttributeWithWriteOnlyDiag(attributePath path.Path) diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Schema Implementation",
+		"When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("%q is a set nested attribute that contains a WriteOnly child attribute.\n\n", attributePath)+
+			"Every child attribute of a set nested attribute must have WriteOnly set to false.",
+	)
+}
+
+func SetBlockCollectionWithWriteOnlyDiag(attributePath path.Path) diag.Diagnostic {
+	return diag.NewErrorDiagnostic(
+		"Invalid Schema Implementation",
+		"When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			fmt.Sprintf("%q is a set nested block that contains a WriteOnly child attribute.\n\n", attributePath)+
+			"Every child attribute within a set nested block must have WriteOnly set to false.",
 	)
 }
 

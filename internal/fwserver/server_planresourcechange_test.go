@@ -437,6 +437,14 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	testSchemaTypeWriteOnly := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_computed":   tftypes.String,
+			"test_required":   tftypes.String,
+			"test_write_only": tftypes.String,
+		},
+	}
+
 	testSchemaTypeDefault := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed_bool":                    tftypes.Bool,
@@ -562,6 +570,21 @@ func TestServerPlanResourceChange(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testSchemaWriteOnly := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_computed": schema.StringAttribute{
+				Computed: true,
+			},
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+			"test_write_only": schema.StringAttribute{
+				Optional:  true,
+				WriteOnly: true,
 			},
 		},
 	}
@@ -1069,6 +1092,11 @@ func TestServerPlanResourceChange(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testEmptyStateWriteOnly := &tfsdk.State{
+		Raw:    tftypes.NewValue(testSchemaType, nil),
+		Schema: testSchemaWriteOnly,
+	}
+
 	testEmptyStateDefault := &tfsdk.State{
 		Raw:    tftypes.NewValue(testSchemaTypeDefault, nil),
 		Schema: testSchemaDefault,
@@ -1363,6 +1391,43 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"create-mark-computed-config-nils-as-unknown-write-only": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, nil),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, "test-write-only-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, nil),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, "test-write-only-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PriorState:     testEmptyStateWriteOnly,
+				ResourceSchema: testSchemaWriteOnly,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},
@@ -3879,6 +3944,50 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
 					}),
 					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-mark-computed-config-nils-as-unknown-write-only": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, nil),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, "test-write-only-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, "prior-state-val"),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, "test-write-only-value"),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, "prior-state-val"),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
+				},
+				ResourceSchema: testSchemaWriteOnly,
+				Resource:       &testprovider.Resource{},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaTypeWriteOnly, map[string]tftypes.Value{
+						"test_computed":   tftypes.NewValue(tftypes.String, "prior-state-val"),
+						"test_required":   tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_write_only": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testSchemaWriteOnly,
 				},
 				PlannedPrivate: testEmptyPrivate,
 			},

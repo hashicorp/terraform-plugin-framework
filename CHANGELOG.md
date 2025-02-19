@@ -1,3 +1,19 @@
+## 1.14.0 (February 19, 2025)
+
+NOTES:
+
+* Write-only attribute support is in technical preview and offered without compatibility promises until Terraform 1.11 is generally available. ([#1044](https://github.com/hashicorp/terraform-plugin-framework/issues/1044))
+* ephemeral: Ephemeral resources are now considered generally available and protected by compatibility promises. ([#1052](https://github.com/hashicorp/terraform-plugin-framework/issues/1052))
+
+FEATURES:
+
+* resource/schema: Added `WriteOnly` schema field for managed resource schemas to indicate a write-only attribute. Write-only attribute values are not saved to the Terraform plan or state artifacts. ([#1044](https://github.com/hashicorp/terraform-plugin-framework/issues/1044))
+
+BUG FIXES:
+
+* internal/fwschemadata: Set semantic equality logic has been adjusted and will now ignore order of elements during comparison. ([#1061](https://github.com/hashicorp/terraform-plugin-framework/issues/1061))
+* internal/fwserver: Fixed bug where dynamic attributes would not prompt invalid configuration error messages ([#1090](https://github.com/hashicorp/terraform-plugin-framework/issues/1090))
+
 ## 1.13.0 (October 31, 2024)
 
 NOTES:

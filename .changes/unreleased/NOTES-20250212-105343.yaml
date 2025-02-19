@@ -1,6 +1,0 @@
-kind: NOTES
-body: 'ephemeral: Ephemeral resources are now considered generally available and protected
-  by compatibility promises.'
-time: 2025-02-12T10:53:43.499303-05:00
-custom:
-  Issue: "1052"

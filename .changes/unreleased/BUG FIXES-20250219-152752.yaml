@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'internal/fwserver: fixed bug where write-only attributes set in configuration would cause perpetual diffs for computed attributes.'
+time: 2025-02-19T15:27:52.52508-05:00
+custom:
+    Issue: "1097"

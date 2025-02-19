@@ -155,6 +155,18 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		resp.PlannedState.Raw = data.TerraformValue
 	}
 
+	// Set any write-only attributes in the plan to null
+	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, resp.PlannedState.Schema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Planned State",
+			"There was an unexpected error modifying the PlannedState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+
+	resp.PlannedState.Raw = modifiedPlan
+
 	// After ensuring there are proposed changes, mark any computed attributes
 	// that are null in the config as unknown in the plan, so providers have
 	// the choice to update them.
@@ -339,18 +351,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		)
 		return
 	}
-
-	// Set any write-only attributes in the plan to null
-	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, resp.PlannedState.Schema))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Modifying Planned State",
-			"There was an unexpected error modifying the PlannedState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
-		)
-		return
-	}
-
-	resp.PlannedState.Raw = modifiedPlan
 }
 
 func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema fwschema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {

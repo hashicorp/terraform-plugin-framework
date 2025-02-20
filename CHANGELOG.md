@@ -1,3 +1,9 @@
+## 1.14.1 (February 20, 2025)
+
+BUG FIXES:
+
+* internal/fwserver: fixed bug where write-only attributes set in configuration would cause perpetual diffs for computed attributes. ([#1097](https://github.com/hashicorp/terraform-plugin-framework/issues/1097))
+
 ## 1.14.0 (February 19, 2025)
 
 NOTES:

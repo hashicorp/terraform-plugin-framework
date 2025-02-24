@@ -23,6 +23,8 @@ type AttributeWithFloat64Validators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Float64
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithFloat64Validators) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat64Validators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat64Validators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat64Validators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

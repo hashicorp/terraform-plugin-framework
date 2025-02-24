@@ -24,6 +24,8 @@ type AttributeWithSetValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Set
 }
 
@@ -88,6 +90,16 @@ func (a AttributeWithSetValidators) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithSetValidators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithSetValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithSetValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // SetValidators satisfies the fwxschema.AttributeWithSetValidators interface.

@@ -23,6 +23,8 @@ type AttributeWithFloat64PlanModifiers struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	PlanModifiers       []planmodifier.Float64
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithFloat64PlanModifiers) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithFloat64PlanModifiers) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat64PlanModifiers) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithFloat64PlanModifiers) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

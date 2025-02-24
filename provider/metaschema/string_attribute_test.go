@@ -377,3 +377,55 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestStringAttributeIsRequiredForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.StringAttribute
+		expected  bool
+	}{
+		"not-requiredForImport": {
+			attribute: metaschema.StringAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsRequiredForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestStringAttributeIsOptionalForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.StringAttribute
+		expected  bool
+	}{
+		"not-optionalForImport": {
+			attribute: metaschema.StringAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

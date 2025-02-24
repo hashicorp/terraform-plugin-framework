@@ -260,6 +260,18 @@ func (a SetNestedAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only revelant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only revelant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // SetDefaultValue returns the Default field value.
 func (a SetNestedAttribute) SetDefaultValue() defaults.Set {
 	return a.Default

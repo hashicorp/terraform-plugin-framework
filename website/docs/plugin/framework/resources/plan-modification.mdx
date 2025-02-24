@@ -204,3 +204,41 @@ func (r ThingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 ```
 
 Ensure the response plan remains entirely `null` when the request plan is entirely `null`.
+
+### Resource Deferral
+-> Note: This functionality is related to deferred action support, which is currently experimental and is subject to change or break without warning. It is not protected by version compatibility guarantees.
+
+The `ModifyPlan` method can indicate a deferral which will defer the resource and all of its dependencies.
+
+To indicate a deferral,
+first check the [`resource.ModifyPlanRequest.ClientCapabilities.DeferralAllowed` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanClientCapabilities.DeferralAllowed)
+to verify that the calling Terraform client supports deferred action functionality.
+Then indicate a resource deferral
+by setting the [`resource.ModifyPlanResponse.Deferral` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ModifyPlanResponse.Deferred).
+
+In the following example, the resource will defer if `example_attribute` value is unknown:
+
+```go
+func (r ThingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var data ThingResourceModel
+
+	// Read Terraform plan into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	// Check that the Terraform client supports deferred actions and if so,
+	// defer the resource if example_attribute is unknown
+	if req.ClientCapabilities.DeferralAllowed && data.ExampleAttribute.IsUnknown() {
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReasonResourceConfigUnknown,
+      }
+	  // Return early for deferral
+	  return
+   }
+
+	// Modify plan as appropriate
+}
+```
+
+If a [provider deferral](/terraform/plugin/framework/providers/index#provider-deferral) is set in the provider's `Configure` method with plan modification behavior enabled
+and a resource indicates a deferral in the `ModifyPlan` method,
+then the `Deferred.Reason` set in the resource's `ModifyPlan` will take precedence over the provider's `Deferred.Reason` in the response to the Terraform client.

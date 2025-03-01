@@ -53,6 +53,13 @@ retrieving values from configuration.
 
 ## PreferWriteOnlyAttribute Validators
 
+<Note>
+
+    These validators will produce persistent warnings for practitioners on every Terraform run as long as the specified non-write-only attribute
+    has a value in the configuration. The validators will also produce warnings for users of shared modules who cannot immediately take action on the warning.
+
+</Note>
+
 The `PreferWriteOnlyAttribute()` validators available in the [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators)
 can be used when you have a write-only version of an existing attribute, and you want to encourage practitioners to use the write-only version whenever possible.
 

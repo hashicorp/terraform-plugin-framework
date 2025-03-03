@@ -4,6 +4,9 @@ description: >-
   Learn how to close ephemeral resource in the Terraform plugin framework.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the `hashicorp/web-unified-docs` repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on [developer.hashicorp.com](https://developer.hashicorp.com)
+
 # Closing Ephemeral Resources
 
 Close is an optional part of the Terraform lifecycle for an ephemeral resource, which is different from the [managed resource lifecycle](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md). During any Terraform operation (like [`terraform plan`](/terraform/cli/commands/plan) or [`terraform apply`](/terraform/cli/commands/apply)), when an ephemeral resource's data is needed, Terraform initially retrieves that data with the [`Open`](/terraform/plugin/framework/ephemeral-resources/open) lifecycle handler. Once the ephemeral resource data is no longer needed, Terraform calls the provider `CloseEphemeralResource` RPC, in which the framework calls the [`ephemeral.EphemeralResourceWithClose` interface `Close` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/ephemeral#EphemeralResourceWithClose). The request contains any `Private` data set in the latest `Open` or `Renew` call.

@@ -6,6 +6,9 @@ description: >-
   types based off of the built-in attribute types.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the `hashicorp/web-unified-docs` repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on [developer.hashicorp.com](https://developer.hashicorp.com)
+
 # Data types
 
 Types are value storage and access mechanism for resource, data source, or provider [schema](/terraform/plugin/framework/handling-data/schemas) data. Every attribute and block has an associated type, which describes the kind of data. These types fully support Terraform's [type system concepts](/terraform/plugin/framework/handling-data/terraform-concepts) that cannot be represented in Go built-in types, such as `*string`. Framework types can be extended by implementing [custom types](/terraform/plugin/framework/handling-data/types/custom) in provider code or shared libraries to provide specific use case functionality.

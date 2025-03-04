@@ -5,6 +5,9 @@ description: >-
   Terraform plugin framework.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the [`hashicorp/web-unified-docs`](https://github.com/hashicorp/web-unified-docs) repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on developer.hashicorp.com.
+
 # List function parameters
 
 Map function parameters expect a mapping of arbitrary string keys to values of single element type from a practitioner configuration. Values are accessible in function logic by a Go map of string keys to values of an appropriate pointer type to match the element type `map[string]*T` or the [framework map type](/terraform/plugin/framework/handling-data/types/map).

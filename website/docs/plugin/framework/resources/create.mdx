@@ -4,6 +4,9 @@ description: >-
   Learn how to implement resource creation in the Terraform plugin framework.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the [`hashicorp/web-unified-docs`](https://github.com/hashicorp/web-unified-docs) repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on developer.hashicorp.com.
+
 # Create resources
 
 Creation is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Create` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Create). The request contains Terraform configuration and plan data. The response expects the applied Terraform state data, including any computed values. The data is defined by the [schema](/terraform/plugin/framework/data-handling/schemas) of the resource.

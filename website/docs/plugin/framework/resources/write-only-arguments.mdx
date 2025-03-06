@@ -4,6 +4,9 @@ description: >-
   How to implement write-only arguments with the provider development framework.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the [`hashicorp/web-unified-docs`](https://github.com/hashicorp/web-unified-docs) repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on developer.hashicorp.com.
+
 # Write-only Arguments
 
 Write-only arguments are managed resource attributes that are configured by practitioners but are not persisted to the Terraform plan or state artifacts. Write-only arguments are supported in Terraform 1.11 and later.
@@ -52,6 +55,13 @@ Write-only argument values should be retrieved from the configuration instead of
 retrieving values from configuration.
 
 ## PreferWriteOnlyAttribute Validators
+
+<Note>
+
+    These validators will produce persistent warnings for practitioners on every Terraform run as long as the specified non-write-only attribute
+    has a value in the configuration. The validators will also produce warnings for users of shared modules who cannot immediately take action on the warning.
+
+</Note>
 
 The `PreferWriteOnlyAttribute()` validators available in the [`terraform-plugin-framework-validators` Go module](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework-validators)
 can be used when you have a write-only version of an existing attribute, and you want to encourage practitioners to use the write-only version whenever possible.

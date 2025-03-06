@@ -5,6 +5,9 @@ description: >-
   one version of your Terraform framework provider to another.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the [`hashicorp/web-unified-docs`](https://github.com/hashicorp/web-unified-docs) repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on developer.hashicorp.com.
+
 # State upgrade
 
 A resource schema captures the structure and types of the resource [state](/terraform/language/state). Any state data that does not conform to the resource schema will generate errors or may not be persisted properly. Over time, it may be necessary for resources to make breaking changes to their schemas, such as changing an attribute type. Terraform supports versioning of these resource schemas and the current version is saved into the Terraform state. When the provider advertises a newer schema version, Terraform will call back to the provider to attempt to upgrade from the saved schema version to the one advertised. This operation is performed prior to planning, but with a configured provider.

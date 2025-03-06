@@ -5,6 +5,9 @@ description: >-
   plugin framework.
 ---
 
+> [!IMPORTANT]  
+> **Documentation Update:** Product documentation previously located in `/website` has moved to the [`hashicorp/web-unified-docs`](https://github.com/hashicorp/web-unified-docs) repository, where all product documentation is now centralized. Please make contributions directly to `web-unified-docs`, since changes to `/website` in this repository will not appear on developer.hashicorp.com.
+
 # Update resources
 
 In-place update is part of the basic Terraform lifecycle for managing resources. During the [`terraform apply` command](/terraform/cli/commands/apply), Terraform calls the provider [`ApplyResourceChange`](/terraform/plugin/framework/internals/rpcs#applyresourcechange-rpc) RPC, in which the framework calls the [`resource.Resource` interface `Update` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#Resource.Update). The request contains Terraform prior state, configuration, and plan data. The response contains updated state data. The data is defined by the [schema](/terraform/plugin/framework/schemas) of the resource.

@@ -244,13 +244,13 @@ func (a BoolAttribute) IsWriteOnly() bool {
 	return a.WriteOnly
 }
 
-// IsRequiredForImport returns false as this behavior is only revelant
+// IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a BoolAttribute) IsRequiredForImport() bool {
 	return false
 }
 
-// IsOptionalForImport returns false as this behavior is only revelant
+// IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a BoolAttribute) IsOptionalForImport() bool {
 	return false

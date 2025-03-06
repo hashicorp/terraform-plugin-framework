@@ -192,13 +192,13 @@ func (a DynamicAttribute) DynamicValidators() []validator.Dynamic {
 	return a.Validators
 }
 
-// IsRequiredForImport returns false as this behavior is only revelant
+// IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a DynamicAttribute) IsRequiredForImport() bool {
 	return false
 }
 
-// IsOptionalForImport returns false as this behavior is only revelant
+// IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a DynamicAttribute) IsOptionalForImport() bool {
 	return false

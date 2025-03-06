@@ -125,13 +125,13 @@ func (a StringAttribute) IsWriteOnly() bool {
 	return false
 }
 
-// IsRequiredForImport returns false as this behavior is only revelant
+// IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a StringAttribute) IsRequiredForImport() bool {
 	return false
 }
 
-// IsOptionalForImport returns false as this behavior is only revelant
+// IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a StringAttribute) IsOptionalForImport() bool {
 	return false

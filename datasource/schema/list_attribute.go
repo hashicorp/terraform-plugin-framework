@@ -213,13 +213,13 @@ func (a ListAttribute) ListValidators() []validator.List {
 	return a.Validators
 }
 
-// IsRequiredForImport returns false as this behavior is only revelant
+// IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a ListAttribute) IsRequiredForImport() bool {
 	return false
 }
 
-// IsOptionalForImport returns false as this behavior is only revelant
+// IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
 func (a ListAttribute) IsOptionalForImport() bool {
 	return false

@@ -199,7 +199,7 @@ type ResourceWithValidateConfig interface {
 
 // ResourceWithIdentity is an interface type that extends Resource to implement managed resource identity.
 //
-// TODO: Describe identity concept in more detail, reference the upgrade identity interface
+// TODO:ResourceIdentity: Add more documentation here to describe what identity is used for.
 type ResourceWithIdentity interface {
 	Resource
 

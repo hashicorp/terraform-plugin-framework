@@ -165,9 +165,5 @@ func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
 	}
 
-	// TODO: Write validation similar to the dynamic type validation/diagnostic for detecting
-	// non-primitive element types
-	// if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
-	// 	resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
-	// }
+	// TODO:ResourceIdentity: Write validation + tests that ensure the element type only contains primitive elements (bool, string, number)
 }

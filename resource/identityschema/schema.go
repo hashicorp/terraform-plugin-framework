@@ -17,10 +17,8 @@ import (
 // Schema must satify the fwschema.Schema interface.
 var _ fwschema.Schema = Schema{}
 
-// TODO: Verify these type names are what we ended with.
-//
 // Schema defines the structure and value types of resource identity data. This type
-// is used as the resource.IdentitySchemaResponse type Schema field, which is
+// is used as the resource.IdentitySchemaResponse type IdentitySchema field, which is
 // implemented by the resource.ResourceWithIdentity type IdentitySchema method.
 type Schema struct {
 	// Attributes is the mapping of underlying attribute names to attribute
@@ -31,7 +29,7 @@ type Schema struct {
 
 	// Version indicates the current version of the resource identity schema. Resource
 	// identity schema versioning enables identity state upgrades in conjunction with the
-	// [resource.ResourceWithIdentityStateUpgrades] interface. Versioning is only
+	// [resource.ResourceWithUpgradeIdentity] interface. Versioning is only
 	// required if there is a breaking change involving existing identity state data,
 	// such as changing an attribute type in a manner that is incompatible with the Terraform type.
 	//

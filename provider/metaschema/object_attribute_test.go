@@ -459,3 +459,55 @@ func TestObjectAttributeValidateImplementation(t *testing.T) {
 		})
 	}
 }
+
+func TestObjectAttributeIsRequiredForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.ObjectAttribute
+		expected  bool
+	}{
+		"not-requiredForImport": {
+			attribute: metaschema.ObjectAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsRequiredForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestObjectAttributeIsOptionalForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.ObjectAttribute
+		expected  bool
+	}{
+		"not-optionalForImport": {
+			attribute: metaschema.ObjectAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

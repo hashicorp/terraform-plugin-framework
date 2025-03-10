@@ -24,6 +24,8 @@ type AttributeWithListPlanModifiers struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	PlanModifiers       []planmodifier.List
 }
 
@@ -93,4 +95,14 @@ func (a AttributeWithListPlanModifiers) IsWriteOnly() bool {
 // ListPlanModifiers satisfies the fwxschema.AttributeWithListPlanModifiers interface.
 func (a AttributeWithListPlanModifiers) ListPlanModifiers() []planmodifier.List {
 	return a.PlanModifiers
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithListPlanModifiers) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithListPlanModifiers) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

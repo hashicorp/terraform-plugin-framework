@@ -28,6 +28,8 @@ type NestedAttributeWithMapDefaultValue struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Type                attr.Type
 }
 
@@ -106,6 +108,16 @@ func (a NestedAttributeWithMapDefaultValue) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a NestedAttributeWithMapDefaultValue) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithMapDefaultValue) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithMapDefaultValue) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // MapDefaultValue satisfies the fwschema.AttributeWithMapDefaultValue interface.

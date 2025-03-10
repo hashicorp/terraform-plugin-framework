@@ -24,6 +24,8 @@ type AttributeWithDynamicValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Dynamic
 }
 
@@ -91,4 +93,14 @@ func (a AttributeWithDynamicValidators) DynamicValidators() []validator.Dynamic 
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithDynamicValidators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

@@ -428,3 +428,55 @@ func TestFloat64AttributeIsWriteOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestFloat64AttributeIsRequiredForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Float64Attribute
+		expected  bool
+	}{
+		"not-requiredForImport": {
+			attribute: schema.Float64Attribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsRequiredForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat64AttributeIsOptionalForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Float64Attribute
+		expected  bool
+	}{
+		"not-optionalForImport": {
+			attribute: schema.Float64Attribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

@@ -23,6 +23,8 @@ type AttributeWithDynamicPlanModifiers struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	PlanModifiers       []planmodifier.Dynamic
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithDynamicPlanModifiers) DynamicPlanModifiers() []planmodifier
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithDynamicPlanModifiers) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicPlanModifiers) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicPlanModifiers) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

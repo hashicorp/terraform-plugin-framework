@@ -377,3 +377,55 @@ func TestBoolAttributeIsWriteOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolAttributeIsRequiredForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.BoolAttribute
+		expected  bool
+	}{
+		"not-requiredForImport": {
+			attribute: metaschema.BoolAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsRequiredForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestBoolAttributeIsOptionalForImport(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute metaschema.BoolAttribute
+		expected  bool
+	}{
+		"not-optionalForImport": {
+			attribute: metaschema.BoolAttribute{},
+			expected:  false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

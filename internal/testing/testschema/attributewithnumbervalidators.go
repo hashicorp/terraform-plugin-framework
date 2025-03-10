@@ -23,6 +23,8 @@ type AttributeWithNumberValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Number
 }
 
@@ -85,6 +87,16 @@ func (a AttributeWithNumberValidators) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithNumberValidators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithNumberValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithNumberValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // NumberValidators satisfies the fwxschema.AttributeWithNumberValidators interface.

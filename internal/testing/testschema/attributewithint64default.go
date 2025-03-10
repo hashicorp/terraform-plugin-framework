@@ -23,6 +23,8 @@ type AttributeWithInt64DefaultValue struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Default             defaults.Int64
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithInt64DefaultValue) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithInt64DefaultValue) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithInt64DefaultValue) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithInt64DefaultValue) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

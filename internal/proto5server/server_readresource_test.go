@@ -456,7 +456,7 @@ func TestServerReadResource(t *testing.T) {
 			request: &tfprotov5.ReadResourceRequest{
 				CurrentState: testEmptyDynamicValue,
 				CurrentIdentity: &tfprotov5.ResourceIdentityData{
-					IdentityData: testNewIdentityDynamicValue,
+					IdentityData: testCurrentIdentityValue,
 				},
 				TypeName: "test_resource",
 			},

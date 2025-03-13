@@ -119,6 +119,17 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		resp.Private = req.Private
 	}
 
+	// If the resource supports identity and there is no current identity data, pre-populate with a null value.
+	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
+	if req.CurrentIdentity == nil && req.IdentitySchema != nil {
+		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.CurrentIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullTfValue.Copy(),
+		}
+	}
+
 	if req.CurrentIdentity != nil {
 		readReq.Identity = &tfsdk.ResourceIdentity{
 			Schema: req.CurrentIdentity.Schema,
@@ -128,22 +139,6 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		readResp.Identity = &tfsdk.ResourceIdentity{
 			Schema: req.CurrentIdentity.Schema,
 			Raw:    req.CurrentIdentity.Raw.Copy(),
-		}
-	}
-
-	// If the resource supports identity and there is no current identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
-	if req.CurrentIdentity == nil && req.IdentitySchema != nil {
-		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
-
-		readReq.Identity = &tfsdk.ResourceIdentity{
-			Schema: req.IdentitySchema,
-			Raw:    nullTfValue.Copy(),
-		}
-
-		readResp.Identity = &tfsdk.ResourceIdentity{
-			Schema: req.IdentitySchema,
-			Raw:    nullTfValue.Copy(),
 		}
 	}
 

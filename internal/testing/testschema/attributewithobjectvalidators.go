@@ -24,6 +24,8 @@ type AttributeWithObjectValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Object
 }
 
@@ -88,6 +90,16 @@ func (a AttributeWithObjectValidators) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithObjectValidators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithObjectValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithObjectValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // ObjectValidators satisfies the fwxschema.AttributeWithObjectValidators interface.

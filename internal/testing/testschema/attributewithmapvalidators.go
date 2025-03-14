@@ -24,6 +24,8 @@ type AttributeWithMapValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.Map
 }
 
@@ -88,6 +90,16 @@ func (a AttributeWithMapValidators) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithMapValidators) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithMapValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithMapValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // MapValidators satisfies the fwxschema.AttributeWithMapValidators interface.

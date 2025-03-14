@@ -24,6 +24,8 @@ type AttributeWithListValidators struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Validators          []validator.List
 }
 
@@ -93,4 +95,14 @@ func (a AttributeWithListValidators) IsWriteOnly() bool {
 // ListValidators satisfies the fwxschema.AttributeWithListValidators interface.
 func (a AttributeWithListValidators) ListValidators() []validator.List {
 	return a.Validators
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithListValidators) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithListValidators) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

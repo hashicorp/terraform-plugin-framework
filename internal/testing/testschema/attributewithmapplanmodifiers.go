@@ -24,6 +24,8 @@ type AttributeWithMapPlanModifiers struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	PlanModifiers       []planmodifier.Map
 }
 
@@ -93,4 +95,14 @@ func (a AttributeWithMapPlanModifiers) IsWriteOnly() bool {
 // MapPlanModifiers satisfies the fwxschema.AttributeWithMapPlanModifiers interface.
 func (a AttributeWithMapPlanModifiers) MapPlanModifiers() []planmodifier.Map {
 	return a.PlanModifiers
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithMapPlanModifiers) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithMapPlanModifiers) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

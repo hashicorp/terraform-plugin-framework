@@ -28,6 +28,8 @@ type NestedAttributeWithSetPlanModifiers struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Type                attr.Type
 }
 
@@ -106,6 +108,16 @@ func (a NestedAttributeWithSetPlanModifiers) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a NestedAttributeWithSetPlanModifiers) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithSetPlanModifiers) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a NestedAttributeWithSetPlanModifiers) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }
 
 // SetPlanModifiers satisfies the fwxschema.AttributeWithSetPlanModifiers interface.

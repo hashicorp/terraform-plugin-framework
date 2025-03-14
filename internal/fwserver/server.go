@@ -689,3 +689,48 @@ func (s *Server) ResourceSchemas(ctx context.Context) (map[string]fwschema.Schem
 
 	return resourceSchemas, diags
 }
+
+// ResourceIdentitySchemas returns a map of Resource Identity Schemas for the
+// GetResourceIdentitySchemas RPC without caching since not all schemas are guaranteed to
+// be necessary for later provider operations. The schema implementations are
+// also validated.
+func (s *Server) ResourceIdentitySchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
+	resourceIdentitySchemas := make(map[string]fwschema.Schema)
+
+	resourceFuncs, diags := s.ResourceFuncs(ctx)
+
+	for typeName, resourceFunc := range resourceFuncs {
+		r := resourceFunc()
+
+		rWithIdentity, ok := r.(resource.ResourceWithIdentity)
+		if !ok {
+			// Resource identity support is optional, so we can skip resources that don't implement it.
+			continue
+		}
+
+		identitySchemaReq := resource.IdentitySchemaRequest{}
+		identitySchemaResp := resource.IdentitySchemaResponse{}
+
+		logging.FrameworkTrace(ctx, "Calling provider defined Resource IdentitySchema method", map[string]interface{}{logging.KeyResourceType: typeName})
+		rWithIdentity.IdentitySchema(ctx, identitySchemaReq, &identitySchemaResp)
+		logging.FrameworkTrace(ctx, "Called provider defined Resource IdentitySchema method", map[string]interface{}{logging.KeyResourceType: typeName})
+
+		diags.Append(identitySchemaResp.Diagnostics...)
+
+		if identitySchemaResp.Diagnostics.HasError() {
+			continue
+		}
+
+		validateDiags := identitySchemaResp.IdentitySchema.ValidateImplementation(ctx)
+
+		diags.Append(validateDiags...)
+
+		if validateDiags.HasError() {
+			continue
+		}
+
+		resourceIdentitySchemas[typeName] = identitySchemaResp.IdentitySchema
+	}
+
+	return resourceIdentitySchemas, diags
+}

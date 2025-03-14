@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,6 +34,12 @@ func TestServerDeleteResource(t *testing.T) {
 		},
 	}
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -40,6 +47,14 @@ func TestServerDeleteResource(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
 			},
 		},
 	}
@@ -52,6 +67,10 @@ func TestServerDeleteResource(t *testing.T) {
 	type testSchemaData struct {
 		TestComputed types.String `tfsdk:"test_computed"`
 		TestRequired types.String `tfsdk:"test_required"`
+	}
+
+	type testIdentitySchemaData struct {
+		TestID types.String `tfsdk:"test_id"`
 	}
 
 	testProviderMetaType := tftypes.Object{
@@ -334,6 +353,114 @@ func TestServerDeleteResource(t *testing.T) {
 				NewState: testEmptyState,
 			},
 		},
+		"response-newidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						if resp.Identity == nil || !resp.Identity.Raw.IsNull() {
+							resp.Diagnostics.AddError(
+								"Unexpected resp.Identity",
+								"expected resp.Identity to be a null object of the schema type.",
+							)
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw:    tftypes.NewValue(testIdentityType, nil),
+					Schema: testIdentitySchema,
+				},
+				NewState: testEmptyState,
+			},
+		},
+		"response-newidentity-set-to-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.Resource{
+					DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+						// This should be nulled out
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{
+							TestID: types.StringValue("new-id-123"),
+						})...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw:    tftypes.NewValue(testIdentityType, nil),
+					Schema: testIdentitySchema,
+				},
+				NewState: testEmptyState,
+			},
+		},
+		"response-invalid-newidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.DeleteResourceRequest{
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+							// This should raise a diagnostic
+							resp.Identity = &tfsdk.ResourceIdentity{
+								Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+									"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+								}),
+								Schema: testIdentitySchema,
+							}
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.DeleteResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Delete Response",
+						"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider delete operation, but the resource does not indicate identity support.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: testEmptyState,
+			},
+		},
 		"response-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -375,7 +502,7 @@ func TestServerDeleteResource(t *testing.T) {
 				Private: testPrivateProvider,
 			},
 		},
-		"response-private-updated": {
+		"response-private-Deleted": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},

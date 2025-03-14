@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,6 +32,12 @@ func TestServerUpdateResource(t *testing.T) {
 		AttributeTypes: map[string]tftypes.Type{
 			"test_computed": tftypes.String,
 			"test_required": tftypes.String,
+		},
+	}
+
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
 		},
 	}
 
@@ -48,6 +55,14 @@ func TestServerUpdateResource(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
 			},
 		},
 	}
@@ -99,6 +114,10 @@ func TestServerUpdateResource(t *testing.T) {
 	type testSchemaData struct {
 		TestComputed types.String `tfsdk:"test_computed"`
 		TestRequired types.String `tfsdk:"test_required"`
+	}
+
+	type testIdentitySchemaData struct {
+		TestID types.String `tfsdk:"test_id"`
 	}
 
 	type testSchemaDataWithSemanticEquals struct {
@@ -268,6 +287,63 @@ func TestServerUpdateResource(t *testing.T) {
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, nil),
 						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"request-plannedidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							var identityData testIdentitySchemaData
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							if identityData.TestID.ValueString() != "id-123" {
+								resp.Diagnostics.AddError("Unexpected req.Identity Value", "Got: "+identityData.TestID.ValueString())
+							}
+
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 					}),
 					Schema: testSchema,
 				},
@@ -693,6 +769,110 @@ func TestServerUpdateResource(t *testing.T) {
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-newidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{
+								TestID: types.StringValue("new-id-123"),
+							})...)
+
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-invalid-newidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							// This resource doesn't indicate identity support (via a schema), so this should raise a diagnostic.
+							resp.Identity = &tfsdk.ResourceIdentity{
+								Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+									"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+								}),
+								Schema: testIdentitySchema,
+							}
+
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Update Response",
+						"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider update operation, but the resource does not indicate identity support.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 					}),
 					Schema: testSchema,
 				},

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -48,6 +49,30 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		},
 	}
 
+	testIdentityProto5Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_identity_attribute": tftypes.String,
+		},
+	}
+
+	testIdentityProto5Value := tftypes.NewValue(testIdentityProto5Type, map[string]tftypes.Value{
+		"test_identity_attribute": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testIdentityProto5DynamicValue, err := tfprotov5.NewDynamicValue(testIdentityProto5Type, testIdentityProto5Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_identity_attribute": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
@@ -58,6 +83,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		input               *tfprotov5.PlanResourceChangeRequest
 		resourceBehavior    resource.ResourceBehavior
 		resourceSchema      fwschema.Schema
+		identitySchema      fwschema.Schema
 		resource            resource.Resource
 		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.PlanResourceChangeRequest
@@ -182,6 +208,42 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ResourceSchema: testFwSchema,
 			},
 		},
+		"prioridentity-missing-schema": {
+			input: &tfprotov5.PlanResourceChangeRequest{
+				PriorIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: &testIdentityProto5DynamicValue,
+				},
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.PlanResourceChangeRequest{
+				ResourceSchema: testFwSchema,
+			},
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Unable to Convert Resource Identity",
+					"An unexpected error was encountered when converting the resource identity from the protocol type. "+
+						"Identity data was sent in the protocol to a resource that doesn't support identity.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"prioridentity": {
+			input: &tfprotov5.PlanResourceChangeRequest{
+				PriorIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: &testIdentityProto5DynamicValue,
+				},
+			},
+			identitySchema: testIdentitySchema,
+			resourceSchema: testFwSchema,
+			expected: &fwserver.PlanResourceChangeRequest{
+				IdentitySchema: testIdentitySchema,
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw:    testIdentityProto5Value,
+					Schema: testIdentitySchema,
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
 		"providermeta-missing-data": {
 			input:              &tfprotov5.PlanResourceChangeRequest{},
 			resourceSchema:     testFwSchema,
@@ -265,7 +327,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.PlanResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.resourceBehavior)
+			got, diags := fromproto5.PlanResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.resourceBehavior, testCase.identitySchema)
 
 			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

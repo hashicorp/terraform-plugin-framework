@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -34,6 +35,20 @@ func TestServerApplyResourceChange(t *testing.T) {
 
 	testEmptyDynamicValue, _ := tfprotov5.NewDynamicValue(testSchemaType, tftypes.NewValue(testSchemaType, nil))
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
+	testPlannedIdentityValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testNewIdentityDynamicValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+	})
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -41,6 +56,14 @@ func TestServerApplyResourceChange(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
 			},
 		},
 	}
@@ -192,6 +215,79 @@ func TestServerApplyResourceChange(t *testing.T) {
 					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 				}),
+			},
+		},
+		"create-request-plannedidentity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentity{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+												var identityData struct {
+													TestID types.String `tfsdk:"test_id"`
+												}
+
+												resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+												if identityData.TestID.ValueString() != "id-123" {
+													resp.Diagnostics.AddError("Unexpected req.Identity", identityData.TestID.ValueString())
+												}
+
+												// Prevent missing resource state error diagnostic
+												var data testSchemaData
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											},
+											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testPlannedIdentityValue,
+				},
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov5.ApplyResourceChangeResponse{
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				NewIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testPlannedIdentityValue,
+				},
 			},
 		},
 		"create-request-providermeta": {
@@ -366,6 +462,73 @@ func TestServerApplyResourceChange(t *testing.T) {
 				TypeName:   "test_resource",
 			},
 			expectedResponse: &tfprotov5.ApplyResourceChangeResponse{
+				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+			},
+		},
+		"create-response-newidentity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentity{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+											CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+												identityData := struct {
+													TestID types.String `tfsdk:"test_id"`
+												}{
+													TestID: types.StringValue("new-id-123"),
+												}
+												resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
+
+												var data testSchemaData
+
+												resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+												resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+											},
+											DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Delete")
+											},
+											UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+												resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Create, Got: Update")
+											},
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.ApplyResourceChangeRequest{
+				Config: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, nil),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PlannedState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
+					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+				}),
+				PriorState: &testEmptyDynamicValue,
+				TypeName:   "test_resource",
+			},
+			expectedResponse: &tfprotov5.ApplyResourceChangeResponse{
+				NewIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testNewIdentityDynamicValue,
+				},
 				NewState: testNewDynamicValue(t, testSchemaType, map[string]tftypes.Value{
 					"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
 					"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),

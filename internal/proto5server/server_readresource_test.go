@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -46,6 +47,20 @@ func TestServerReadResource(t *testing.T) {
 
 	testNewStateRemovedDynamicValue, _ := tfprotov5.NewDynamicValue(testType, tftypes.NewValue(testType, nil))
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
+	testCurrentIdentityValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testNewIdentityDynamicValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+	})
+
 	testProviderMetaDynamicValue := testNewDynamicValue(t,
 		tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
@@ -66,6 +81,14 @@ func TestServerReadResource(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
 			},
 		},
 	}
@@ -246,6 +269,69 @@ func TestServerReadResource(t *testing.T) {
 				}),
 			},
 		},
+		"request-currentidentity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.ProviderWithMetaSchema{
+						Provider: &testprovider.Provider{
+							ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+								return []func() resource.Resource{
+									func() resource.Resource {
+										return &testprovider.ResourceWithIdentity{
+											Resource: &testprovider.Resource{
+												SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
+												MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+													resp.TypeName = "test_resource"
+												},
+												ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+													var identityData struct {
+														TestID types.String `tfsdk:"test_id"`
+													}
+
+													resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+													if identityData.TestID.ValueString() != "id-123" {
+														resp.Diagnostics.AddError("Unexpected req.Identity", identityData.TestID.ValueString())
+													}
+												},
+											},
+											IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+												resp.IdentitySchema = testIdentitySchema
+											},
+										}
+									},
+								}
+							},
+						},
+						MetaSchemaMethod: func(_ context.Context, _ provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+							resp.Schema = metaschema.Schema{
+								Attributes: map[string]metaschema.Attribute{
+									"test_optional": metaschema.StringAttribute{
+										Optional: true,
+									},
+									"test_required": metaschema.StringAttribute{
+										Required: true,
+									},
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.ReadResourceRequest{
+				CurrentState: testEmptyDynamicValue,
+				CurrentIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testCurrentIdentityValue,
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.ReadResourceResponse{
+				NewState: testEmptyDynamicValue,
+				NewIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testCurrentIdentityValue,
+				},
+			},
+		},
 		"response-diagnostics": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -330,6 +416,55 @@ func TestServerReadResource(t *testing.T) {
 			},
 			expectedResponse: &tfprotov5.ReadResourceResponse{
 				NewState: testNewStateDynamicValue,
+			},
+		},
+		"response-identity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentity{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+												var identityData struct {
+													TestID types.String `tfsdk:"test_id"`
+												}
+
+												resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+												identityData.TestID = types.StringValue("new-id-123")
+
+												resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
+											},
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.ReadResourceRequest{
+				CurrentState: testEmptyDynamicValue,
+				CurrentIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testCurrentIdentityValue,
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.ReadResourceResponse{
+				NewState: testEmptyDynamicValue,
+				NewIdentity: &tfprotov5.ResourceIdentityData{
+					IdentityData: testNewIdentityDynamicValue,
+				},
 			},
 		},
 		"response-state-removeresource": {

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -48,6 +49,30 @@ func TestReadResourceRequest(t *testing.T) {
 		},
 	}
 
+	testIdentityProto6Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_identity_attribute": tftypes.String,
+		},
+	}
+
+	testIdentityProto6Value := tftypes.NewValue(testIdentityProto6Type, map[string]tftypes.Value{
+		"test_identity_attribute": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testIdentityProto6DynamicValue, err := tfprotov6.NewDynamicValue(testIdentityProto6Type, testIdentityProto6Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_identity_attribute": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
+
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
 		"providerKeyOne": []byte(`{"pKeyOne": {"k0": "zero", "k1": 1}}`),
 	})
@@ -59,6 +84,7 @@ func TestReadResourceRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.ReadResourceRequest
 		resourceSchema      fwschema.Schema
+		identitySchema      fwschema.Schema
 		resource            resource.Resource
 		providerMetaSchema  fwschema.Schema
 		expected            *fwserver.ReadResourceRequest
@@ -96,6 +122,37 @@ func TestReadResourceRequest(t *testing.T) {
 				CurrentState: &tfsdk.State{
 					Raw:    testProto6Value,
 					Schema: testFwSchema,
+				},
+			},
+		},
+		"currentidentity-missing-schema": {
+			input: &tfprotov6.ReadResourceRequest{
+				CurrentIdentity: &tfprotov6.ResourceIdentityData{
+					IdentityData: &testIdentityProto6DynamicValue,
+				},
+			},
+			expected: &fwserver.ReadResourceRequest{},
+			expectedDiagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic(
+					"Unable to Convert Resource Identity",
+					"An unexpected error was encountered when converting the resource identity from the protocol type. "+
+						"Identity data was sent in the protocol to a resource that doesn't support identity.\n\n"+
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+				),
+			},
+		},
+		"currentidentity": {
+			input: &tfprotov6.ReadResourceRequest{
+				CurrentIdentity: &tfprotov6.ResourceIdentityData{
+					IdentityData: &testIdentityProto6DynamicValue,
+				},
+			},
+			identitySchema: testIdentitySchema,
+			expected: &fwserver.ReadResourceRequest{
+				IdentitySchema: testIdentitySchema,
+				CurrentIdentity: &tfsdk.ResourceIdentity{
+					Raw:    testIdentityProto6Value,
+					Schema: testIdentitySchema,
 				},
 			},
 		},
@@ -200,7 +257,7 @@ func TestReadResourceRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.ReadResourceRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema)
+			got, diags := fromproto6.ReadResourceRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.identitySchema)
 
 			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

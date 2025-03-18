@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -34,6 +35,12 @@ func TestServerReadResource(t *testing.T) {
 		},
 	}
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
 	testTypeWriteOnly := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"test_write_only": tftypes.String,
@@ -46,6 +53,10 @@ func TestServerReadResource(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
 	})
 
+	testCurrentIdentityValue := tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
 	testCurrentStateValueWriteOnly := tftypes.NewValue(testTypeWriteOnly, map[string]tftypes.Value{
 		"test_write_only": tftypes.NewValue(tftypes.String, nil),
 		"test_required":   tftypes.NewValue(tftypes.String, "test-currentstate-value"),
@@ -56,6 +67,10 @@ func TestServerReadResource(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-currentstate-value"),
 	})
 
+	testNewIdentityValue := tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+	})
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -63,6 +78,14 @@ func TestServerReadResource(t *testing.T) {
 			},
 			"test_required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
 			},
 		},
 	}
@@ -121,6 +144,11 @@ func TestServerReadResource(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testCurrentIdentity := &tfsdk.ResourceIdentity{
+		Raw:    testCurrentIdentityValue,
+		Schema: testIdentitySchema,
+	}
+
 	testCurrentStateWriteOnly := &tfsdk.State{
 		Raw:    testCurrentStateValueWriteOnly,
 		Schema: testSchemaWriteOnly,
@@ -129,6 +157,11 @@ func TestServerReadResource(t *testing.T) {
 	testNewState := &tfsdk.State{
 		Raw:    testNewStateValue,
 		Schema: testSchema,
+	}
+
+	testNewIdentity := &tfsdk.ResourceIdentity{
+		Raw:    testNewIdentityValue,
+		Schema: testIdentitySchema,
 	}
 
 	testNewStateRemoved := &tfsdk.State{
@@ -247,6 +280,36 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testCurrentState,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"request-currentidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				IdentitySchema:  testIdentitySchema,
+				CurrentIdentity: testCurrentIdentity,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							var identityData struct {
+								TestID types.String `tfsdk:"test_id"`
+							}
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							if identityData.TestID.ValueString() != "id-123" {
+								resp.Diagnostics.AddError("unexpected req.Identity value: %s", identityData.TestID.ValueString())
+							}
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testCurrentIdentity,
+				Private:     testEmptyPrivate,
 			},
 		},
 		"request-providermeta": {
@@ -530,6 +593,99 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState: testNewState,
 				Private:  testEmptyPrivate,
+			},
+		},
+		"response-identity-new": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				// Resource supports identity but there isn't one in state yet
+				CurrentIdentity: nil,
+				IdentitySchema:  testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							if !req.Identity.Raw.IsNull() {
+								resp.Diagnostics.AddError("Unexpected request", "expected req.Identity to be null")
+								return
+							}
+
+							identityData := struct {
+								TestID types.String `tfsdk:"test_id"`
+							}{
+								TestID: types.StringValue("new-id-123"),
+							}
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
+		"response-identity-update": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				CurrentIdentity: testCurrentIdentity,
+				IdentitySchema:  testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							var identityData struct {
+								TestID types.String `tfsdk:"test_id"`
+							}
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							identityData.TestID = types.StringValue("new-id-123")
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
+		"response-invalid-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				Resource: &testprovider.Resource{
+					ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+						// This resource doesn't indicate identity support (via a schema), so this should raise a diagnostic.
+						resp.Identity = &tfsdk.ResourceIdentity{
+							Raw:    testNewIdentityValue,
+							Schema: testIdentitySchema,
+						}
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Read Response",
+						"An unexpected error was encountered when creating the read response. New identity data was returned by the provider read operation, but the resource does not indicate identity support.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
 			},
 		},
 		"response-state-removeresource": {

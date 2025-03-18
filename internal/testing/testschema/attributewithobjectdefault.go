@@ -24,6 +24,8 @@ type AttributeWithObjectDefaultValue struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Default             defaults.Object
 }
 
@@ -93,4 +95,14 @@ func (a AttributeWithObjectDefaultValue) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithObjectDefaultValue) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithObjectDefaultValue) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithObjectDefaultValue) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

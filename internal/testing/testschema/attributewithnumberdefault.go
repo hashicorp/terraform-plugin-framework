@@ -23,6 +23,8 @@ type AttributeWithNumberDefaultValue struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Default             defaults.Number
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithNumberDefaultValue) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithNumberDefaultValue) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithNumberDefaultValue) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithNumberDefaultValue) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

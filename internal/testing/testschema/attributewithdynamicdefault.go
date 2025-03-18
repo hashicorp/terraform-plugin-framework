@@ -23,6 +23,8 @@ type AttributeWithDynamicDefaultValue struct {
 	Required            bool
 	Sensitive           bool
 	WriteOnly           bool
+	RequiredForImport   bool
+	OptionalForImport   bool
 	Default             defaults.Dynamic
 }
 
@@ -90,4 +92,14 @@ func (a AttributeWithDynamicDefaultValue) IsSensitive() bool {
 // IsWriteOnly satisfies the fwschema.Attribute interface.
 func (a AttributeWithDynamicDefaultValue) IsWriteOnly() bool {
 	return a.WriteOnly
+}
+
+// IsRequiredForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicDefaultValue) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+// IsOptionalForImport satisfies the fwschema.Attribute interface.
+func (a AttributeWithDynamicDefaultValue) IsOptionalForImport() bool {
+	return a.OptionalForImport
 }

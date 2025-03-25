@@ -45,6 +45,7 @@ func MoveResourceStateRequest(ctx context.Context, proto5 *tfprotov5.MoveResourc
 		TargetResource:        resource,
 		TargetResourceSchema:  resourceSchema,
 		TargetTypeName:        proto5.TargetTypeName,
+		SourceIdentity:        (*tfprotov6.RawState)(proto5.SourceIdentity),
 	}
 
 	sourcePrivate, sourcePrivateDiags := privatestate.NewData(ctx, proto5.SourcePrivate)

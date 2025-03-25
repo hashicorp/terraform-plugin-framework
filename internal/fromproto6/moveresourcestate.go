@@ -5,7 +5,6 @@ package fromproto6
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
@@ -37,13 +36,15 @@ func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourc
 	}
 
 	fw := &fwserver.MoveResourceStateRequest{
-		SourceProviderAddress: proto6.SourceProviderAddress,
-		SourceRawState:        proto6.SourceState,
-		SourceSchemaVersion:   proto6.SourceSchemaVersion,
-		SourceTypeName:        proto6.SourceTypeName,
-		TargetResource:        resource,
-		TargetResourceSchema:  resourceSchema,
-		TargetTypeName:        proto6.TargetTypeName,
+		SourceProviderAddress:       proto6.SourceProviderAddress,
+		SourceRawState:              proto6.SourceState,
+		SourceSchemaVersion:         proto6.SourceSchemaVersion,
+		SourceTypeName:              proto6.SourceTypeName,
+		TargetResource:              resource,
+		TargetResourceSchema:        resourceSchema,
+		TargetTypeName:              proto6.TargetTypeName,
+		SourceIdentity:              proto6.SourceIdentity,
+		SourceIdentitySchemaVersion: proto6.SourceIdentitySchemaVersion,
 	}
 
 	sourcePrivate, sourcePrivateDiags := privatestate.NewData(ctx, proto6.SourcePrivate)

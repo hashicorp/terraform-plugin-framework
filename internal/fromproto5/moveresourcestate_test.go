@@ -162,6 +162,30 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				TargetTypeName:       "examplecloud_thing",
 			},
 		},
+		"SourceIdentity": {
+			input: &tfprotov5.MoveResourceStateRequest{
+				SourceIdentity: testNewTfprotov5RawState(t, map[string]interface{}{
+					"test_identity_attribute": "test-value",
+				}),
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.MoveResourceStateRequest{
+				SourceIdentity: testNewTfprotov6RawState(t, map[string]interface{}{
+					"test_identity_attribute": "test-value",
+				}),
+				TargetResourceSchema: testFwSchema,
+			},
+		},
+		"SourceIdentitySchemaVersion": {
+			input: &tfprotov5.MoveResourceStateRequest{
+				SourceIdentitySchemaVersion: 123,
+			},
+			resourceSchema: testFwSchema,
+			expected: &fwserver.MoveResourceStateRequest{
+				SourceIdentitySchemaVersion: 123,
+				TargetResourceSchema:        testFwSchema,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

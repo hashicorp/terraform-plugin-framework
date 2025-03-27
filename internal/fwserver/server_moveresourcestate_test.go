@@ -6,6 +6,7 @@ package fwserver_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -39,7 +40,20 @@ func TestServerMoveResourceState(t *testing.T) {
 			},
 		},
 	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"optionalforimport_attribute": identityschema.StringAttribute{
+				OptionalForImport: true,
+			},
+			"requiredforimport_attribute": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 	schemaType := testSchema.Type().TerraformType(ctx)
+
+	schemaIdentityType := testIdentitySchema.Type().TerraformType(ctx)
 
 	testSchemaWriteOnly := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -809,6 +823,112 @@ func TestServerMoveResourceState(t *testing.T) {
 						"required_attribute":   tftypes.NewValue(tftypes.String, "true"),
 					}),
 					Schema: testSchemaWriteOnly,
+				},
+			},
+		},
+		"request-SourceIdentitySchemaVersion": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceIdentitySchemaVersion: 123,
+				// SourceRawState required to prevent error
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									expected := int64(123)
+
+									if diff := cmp.Diff(req.SourceIdentitySchemaVersion, expected); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceIdentitySchemaVersion difference", diff)
+									}
+
+									// Prevent missing implementation error, the values do not matter except for response assertion
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+			},
+		},
+		"request-SourceIdentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				// SourceRawState required to prevent error
+				SourceIdentity: testNewRawState(t, map[string]interface{}{
+					"optionalforimport_attribute": false,
+					"requiredforimport_attribute": true,
+				}),
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									expectedSourceIdentity := testNewRawState(t, map[string]interface{}{
+										"optionalforimport_attribute": false,
+										"requiredforimport_attribute": true,
+									})
+
+									if diff := cmp.Diff(req.SourceIdentity, expectedSourceIdentity); diff != "" {
+										resp.Diagnostics.AddError("Unexpected req.SourceIdentity difference", diff)
+									}
+
+									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("optionalforimport_attribute"), "false")...)
+									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("requiredforimport_attribute"), "true")...)
+
+									// Prevent missing implementation error, the values do not matter except for response assertion
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				TargetPrivate: privatestate.EmptyData(ctx),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+				TargetIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
+						"optionalforimport_attribute": tftypes.NewValue(tftypes.String, "false"),
+						"requiredforimport_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testIdentitySchema,
 				},
 			},
 		},

@@ -14,7 +14,7 @@ import (
 
 // ResourceIdentity returns the *tfprotov5.ResourceIdentityData for a *tfsdk.ResourceIdentity.
 func ResourceIdentity(ctx context.Context, fw *tfsdk.ResourceIdentity) (*tfprotov5.ResourceIdentityData, diag.Diagnostics) {
-	if fw == nil {
+	if fw == nil || fw.Schema == nil {
 		return nil, nil
 	}
 

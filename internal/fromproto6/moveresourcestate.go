@@ -15,7 +15,7 @@ import (
 
 // MoveResourceStateRequest returns the *fwserver.MoveResourceStateRequest
 // equivalent of a *tfprotov6.MoveResourceStateRequest.
-func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourceStateRequest, resource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.MoveResourceStateRequest, diag.Diagnostics) {
+func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourceStateRequest, resource resource.Resource, resourceSchema fwschema.Schema, identitySchema fwschema.Schema) (*fwserver.MoveResourceStateRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -45,6 +45,7 @@ func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourc
 		TargetTypeName:              proto6.TargetTypeName,
 		SourceIdentity:              proto6.SourceIdentity,
 		SourceIdentitySchemaVersion: proto6.SourceIdentitySchemaVersion,
+		IdentitySchema:              identitySchema,
 	}
 
 	sourcePrivate, sourcePrivateDiags := privatestate.NewData(ctx, proto6.SourcePrivate)

@@ -6,6 +6,7 @@ package proto5server
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -38,6 +39,14 @@ func TestServerMoveResourceState(t *testing.T) {
 		},
 	}
 	schemaType := testSchema.Type().TerraformType(ctx)
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 
 	testCases := map[string]struct {
 		server           *Server
@@ -413,6 +422,132 @@ func TestServerMoveResourceState(t *testing.T) {
 				}),
 			},
 		},
+		"request-SourceIdentitySchemaVersion": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithMoveState{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+											return []resource.StateMover{
+												{
+													StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+														expected := int64(123)
+
+														if diff := cmp.Diff(req.SourceIdentitySchemaVersion, expected); diff != "" {
+															resp.Diagnostics.AddError("Unexpected req.SourceIdentitySchemaVersion difference", diff)
+														}
+
+														// Prevent missing implementation error, the values do not matter except for response assertion
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+													},
+												},
+											}
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.MoveResourceStateRequest{
+				SourceIdentitySchemaVersion: 123,
+				// SourceState required to prevent error
+				SourceState: testNewTfprotov5RawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetTypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.MoveResourceStateResponse{
+				TargetState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
+		"request-SourceIdentity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentityAndMoveState{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+											return []resource.StateMover{
+												{
+													StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+														expectedSourceRawState := testNewTfprotov6RawState(t, map[string]interface{}{
+															"id":                 "test-id-value",
+															"required_attribute": true,
+														})
+
+														if diff := cmp.Diff(req.SourceRawState, expectedSourceRawState); diff != "" {
+															resp.Diagnostics.AddError("Unexpected req.SourceRawState difference", diff)
+														}
+
+														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test_id_value")...)
+
+														// Prevent missing implementation error, the values do not matter except for response assertion
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+													},
+												},
+											}
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.MoveResourceStateRequest{
+				SourceState: testNewTfprotov5RawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				SourceIdentity: testNewTfprotov5RawState(t, map[string]interface{}{
+					"test_id": "test-id-value",
+				}),
+				TargetTypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.MoveResourceStateResponse{
+				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
+				})},
+				TargetState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+			},
+		},
 		"request-TargetTypeName-missing": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -703,6 +838,64 @@ func TestServerMoveResourceState(t *testing.T) {
 					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 				}),
+			},
+		},
+		"response-TargetIdentity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentityAndMoveState{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+											return []resource.StateMover{
+												{
+													StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test_id_value")...)
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+													},
+												},
+											}
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.MoveResourceStateRequest{
+				SourceState: testNewTfprotov5RawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				SourceIdentity: testNewTfprotov5RawState(t, map[string]interface{}{
+					"test_id": "test-id-value",
+				}),
+				TargetTypeName: "test_resource",
+			},
+			expectedResponse: &tfprotov5.MoveResourceStateResponse{
+				TargetState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+				}),
+				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+					"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
+				})},
 			},
 		},
 	}

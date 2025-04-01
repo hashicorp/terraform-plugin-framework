@@ -43,14 +43,12 @@ func TestServerMoveResourceState(t *testing.T) {
 
 	testIdentitySchema := identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
-			"optionalforimport_attribute": identityschema.StringAttribute{
-				OptionalForImport: true,
-			},
-			"requiredforimport_attribute": identityschema.StringAttribute{
+			"test_id": identityschema.StringAttribute{
 				RequiredForImport: true,
 			},
 		},
 	}
+
 	schemaType := testSchema.Type().TerraformType(ctx)
 
 	schemaIdentityType := testIdentitySchema.Type().TerraformType(ctx)
@@ -878,8 +876,7 @@ func TestServerMoveResourceState(t *testing.T) {
 			request: &fwserver.MoveResourceStateRequest{
 				// SourceRawState required to prevent error
 				SourceIdentity: testNewRawState(t, map[string]interface{}{
-					"optionalforimport_attribute": false,
-					"requiredforimport_attribute": true,
+					"test_id": "test_id_value",
 				}),
 				SourceRawState: testNewRawState(t, map[string]interface{}{
 					"id":                 "test-id-value",
@@ -891,16 +888,14 @@ func TestServerMoveResourceState(t *testing.T) {
 							{
 								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
 									expectedSourceIdentity := testNewRawState(t, map[string]interface{}{
-										"optionalforimport_attribute": false,
-										"requiredforimport_attribute": true,
+										"test_id": "test_id_value",
 									})
 
 									if diff := cmp.Diff(req.SourceIdentity, expectedSourceIdentity); diff != "" {
 										resp.Diagnostics.AddError("Unexpected req.SourceIdentity difference", diff)
 									}
 
-									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("optionalforimport_attribute"), "false")...)
-									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("requiredforimport_attribute"), "true")...)
+									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test_id_value")...)
 
 									// Prevent missing implementation error, the values do not matter except for response assertion
 									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
@@ -912,6 +907,7 @@ func TestServerMoveResourceState(t *testing.T) {
 				},
 				TargetResourceSchema: testSchema,
 				TargetTypeName:       "test_resource",
+				IdentitySchema:       testIdentitySchema,
 			},
 			expectedResponse: &fwserver.MoveResourceStateResponse{
 				TargetPrivate: privatestate.EmptyData(ctx),
@@ -925,8 +921,7 @@ func TestServerMoveResourceState(t *testing.T) {
 				},
 				TargetIdentity: &tfsdk.ResourceIdentity{
 					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
-						"optionalforimport_attribute": tftypes.NewValue(tftypes.String, "false"),
-						"requiredforimport_attribute": tftypes.NewValue(tftypes.String, "true"),
+						"test_id": tftypes.NewValue(tftypes.String, "test_id_value"),
 					}),
 					Schema: testIdentitySchema,
 				},

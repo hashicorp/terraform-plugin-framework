@@ -73,6 +73,8 @@ type MoveResourceStateRequest struct {
 
 	// SourceIdentitySchemaVersion is the version of the source resource state.
 	SourceIdentitySchemaVersion int64
+
+	IdentitySchema fwschema.Schema
 }
 
 // MoveResourceStateResponse is the framework server response for the
@@ -148,10 +150,9 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 				Schema: req.TargetResourceSchema,
 				Raw:    tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil),
 			},
-			// TODO: See if we need to change this to identity
 			TargetIdentity: &tfsdk.ResourceIdentity{
-				Raw:    tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil),
-				Schema: req.TargetResourceSchema,
+				Raw:    tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil),
+				Schema: req.IdentitySchema,
 			},
 		}
 
@@ -221,6 +222,16 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			return
 		}
 
+		if resp.TargetIdentity != nil && req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Move State Response",
+				"An unexpected error was encountered when creating the move state response. New identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
 		// Set any write-only attributes in the move resource state to null
 		modifiedState, err := tftypes.Transform(moveStateResp.TargetState.Raw, NullifyWriteOnlyAttributes(ctx, moveStateResp.TargetState.Schema))
 		if err != nil {
@@ -237,6 +248,9 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 		if !moveStateResp.TargetState.Raw.Equal(tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil)) {
 			resp.Diagnostics = moveStateResp.Diagnostics
 			resp.TargetState = &moveStateResp.TargetState
+			if moveStateResp.TargetIdentity != nil {
+				resp.TargetIdentity = moveStateResp.TargetIdentity
+			}
 
 			if moveStateResp.TargetPrivate != nil {
 				resp.TargetPrivate.Provider = moveStateResp.TargetPrivate

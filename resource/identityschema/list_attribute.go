@@ -164,6 +164,7 @@ func (a ListAttribute) IsOptionalForImport() bool {
 func (a ListAttribute) ValidateImplementation(_ context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && a.ElementType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
+		return
 	}
 
 	if !fwtype.IsAllowedPrimitiveType(a.ElementType) {

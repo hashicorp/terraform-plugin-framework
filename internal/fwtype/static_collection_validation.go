@@ -5,7 +5,6 @@ package fwtype
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -139,4 +138,20 @@ func ReturnCollectionWithDynamicTypeDiag() diag.Diagnostic {
 			"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 			"If underlying dynamic values are required, replace the return definition with DynamicReturn instead.",
 	)
+}
+
+// IsAllowedPrimitiveType checks if the given attr.Type is an allowed primitive type for resource identity.
+func IsAllowedPrimitiveType(typ attr.Type) bool {
+	switch typ.(type) {
+	case basetypes.BoolType,
+		basetypes.Float64Type,
+		basetypes.Float32Type,
+		basetypes.Int64Type,
+		basetypes.Int32Type,
+		basetypes.NumberType,
+		basetypes.StringType:
+		return true
+	default:
+		return false
+	}
 }

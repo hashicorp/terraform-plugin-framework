@@ -65,14 +65,25 @@ type MoveResourceStateRequest struct {
 	// TargetTypeName is the type name of the target resource as given by
 	// Terraform across the protocol.
 	TargetTypeName string
+
+	// SourceIdentity is the identity of the source resource.
+	//
+	// Only the underlying JSON field is populated.
+	SourceIdentity *tfprotov6.RawState
+
+	// SourceIdentitySchemaVersion is the version of the source resource state.
+	SourceIdentitySchemaVersion int64
+
+	IdentitySchema fwschema.Schema
 }
 
 // MoveResourceStateResponse is the framework server response for the
 // MoveResourceState RPC.
 type MoveResourceStateResponse struct {
-	Diagnostics   diag.Diagnostics
-	TargetPrivate *privatestate.Data
-	TargetState   *tfsdk.State
+	Diagnostics    diag.Diagnostics
+	TargetPrivate  *privatestate.Data
+	TargetState    *tfsdk.State
+	TargetIdentity *tfsdk.ResourceIdentity
 }
 
 // MoveResourceState implements the framework server MoveResourceState RPC.
@@ -125,18 +136,28 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 
 	for _, resourceStateMover := range resourceStateMovers {
 		moveStateReq := resource.MoveStateRequest{
-			SourcePrivate:         sourcePrivate,
-			SourceProviderAddress: req.SourceProviderAddress,
-			SourceRawState:        req.SourceRawState,
-			SourceSchemaVersion:   req.SourceSchemaVersion,
-			SourceTypeName:        req.SourceTypeName,
+			SourcePrivate:               sourcePrivate,
+			SourceProviderAddress:       req.SourceProviderAddress,
+			SourceRawState:              req.SourceRawState,
+			SourceSchemaVersion:         req.SourceSchemaVersion,
+			SourceTypeName:              req.SourceTypeName,
+			SourceIdentity:              req.SourceIdentity,
+			SourceIdentitySchemaVersion: req.SourceIdentitySchemaVersion,
 		}
+
 		moveStateResp := resource.MoveStateResponse{
 			TargetPrivate: privatestate.EmptyProviderData(ctx),
 			TargetState: tfsdk.State{
 				Schema: req.TargetResourceSchema,
 				Raw:    tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil),
 			},
+		}
+
+		if req.IdentitySchema != nil {
+			moveStateResp.TargetIdentity = &tfsdk.ResourceIdentity{
+				Raw:    tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil),
+				Schema: req.IdentitySchema,
+			}
 		}
 
 		if resourceStateMover.SourceSchema != nil {
@@ -205,6 +226,16 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			return
 		}
 
+		if resp.TargetIdentity != nil && req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Move State Response",
+				"An unexpected error was encountered when creating the move state response. New identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
 		// Set any write-only attributes in the move resource state to null
 		modifiedState, err := tftypes.Transform(moveStateResp.TargetState.Raw, NullifyWriteOnlyAttributes(ctx, moveStateResp.TargetState.Schema))
 		if err != nil {
@@ -221,6 +252,9 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 		if !moveStateResp.TargetState.Raw.Equal(tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil)) {
 			resp.Diagnostics = moveStateResp.Diagnostics
 			resp.TargetState = &moveStateResp.TargetState
+			if moveStateResp.TargetIdentity != nil {
+				resp.TargetIdentity = moveStateResp.TargetIdentity
+			}
 
 			if moveStateResp.TargetPrivate != nil {
 				resp.TargetPrivate.Provider = moveStateResp.TargetPrivate
@@ -237,6 +271,8 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			"Source Provider Address: "+req.SourceProviderAddress+"\n"+
 			"Source Resource Type: "+req.SourceTypeName+"\n"+
 			"Source Resource Schema Version: "+strconv.FormatInt(req.SourceSchemaVersion, 10)+"\n"+
-			"Target Resource Type: "+req.TargetTypeName,
+			"Target Resource Type: "+req.TargetTypeName, //+"\n"+
+		// "Source Identity Schema Version: "+strconv.FormatInt(req.SourceSchemaVersion, 10),
+
 	)
 }

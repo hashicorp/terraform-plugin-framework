@@ -32,6 +32,7 @@ func TestMoveResourceStateRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.MoveResourceStateRequest
 		resourceSchema      fwschema.Schema
+		identitySchema      fwschema.Schema
 		resource            resource.Resource
 		expected            *fwserver.MoveResourceStateRequest
 		expectedDiagnostics diag.Diagnostics
@@ -192,7 +193,7 @@ func TestMoveResourceStateRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.MoveResourceStateRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema)
+			got, diags := fromproto6.MoveResourceStateRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.identitySchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -145,22 +145,19 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			SourceIdentitySchemaVersion: req.SourceIdentitySchemaVersion,
 		}
 
-		var taridentity tftypes.Type
-
-		if req.IdentitySchema != nil {
-			taridentity = req.IdentitySchema.Type().TerraformType(ctx)
-		}
-
 		moveStateResp := resource.MoveStateResponse{
 			TargetPrivate: privatestate.EmptyProviderData(ctx),
 			TargetState: tfsdk.State{
 				Schema: req.TargetResourceSchema,
 				Raw:    tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil),
 			},
-			TargetIdentity: &tfsdk.ResourceIdentity{
-				Raw:    tftypes.NewValue(taridentity, nil),
+		}
+
+		if req.IdentitySchema != nil {
+			moveStateResp.TargetIdentity = &tfsdk.ResourceIdentity{
+				Raw:    tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil),
 				Schema: req.IdentitySchema,
-			},
+			}
 		}
 
 		if resourceStateMover.SourceSchema != nil {

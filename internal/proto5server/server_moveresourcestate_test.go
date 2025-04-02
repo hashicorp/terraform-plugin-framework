@@ -48,6 +48,12 @@ func TestServerMoveResourceState(t *testing.T) {
 		},
 	}
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
 	testCases := map[string]struct {
 		server           *Server
 		request          *tfprotov5.MoveResourceStateRequest
@@ -508,7 +514,15 @@ func TestServerMoveResourceState(t *testing.T) {
 															resp.Diagnostics.AddError("Unexpected req.SourceRawState difference", diff)
 														}
 
-														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test_id_value")...)
+														expectedSourceIdentity := testNewTfprotov6RawState(t, map[string]interface{}{
+															"test_id": "test-id-value",
+														})
+
+														if diff := cmp.Diff(req.SourceIdentity, expectedSourceIdentity); diff != "" {
+															resp.Diagnostics.AddError("Unexpected req.SourceIdentity difference", diff)
+														}
+
+														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test-id-value")...)
 
 														// Prevent missing implementation error, the values do not matter except for response assertion
 														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
@@ -538,7 +552,7 @@ func TestServerMoveResourceState(t *testing.T) {
 				TargetTypeName: "test_resource",
 			},
 			expectedResponse: &tfprotov5.MoveResourceStateResponse{
-				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
 					"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
 				})},
 				TargetState: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
@@ -860,7 +874,7 @@ func TestServerMoveResourceState(t *testing.T) {
 											return []resource.StateMover{
 												{
 													StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test_id_value")...)
+														resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "test-id-value")...)
 														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
 														resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
 													},
@@ -893,7 +907,7 @@ func TestServerMoveResourceState(t *testing.T) {
 					"optional_attribute": tftypes.NewValue(tftypes.String, nil),
 					"required_attribute": tftypes.NewValue(tftypes.String, "true"),
 				}),
-				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, schemaType, map[string]tftypes.Value{
+				TargetIdentity: &tfprotov5.ResourceIdentityData{IdentityData: testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
 					"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
 				})},
 			},

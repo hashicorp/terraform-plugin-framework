@@ -561,7 +561,7 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							fmt.Sprintf("\"test\" contains an Attribute type that is not allowed for Resource Identity. "),
+							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
 					),
 				},
 			},
@@ -581,7 +581,7 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							fmt.Sprintf("\"test\" contains an Attribute type that is not allowed for Resource Identity. "),
+							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
 					),
 				},
 			},
@@ -601,7 +601,7 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							fmt.Sprintf("\"test\" contains an Attribute type that is not allowed for Resource Identity. "),
+							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
 					),
 				},
 			},

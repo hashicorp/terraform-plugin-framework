@@ -944,3 +944,82 @@ func TestTypeContainsCollectionWithDynamic(t *testing.T) {
 		})
 	}
 }
+
+func TestIsAllowedPrimitiveType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attrTyp  attr.Type
+		expected bool
+	}{
+		"nil": {
+			attrTyp:  nil,
+			expected: false,
+		},
+		"dynamic": {
+			attrTyp:  types.DynamicType,
+			expected: false,
+		},
+		"bool": {
+			attrTyp:  types.BoolType,
+			expected: true,
+		},
+		"int64": {
+			attrTyp:  types.Int64Type,
+			expected: true,
+		},
+		"int32": {
+			attrTyp:  types.Int32Type,
+			expected: true,
+		},
+		"float64": {
+			attrTyp:  types.Float64Type,
+			expected: true,
+		},
+		"float32": {
+			attrTyp:  types.Float32Type,
+			expected: true,
+		},
+		"number": {
+			attrTyp:  types.NumberType,
+			expected: true,
+		},
+		"string": {
+			attrTyp:  types.StringType,
+			expected: true,
+		},
+		"list-missing": {
+			attrTyp:  types.ListType{},
+			expected: false,
+		},
+		"list-static": {
+			attrTyp: types.ListType{
+				ElemType: types.StringType,
+			},
+			expected: false,
+		},
+		"map": {
+			attrTyp:  types.MapType{},
+			expected: false,
+		},
+		"object": {
+			attrTyp:  types.ObjectType{},
+			expected: false,
+		},
+		"tuple": {
+			attrTyp:  types.TupleType{},
+			expected: false,
+		},
+	}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := fwtype.IsAllowedPrimitiveType(testCase.attrTyp)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}

@@ -95,9 +95,10 @@ type ImportStateResponse struct {
 // identifier to a given state attribute path. The attribute must accept a
 // string value.
 //
-// This method will also automatically pass through the Identity field if provided. (Terraform 1.12+ and later)
-// In this scenario where identity is provided instead of the string ID, the state field defined at `attrPath` will
-// be set to null.
+// This method will also automatically pass through the Identity field if imported by
+// the identity attribute of a import config block (Terraform 1.12+ and later). In this
+// scenario where identity is provided instead of the string ID, the state field defined
+// at `attrPath` will be set to null.
 func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req ImportStateRequest, resp *ImportStateResponse) {
 	if attrPath.Equal(path.Empty()) {
 		resp.Diagnostics.AddError(
@@ -112,13 +113,4 @@ func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req Impor
 	if req.ID != "" {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, attrPath, req.ID)...)
 	}
-
-	// TODO:ResourceIdentity: Should we implement another pass-through? called like ImportStatePassthrough that would work "better" with both ID and Identity
-	//
-	// We need to decide how we want to handle "existing id" string fields that need to be set to state when an identity is provided.
-	// Perhaps we can look at the identity schema and automatically use those values to set state? If we did that, we should probably rename this function
-	// since it's doing much more than just passing through ID. We wouldn't rename it, maybe just deprecate/create a new function.
-	//
-	// Since providers will likely be supporting versions of Terraform that don't support identity, they will likely won't want to write multiple ways of reading
-	// (read with identity, read with state "id" field)
 }

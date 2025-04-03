@@ -193,10 +193,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	importResp.State.Raw = modifiedState
 
-	// TODO:ResourceIdentity: Now you can reasonably import using just the identity field and no state. However this still feels like not a great idea, because it's possible
-	// to import via ID with a client that doesn't support identity, so the "Read" logic for providers will always have to account for both scenarios.
-	//
-	// A potential improvement on this could be to check if identity AND state are empty. That is the only true error state because then no data would be transferred from import to read.
+	// If we are importing by ID, we should ensure that something in the import stub state has been populated,
+	// otherwise the resource doesn't actually support import, which is a provider issue.
 	if req.ID != "" && importResp.State.Raw.Equal(req.EmptyState.Raw) {
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",

@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -30,6 +32,13 @@ func TestServerImportResourceState(t *testing.T) {
 			"id":       tftypes.String,
 			"optional": tftypes.String,
 			"required": tftypes.String,
+		},
+	}
+
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id":       tftypes.String,
+			"other_test_id": tftypes.String,
 		},
 	}
 
@@ -61,6 +70,16 @@ func TestServerImportResourceState(t *testing.T) {
 		"required": tftypes.NewValue(tftypes.String, nil),
 	})
 
+	testRequestIdentityValue := tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+		"test_id":       tftypes.NewValue(tftypes.String, "id-123"),
+		"other_test_id": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	testImportedResourceIdentityValue := tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+		"test_id":       tftypes.NewValue(tftypes.String, "id-123"),
+		"other_test_id": tftypes.NewValue(tftypes.String, "new-value-123"),
+	})
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -71,6 +90,17 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 			"required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+			"other_test_id": identityschema.StringAttribute{
+				OptionalForImport: true,
 			},
 		},
 	}
@@ -105,9 +135,19 @@ func TestServerImportResourceState(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testRequestIdentity := &tfsdk.ResourceIdentity{
+		Raw:    testRequestIdentityValue,
+		Schema: testIdentitySchema,
+	}
+
 	testState := &tfsdk.State{
 		Raw:    testStateValue,
 		Schema: testSchema,
+	}
+
+	testImportedResourceIdentity := &tfsdk.ResourceIdentity{
+		Raw:    testImportedResourceIdentityValue,
+		Schema: testIdentitySchema,
 	}
 
 	testProviderKeyValue := privatestate.MustMarshalToJson(map[string][]byte{
@@ -196,6 +236,47 @@ func TestServerImportResourceState(t *testing.T) {
 				ImportedResources: []fwserver.ImportedResource{
 					{
 						State:    *testState,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"request-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				Identity:       testRequestIdentity,
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentityAndImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						var identityData struct {
+							TestID      types.String `tfsdk:"test_id"`
+							OtherTestID types.String `tfsdk:"other_test_id"`
+						}
+
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+						if identityData.TestID.ValueString() != "id-123" {
+							resp.Diagnostics.AddError("unexpected req.Identity value: %s", identityData.TestID.ValueString())
+						}
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testIdentitySchema
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testEmptyState,
+						Identity: testRequestIdentity,
 						TypeName: "test_resource",
 						Private:  testEmptyPrivate,
 					},
@@ -320,6 +401,97 @@ func TestServerImportResourceState(t *testing.T) {
 						TypeName: "test_resource",
 						Private:  testEmptyPrivate,
 					},
+				},
+			},
+		},
+		"response-importedresources-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				Identity:       testRequestIdentity,
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentityAndImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resp.Diagnostics.Append(resp.Identity.SetAttribute(ctx, path.Root("other_test_id"), types.StringValue("new-value-123"))...)
+
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testIdentitySchema
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testEmptyState,
+						Identity: testImportedResourceIdentity,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"response-importedresources-identity-supported": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				ID:             "test-id",
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resp.Diagnostics.Append(resp.Identity.SetAttribute(ctx, path.Root("test_id"), types.StringValue("id-123"))...)
+						resp.Diagnostics.Append(resp.Identity.SetAttribute(ctx, path.Root("other_test_id"), types.StringValue("new-value-123"))...)
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testState,
+						Identity: testImportedResourceIdentity,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"response-importedresources-invalid-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState: *testEmptyState,
+				ID:         "test-id",
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						// This resource doesn't indicate identity support (via a schema), so this should raise a diagnostic.
+						resp.Identity = &tfsdk.ResourceIdentity{
+							Raw:    testImportedResourceIdentityValue,
+							Schema: testIdentitySchema,
+						}
+						resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected ImportState Response",
+						"An unexpected error was encountered when creating the import response. New identity data was returned by the provider import operation, but the resource does not indicate identity support.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.",
+					),
 				},
 			},
 		},

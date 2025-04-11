@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestServerImportResourceState(t *testing.T) {
@@ -30,11 +32,33 @@ func TestServerImportResourceState(t *testing.T) {
 		},
 	}
 
+	testIdentityType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id":       tftypes.String,
+			"test_other_id": tftypes.String,
+		},
+	}
+
+	testRequestIdentityValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id":       tftypes.NewValue(tftypes.String, "id-123"),
+		"test_other_id": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	testImportedResourceIdentityDynamicValue := testNewDynamicValue(t, testIdentityType, map[string]tftypes.Value{
+		"test_id":       tftypes.NewValue(tftypes.String, "id-123"),
+		"test_other_id": tftypes.NewValue(tftypes.String, "new-value-123"),
+	})
+
 	testStateDynamicValue := testNewDynamicValue(t, testType, map[string]tftypes.Value{
 		"id":       tftypes.NewValue(tftypes.String, "test-id"),
 		"optional": tftypes.NewValue(tftypes.String, nil),
 		"required": tftypes.NewValue(tftypes.String, nil),
 	})
+
+	testEmptyStateDynamicValue, err := tfprotov6.NewDynamicValue(testType, tftypes.NewValue(testType, nil))
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
+	}
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -46,6 +70,17 @@ func TestServerImportResourceState(t *testing.T) {
 			},
 			"required": schema.StringAttribute{
 				Required: true,
+			},
+		},
+	}
+
+	testIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+			"test_other_id": identityschema.StringAttribute{
+				OptionalForImport: true,
 			},
 		},
 	}
@@ -94,6 +129,64 @@ func TestServerImportResourceState(t *testing.T) {
 				ImportedResources: []*tfprotov6.ImportedResource{
 					{
 						State:    testStateDynamicValue,
+						TypeName: "test_resource",
+					},
+				},
+			},
+		},
+		"request-identity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentityAndImportState{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											var identityData struct {
+												TestID      types.String `tfsdk:"test_id"`
+												TestOtherID types.String `tfsdk:"test_other_id"`
+											}
+
+											resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+											if identityData.TestID.ValueString() != "id-123" {
+												resp.Diagnostics.AddError("Unexpected req.Identity", identityData.TestID.ValueString())
+											}
+
+											resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ImportResourceStateRequest{
+				TypeName: "test_resource",
+				Identity: &tfprotov6.ResourceIdentityData{
+					IdentityData: testRequestIdentityValue,
+				},
+			},
+			expectedResponse: &tfprotov6.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						State: &testEmptyStateDynamicValue,
+						Identity: &tfprotov6.ResourceIdentityData{
+							IdentityData: testRequestIdentityValue,
+						},
 						TypeName: "test_resource",
 					},
 				},
@@ -179,6 +272,55 @@ func TestServerImportResourceState(t *testing.T) {
 				ImportedResources: []*tfprotov6.ImportedResource{
 					{
 						State:    testStateDynamicValue,
+						TypeName: "test_resource",
+					},
+				},
+			},
+		},
+		"response-importedresources-identity": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.ResourceWithIdentityAndImportState{
+										Resource: &testprovider.Resource{
+											SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+												resp.Schema = testSchema
+											},
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+												resp.TypeName = "test_resource"
+											},
+										},
+										ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+											resp.Diagnostics.Append(resp.Identity.SetAttribute(ctx, path.Root("test_other_id"), types.StringValue("new-value-123"))...)
+
+											resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+										},
+										IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+											resp.IdentitySchema = testIdentitySchema
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.ImportResourceStateRequest{
+				TypeName: "test_resource",
+				Identity: &tfprotov6.ResourceIdentityData{
+					IdentityData: testRequestIdentityValue,
+				},
+			},
+			expectedResponse: &tfprotov6.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						State: &testEmptyStateDynamicValue,
+						Identity: &tfprotov6.ResourceIdentityData{
+							IdentityData: testImportedResourceIdentityDynamicValue,
+						},
 						TypeName: "test_resource",
 					},
 				},

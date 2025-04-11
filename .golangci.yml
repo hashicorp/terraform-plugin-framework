@@ -1,16 +1,11 @@
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - copyloopvar
     - durationcheck
     - errcheck
     - forcetypeassert
-    - gofmt
-    - gosimple
     - govet
     - ineffassign
     - makezero
@@ -23,7 +18,34 @@ linters:
     - unparam
     - unused
     - usetesting
-
-run:
-  # Prevent false positive timeouts in CI
-  timeout: 5m
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - '-QF1008' # could remove embedded field from selector -- https://staticcheck.io/docs/checks#QF1008
+        - '-ST1003' # struct field Id should be ID -- https://staticcheck.io/docs/checks#ST1003
+        - '-ST1005' # error strings should not be capitalized -- https://staticcheck.io/docs/checks#ST1005
+        - '-ST1016' # methods on the same type should have the same receiver name -- https://staticcheck.io/docs/checks#ST1016
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

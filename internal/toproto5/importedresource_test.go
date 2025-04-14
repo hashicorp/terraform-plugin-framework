@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -45,6 +46,22 @@ func TestImportResourceStateResponse(t *testing.T) {
 	}
 
 	testEmptyProto5DynamicValue, err := tfprotov5.NewDynamicValue(testEmptyProto5Type, testEmptyProto5Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
+	}
+
+	testIdentityProto5Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
+	testIdentityProto5Value := tftypes.NewValue(testIdentityProto5Type, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testIdentityProto5DynamicValue, err := tfprotov5.NewDynamicValue(testIdentityProto5Type, testIdentityProto5Value)
 
 	if err != nil {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
@@ -84,6 +101,28 @@ func TestImportResourceStateResponse(t *testing.T) {
 	})
 
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
+
+	testIdentity := &tfsdk.ResourceIdentity{
+		Raw: testIdentityProto5Value,
+		Schema: identityschema.Schema{
+			Attributes: map[string]identityschema.Attribute{
+				"test_id": identityschema.StringAttribute{
+					RequiredForImport: true,
+				},
+			},
+		},
+	}
+
+	testIdentityInvalid := &tfsdk.ResourceIdentity{
+		Raw: testIdentityProto5Value,
+		Schema: identityschema.Schema{
+			Attributes: map[string]identityschema.Attribute{
+				"test_id": identityschema.BoolAttribute{
+					RequiredForImport: true,
+				},
+			},
+		},
+	}
 
 	testCases := map[string]struct {
 		input    *fwserver.ImportResourceStateResponse
@@ -154,6 +193,42 @@ func TestImportResourceStateResponse(t *testing.T) {
 				},
 			},
 		},
+		"diagnostics-invalid-identity": {
+			input: &fwserver.ImportResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
+					diag.NewErrorDiagnostic("test error summary", "test error details"),
+				},
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    testState,
+						Identity: testIdentityInvalid,
+					},
+				},
+			},
+			expected: &tfprotov5.ImportResourceStateResponse{
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityWarning,
+						Summary:  "test warning summary",
+						Detail:   "test warning details",
+					},
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "test error summary",
+						Detail:   "test error details",
+					},
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Unable to Convert Resource Identity",
+						Detail: "An unexpected error was encountered when converting the resource identity to the protocol type. " +
+							"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n" +
+							"Please report this to the provider developer:\n\n" +
+							"Unable to create DynamicValue: AttributeName(\"test_id\"): unexpected value type string, tftypes.Bool values must be of type bool",
+					},
+				},
+			},
+		},
 		"newstate": {
 			input: &fwserver.ImportResourceStateResponse{
 				ImportedResources: []fwserver.ImportedResource{
@@ -166,6 +241,26 @@ func TestImportResourceStateResponse(t *testing.T) {
 				ImportedResources: []*tfprotov5.ImportedResource{
 					{
 						State: &testProto5DynamicValue,
+					},
+				},
+			},
+		},
+		"identity": {
+			input: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    testState,
+						Identity: testIdentity,
+					},
+				},
+			},
+			expected: &tfprotov5.ImportResourceStateResponse{
+				ImportedResources: []*tfprotov5.ImportedResource{
+					{
+						State: &testProto5DynamicValue,
+						Identity: &tfprotov5.ResourceIdentityData{
+							IdentityData: &testIdentityProto5DynamicValue,
+						},
 					},
 				},
 			},

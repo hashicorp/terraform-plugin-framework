@@ -167,7 +167,7 @@ func (a ListAttribute) ValidateImplementation(_ context.Context, req fwschema.Va
 		return
 	}
 
-	if !fwtype.IsAllowedPrimitiveType(a.ElementType) {
+	if a.CustomType == nil && !fwtype.IsAllowedPrimitiveType(a.ElementType) {
 		resp.Diagnostics.Append(fwschema.AttributeInvalidElementTypeDiag(req.Path))
 	}
 }

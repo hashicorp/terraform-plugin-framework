@@ -143,13 +143,13 @@ func ReturnCollectionWithDynamicTypeDiag() diag.Diagnostic {
 // IsAllowedPrimitiveType checks if the given attr.Type is an allowed primitive type for resource identity.
 func IsAllowedPrimitiveType(typ attr.Type) bool {
 	switch typ.(type) {
-	case basetypes.BoolType,
-		basetypes.Float64Type,
-		basetypes.Float32Type,
-		basetypes.Int64Type,
-		basetypes.Int32Type,
-		basetypes.NumberType,
-		basetypes.StringType:
+	case basetypes.BoolTypable,
+		basetypes.Float64Typable,
+		basetypes.Float32Typable,
+		basetypes.Int64Typable,
+		basetypes.Int32Typable,
+		basetypes.NumberTypable,
+		basetypes.StringTypable:
 		return true
 	default:
 		return false

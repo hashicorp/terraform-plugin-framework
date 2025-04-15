@@ -1,8 +1,0 @@
-kind: NOTES
-body: This beta pre-release continues the implementation of managed resource identity, which should now be used with Terraform v1.12.0-beta1.
-    Managed resources now can support import by identity during plan and apply workflows. Managed resources that already support import via the
-    `resource.ResourceWithImportState` interface will automatically pass-through identity data to the `Read` method. The `RequiredForImport` and
-    `OptionalForImport` fields on the identity schema can be used to control the validation that Terraform core will apply to the import config block.
-time: 2025-04-03T12:12:29.323193-04:00
-custom:
-    Issue: "1126"

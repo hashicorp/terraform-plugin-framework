@@ -81,7 +81,7 @@ type MoveStateRequest struct {
 	// Only the underlying JSON field is populated.
 	SourceIdentity *tfprotov6.RawState
 
-	// SourceIdentitySchemaVersion is the version of the source resource state.
+	// SourceIdentitySchemaVersion is the version of the source resource identity.
 	SourceIdentitySchemaVersion int64
 }
 

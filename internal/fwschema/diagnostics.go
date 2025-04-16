@@ -68,7 +68,7 @@ func AttributeDefaultTypeMismatchDiag(attributePath path.Path, expectedType attr
 // AttributeInvalidElementTypeDiag returns an error diagnostic to provider
 // developers about using non-primitive types in their Attribute
 // implementation. This is not allowed.
-func AttributeInvalidElementTypeDiag(attributePath path.Path) diag.Diagnostic {
+func AttributeInvalidElementTypeDiag(attributePath path.Path, actualType attr.Type) diag.Diagnostic {
 	// The diagnostic path is intentionally omitted as it is invalid in this
 	// context. Diagnostic paths are intended to be mapped to actual data,
 	// while this path information must be synthesized.
@@ -76,6 +76,7 @@ func AttributeInvalidElementTypeDiag(attributePath path.Path) diag.Diagnostic {
 		"Invalid Attribute Implementation",
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q contains an Attribute type that is not allowed for Resource Identity. ", attributePath),
+			fmt.Sprintf("%q contains an Attribute of type %q that is not allowed for Lists in Resource Identity. ", attributePath, actualType)+
+			"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 	)
 }

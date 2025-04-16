@@ -561,7 +561,8 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
+							"\"test\" contains an Attribute of type \"basetypes.DynamicType\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 					),
 				},
 			},
@@ -581,7 +582,8 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
+							"\"test\" contains an Attribute of type \"types.ObjectType[]\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 					),
 				},
 			},
@@ -601,7 +603,8 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" contains an Attribute type that is not allowed for Resource Identity. ",
+							"\"test\" contains an Attribute of type \"types.MapType[!!! MISSING TYPE !!!]\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 					),
 				},
 			},

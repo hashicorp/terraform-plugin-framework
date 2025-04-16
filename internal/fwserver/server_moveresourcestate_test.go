@@ -927,6 +927,45 @@ func TestServerMoveResourceState(t *testing.T) {
 				},
 			},
 		},
+		"response-invalid-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.MoveResourceStateRequest{
+				SourceRawState: testNewRawState(t, map[string]interface{}{
+					"id":                 "test-id-value",
+					"required_attribute": true,
+				}),
+				TargetResource: &testprovider.ResourceWithMoveState{
+					MoveStateMethod: func(ctx context.Context) []resource.StateMover {
+						return []resource.StateMover{
+							{
+								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+									// Try to set TargetIdentity even though req.IdentitySchema is nil
+									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "should-not-be-set")...)
+
+									// Prevent missing implementation error, the values do not matter except for response assertion
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)
+									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("required_attribute"), "true")...)
+								},
+							},
+						}
+					},
+				},
+				TargetResourceSchema: testSchema,
+				TargetTypeName:       "test_resource",
+			},
+			expectedResponse: &fwserver.MoveResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Move State Response",
+						"An unexpected error was encountered when creating the move state response. Identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.",
+					),
+				},
+				TargetPrivate: privatestate.EmptyData(ctx),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

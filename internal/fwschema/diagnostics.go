@@ -76,7 +76,7 @@ func AttributeInvalidElementTypeDiag(attributePath path.Path, actualType attr.Ty
 		"Invalid Attribute Implementation",
 		"When validating the schema, an implementation issue was found. "+
 			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-			fmt.Sprintf("%q contains an Attribute of type %q that is not allowed for Lists in Resource Identity. ", attributePath, actualType)+
+			fmt.Sprintf("%q contains an element of type %q that is not allowed for Lists in Resource Identity. ", attributePath, actualType)+
 			"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 	)
 }

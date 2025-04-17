@@ -73,8 +73,8 @@ func (s *ResourceIdentity) SetAttribute(ctx context.Context, path path.Path, val
 	if s == nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Unexpected Move State Response",
-				"An unexpected error was encountered when creating the move state response. Identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
+				"Missing Identity Definition",
+				"An unexpected error was encountered when attempting to set a resource identity attribute. The resource does not indicate support via a resource identity schema.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer."),
 		}
 	}

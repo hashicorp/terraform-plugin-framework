@@ -226,6 +226,16 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			return
 		}
 
+		if resp.TargetIdentity != nil && req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Move State Response",
+				"An unexpected error was encountered when creating the move state response. New identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+
+			return
+		}
+
 		// Set any write-only attributes in the move resource state to null
 		modifiedState, err := tftypes.Transform(moveStateResp.TargetState.Raw, NullifyWriteOnlyAttributes(ctx, moveStateResp.TargetState.Schema))
 		if err != nil {

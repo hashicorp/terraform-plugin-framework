@@ -941,8 +941,13 @@ func TestServerMoveResourceState(t *testing.T) {
 						return []resource.StateMover{
 							{
 								StateMover: func(_ context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
-									// Try to set TargetIdentity even though req.IdentitySchema is nil
-									resp.Diagnostics.Append(resp.TargetIdentity.SetAttribute(ctx, path.Root("test_id"), "should-not-be-set")...)
+									// This resource doesn't indicate identity support (via a schema), so this should raise a diagnostic.
+									resp.TargetIdentity = &tfsdk.ResourceIdentity{
+										Raw: tftypes.NewValue(testIdentitySchema.Type().TerraformType(ctx), map[string]tftypes.Value{
+											"test_id": tftypes.NewValue(tftypes.String, "should-not-be-set"),
+										}),
+										Schema: testIdentitySchema,
+									}
 
 									// Prevent missing implementation error, the values do not matter except for response assertion
 									resp.Diagnostics.Append(resp.TargetState.SetAttribute(ctx, path.Root("id"), "test-id-value")...)

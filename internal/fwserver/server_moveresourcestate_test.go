@@ -961,12 +961,19 @@ func TestServerMoveResourceState(t *testing.T) {
 				TargetTypeName:       "test_resource",
 			},
 			expectedResponse: &fwserver.MoveResourceStateResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Unexpected Move State Response",
-						"An unexpected error was encountered when creating the move state response. Identity data was returned by the provider move state operation, but the resource does not indicate identity support.\n\n"+
-							"This is always a problem with the provider and should be reported to the provider developer.",
-					),
+				TargetState: &tfsdk.State{
+					Raw: tftypes.NewValue(schemaType, map[string]tftypes.Value{
+						"id":                 tftypes.NewValue(tftypes.String, "test-id-value"),
+						"optional_attribute": tftypes.NewValue(tftypes.String, nil),
+						"required_attribute": tftypes.NewValue(tftypes.String, "true"),
+					}),
+					Schema: testSchema,
+				},
+				TargetIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "should-not-be-set"),
+					}),
+					Schema: testIdentitySchema,
 				},
 				TargetPrivate: privatestate.EmptyData(ctx),
 			},

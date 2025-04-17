@@ -582,7 +582,7 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" contains an Attribute of type \"types.ObjectType[]\" that is not allowed for Lists in Resource Identity. "+
+							"\"test\" contains an element of type \"types.ObjectType[]\" that is not allowed for Lists in Resource Identity. "+
 							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 					),
 				},

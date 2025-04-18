@@ -6,6 +6,7 @@ package identityschema_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"strings"
 	"testing"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
@@ -476,6 +476,135 @@ func TestListAttributeValidateImplementation(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 							"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
 							"One of these fields is required to prevent other unexpected errors or panics.",
+					),
+				},
+			},
+		},
+		"elementtype-bool": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.BoolType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-int64": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.Int64Type,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-int32": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.Int32Type,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-float64": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.Float64Type,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-float32": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.Float32Type,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-number": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.NumberType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"elementtype-notprimitive-dynamic": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.DynamicType,
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" contains an element of type \"basetypes.DynamicType\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
+					),
+				},
+			},
+		},
+		"elementtype-notprimitive-object": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.ObjectType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" contains an element of type \"types.ObjectType[]\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
+					),
+				},
+			},
+		},
+		"elementtype-notprimitive-map": {
+			attribute: identityschema.ListAttribute{
+				RequiredForImport: true,
+				ElementType:       types.MapType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" contains an element of type \"types.MapType[!!! MISSING TYPE !!!]\" that is not allowed for Lists in Resource Identity. "+
+							"Lists in Resource Identity may only have primitive element types such as Bool, Int, Float, Number and String.",
 					),
 				},
 			},

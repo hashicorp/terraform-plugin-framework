@@ -98,8 +98,6 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		resp.Private = req.PlannedPrivate
 	}
 
-	// If the resource supports identity pre-populate a null value.
-	// TODO:ResourceIdentity: This should probably be prior identity, but we don't currently have that in the protocol.
 	if req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 

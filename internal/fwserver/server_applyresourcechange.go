@@ -76,6 +76,10 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 		deleteReq := &DeleteResourceRequest{
 			PlannedPrivate: req.PlannedPrivate,
 			PriorState:     req.PriorState,
+			// MAINTAINER NOTE: There isn't a separate data field for prior identity, like there is with prior_state and planned_state.
+			// Here the planned_identity field will contain what would be considered the prior identity (since the final identity value
+			// after deleting will be null).
+			PriorIdentity:  req.PlannedIdentity,
 			ProviderMeta:   req.ProviderMeta,
 			ResourceSchema: req.ResourceSchema,
 			IdentitySchema: req.IdentitySchema,

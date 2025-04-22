@@ -69,6 +69,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testEmptyIdentity := &tfsdk.ResourceIdentity{
+		Raw:    tftypes.NewValue(testIdentityType, nil),
+		Schema: testIdentitySchema,
+	}
+
 	type testSchemaData struct {
 		TestComputed types.String `tfsdk:"test_computed"`
 		TestRequired types.String `tfsdk:"test_required"`
@@ -689,6 +694,52 @@ func TestServerApplyResourceChange(t *testing.T) {
 				NewState: testEmptyState,
 			},
 		},
+		"delete-request-prioridentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				PlannedState: testEmptyPlan,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-priorstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
+						},
+						DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+							var identityData testIdentitySchemaData
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							if identityData.TestID.ValueString() != "id-123" {
+								resp.Diagnostics.AddError("Unexpected req.Identity Value", "Got: "+identityData.TestID.ValueString())
+							}
+						},
+						UpdateMethod: func(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Update")
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewIdentity: testEmptyIdentity,
+				NewState:    testEmptyState,
+			},
+		},
 		"delete-request-providermeta": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -982,6 +1033,12 @@ func TestServerApplyResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
 				IdentitySchema: testIdentitySchema,
 				ResourceSchema: testSchema,
 				Resource: &testprovider.ResourceWithIdentity{
@@ -990,10 +1047,11 @@ func TestServerApplyResourceChange(t *testing.T) {
 							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Delete, Got: Create")
 						},
 						DeleteMethod: func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-							if resp.Identity == nil || !resp.Identity.Raw.IsNull() {
+							// The identity is automatically set to null in the response after the Delete method is called
+							if resp.Identity == nil || resp.Identity.Raw.IsNull() {
 								resp.Diagnostics.AddError(
 									"Unexpected resp.Identity",
-									"expected resp.Identity to be a null object of the schema type.",
+									"expected resp.Identity to be a known non-null object of the schema type.",
 								)
 							}
 						},
@@ -1004,11 +1062,8 @@ func TestServerApplyResourceChange(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.ApplyResourceChangeResponse{
-				NewIdentity: &tfsdk.ResourceIdentity{
-					Raw:    tftypes.NewValue(testIdentityType, nil),
-					Schema: testIdentitySchema,
-				},
-				NewState: testEmptyState,
+				NewIdentity: testEmptyIdentity,
+				NewState:    testEmptyState,
 			},
 		},
 		"update-request-config": {

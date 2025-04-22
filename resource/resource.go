@@ -202,7 +202,7 @@ type ResourceWithValidateConfig interface {
 
 // ResourceWithIdentity is an interface type that extends Resource to implement managed resource identity.
 //
-// Managed resources can optionally define an identity schema, which is a separate object stored in state
+// Managed resources can optionally define an identity schema, which represents a separate object stored in state
 // alongside the resource instance data. This identity data is used by Terraform to uniquely identify
 // managed resources and has additional restrictions that allow external programs to determine equality
 // between two identities.

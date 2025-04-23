@@ -149,7 +149,6 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	// If the resource supports identity and we are not importing by identity, pre-populate with a null value.
-	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
 	if req.Identity == nil && req.IdentitySchema != nil {
 		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 

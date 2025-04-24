@@ -119,8 +119,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
-	// TODO:ResourceIdentity: Should this be set to all unknowns?
 	if req.PriorIdentity == nil && req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 

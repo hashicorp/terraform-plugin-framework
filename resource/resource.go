@@ -19,6 +19,9 @@ import (
 //   - Plan Modification: Schema-based or entire plan
 //     via ResourceWithModifyPlan.
 //   - State Upgrades: ResourceWithUpgradeState
+//   - Identity: Define an identity schema with ResourceWithIdentity to enable
+//     storing identity data in state during CRUD operations. Identity data is
+//     used by Terraform to uniquely identify a managed resource.
 //
 // Although not required, it is conventional for resources to implement the
 // ResourceWithImportState interface.
@@ -199,7 +202,21 @@ type ResourceWithValidateConfig interface {
 
 // ResourceWithIdentity is an interface type that extends Resource to implement managed resource identity.
 //
-// TODO:ResourceIdentity: Add more documentation here to describe what identity is used for.
+// Managed resources can optionally define an identity schema, which represents a separate object stored in state
+// alongside the resource instance data. This identity data is used by Terraform to uniquely identify
+// managed resources and has additional restrictions that allow external programs to determine equality
+// between two identities.
+//
+// Resource identity schemas can only contain primitive (bool, string, number) attributes and lists that
+// contain primitive elements. Additionally, a resource identity should have the following properties:
+//   - The resource identity should correspond to at most one remote object per provider, across all
+//     instances of that provider.
+//   - Given a resource identity, the provider should be able to determine whether the corresponding remote
+//     object exists, and if so, return the resource state. Resources that support identity can be imported
+//     by the identity object via the ResourceWithImportState interface.
+//   - The resource identity should not change during the lifecycle of the remote object. That is, from the
+//     creation of the remote object in the remote system until its destruction. An exception to this rule
+//     is an upgrade of the identity data after a schema change, via the ResourceWithUpgradeIdentity interface.
 type ResourceWithIdentity interface {
 	Resource
 

@@ -107,6 +107,7 @@ func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req Impor
 			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Resource ImportState method call to ImportStatePassthroughID path must be set to a valid attribute path that can accept a string value.",
 		)
+		return
 	}
 
 	// If the import is using the ID string identifier, (either via the "terraform import" CLI command, or a config block with the "id" attribute set)
@@ -139,6 +140,10 @@ func ImportStatePassthroughWithIdentity(ctx context.Context, stateAttrPath, iden
 			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Resource ImportState method call to ImportStatePassthroughWithIdentity path must be set to a valid identity attribute path that is a string value.",
 		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// If the import is using the import identifier, (either via the "terraform import" CLI command, or a config block with the "id" attribute set)

@@ -145,6 +145,15 @@ func TestServerImportResourceState(t *testing.T) {
 		Schema: testSchema,
 	}
 
+	testStatePassThroughIdentity := &tfsdk.State{
+		Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
+			"id":       tftypes.NewValue(tftypes.String, "id-123"),
+			"optional": tftypes.NewValue(tftypes.String, nil),
+			"required": tftypes.NewValue(tftypes.String, nil),
+		}),
+		Schema: testSchema,
+	}
+
 	testImportedResourceIdentity := &tfsdk.ResourceIdentity{
 		Raw:    testImportedResourceIdentityValue,
 		Schema: testIdentitySchema,
@@ -652,6 +661,122 @@ func TestServerImportResourceState(t *testing.T) {
 						TypeName: "test_resource",
 						Private:  testEmptyPrivate,
 					},
+				},
+			},
+		},
+		"response-importedresources-passthrough-identity-imported-by-id": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				ID:             "id-123",
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("test_id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State: *testStatePassThroughIdentity,
+						Identity: &tfsdk.ResourceIdentity{
+							Raw:    tftypes.NewValue(testIdentityType, nil),
+							Schema: testIdentitySchema,
+						},
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"response-importedresources-passthrough-identity-imported-by-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				Identity:       testRequestIdentity,
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resp.Diagnostics.Append(resp.Identity.SetAttribute(ctx, path.Root("other_test_id"), types.StringValue("new-value-123"))...)
+						resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("test_id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				ImportedResources: []fwserver.ImportedResource{
+					{
+						State:    *testStatePassThroughIdentity,
+						Identity: testImportedResourceIdentity,
+						TypeName: "test_resource",
+						Private:  testEmptyPrivate,
+					},
+				},
+			},
+		},
+		"response-importedresources-passthrough-identity-invalid-state-path": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				ID:             "id-123",
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resource.ImportStatePassthroughWithIdentity(ctx, path.Root("not-valid"), path.Root("test_id"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("not-valid"),
+						"State Write Error",
+						"An unexpected error was encountered trying to retrieve type information at a given path. "+
+							"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: AttributeName(\"not-valid\") still remains in the path: could not find attribute or block "+
+							"\"not-valid\" in schema",
+					),
+				},
+			},
+		},
+		"response-importedresources-passthrough-identity-invalid-identity-path": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ImportResourceStateRequest{
+				EmptyState:     *testEmptyState,
+				Identity:       testRequestIdentity,
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithImportState{
+					Resource: &testprovider.Resource{},
+					ImportStateMethod: func(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+						resource.ImportStatePassthroughWithIdentity(ctx, path.Root("id"), path.Root("not-valid"), req, resp)
+					},
+				},
+				TypeName: "test_resource",
+			},
+			expectedResponse: &fwserver.ImportResourceStateResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewAttributeErrorDiagnostic(
+						path.Root("not-valid"),
+						"Resource Identity Read Error",
+						"An unexpected error was encountered trying to retrieve type information at a given path. "+
+							"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+							"Error: AttributeName(\"not-valid\") still remains in the path: could not find attribute or block "+
+							"\"not-valid\" in schema",
+					),
 				},
 			},
 		},

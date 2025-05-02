@@ -118,6 +118,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										)
 										return
 									}
+
 									priorIdentityId := rawValues["id"]
 									var id string
 									if priorIdentityId.Type().Is(tftypes.String) {

@@ -20,7 +20,7 @@ import (
 // UpgradeResourceIdentity RPC.
 type UpgradeResourceIdentityRequest struct {
 	Resource       resource.Resource
-	IdentitySchema fwschema.Schema // TODO: Figure out if this was supposed to be a specifically identity schema
+	IdentitySchema fwschema.Schema
 	// TypeName is the type of resource that Terraform needs to upgrade the
 	// identity state for.
 	TypeName string
@@ -69,7 +69,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		},
 	}
 
-	// TODO: throw error if the schemas are the same, it is a bug in core
+	// TODO: Maybe throw error if the schemas are the same, it is a bug in core
 
 	// Terraform CLI can call UpgradeResourceIdentity even if the stored Identity
 	// version matches the current schema. Presumably this is to account for

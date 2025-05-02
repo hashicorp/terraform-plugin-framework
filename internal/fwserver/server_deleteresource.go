@@ -21,6 +21,7 @@ import (
 type DeleteResourceRequest struct {
 	PlannedPrivate *privatestate.Data
 	PriorState     *tfsdk.State
+	PriorIdentity  *tfsdk.ResourceIdentity
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
 	IdentitySchema fwschema.Schema
@@ -98,12 +99,24 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		resp.Private = req.PlannedPrivate
 	}
 
-	if req.IdentitySchema != nil {
+	if req.PriorIdentity == nil && req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 
-		deleteResp.Identity = &tfsdk.ResourceIdentity{
+		req.PriorIdentity = &tfsdk.ResourceIdentity{
 			Schema: req.IdentitySchema,
 			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	if req.PriorIdentity != nil {
+		deleteReq.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
+		}
+
+		deleteResp.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
 		}
 	}
 

@@ -118,6 +118,19 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										)
 										return
 									}
+									priorIdentityId := rawValues["id"]
+									var id string
+									if priorIdentityId.Type().Is(tftypes.String) {
+										err := priorIdentityId.As(&id)
+										if err != nil {
+											resp.Diagnostics.AddError(
+												"Unable to convert raw state id value into string",
+												fmt.Sprintf("There was an error converting the raw state id value into string for version %d upgrade.\n\n", req.Version)+
+													"Please report this to the provider developer:\n\n"+err.Error(),
+											)
+											return
+										}
+									}
 
 									upgradedIdentityData := struct {
 										Id string `tfsdk:"id"`

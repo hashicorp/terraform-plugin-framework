@@ -69,51 +69,16 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		},
 	}
 
-	// TODO: Maybe throw error if the schemas are the same, it is a bug in core
-
-	// Terraform CLI can call UpgradeResourceIdentity even if the stored Identity
-	// version matches the current schema. Presumably this is to account for
-	// the previous terraform-plugin-sdk implementation, which handled some
-	// Identity fixups on behalf of Terraform CLI. When this happens, we do not
-	// want to return errors for a missing ResourceWithUpgradeIdentity
-	// implementation or an undefined version within an existing
-	// ResourceWithUpgradeIdentity implementation as that would be confusing
-	// detail for provider developers. Instead, the framework will attempt to
-	// roundtrip the prior RawState to a Identity matching the current Schema.
-	//
-	// TODO: To prevent provider developers from accidentally implementing
-	// ResourceWithUpgradeIdentity with a version matching the current schema
-	// version which would never get called, the framework can introduce a
-	// unit test helper.
-	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/113
-	//
-	// UnmarshalWithOpts allows optionally ignoring instances in which elements being
-	// do not have a corresponding attribute within the schema.
-	/*	if req.Version == req.IdentitySchema.GetVersion() {
-		logging.FrameworkTrace(ctx, "UpgradeResourceIdentity request version matches current Schema version, using framework defined passthrough implementation")
-
-		identitySchemaType := req.IdentitySchema.Type().TerraformType(ctx)
-
-		rawStateValue, err := req.RawState.UnmarshalWithOpts(identitySchemaType, unmarshalOpts)
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
-				"There was an error reading the saved resource Identity using the current resource schema.\n\n"+
-					"If this resource Identity was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
-					"If you manually modified the resource Identity, you will need to manually modify it to match the current resource schema. "+
-					"Otherwise, please report this to the provider developer:\n\n"+err.Error(),
-			)
-			return
-		}
-
-		resp.UpgradedIdentity = &tfsdk.ResourceIdentity{
-			Schema: req.IdentitySchema,
-			Raw:    rawStateValue,
-		}
-
+	if req.Version == req.IdentitySchema.GetVersion() {
+		resp.Diagnostics.AddError(
+			"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
+			"There was an error reading the saved resource identity using the current resource identity schema.\n\n"+
+				"If this resource Identity was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
+				"If you manually modified the resource Identity, you will need to manually modify it to match the current resource identity schema. "+
+				"Otherwise, please report this to the provider developer:\n\n",
+		)
 		return
-	}*/
+	}
 
 	if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "Resource implements ResourceWithConfigure")
@@ -178,7 +143,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 
 		priorSchemaType := resourceIdentityUpgrader.PriorSchema.Type().TerraformType(ctx)
 
-		_, err := req.RawState.UnmarshalWithOpts(priorSchemaType, unmarshalOpts)
+		rawIdentityValue, err := req.RawState.UnmarshalWithOpts(priorSchemaType, unmarshalOpts)
 
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -189,12 +154,15 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 			return
 		}
 
-		upgradeResourceIdentityRequest.RawState = req.RawState
+		upgradeResourceIdentityRequest.Identity = &tfsdk.ResourceIdentity{
+			Raw:    rawIdentityValue, // from the output of req.RawState.UnmarshalWithOpts
+			Schema: *resourceIdentityUpgrader.PriorSchema,
+		}
 
 	}
 
 	upgradeResourceIdentityResponse := resource.UpgradeResourceIdentityResponse{
-		UpgradedIdentity: &tfsdk.ResourceIdentity{
+		Identity: &tfsdk.ResourceIdentity{
 			Schema: req.IdentitySchema,
 			// Raw is intentionally not set.
 		},
@@ -215,7 +183,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		return
 	}
 
-	if upgradeResourceIdentityResponse.UpgradedIdentity.Raw.Type() == nil || upgradeResourceIdentityResponse.UpgradedIdentity.Raw.IsNull() {
+	if upgradeResourceIdentityResponse.Identity.Raw.Type() == nil || upgradeResourceIdentityResponse.Identity.Raw.IsNull() {
 		resp.Diagnostics.AddError(
 			"Missing Upgraded Resource Identity",
 			fmt.Sprintf("After attempting a resource Identity upgrade to version %d, the provider did not return any Identity data. ", req.Version)+
@@ -225,16 +193,16 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		return
 	}
 
-	if upgradeResourceIdentityResponse.UpgradedIdentity != nil {
-		logging.FrameworkTrace(ctx, "UpgradeResourceIdentityResponse Raw State set, overriding State")
+	if upgradeResourceIdentityResponse.Identity.Raw.Type() != nil {
+		logging.FrameworkTrace(ctx, "UpgradeResourceIdentityResponse RawState set, overriding State")
 
 		resp.UpgradedIdentity = &tfsdk.ResourceIdentity{
 			Schema: req.IdentitySchema,
-			Raw:    upgradeResourceIdentityResponse.UpgradedIdentity.Raw,
+			Raw:    upgradeResourceIdentityResponse.Identity.Raw,
 		}
 
 		return
 	}
 
-	resp.UpgradedIdentity = upgradeResourceIdentityResponse.UpgradedIdentity
+	resp.UpgradedIdentity = upgradeResourceIdentityResponse.Identity
 }

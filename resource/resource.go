@@ -227,14 +227,14 @@ type ResourceWithIdentity interface {
 type ResourceWithUpgradeIdentity interface {
 	Resource
 
-	// A mapping of prior state version to current schema version state upgrade
-	// implementations. Only the specified state upgrader for the prior state
+	// A mapping of the prior identity version to current identity upgrade
+	// implementation. Only the specified identity upgrader for the prior identity
 	// version is called, rather than each version in between, so it must
-	// encapsulate all logic to convert the prior state to the current schema
+	// encapsulate all logic to convert the prior identity to the current identity schema
 	// version.
 	//
 	// Version keys begin at 0, which is the default schema version when
 	// undefined. The framework will return an error diagnostic should the
-	// requested state version not be implemented.
+	// requested identity version not be implemented.
 	UpgradeResourceIdentity(context.Context) map[int64]IdentityUpgrader
 }

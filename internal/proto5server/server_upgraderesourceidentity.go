@@ -15,7 +15,6 @@ import (
 
 // UpgradeResourceIdentity satisfies the tfprotov5.ProviderServer interface.
 func (s *Server) UpgradeResourceIdentity(ctx context.Context, proto5Req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
-	// panic("unimplemented") // TODO:ResourceIdentity: implement
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
 

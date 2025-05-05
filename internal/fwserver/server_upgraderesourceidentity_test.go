@@ -139,7 +139,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										Id: id,
 									}
 
-									resp.Diagnostics.Append(resp.UpgradedIdentity.Set(ctx, upgradedIdentityData)...)
+									resp.Diagnostics.Append(resp.Identity.Set(ctx, upgradedIdentityData)...)
 								},
 							},
 						}
@@ -221,7 +221,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										return
 									}
 
-									resp.UpgradedIdentity = ResourceIdentity
+									resp.Identity = ResourceIdentity
 								},
 							},
 						}
@@ -273,7 +273,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										Schema: testIdentitySchema,
 									}
 
-									resp.UpgradedIdentity = &ResourceIdentity
+									resp.Identity = &ResourceIdentity
 								},
 							},
 						}
@@ -449,7 +449,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										Id: id,
 									}
 
-									resp.Diagnostics.Append(resp.UpgradedIdentity.Set(ctx, upgradedIdentityData)...)
+									resp.Diagnostics.Append(resp.Identity.Set(ctx, upgradedIdentityData)...)
 								},
 							},
 						}
@@ -500,115 +500,6 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 				},
 			},
 		},
-		/*"Version-current-flatmap": { // TODO: See if we need to add these tests back
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{
-					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-						return []func() resource.Resource{
-							func() resource.Resource {
-								return &testprovider.ResourceWithUpgradeIdentity{
-
-									Resource: &testprovider.Resource{},
-									UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
-										return map[int64]resource.IdentityUpgrader{
-											0: {
-												IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
-													// Purposfully not setting resp.ResourceIdentity or resp.UpgradedIdentity
-												},
-											},
-										}
-									},
-								}
-							},
-						}
-					},
-				},
-			},
-			request: &fwserver.UpgradeResourceIdentityRequest{
-				RawState: &tfprotov6.RawState{
-					Flatmap: map[string]string{
-						"flatmap": "is not supported",
-					},
-				},
-				IdentitySchema: testIdentitySchema,
-				Resource:       &testprovider.ResourceWithUpgradeIdentity{},
-				Version:        1, // Must match current tfsdk.Schema version to trigger framework implementation
-			},
-			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
-						"There was an error reading the saved resource Identity using the current resource schema.\n\n"+
-							"If this resource Identity was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
-							"If you manually modified the resource Identity, you will need to manually modify it to match the current resource schema. "+
-							"Otherwise, please report this to the provider developer:\n\n"+
-							"flatmap Identitys cannot be unmarshaled, only Identitys written by Terraform 0.12 and higher can be unmarshaled",
-					),
-				},
-			},
-		},
-		"Version-current-json-match": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{
-					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-						return []func() resource.Resource{
-							func() resource.Resource {
-								return &testprovider.ResourceWithUpgradeIdentity{
-									Resource: &testprovider.Resource{},
-									UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
-										return map[int64]resource.IdentityUpgrader{
-											0: {
-												IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
-													// Purposfully not setting resp.ResourceIdentity or resp.UpgradedIdentity
-												},
-											},
-										}
-									},
-								}
-							},
-						}
-					},
-				},
-			},
-			request: &fwserver.UpgradeResourceIdentityRequest{
-				RawState: testNewRawState(t, map[string]interface{}{
-					"id": "test-id-value",
-				}),
-				IdentitySchema: testIdentitySchema,
-				Resource:       &testprovider.ResourceWithUpgradeIdentity{},
-				Version:        1, // Must match current tfsdk.Schema version to trigger framework implementation
-			},
-			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
-				UpgradedIdentity: &tfsdk.ResourceIdentity{
-					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
-						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
-					}),
-					Schema: testIdentitySchema,
-				},
-			},
-		},
-		"Version-current-json-mismatch": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.UpgradeResourceIdentityRequest{
-				RawState: testNewRawState(t, map[string]interface{}{
-					"id":                    "test-id-value",
-					"nonexistent_attribute": "value",
-				}),
-				IdentitySchema: testIdentitySchema,
-				Resource:       &testprovider.ResourceWithUpgradeIdentity{},
-				Version:        1, // Must match current tfsdk.IdentitySchema version to trigger framework implementation
-			},
-			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
-				UpgradedIdentity: &tfsdk.ResourceIdentity{
-					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
-						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
-					}),
-					Schema: testIdentitySchema,
-				},
-			},
-		},*/
 		"Version-not-implemented": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

@@ -23,12 +23,17 @@ type UpgradeResourceIdentityRequest struct {
 	// documentation for `RawIdentity` for information on how to work with the
 	// data it contains.
 	RawState *tfprotov6.RawState
+
+	// Previous identity of the resource if the wrapping IdentityUpgrader
+	// type PriorSchema field was present. When available, this allows for
+	// easier data handling such as calling Get() or GetAttribute().
+	Identity *tfsdk.ResourceIdentity
 }
 
 // Response information for the provider logic to update a resource identity
 // from a prior resource identity version to the current identity version.
 type UpgradeResourceIdentityResponse struct {
-	UpgradedIdentity *tfsdk.ResourceIdentity
+	Identity *tfsdk.ResourceIdentity
 
 	// Diagnostics report errors or warnings related to retrieving the resource
 	// identity schema. An empty slice indicates success, with no warnings

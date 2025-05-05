@@ -42,6 +42,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 				RequiredForImport: true,
 			},
 		},
+		Version: 1, // Must be above 0
 	}
 
 	ctx := context.Background()
@@ -91,7 +92,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 														}
 
 														// Prevent Missing Upgraded Resource Identity error
-														resp.UpgradedIdentity = &tfsdk.ResourceIdentity{
+														resp.Identity = &tfsdk.ResourceIdentity{
 															Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
 																"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
 															}),
@@ -241,7 +242,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
 													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
-														resp.UpgradedIdentity = &tfsdk.ResourceIdentity{
+														resp.Identity = &tfsdk.ResourceIdentity{
 															Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
 																"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
 															}),

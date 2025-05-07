@@ -17,6 +17,7 @@ func LinkedResources(ctx context.Context, fw action.LinkedResources) ([]*tfproto
 	var diags diag.Diagnostics
 
 	resp := make([]*tfprotov6.LinkedResource, len(fw))
+	i := 0
 
 	for _, resource := range fw {
 		path, pathDiags := totftypes.AttributePath(ctx, resource.AttributePath)
@@ -30,8 +31,9 @@ func LinkedResources(ctx context.Context, fw action.LinkedResources) ([]*tfproto
 			Attribute: path,
 		}
 		valDiag := diag.Diagnostics{}
-		resp = append(resp, linkedResource)
+		resp[i] = linkedResource
 		diags.Append(valDiag...)
+		i++
 	}
 
 	return resp, diags

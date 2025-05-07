@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -23,6 +24,38 @@ import (
 // response type conversions.
 type Server struct {
 	Provider provider.Provider
+
+	// actionSchemas is the cached Action Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the ActionType.GetSchema() method.
+	actionSchemas map[string]fwschema.Schema
+
+	// actionSchemasMutex is a mutex to protect concurrent actionSchemas
+	// access from race conditions.
+	actionSchemasMutex sync.RWMutex
+
+	// actionLinkedResources is the cached LinkedResources for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the ActionType.GetSchema() method.
+	actionLinkedResources map[string]action.LinkedResources
+
+	// actionLinkedResourcesMutex is a mutex to protect concurrent actionLinkedResources
+	// access from race conditions.
+	actionLinkedResourcesMutex sync.RWMutex
+
+	// actionFuncs is the cached Action functions for RPCs that need to
+	// access ephemeral resources. If not found, it will be fetched from the
+	// Provider.Actions() method.
+	actionFuncs map[string]func() action.Action
+
+	// actionFuncsDiags is the cached Diagnostics obtained while populating
+	// actionFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching actionFuncs.
+	actionFuncsDiags diag.Diagnostics
+
+	// actionFuncsMutex is a mutex to protect concurrent actionFuncs
+	// access from race conditions.
+	actionFuncsMutex sync.Mutex
 
 	// DataSourceConfigureData is the
 	// [provider.ConfigureResponse.DataSourceData] field value which is passed

@@ -11,6 +11,8 @@ package logging
 // Refer to the terraform-plugin-go logging keys as well, which should be
 // equivalent to these when possible.
 const (
+	KeyActionType = "tf_action_type"
+
 	// Attribute path representation, which is typically in flatmap form such
 	// as parent.0.child in this project.
 	KeyAttributePath = "tf_attribute_path"

@@ -6,6 +6,7 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -21,6 +22,8 @@ type GetProviderSchemaResponse struct {
 	ServerCapabilities       *ServerCapabilities
 	Provider                 fwschema.Schema
 	ProviderMeta             fwschema.Schema
+	ActionSchemas            map[string]fwschema.Schema
+	ActionLinkedResources    map[string]action.LinkedResources
 	ResourceSchemas          map[string]fwschema.Schema
 	DataSourceSchemas        map[string]fwschema.Schema
 	EphemeralResourceSchemas map[string]fwschema.Schema
@@ -91,4 +94,16 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 	}
 
 	resp.EphemeralResourceSchemas = ephemeralResourceSchemas
+
+	// TODO: Determine whether to create a separate func for actionLinkedResources
+	actionSchemas, actionLinkedResources, diags := s.ActionSchemas(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.ActionSchemas = actionSchemas
+	resp.ActionLinkedResources = actionLinkedResources
 }

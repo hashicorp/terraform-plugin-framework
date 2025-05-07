@@ -16,12 +16,17 @@ type GetMetadataRequest struct{}
 // GetMetadataResponse is the framework server response for the
 // GetMetadata RPC.
 type GetMetadataResponse struct {
+	Actions            []ActionMetadata
 	DataSources        []DataSourceMetadata
 	Diagnostics        diag.Diagnostics
 	EphemeralResources []EphemeralResourceMetadata
 	Functions          []FunctionMetadata
 	Resources          []ResourceMetadata
 	ServerCapabilities *ServerCapabilities
+}
+
+type ActionMetadata struct {
+	TypeName string
 }
 
 // DataSourceMetadata is the framework server equivalent of the
@@ -54,11 +59,14 @@ type ResourceMetadata struct {
 
 // GetMetadata implements the framework server GetMetadata RPC.
 func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp *GetMetadataResponse) {
+	resp.Actions = []ActionMetadata{}
 	resp.DataSources = []DataSourceMetadata{}
 	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
 	resp.Resources = []ResourceMetadata{}
 	resp.ServerCapabilities = s.ServerCapabilities()
+
+	actionMetadatas, diags := s.ActionMetadatas(ctx)
 
 	datasourceMetadatas, diags := s.DataSourceMetadatas(ctx)
 
@@ -80,6 +88,7 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 		return
 	}
 
+	resp.Actions = actionMetadatas
 	resp.DataSources = datasourceMetadatas
 	resp.EphemeralResources = ephemeralResourceMetadatas
 	resp.Functions = functionMetadatas

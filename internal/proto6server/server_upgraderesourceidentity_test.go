@@ -79,15 +79,15 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 												resp.TypeName = "test_resource"
 											},
 										},
-										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+										UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														expectedSourceIdentity := testNewRawState(t, map[string]interface{}{
 															"test_id": "test-id-value",
 														})
 
-														if diff := cmp.Diff(req.RawState, expectedSourceIdentity); diff != "" {
+														if diff := cmp.Diff(req.RawIdentity, expectedSourceIdentity); diff != "" {
 															resp.Diagnostics.AddError("Unexpected req.SourceIdentity difference", diff)
 														}
 
@@ -179,10 +179,10 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 												resp.TypeName = "test_resource"
 											},
 										},
-										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+										UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														resp.Diagnostics.AddWarning("warning summary", "warning detail")
 														resp.Diagnostics.AddError("error summary", "error detail")
 													},
@@ -238,10 +238,10 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 												resp.TypeName = "test_resource"
 											},
 										},
-										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+										UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														resp.Identity = &tfsdk.ResourceIdentity{
 															Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
 																"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),
@@ -283,7 +283,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := testCase.server.UpgradeResourceIdentity(context.Background(), testCase.request)
+			got, err := testCase.server.UpgradeIdentity(context.Background(), testCase.request)
 
 			if diff := cmp.Diff(testCase.expectedError, err); diff != "" {
 				t.Errorf("unexpected error difference: %s", diff)

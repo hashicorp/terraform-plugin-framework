@@ -6,7 +6,6 @@ package resource
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Implementation handler for an UpgradeIdentity operation.
@@ -24,13 +23,6 @@ type IdentityUpgrader struct {
 	// UpgradeResourceIdentityRequest type RawIdentity field.
 	PriorSchema *identityschema.Schema
 
-	// Version is the version schema that this Upgrader will handle, converting
-	// it to Version+1.
-	Version int64
-
-	// Type describes the schema that this function can upgrade.
-	Type tftypes.Type
-
 	// Provider defined logic for upgrading a resource identity from the prior
 	// identity version to the current schema version.
 	//
@@ -43,5 +35,5 @@ type IdentityUpgrader struct {
 	//
 	// The UpgradeResourceIdentityResponse parameter should contain the upgraded
 	// identity data and can be used to signal any logic warnings or errors.
-	IdentityUpgrader func(context.Context, UpgradeResourceIdentityRequest, *UpgradeResourceIdentityResponse)
+	IdentityUpgrader func(context.Context, UpgradeIdentityRequest, *UpgradeIdentityResponse)
 }

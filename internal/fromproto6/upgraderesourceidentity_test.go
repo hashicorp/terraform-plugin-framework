@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
-func TestUpgradeResourceIdentityRequest(t *testing.T) {
+func TestUpgradeIdentityRequest(t *testing.T) {
 	t.Parallel()
 
 	testIdentitySchema := identityschema.Schema{
@@ -33,7 +33,7 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 		input               *tfprotov6.UpgradeResourceIdentityRequest
 		identitySchema      fwschema.Schema
 		resource            resource.Resource
-		expected            *fwserver.UpgradeResourceIdentityRequest
+		expected            *fwserver.UpgradeIdentityRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
 		"nil": {
@@ -47,7 +47,7 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 				}),
 			},
 			identitySchema: testIdentitySchema,
-			expected: &fwserver.UpgradeResourceIdentityRequest{
+			expected: &fwserver.UpgradeIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"test_attribute": "test-value",
 				}),
@@ -57,7 +57,7 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 		"resourceschema": {
 			input:          &tfprotov6.UpgradeResourceIdentityRequest{},
 			identitySchema: testIdentitySchema,
-			expected: &fwserver.UpgradeResourceIdentityRequest{
+			expected: &fwserver.UpgradeIdentityRequest{
 				IdentitySchema: testIdentitySchema,
 			},
 		},
@@ -79,7 +79,7 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 				Version: 123,
 			},
 			identitySchema: testIdentitySchema,
-			expected: &fwserver.UpgradeResourceIdentityRequest{
+			expected: &fwserver.UpgradeIdentityRequest{
 				IdentitySchema: testIdentitySchema,
 				Version:        123,
 			},
@@ -90,7 +90,7 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.UpgradeResourceIdentityRequest(context.Background(), testCase.input, testCase.resource, testCase.identitySchema)
+			got, diags := fromproto6.UpgradeIdentityRequest(context.Background(), testCase.input, testCase.resource, testCase.identitySchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

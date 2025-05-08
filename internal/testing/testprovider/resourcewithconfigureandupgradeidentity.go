@@ -21,7 +21,7 @@ type ResourceWithConfigureAndUpgradeIdentity struct {
 	ConfigureMethod func(context.Context, resource.ConfigureRequest, *resource.ConfigureResponse)
 
 	// ResourceWithUpgradeIdentity interface methods
-	UpgradeResourceIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
+	UpgradeIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
 }
 
 // Configure satisfies the resource.ResourceWithConfigureAndUpgradeIdentity interface.
@@ -33,11 +33,11 @@ func (r *ResourceWithConfigureAndUpgradeIdentity) Configure(ctx context.Context,
 	r.ConfigureMethod(ctx, req, resp)
 }
 
-// UpgradeResourceIdentity satisfies the resource.ResourceWithUpgradeIdentity interface.
-func (r *ResourceWithConfigureAndUpgradeIdentity) UpgradeResourceIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
-	if r.UpgradeResourceIdentityMethod == nil {
+// UpgradeIdentity satisfies the resource.ResourceWithUpgradeIdentity interface.
+func (r *ResourceWithConfigureAndUpgradeIdentity) UpgradeIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
+	if r.UpgradeIdentityMethod == nil {
 		return nil
 	}
 
-	return r.UpgradeResourceIdentityMethod(ctx)
+	return r.UpgradeIdentityMethod(ctx)
 }

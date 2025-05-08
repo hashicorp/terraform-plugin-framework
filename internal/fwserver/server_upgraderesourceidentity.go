@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// UpgradeResourceIdentityRequest is the framework server request for the
-// UpgradeResourceIdentity RPC.
-type UpgradeResourceIdentityRequest struct {
+// UpgradeIdentityRequest is the framework server request for the
+// UpgradeIdentity RPC.
+type UpgradeIdentityRequest struct {
 	Resource       resource.Resource
 	IdentitySchema fwschema.Schema
 	// TypeName is the type of resource that Terraform needs to upgrade the
@@ -28,10 +28,6 @@ type UpgradeResourceIdentityRequest struct {
 	// Version is the version of the identity state the resource currently has.
 	Version int64
 
-	// Using the tfprotov6 type here was a pragmatic effort decision around when
-	// the framework introduced compatibility promises. This type was chosen as
-	// it was readily available and trivial to convert between tfprotov5.
-	//
 	// Using a terraform-plugin-go type is not ideal for the framework as almost
 	// all terraform-plugin-go types have framework abstractions, but if there
 	// is ever a time where it makes sense to re-evaluate this decision, such as
@@ -40,15 +36,15 @@ type UpgradeResourceIdentityRequest struct {
 	RawState *tfprotov6.RawState
 }
 
-// UpgradeResourceIdentityResponse is the framework server response for the
-// UpgradeResourceIdentity RPC.
-type UpgradeResourceIdentityResponse struct {
+// UpgradeIdentityResponse is the framework server response for the
+// UpgradeIdentity RPC.
+type UpgradeIdentityResponse struct {
 	UpgradedIdentity *tfsdk.ResourceIdentity
 	Diagnostics      diag.Diagnostics
 }
 
-// UpgradeResourceIdentity implements the framework server UpgradeResourceIdentity RPC.
-func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResourceIdentityRequest, resp *UpgradeResourceIdentityResponse) {
+// UpgradeIdentity implements the framework server UpgradeIdentity RPC.
+func (s *Server) UpgradeIdentity(ctx context.Context, req *UpgradeIdentityRequest, resp *UpgradeIdentityResponse) {
 	if req == nil {
 		return
 	}
@@ -71,11 +67,10 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 
 	if req.Version == req.IdentitySchema.GetVersion() {
 		resp.Diagnostics.AddError(
-			"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
-			"There was an error reading the saved resource identity using the current resource identity schema.\n\n"+
-				"If this resource Identity was last refreshed with Terraform CLI 0.11 and earlier, it must be refreshed or applied with an older provider version first. "+
-				"If you manually modified the resource Identity, you will need to manually modify it to match the current resource identity schema. "+
-				"Otherwise, please report this to the provider developer:\n\n",
+			"Unexpected Identity Upgrade Request",
+			"Terraform Core invoked UpgradeResourceIdentity even though the stored identity schema version matches the current version. "+
+				"This likely indicates a bug in the Terraform provider framework or Terraform Core. "+
+				"Please report this issue to the provider developer.",
 		)
 		return
 	}
@@ -114,7 +109,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeIdentity")
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource UpgradeIdentity")
-	resourceIdentityUpgraders := resourceWithUpgradeIdentity.UpgradeResourceIdentity(ctx)
+	resourceIdentityUpgraders := resourceWithUpgradeIdentity.UpgradeIdentity(ctx)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource UpgradeIdentity")
 
 	// Panic prevention
@@ -134,12 +129,12 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		return
 	}
 
-	upgradeResourceIdentityRequest := resource.UpgradeResourceIdentityRequest{
-		RawState: req.RawState,
+	upgradeResourceIdentityRequest := resource.UpgradeIdentityRequest{
+		RawIdentity: req.RawState,
 	}
 
 	if resourceIdentityUpgrader.PriorSchema != nil {
-		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceIdentityRequest Identity from provider defined prior schema and request RawState")
+		logging.FrameworkTrace(ctx, "Initializing populated UpgradeIdentityRequest Identity from provider defined prior schema and request RawState")
 
 		priorSchemaType := resourceIdentityUpgrader.PriorSchema.Type().TerraformType(ctx)
 
@@ -147,7 +142,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
+				"Unable to Read Previously Saved Identity for UpgradeIdentity",
 				fmt.Sprintf("There was an error reading the saved resource Identity using the prior resource schema defined for version %d upgrade.\n\n", req.Version)+
 					"Please report this to the provider developer:\n\n"+err.Error(),
 			)
@@ -161,7 +156,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 
 	}
 
-	upgradeResourceIdentityResponse := resource.UpgradeResourceIdentityResponse{
+	upgradeResourceIdentityResponse := resource.UpgradeIdentityResponse{
 		Identity: &tfsdk.ResourceIdentity{
 			Schema: req.IdentitySchema,
 			// Raw is intentionally not set.
@@ -190,17 +185,6 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 				"Preventing the unexpected loss of resource Identity data. "+
 				"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 		)
-		return
-	}
-
-	if upgradeResourceIdentityResponse.Identity.Raw.Type() != nil {
-		logging.FrameworkTrace(ctx, "UpgradeResourceIdentityResponse RawState set, overriding State")
-
-		resp.UpgradedIdentity = &tfsdk.ResourceIdentity{
-			Schema: req.IdentitySchema,
-			Raw:    upgradeResourceIdentityResponse.Identity.Raw,
-		}
-
 		return
 	}
 

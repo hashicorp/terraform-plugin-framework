@@ -236,5 +236,5 @@ type ResourceWithUpgradeIdentity interface {
 	// Version keys begin at 0, which is the default schema version when
 	// undefined. The framework will return an error diagnostic should the
 	// requested identity version not be implemented.
-	UpgradeResourceIdentity(context.Context) map[int64]IdentityUpgrader
+	UpgradeIdentity(context.Context) map[int64]IdentityUpgrader
 }

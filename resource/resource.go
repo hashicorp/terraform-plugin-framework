@@ -223,3 +223,18 @@ type ResourceWithIdentity interface {
 	// IdentitySchema should return the identity schema for this resource.
 	IdentitySchema(context.Context, IdentitySchemaRequest, *IdentitySchemaResponse)
 }
+
+type ResourceWithUpgradeIdentity interface {
+	Resource
+
+	// A mapping of the prior identity version to current identity upgrade
+	// implementation. Only the specified identity upgrader for the prior identity
+	// version is called, rather than each version in between, so it must
+	// encapsulate all logic to convert the prior identity to the current identity schema
+	// version.
+	//
+	// Version keys begin at 0, which is the default schema version when
+	// undefined. The framework will return an error diagnostic should the
+	// requested identity version not be implemented.
+	UpgradeIdentity(context.Context) map[int64]IdentityUpgrader
+}

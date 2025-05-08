@@ -17,19 +17,19 @@ type ResourceWithUpgradeIdentity struct {
 	*Resource
 
 	// ResourceWithUpgradeIdentity interface methods
-	UpgradeResourceIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
+	UpgradeIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
 
 	// ResourceWithIdentity interface methods
 	IdentitySchemaMethod func(context.Context, resource.IdentitySchemaRequest, *resource.IdentitySchemaResponse)
 }
 
 // UpgradeIdentity satisfies the resource.ResourceWithUpgradeIdentity interface.
-func (p *ResourceWithUpgradeIdentity) UpgradeResourceIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
-	if p.UpgradeResourceIdentityMethod == nil {
+func (p *ResourceWithUpgradeIdentity) UpgradeIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
+	if p.UpgradeIdentityMethod == nil {
 		return nil
 	}
 
-	return p.UpgradeResourceIdentityMethod(ctx)
+	return p.UpgradeIdentityMethod(ctx)
 }
 
 // IdentitySchema implements resource.ResourceWithIdentity.

@@ -11,18 +11,17 @@ import (
 
 // Request information for the provider logic to update a resource identity
 // from a prior resource identity version to the current identity version.
-type UpgradeResourceIdentityRequest struct {
-	// TypeName is the type of resource that Terraform needs to upgrade the
-	// identity state for.
-	TypeName string
-
-	// Version is the version of the identity state the resource currently has.
-	Version int64
-
-	// RawIdentity is the identity state as Terraform sees it right now in JSON. See the
-	// documentation for `RawIdentity` for information on how to work with the
-	// data it contains.
-	RawState *tfprotov6.RawState
+type UpgradeIdentityRequest struct {
+	// Previous state of the resource identity in JSON format
+	// (Terraform CLI 0.12 and later) This data is always available,
+	// regardless of whether the wrapping IdentityUpgrader type
+	// PriorSchema field was present.
+	//
+	// This is advanced functionality for providers wanting to skip the full
+	// redeclaration of older identity schemas and instead use lower level handlers
+	// to transform data. A typical implementation for working with this data will
+	// call the Unmarshal() method.
+	RawIdentity *tfprotov6.RawState
 
 	// Previous identity of the resource if the wrapping IdentityUpgrader
 	// type PriorSchema field was present. When available, this allows for
@@ -32,11 +31,19 @@ type UpgradeResourceIdentityRequest struct {
 
 // Response information for the provider logic to update a resource identity
 // from a prior resource identity version to the current identity version.
-type UpgradeResourceIdentityResponse struct {
+type UpgradeIdentityResponse struct {
+	// Upgraded identity of the resource, which should match the current identity
+	//schema version.
+	//
+	// This field allows for easier data handling such as calling Set() or
+	// SetAttribute().
+	//
+	// All data must be populated to prevent data loss during the upgrade
+	// operation. No prior identity data is copied automatically.
 	Identity *tfsdk.ResourceIdentity
 
-	// Diagnostics report errors or warnings related to retrieving the resource
-	// identity schema. An empty slice indicates success, with no warnings
+	// Diagnostics report errors or warnings related to upgrading the resource
+	// identity state. An empty slice indicates success, with no warnings
 	// or errors generated.
 	Diagnostics diag.Diagnostics
 }

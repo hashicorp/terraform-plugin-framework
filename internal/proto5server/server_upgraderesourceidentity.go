@@ -14,14 +14,14 @@ import (
 )
 
 // UpgradeResourceIdentity satisfies the tfprotov5.ProviderServer interface.
-func (s *Server) UpgradeResourceIdentity(ctx context.Context, proto5Req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
+func (s *Server) UpgradeIdentity(ctx context.Context, proto5Req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
 
-	fwResp := &fwserver.UpgradeResourceIdentityResponse{}
+	fwResp := &fwserver.UpgradeIdentityResponse{}
 
 	if proto5Req == nil {
-		return toproto5.UpgradeResourceIdentityResponse(ctx, fwResp), nil
+		return toproto5.UpgradeIdentityResponse(ctx, fwResp), nil
 	}
 
 	resource, diags := s.FrameworkServer.Resource(ctx, proto5Req.TypeName)
@@ -29,7 +29,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, proto5Req *tfproto
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {
-		return toproto5.UpgradeResourceIdentityResponse(ctx, fwResp), nil
+		return toproto5.UpgradeIdentityResponse(ctx, fwResp), nil
 	}
 
 	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
@@ -37,18 +37,18 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, proto5Req *tfproto
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {
-		return toproto5.UpgradeResourceIdentityResponse(ctx, fwResp), nil
+		return toproto5.UpgradeIdentityResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.UpgradeResourceIdentityRequest(ctx, proto5Req, resource, identitySchema)
+	fwReq, diags := fromproto5.UpgradeIdentityRequest(ctx, proto5Req, resource, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {
-		return toproto5.UpgradeResourceIdentityResponse(ctx, fwResp), nil
+		return toproto5.UpgradeIdentityResponse(ctx, fwResp), nil
 	}
 
-	s.FrameworkServer.UpgradeResourceIdentity(ctx, fwReq, fwResp)
+	s.FrameworkServer.UpgradeIdentity(ctx, fwReq, fwResp)
 
-	return toproto5.UpgradeResourceIdentityResponse(ctx, fwResp), nil
+	return toproto5.UpgradeIdentityResponse(ctx, fwResp), nil
 }

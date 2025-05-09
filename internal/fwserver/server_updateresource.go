@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -172,14 +173,29 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		return
 	}
 
-	if resp.NewIdentity != nil && req.IdentitySchema == nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Update Response",
-			"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider update operation, but the resource does not indicate identity support.\n\n"+
-				"This is always a problem with the provider and should be reported to the provider developer.",
-		)
+	if resp.NewIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Update Response",
+				"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider update operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
 
-		return
+			return
+		}
+
+		// If we already have an identity stored, validate that the new identity hasn't changing
+		if !req.PlannedIdentity.Raw.IsNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the update operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Planned Identity: %s\n", req.PlannedIdentity.Raw.String())+
+					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),
+			)
+
+			return
+		}
 	}
 
 	semanticEqualityReq := SchemaSemanticEqualityRequest{

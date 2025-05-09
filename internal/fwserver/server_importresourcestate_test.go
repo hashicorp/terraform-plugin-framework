@@ -166,12 +166,18 @@ func TestServerImportResourceState(t *testing.T) {
 	testProviderData := privatestate.MustProviderData(context.Background(), testProviderKeyValue)
 
 	testPrivate := &privatestate.Data{
+		Framework: map[string][]byte{
+			privatestate.ImportBeforeReadKey: []byte(`true`),
+		},
 		Provider: testProviderData,
 	}
 
 	testEmptyProviderData := privatestate.EmptyProviderData(context.Background())
 
 	testEmptyPrivate := &privatestate.Data{
+		Framework: map[string][]byte{
+			privatestate.ImportBeforeReadKey: []byte(`true`),
+		},
 		Provider: testEmptyProviderData,
 	}
 

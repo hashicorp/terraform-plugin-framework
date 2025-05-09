@@ -60,6 +60,10 @@ func TestServerImportResourceState(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
+	testEmptyPrivateBytes := privatestate.MustMarshalToJson(map[string][]byte{
+		privatestate.ImportBeforeReadKey: []byte(`true`),
+	})
+
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -130,6 +134,7 @@ func TestServerImportResourceState(t *testing.T) {
 					{
 						State:    testStateDynamicValue,
 						TypeName: "test_resource",
+						Private:  testEmptyPrivateBytes,
 					},
 				},
 			},
@@ -183,7 +188,8 @@ func TestServerImportResourceState(t *testing.T) {
 			expectedResponse: &tfprotov5.ImportResourceStateResponse{
 				ImportedResources: []*tfprotov5.ImportedResource{
 					{
-						State: &testEmptyStateDynamicValue,
+						State:   &testEmptyStateDynamicValue,
+						Private: testEmptyPrivateBytes,
 						Identity: &tfprotov5.ResourceIdentityData{
 							IdentityData: testRequestIdentityValue,
 						},
@@ -271,6 +277,7 @@ func TestServerImportResourceState(t *testing.T) {
 			expectedResponse: &tfprotov5.ImportResourceStateResponse{
 				ImportedResources: []*tfprotov5.ImportedResource{
 					{
+						Private:  testEmptyPrivateBytes,
 						State:    testStateDynamicValue,
 						TypeName: "test_resource",
 					},
@@ -317,7 +324,8 @@ func TestServerImportResourceState(t *testing.T) {
 			expectedResponse: &tfprotov5.ImportResourceStateResponse{
 				ImportedResources: []*tfprotov5.ImportedResource{
 					{
-						State: &testEmptyStateDynamicValue,
+						State:   &testEmptyStateDynamicValue,
+						Private: testEmptyPrivateBytes,
 						Identity: &tfprotov5.ResourceIdentityData{
 							IdentityData: testImportedResourceIdentityDynamicValue,
 						},
@@ -366,7 +374,8 @@ func TestServerImportResourceState(t *testing.T) {
 						State:    testStateDynamicValue,
 						TypeName: "test_resource",
 						Private: privatestate.MustMarshalToJson(map[string][]byte{
-							"providerKey": []byte(`{"key": "value"}`),
+							privatestate.ImportBeforeReadKey: []byte(`true`),
+							"providerKey":                    []byte(`{"key": "value"}`),
 						}),
 					},
 				},

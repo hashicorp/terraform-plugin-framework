@@ -198,6 +198,13 @@ func TestServerReadResource(t *testing.T) {
 		Provider: testEmptyProviderData,
 	}
 
+	testPrivateAfterImport := &privatestate.Data{
+		Framework: map[string][]byte{
+			privatestate.ImportBeforeReadKey: []byte(`true`),
+		},
+		Provider: testEmptyProviderData,
+	}
+
 	testDeferralAllowed := resource.ReadClientCapabilities{
 		DeferralAllowed: true,
 	}
@@ -629,7 +636,68 @@ func TestServerReadResource(t *testing.T) {
 				Private:     testEmptyPrivate,
 			},
 		},
-		"response-identity-update": {
+		"response-identity-valid-update-null-currentidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:   testCurrentState,
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							identityData := struct {
+								TestID types.String `tfsdk:"test_id"`
+							}{
+								TestID: types.StringValue("new-id-123"),
+							}
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
+		"response-identity-valid-update-after-import": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				CurrentIdentity: testCurrentIdentity,
+				Private:         testPrivateAfterImport,
+				IdentitySchema:  testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							var identityData struct {
+								TestID types.String `tfsdk:"test_id"`
+							}
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							identityData.TestID = types.StringValue("new-id-123")
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private: &privatestate.Data{
+					Framework: make(map[string][]byte, 0), // Private import key should be cleared
+					Provider:  testEmptyProviderData,
+				},
+			},
+		},
+		"response-identity-invalid-update": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
@@ -654,6 +722,15 @@ func TestServerReadResource(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.ReadResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Identity Change",
+						"During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+							"Current Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
+							"New Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",
+					),
+				},
 				NewState:    testCurrentState,
 				NewIdentity: testNewIdentity,
 				Private:     testEmptyPrivate,

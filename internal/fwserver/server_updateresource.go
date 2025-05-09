@@ -190,7 +190,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 				"Unexpected Identity Change",
 				"During the update operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
 					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
-					fmt.Sprintf("Planned Identity: %s\n", req.PlannedIdentity.Raw.String())+
+					fmt.Sprintf("Planned Identity: %s\n\n", req.PlannedIdentity.Raw.String())+
 					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),
 			)
 

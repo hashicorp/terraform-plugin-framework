@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 )
 
-// Implementation handler for an UpgradeIdentity operation.
+// Implementation handler for an UpgradeResourceIdentity operation.
 //
 // This is used to encapsulate all upgrade logic from a prior identity to the
 // current version when a Resource implements the
-// ResourceWithUpgradeIdentity interface.
+// ResourceWithUpgradeResourceIdentity interface.
 type IdentityUpgrader struct {
 	// Schema information for the prior identity version. While not required,
 	// setting this will populate the UpgradeResourceIdentityRequest type Identity
@@ -35,5 +35,5 @@ type IdentityUpgrader struct {
 	//
 	// The UpgradeResourceIdentityResponse parameter should contain the upgraded
 	// identity data and can be used to signal any logic warnings or errors.
-	IdentityUpgrader func(context.Context, UpgradeIdentityRequest, *UpgradeIdentityResponse)
+	IdentityUpgrader func(context.Context, UpgradeResourceIdentityRequest, *UpgradeResourceIdentityResponse)
 }

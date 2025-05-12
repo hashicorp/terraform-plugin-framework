@@ -12,7 +12,7 @@ import (
 
 // UpgradeResourceIdentityResponse returns the *tfprotov6.UpgradeResourceIdentityResponse
 // equivalent of a *fwserver.UpgradeResourceIdentityResponse.
-func UpgradeIdentityResponse(ctx context.Context, fw *fwserver.UpgradeIdentityResponse) *tfprotov6.UpgradeResourceIdentityResponse {
+func UpgradeResourceIdentityResponse(ctx context.Context, fw *fwserver.UpgradeResourceIdentityResponse) *tfprotov6.UpgradeResourceIdentityResponse {
 	if fw == nil {
 		return nil
 	}

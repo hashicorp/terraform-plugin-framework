@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-func TestServerUpgradeIdentity(t *testing.T) {
+func TestServerUpgradeResourceIdentity(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -39,26 +39,26 @@ func TestServerUpgradeIdentity(t *testing.T) {
 
 	testCases := map[string]struct {
 		server           *fwserver.Server
-		request          *fwserver.UpgradeIdentityRequest
-		expectedResponse *fwserver.UpgradeIdentityResponse
+		request          *fwserver.UpgradeResourceIdentityRequest
+		expectedResponse *fwserver.UpgradeResourceIdentityResponse
 	}{
 		"empty-provider": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{},
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{},
 		},
 		"resource-configure-data": {
 			server: &fwserver.Server{
 				Provider:              &testprovider.Provider{},
 				ResourceConfigureData: "test-provider-configure-value",
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id": "test-id-value",
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithConfigureAndUpgradeIdentity{
+				Resource: &testprovider.ResourceWithConfigureAndUpgradeResourceIdentity{
 					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 						providerData, ok := req.ProviderData.(string)
 
@@ -78,7 +78,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 						}
 					},
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
 								PriorSchema: &identityschema.Schema{
@@ -88,7 +88,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 										},
 									},
 								},
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									// In practice, the Configure method would save the
 									// provider data to the Resource implementation and
 									// use it here. The fact that Configure is able to
@@ -102,7 +102,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 
 									if err != nil {
 										resp.Diagnostics.AddError(
-											"Unable to Read Previously Saved Identity for UpgradeIdentity",
+											"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
 											fmt.Sprintf("There was an error reading the saved resource Identity using the prior resource schema defined for version %d upgrade.\n\n", req.Identity.Schema.GetVersion())+
 												"Please report this to the provider developer:\n\n"+err.Error(),
 										)
@@ -147,7 +147,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				UpgradedIdentity: &tfsdk.ResourceIdentity{
 					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
 						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
@@ -160,28 +160,28 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				IdentitySchema: testIdentitySchema,
 				Resource:       &testprovider.Resource{},
 				Version:        0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{},
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{},
 		},
 		"RawState-Unmarshal-and-ResourceIdentity": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id": "test-id-value",
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									RawStateValue, err := req.RawIdentity.Unmarshal(tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"id": tftypes.String,
@@ -229,7 +229,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				UpgradedIdentity: &tfsdk.ResourceIdentity{
 					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
 						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
@@ -242,18 +242,18 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									var RawState struct {
 										Id string `json:"id"`
 									}
@@ -281,7 +281,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				UpgradedIdentity: &tfsdk.ResourceIdentity{
 					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
 						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
@@ -290,11 +290,11 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 			},
 		},
-		"ResourceType-UpgradeIdentity-not-implemented": {
+		"ResourceType-UpgradeResourceIdentity-not-implemented": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id":                 "test-id-value",
 					"required_attribute": true,
@@ -303,40 +303,40 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				Resource:       &testprovider.Resource{},
 				Version:        0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unable to Upgrade Resource Identity",
-						"This resource was implemented without an UpgradeIdentity() method, "+
+						"This resource was implemented without an UpgradeResourceIdentity() method, "+
 							"however Terraform was expecting an implementation for version 0 upgrade.\n\n"+
 							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 					),
 				},
 			},
 		},
-		"ResourceType-UpgradeIdentity-empty": {
+		"ResourceType-UpgradeResourceIdentity-empty": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id":                 "test-id-value",
 					"required_attribute": true,
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return nil
 					},
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unable to Upgrade Resource Identity",
-						"This resource was implemented with an UpgradeIdentity() method, "+
+						"This resource was implemented with an UpgradeResourceIdentity() method, "+
 							"however Terraform was expecting an implementation for version 0 upgrade.\n\n"+
 							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 					),
@@ -347,15 +347,15 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id":                            "test-id-value",
 					"optional_for_import_attribute": true,
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
 								PriorSchema: &identityschema.Schema{
@@ -368,7 +368,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 										},
 									},
 								},
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									// Expect error before reaching this logic.
 								},
 							},
@@ -377,10 +377,10 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Unable to Read Previously Saved Identity for UpgradeIdentity",
+						"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
 						"There was an error reading the saved resource Identity using the prior resource schema defined for version 0 upgrade.\n\n"+
 							"Please report this to the provider developer:\n\n"+
 							"AttributeName(\"optional_for_import_attribute\"): unsupported type bool sent as tftypes.Number",
@@ -392,18 +392,18 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id": "test-id-value",
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
 								PriorSchema: &testIdentitySchema,
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									rawStateValue, err := req.RawIdentity.Unmarshal(tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"id": tftypes.String,
@@ -412,7 +412,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 
 									if err != nil {
 										resp.Diagnostics.AddError(
-											"Unable to Read Previously Saved Identity for UpgradeIdentity",
+											"Unable to Read Previously Saved Identity for UpgradeResourceIdentity",
 											fmt.Sprintf("There was an error reading the saved resource Identity using the prior resource schema defined for version %d upgrade.\n\n", req.Identity.Schema.GetVersion())+
 												"Please report this to the provider developer:\n\n"+err.Error(),
 										)
@@ -457,7 +457,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				UpgradedIdentity: &tfsdk.ResourceIdentity{
 					Raw: tftypes.NewValue(schemaIdentityType, map[string]tftypes.Value{
 						"id": tftypes.NewValue(tftypes.String, "test-id-value"),
@@ -470,17 +470,17 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id": "test-id-value",
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
 									// Purposfully not setting resp.ResourceIdentity or resp.UpgradedIdentity
 								},
 							},
@@ -489,7 +489,7 @@ func TestServerUpgradeIdentity(t *testing.T) {
 				},
 				Version: 0,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Missing Upgraded Resource Identity",
@@ -504,24 +504,24 @@ func TestServerUpgradeIdentity(t *testing.T) {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.UpgradeIdentityRequest{
+			request: &fwserver.UpgradeResourceIdentityRequest{
 				RawState: testNewRawState(t, map[string]interface{}{
 					"id": "test-id-value",
 				}),
 				IdentitySchema: testIdentitySchema,
-				Resource: &testprovider.ResourceWithUpgradeIdentity{
+				Resource: &testprovider.ResourceWithUpgradeResourceIdentity{
 					Resource: &testprovider.Resource{},
-					UpgradeIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
+					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return nil
 					},
 				},
 				Version: 999,
 			},
-			expectedResponse: &fwserver.UpgradeIdentityResponse{
+			expectedResponse: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unable to Upgrade Resource Identity",
-						"This resource was implemented with an UpgradeIdentity() method, "+
+						"This resource was implemented with an UpgradeResourceIdentity() method, "+
 							"however Terraform was expecting an implementation for version 999 upgrade.\n\n"+
 							"This is always an issue with the Terraform Provider and should be reported to the provider developer.",
 					),
@@ -534,8 +534,8 @@ func TestServerUpgradeIdentity(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			response := &fwserver.UpgradeIdentityResponse{}
-			testCase.server.UpgradeIdentity(context.Background(), testCase.request, response)
+			response := &fwserver.UpgradeResourceIdentityResponse{}
+			testCase.server.UpgradeResourceIdentity(context.Background(), testCase.request, response)
 
 			if diff := cmp.Diff(response, testCase.expectedResponse); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

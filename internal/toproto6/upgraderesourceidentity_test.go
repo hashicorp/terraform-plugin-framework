@@ -59,7 +59,7 @@ func TestUpgradeResourceIdentityResponse(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		input    *fwserver.UpgradeIdentityResponse
+		input    *fwserver.UpgradeResourceIdentityResponse
 		expected *tfprotov6.UpgradeResourceIdentityResponse
 	}{
 		"nil": {
@@ -67,11 +67,11 @@ func TestUpgradeResourceIdentityResponse(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &fwserver.UpgradeIdentityResponse{},
+			input:    &fwserver.UpgradeResourceIdentityResponse{},
 			expected: &tfprotov6.UpgradeResourceIdentityResponse{},
 		},
 		"diagnostics": {
-			input: &fwserver.UpgradeIdentityResponse{
+			input: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
@@ -93,7 +93,7 @@ func TestUpgradeResourceIdentityResponse(t *testing.T) {
 			},
 		},
 		"diagnostics-invalid-upgradedIdentity": {
-			input: &fwserver.UpgradeIdentityResponse{
+			input: &fwserver.UpgradeResourceIdentityResponse{
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("test warning summary", "test warning details"),
 					diag.NewErrorDiagnostic("test error summary", "test error details"),
@@ -124,7 +124,7 @@ func TestUpgradeResourceIdentityResponse(t *testing.T) {
 			},
 		},
 		"upgradedIdentity": {
-			input: &fwserver.UpgradeIdentityResponse{
+			input: &fwserver.UpgradeResourceIdentityResponse{
 				UpgradedIdentity: testIdentity,
 			},
 			expected: &tfprotov6.UpgradeResourceIdentityResponse{
@@ -139,7 +139,7 @@ func TestUpgradeResourceIdentityResponse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := toproto6.UpgradeIdentityResponse(context.Background(), testCase.input)
+			got := toproto6.UpgradeResourceIdentityResponse(context.Background(), testCase.input)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

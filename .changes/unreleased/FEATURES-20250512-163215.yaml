@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'tfsdk: Added `ResourceIdentity` struct to represent managed resource identity data.'
+time: 2025-05-12T16:32:15.682993-04:00
+custom:
+    Issue: "1112"

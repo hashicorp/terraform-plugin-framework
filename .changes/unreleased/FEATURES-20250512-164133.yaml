@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'resource: Added new `ImportStatePassthroughWithIdentity` helper that can support both identity and ID importing via a single field.'
+time: 2025-05-12T16:41:33.806834-04:00
+custom:
+    Issue: "1134"

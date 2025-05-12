@@ -94,7 +94,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		}
 	}
 
-	resourceWithUpgradeResourceIdentity, ok := req.Resource.(resource.ResourceWithUpgradeResourceIdentity)
+	resourceWithUpgradeResourceIdentity, ok := req.Resource.(resource.ResourceWithUpgradeIdentity)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -106,11 +106,11 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		return
 	}
 
-	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeResourceIdentity")
+	logging.FrameworkTrace(ctx, "Resource implements ResourceWithUpgradeIdentity")
 
-	logging.FrameworkTrace(ctx, "Calling provider defined Resource UpgradeResourceIdentity")
-	resourceIdentityUpgraders := resourceWithUpgradeResourceIdentity.UpgradeResourceIdentity(ctx)
-	logging.FrameworkTrace(ctx, "Called provider defined Resource UpgradeResourceIdentity")
+	logging.FrameworkTrace(ctx, "Calling provider defined Resource UpgradeIdentity")
+	resourceIdentityUpgraders := resourceWithUpgradeResourceIdentity.UpgradeIdentity(ctx)
+	logging.FrameworkTrace(ctx, "Called provider defined Resource UpgradeIdentity")
 
 	// Panic prevention
 	if resourceIdentityUpgraders == nil {
@@ -134,7 +134,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 	}
 
 	if resourceIdentityUpgrader.PriorSchema != nil {
-		logging.FrameworkTrace(ctx, "Initializing populated UpgradeResourceIdentityRequest Identity from provider defined prior schema and request RawState")
+		logging.FrameworkTrace(ctx, "Initializing populated UpgradeIdentityRequest Identity from provider defined prior schema and request RawState")
 
 		priorSchemaType := resourceIdentityUpgrader.PriorSchema.Type().TerraformType(ctx)
 

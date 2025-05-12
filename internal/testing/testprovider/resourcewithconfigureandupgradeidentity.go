@@ -11,7 +11,7 @@ import (
 
 var _ resource.Resource = &ResourceWithConfigureAndUpgradeResourceIdentity{}
 var _ resource.ResourceWithConfigure = &ResourceWithConfigureAndUpgradeResourceIdentity{}
-var _ resource.ResourceWithUpgradeResourceIdentity = &ResourceWithConfigureAndUpgradeResourceIdentity{}
+var _ resource.ResourceWithUpgradeIdentity = &ResourceWithConfigureAndUpgradeResourceIdentity{}
 
 // Declarative resource.ResourceWithConfigureAndUpgradeResourceIdentity for unit testing.
 type ResourceWithConfigureAndUpgradeResourceIdentity struct {
@@ -34,7 +34,7 @@ func (r *ResourceWithConfigureAndUpgradeResourceIdentity) Configure(ctx context.
 }
 
 // UpgradeResourceIdentity satisfies the resource.ResourceWithUpgradeResourceIdentity interface.
-func (r *ResourceWithConfigureAndUpgradeResourceIdentity) UpgradeResourceIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
+func (r *ResourceWithConfigureAndUpgradeResourceIdentity) UpgradeIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
 	if r.UpgradeResourceIdentityMethod == nil {
 		return nil
 	}

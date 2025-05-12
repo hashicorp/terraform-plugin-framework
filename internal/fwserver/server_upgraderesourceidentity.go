@@ -129,7 +129,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 		return
 	}
 
-	UpgradeResourceIdentityRequest := resource.UpgradeResourceIdentityRequest{
+	UpgradeResourceIdentityRequest := resource.UpgradeIdentityRequest{
 		RawIdentity: req.RawState,
 	}
 
@@ -156,7 +156,7 @@ func (s *Server) UpgradeResourceIdentity(ctx context.Context, req *UpgradeResour
 
 	}
 
-	UpgradeResourceIdentityResponse := resource.UpgradeResourceIdentityResponse{
+	UpgradeResourceIdentityResponse := resource.UpgradeIdentityResponse{
 		Identity: &tfsdk.ResourceIdentity{
 			Schema: req.IdentitySchema,
 			// Raw is intentionally not set.

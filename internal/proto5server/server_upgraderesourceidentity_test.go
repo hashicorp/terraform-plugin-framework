@@ -82,7 +82,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														expectedSourceIdentity := testNewTfprotov6RawState(t, map[string]interface{}{
 															"test_id": "test-id-value",
 														})
@@ -182,7 +182,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														resp.Diagnostics.AddWarning("warning summary", "warning detail")
 														resp.Diagnostics.AddError("error summary", "error detail")
 													},
@@ -241,7 +241,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 											return map[int64]resource.IdentityUpgrader{
 												0: {
-													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+													IdentityUpgrader: func(_ context.Context, _ resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 														resp.Identity = &tfsdk.ResourceIdentity{
 															Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
 																"test_id": tftypes.NewValue(tftypes.String, "test-id-value"),

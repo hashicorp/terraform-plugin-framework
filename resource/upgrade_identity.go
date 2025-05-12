@@ -11,7 +11,7 @@ import (
 
 // Request information for the provider logic to update a resource identity
 // from a prior resource identity version to the current identity version.
-type UpgradeResourceIdentityRequest struct {
+type UpgradeIdentityRequest struct {
 	// Previous state of the resource identity in JSON format
 	// (Terraform CLI 0.12 and later) This data is always available,
 	// regardless of whether the wrapping IdentityUpgrader type
@@ -31,7 +31,7 @@ type UpgradeResourceIdentityRequest struct {
 
 // Response information for the provider logic to update a resource identity
 // from a prior resource identity version to the current identity version.
-type UpgradeResourceIdentityResponse struct {
+type UpgradeIdentityResponse struct {
 	// Upgraded identity of the resource, which should match the current identity
 	//schema version.
 	//

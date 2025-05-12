@@ -35,5 +35,5 @@ type IdentityUpgrader struct {
 	//
 	// The UpgradeResourceIdentityResponse parameter should contain the upgraded
 	// identity data and can be used to signal any logic warnings or errors.
-	IdentityUpgrader func(context.Context, UpgradeResourceIdentityRequest, *UpgradeResourceIdentityResponse)
+	IdentityUpgrader func(context.Context, UpgradeIdentityRequest, *UpgradeIdentityResponse)
 }

@@ -88,7 +88,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										},
 									},
 								},
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									// In practice, the Configure method would save the
 									// provider data to the Resource implementation and
 									// use it here. The fact that Configure is able to
@@ -181,7 +181,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									RawStateValue, err := req.RawIdentity.Unmarshal(tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"id": tftypes.String,
@@ -253,7 +253,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									var RawState struct {
 										Id string `json:"id"`
 									}
@@ -368,7 +368,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 										},
 									},
 								},
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									// Expect error before reaching this logic.
 								},
 							},
@@ -403,7 +403,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
 								PriorSchema: &testIdentitySchema,
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									rawStateValue, err := req.RawIdentity.Unmarshal(tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
 											"id": tftypes.String,
@@ -480,7 +480,7 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 					UpgradeResourceIdentityMethod: func(ctx context.Context) map[int64]resource.IdentityUpgrader {
 						return map[int64]resource.IdentityUpgrader{
 							0: {
-								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeResourceIdentityRequest, resp *resource.UpgradeResourceIdentityResponse) {
+								IdentityUpgrader: func(ctx context.Context, req resource.UpgradeIdentityRequest, resp *resource.UpgradeIdentityResponse) {
 									// Purposfully not setting resp.ResourceIdentity or resp.UpgradedIdentity
 								},
 							},

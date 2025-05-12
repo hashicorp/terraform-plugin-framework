@@ -3,7 +3,9 @@ body: 'all: This release contains a new interface and package for implmenting ma
   Resource identity is data that is defined by a separate schema and is stored alongside resource state.
   Identity data is used by Terrform to uniquely identify a remote object and is meant to be immutable during
   the remote object''s lifecycle. Resources that support identity can now be imported using the `identity` attribute
-  in Terraform configuration `import` blocks, available in Terraform v1.12+.'
+  in Terraform configuration `import` blocks, available in Terraform v1.12+. The `resource.ResourceWithIdentity` interface
+  can be implemented to support identity by defining an identity schema. Once the identity schema is defined, you can read
+  and store identity data in the state file via the new `Identity` fields in the response objects on the resource CRUD methods.'
 time: 2025-05-12T16:44:41.300908-04:00
 custom:
     Issue: "1112"

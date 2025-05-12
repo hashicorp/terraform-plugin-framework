@@ -1862,6 +1862,76 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Private: testEmptyPrivate,
 			},
 		},
+		"update-valid-response-mutable-identity-newidentity-changes": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				ResourceBehavior: resource.ResourceBehavior{
+					MutableIdentity: true,
+				},
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+						},
+						DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+						},
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{
+								TestID: types.StringValue("new-id-123"),
+							})...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"update-response-newstate-null": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

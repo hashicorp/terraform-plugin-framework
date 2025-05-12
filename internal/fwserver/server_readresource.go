@@ -28,6 +28,7 @@ type ReadResourceRequest struct {
 	Resource           resource.Resource
 	Private            *privatestate.Data
 	ProviderMeta       *tfsdk.Config
+	ResourceBehavior   resource.ResourceBehavior
 }
 
 // ReadResourceResponse is the framework server response for the
@@ -184,7 +185,7 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		}
 
 		// If we're refreshing the resource state (excluding a recently imported resource), validate that the new identity isn't changing
-		if !readFollowingImport && !req.CurrentIdentity.Raw.IsNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+		if !req.ResourceBehavior.MutableIdentity && !readFollowingImport && !req.CurrentIdentity.Raw.IsNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
 				"During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+

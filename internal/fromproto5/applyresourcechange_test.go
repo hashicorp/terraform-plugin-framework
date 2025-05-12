@@ -83,6 +83,7 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 
 	testCases := map[string]struct {
 		input               *tfprotov5.ApplyResourceChangeRequest
+		resourceBehavior    resource.ResourceBehavior
 		resourceSchema      fwschema.Schema
 		resource            resource.Resource
 		providerMetaSchema  fwschema.Schema
@@ -309,13 +310,26 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				ResourceSchema: testFwSchema,
 			},
 		},
+		"resource-behavior": {
+			input:          &tfprotov5.ApplyResourceChangeRequest{},
+			resourceSchema: testFwSchema,
+			resourceBehavior: resource.ResourceBehavior{
+				MutableIdentity: true,
+			},
+			expected: &fwserver.ApplyResourceChangeRequest{
+				ResourceBehavior: resource.ResourceBehavior{
+					MutableIdentity: true,
+				},
+				ResourceSchema: testFwSchema,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.identitySchema)
+			got, diags := fromproto5.ApplyResourceChangeRequest(context.Background(), testCase.input, testCase.resource, testCase.resourceSchema, testCase.providerMetaSchema, testCase.resourceBehavior, testCase.identitySchema)
 
 			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

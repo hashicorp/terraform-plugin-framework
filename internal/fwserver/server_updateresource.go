@@ -21,15 +21,16 @@ import (
 // UpdateResourceRequest is the framework server request for an update request
 // with the ApplyResourceChange RPC.
 type UpdateResourceRequest struct {
-	Config          *tfsdk.Config
-	PlannedPrivate  *privatestate.Data
-	PlannedState    *tfsdk.Plan
-	PlannedIdentity *tfsdk.ResourceIdentity
-	PriorState      *tfsdk.State
-	ProviderMeta    *tfsdk.Config
-	ResourceSchema  fwschema.Schema
-	IdentitySchema  fwschema.Schema
-	Resource        resource.Resource
+	Config           *tfsdk.Config
+	PlannedPrivate   *privatestate.Data
+	PlannedState     *tfsdk.Plan
+	PlannedIdentity  *tfsdk.ResourceIdentity
+	PriorState       *tfsdk.State
+	ProviderMeta     *tfsdk.Config
+	ResourceSchema   fwschema.Schema
+	IdentitySchema   fwschema.Schema
+	Resource         resource.Resource
+	ResourceBehavior resource.ResourceBehavior
 }
 
 // UpdateResourceResponse is the framework server response for an update request
@@ -185,7 +186,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		}
 
 		// If we already have an identity stored, validate that the new identity hasn't changing
-		if !req.PlannedIdentity.Raw.IsNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+		if !req.ResourceBehavior.MutableIdentity && !req.PlannedIdentity.Raw.IsNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
 				"During the update operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+

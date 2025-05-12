@@ -17,15 +17,16 @@ import (
 // ApplyResourceChangeRequest is the framework server request for the
 // ApplyResourceChange RPC.
 type ApplyResourceChangeRequest struct {
-	Config          *tfsdk.Config
-	PlannedPrivate  *privatestate.Data
-	PlannedState    *tfsdk.Plan
-	PlannedIdentity *tfsdk.ResourceIdentity
-	PriorState      *tfsdk.State
-	ProviderMeta    *tfsdk.Config
-	ResourceSchema  fwschema.Schema
-	IdentitySchema  fwschema.Schema
-	Resource        resource.Resource
+	Config           *tfsdk.Config
+	PlannedPrivate   *privatestate.Data
+	PlannedState     *tfsdk.Plan
+	PlannedIdentity  *tfsdk.ResourceIdentity
+	PriorState       *tfsdk.State
+	ProviderMeta     *tfsdk.Config
+	ResourceSchema   fwschema.Schema
+	IdentitySchema   fwschema.Schema
+	Resource         resource.Resource
+	ResourceBehavior resource.ResourceBehavior
 }
 
 // ApplyResourceChangeResponse is the framework server response for the
@@ -101,15 +102,16 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 	logging.FrameworkTrace(ctx, "ApplyResourceChange running UpdateResource")
 
 	updateReq := &UpdateResourceRequest{
-		Config:          req.Config,
-		PlannedPrivate:  req.PlannedPrivate,
-		PlannedState:    req.PlannedState,
-		PlannedIdentity: req.PlannedIdentity,
-		PriorState:      req.PriorState,
-		ProviderMeta:    req.ProviderMeta,
-		ResourceSchema:  req.ResourceSchema,
-		IdentitySchema:  req.IdentitySchema,
-		Resource:        req.Resource,
+		Config:           req.Config,
+		PlannedPrivate:   req.PlannedPrivate,
+		PlannedState:     req.PlannedState,
+		PlannedIdentity:  req.PlannedIdentity,
+		PriorState:       req.PriorState,
+		ProviderMeta:     req.ProviderMeta,
+		ResourceSchema:   req.ResourceSchema,
+		IdentitySchema:   req.IdentitySchema,
+		Resource:         req.Resource,
+		ResourceBehavior: req.ResourceBehavior,
 	}
 	updateResp := &UpdateResourceResponse{}
 

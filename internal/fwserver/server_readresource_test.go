@@ -736,6 +736,39 @@ func TestServerReadResource(t *testing.T) {
 				Private:     testEmptyPrivate,
 			},
 		},
+		"response-identity-valid-update-mutable-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				CurrentIdentity: testCurrentIdentity,
+				ResourceBehavior: resource.ResourceBehavior{
+					MutableIdentity: true,
+				},
+				IdentitySchema: testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							var identityData struct {
+								TestID types.String `tfsdk:"test_id"`
+							}
+
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+
+							identityData.TestID = types.StringValue("new-id-123")
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState:    testCurrentState,
+				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
 		"response-invalid-identity": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

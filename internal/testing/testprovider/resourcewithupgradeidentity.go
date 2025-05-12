@@ -9,31 +9,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ resource.Resource = &ResourceWithUpgradeResourceIdentity{}
-var _ resource.ResourceWithUpgradeResourceIdentity = &ResourceWithUpgradeResourceIdentity{}
+var _ resource.Resource = &ResourceWithUpgradeIdentity{}
+var _ resource.ResourceWithUpgradeIdentity = &ResourceWithUpgradeIdentity{}
 
-// Declarative resource.ResourceWithUpgradeResourceIdentity for unit testing.
-type ResourceWithUpgradeResourceIdentity struct {
+// Declarative resource.ResourceWithUpgradeIdentity for unit testing.
+type ResourceWithUpgradeIdentity struct {
 	*Resource
 
-	// ResourceWithUpgradeResourceIdentity interface methods
-	UpgradeResourceIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
+	// ResourceWithUpgradeIdentity interface methods
+	UpgradeIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
 
 	// ResourceWithIdentity interface methods
 	IdentitySchemaMethod func(context.Context, resource.IdentitySchemaRequest, *resource.IdentitySchemaResponse)
 }
 
-// UpgradeResourceIdentity satisfies the resource.ResourceWithUpgradeResourceIdentity interface.
-func (p *ResourceWithUpgradeResourceIdentity) UpgradeResourceIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
-	if p.UpgradeResourceIdentityMethod == nil {
+// UpgradeIdentity satisfies the resource.ResourceWithUpgradeIdentity interface.
+func (p *ResourceWithUpgradeIdentity) UpgradeIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
+	if p.UpgradeIdentityMethod == nil {
 		return nil
 	}
 
-	return p.UpgradeResourceIdentityMethod(ctx)
+	return p.UpgradeIdentityMethod(ctx)
 }
 
 // IdentitySchema implements resource.ResourceWithIdentity.
-func (p *ResourceWithUpgradeResourceIdentity) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (p *ResourceWithUpgradeIdentity) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	if p.IdentitySchemaMethod == nil {
 		return
 	}

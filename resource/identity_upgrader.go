@@ -8,19 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 )
 
-// Implementation handler for an UpgradeResourceIdentity operation.
+// Implementation handler for an UpgradeIdentity operation.
 //
 // This is used to encapsulate all upgrade logic from a prior identity to the
 // current version when a Resource implements the
-// ResourceWithUpgradeResourceIdentity interface.
+// ResourceWithUpgradeIdentity interface.
 type IdentityUpgrader struct {
 	// Schema information for the prior identity version. While not required,
-	// setting this will populate the UpgradeResourceIdentityRequest type Identity
+	// setting this will populate the UpgradeIdentityRequest type Identity
 	// field similar to other Resource data types. This allows for easier data
 	// handling such as calling Get() or GetAttribute().
 	//
 	// If not set, prior identity data is available in the
-	// UpgradeResourceIdentityRequest type RawIdentity field.
+	// UpgradeIdentityRequest type RawIdentity field.
 	PriorSchema *identityschema.Schema
 
 	// Provider defined logic for upgrading a resource identity from the prior
@@ -29,11 +29,11 @@ type IdentityUpgrader struct {
 	// The context.Context parameter contains framework-defined loggers and
 	// supports request cancellation.
 	//
-	// The UpgradeResourceIdentityRequest parameter contains the prior identity data.
+	// The UpgradeIdentityRequest parameter contains the prior identity data.
 	// If PriorSchema was set, the Identity field will be available. Otherwise,
 	// the RawIdentity must be used.
 	//
-	// The UpgradeResourceIdentityResponse parameter should contain the upgraded
+	// The UpgradeIdentityResponse parameter should contain the upgraded
 	// identity data and can be used to signal any logic warnings or errors.
-	IdentityUpgrader func(context.Context, UpgradeResourceIdentityRequest, *UpgradeResourceIdentityResponse)
+	IdentityUpgrader func(context.Context, UpgradeIdentityRequest, *UpgradeIdentityResponse)
 }

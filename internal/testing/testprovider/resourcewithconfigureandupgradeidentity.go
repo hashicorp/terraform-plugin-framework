@@ -9,23 +9,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ resource.Resource = &ResourceWithConfigureAndUpgradeResourceIdentity{}
-var _ resource.ResourceWithConfigure = &ResourceWithConfigureAndUpgradeResourceIdentity{}
-var _ resource.ResourceWithUpgradeResourceIdentity = &ResourceWithConfigureAndUpgradeResourceIdentity{}
+var _ resource.Resource = &ResourceWithConfigureAndUpgradeIdentity{}
+var _ resource.ResourceWithConfigure = &ResourceWithConfigureAndUpgradeIdentity{}
+var _ resource.ResourceWithUpgradeIdentity = &ResourceWithConfigureAndUpgradeIdentity{}
 
-// Declarative resource.ResourceWithConfigureAndUpgradeResourceIdentity for unit testing.
-type ResourceWithConfigureAndUpgradeResourceIdentity struct {
+// Declarative resource.ResourceWithConfigureAndUpgradeIdentity for unit testing.
+type ResourceWithConfigureAndUpgradeIdentity struct {
 	*Resource
 
-	// ResourceWithConfigureAndUpgradeResourceIdentity interface methods
+	// ResourceWithConfigureAndUpgradeIdentity interface methods
 	ConfigureMethod func(context.Context, resource.ConfigureRequest, *resource.ConfigureResponse)
 
-	// ResourceWithUpgradeResourceIdentity interface methods
-	UpgradeResourceIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
+	// ResourceWithUpgradeIdentity interface methods
+	UpgradeIdentityMethod func(context.Context) map[int64]resource.IdentityUpgrader
 }
 
-// Configure satisfies the resource.ResourceWithConfigureAndUpgradeResourceIdentity interface.
-func (r *ResourceWithConfigureAndUpgradeResourceIdentity) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+// Configure satisfies the resource.ResourceWithConfigureAndUpgradeIdentity interface.
+func (r *ResourceWithConfigureAndUpgradeIdentity) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if r.ConfigureMethod == nil {
 		return
 	}
@@ -33,11 +33,11 @@ func (r *ResourceWithConfigureAndUpgradeResourceIdentity) Configure(ctx context.
 	r.ConfigureMethod(ctx, req, resp)
 }
 
-// UpgradeResourceIdentity satisfies the resource.ResourceWithUpgradeResourceIdentity interface.
-func (r *ResourceWithConfigureAndUpgradeResourceIdentity) UpgradeResourceIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
-	if r.UpgradeResourceIdentityMethod == nil {
+// UpgradeIdentity satisfies the resource.ResourceWithUpgradeIdentity interface.
+func (r *ResourceWithConfigureAndUpgradeIdentity) UpgradeIdentity(ctx context.Context) map[int64]resource.IdentityUpgrader {
+	if r.UpgradeIdentityMethod == nil {
 		return nil
 	}
 
-	return r.UpgradeResourceIdentityMethod(ctx)
+	return r.UpgradeIdentityMethod(ctx)
 }

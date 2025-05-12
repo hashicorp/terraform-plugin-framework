@@ -29,7 +29,7 @@ type Schema struct {
 
 	// Version indicates the current version of the resource identity schema. Resource
 	// identity schema versioning enables identity state upgrades in conjunction with the
-	// [resource.ResourceWithUpgradeResourceIdentity] interface. Versioning is only
+	// [resource.ResourceWithUpgradeIdentity] interface. Versioning is only
 	// required if there is a breaking change involving existing identity state data,
 	// such as changing an attribute type in a manner that is incompatible with the Terraform type.
 	//

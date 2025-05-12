@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
-// UpgradeResourceIdentityRequest returns the *fwserver.UpgradeResourceIdentityRequest
+// UpgradeIdentityRequest returns the *fwserver.UpgradeIdentityRequest
 // equivalent of a *tfprotov5.UpgradeResourceIdentityRequest.
-func UpgradeResourceIdentityRequest(ctx context.Context, proto5 *tfprotov5.UpgradeResourceIdentityRequest, resource resource.Resource, identitySchema fwschema.Schema) (*fwserver.UpgradeResourceIdentityRequest, diag.Diagnostics) {
+func UpgradeIdentityRequest(ctx context.Context, proto5 *tfprotov5.UpgradeResourceIdentityRequest, resource resource.Resource, identitySchema fwschema.Schema) (*fwserver.UpgradeIdentityRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}
@@ -36,7 +36,7 @@ func UpgradeResourceIdentityRequest(ctx context.Context, proto5 *tfprotov5.Upgra
 		return nil, diags
 	}
 
-	fw := &fwserver.UpgradeResourceIdentityRequest{
+	fw := &fwserver.UpgradeIdentityRequest{
 		RawState:       (*tfprotov6.RawState)(proto5.RawIdentity),
 		IdentitySchema: identitySchema,
 		Resource:       resource,

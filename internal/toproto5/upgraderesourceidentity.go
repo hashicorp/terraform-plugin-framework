@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-// UpgradeIdentityResponse returns the *tfprotov5.UpgradeResourceIdentityResponse
-// equivalent of a *fwserver.UpgradeIdentityResponse.
-func UpgradeIdentityResponse(ctx context.Context, fw *fwserver.UpgradeIdentityResponse) *tfprotov5.UpgradeResourceIdentityResponse {
+// UpgradeResourceIdentityResponse returns the *tfprotov5.UpgradeResourceIdentityResponse
+// equivalent of a *fwserver.UpgradeResourceIdentityResponse.
+func UpgradeResourceIdentityResponse(ctx context.Context, fw *fwserver.UpgradeResourceIdentityResponse) *tfprotov5.UpgradeResourceIdentityResponse {
 	if fw == nil {
 		return nil
 	}

@@ -216,7 +216,7 @@ type ResourceWithValidateConfig interface {
 //     by the identity object via the ResourceWithImportState interface.
 //   - The resource identity should not change during the lifecycle of the remote object. That is, from the
 //     creation of the remote object in the remote system until its destruction. An exception to this rule
-//     is an upgrade of the identity data after a schema change, via the ResourceWithUpgradeIdentity interface.
+//     is an upgrade of the identity data after a schema change, via the ResourceWithUpgradeResourceIdentity interface.
 type ResourceWithIdentity interface {
 	Resource
 
@@ -224,7 +224,7 @@ type ResourceWithIdentity interface {
 	IdentitySchema(context.Context, IdentitySchemaRequest, *IdentitySchemaResponse)
 }
 
-type ResourceWithUpgradeIdentity interface {
+type ResourceWithUpgradeResourceIdentity interface {
 	Resource
 
 	// A mapping of the prior identity version to current identity upgrade
@@ -236,5 +236,5 @@ type ResourceWithUpgradeIdentity interface {
 	// Version keys begin at 0, which is the default schema version when
 	// undefined. The framework will return an error diagnostic should the
 	// requested identity version not be implemented.
-	UpgradeIdentity(context.Context) map[int64]IdentityUpgrader
+	UpgradeResourceIdentity(context.Context) map[int64]IdentityUpgrader
 }

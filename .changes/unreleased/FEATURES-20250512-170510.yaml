@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'resource: Added `ResourceWithIdentity` interface for implementing managed resource identity.'
+time: 2025-05-12T17:05:10.02242-04:00
+custom:
+    Issue: "1107"

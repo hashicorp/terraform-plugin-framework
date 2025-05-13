@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'resource: Updated `Create`, `Update`, `Read`, and `Delete` request and response objects to support the passing of identity data.'
+time: 2025-05-12T16:38:46.963101-04:00
+custom:
+    Issue: "1112"

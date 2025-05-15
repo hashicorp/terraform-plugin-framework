@@ -325,19 +325,22 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
 		}
 
+		modifyPlanResp := resource.ModifyPlanResponse{
+			Diagnostics:     resp.Diagnostics,
+			Plan:            modifyPlanReq.Plan,
+			RequiresReplace: path.Paths{},
+			Private:         modifyPlanReq.Private,
+		}
+
 		if resp.PlannedIdentity != nil {
 			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
 				Schema: resp.PlannedIdentity.Schema,
 				Raw:    resp.PlannedIdentity.Raw.Copy(),
 			}
-		}
-
-		modifyPlanResp := resource.ModifyPlanResponse{
-			Diagnostics:     resp.Diagnostics,
-			Plan:            modifyPlanReq.Plan,
-			Identity:        modifyPlanReq.Identity,
-			RequiresReplace: path.Paths{},
-			Private:         modifyPlanReq.Private,
+			modifyPlanResp.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
 		}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined Resource ModifyPlan")

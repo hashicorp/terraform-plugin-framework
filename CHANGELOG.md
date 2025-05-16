@@ -1,3 +1,22 @@
+## 1.15.0 (May 16, 2025)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.23 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.23 release notes](https://go.dev/doc/go1.23) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#1114](https://github.com/hashicorp/terraform-plugin-framework/issues/1114))
+* all: This release contains a new interface and package for implmenting managed resource identity. Resource identity is data that is defined by a separate schema and is stored alongside resource state. Identity data is used by Terrform to uniquely identify a remote object and is meant to be immutable during the remote object's lifecycle. Resources that support identity can now be imported using the `identity` attribute in Terraform configuration `import` blocks, available in Terraform v1.12+. The `resource.ResourceWithIdentity` interface can be implemented to support identity by defining an identity schema. Once the identity schema is defined, you can read and store identity data in the state file via the new `Identity` fields in the response objects on the resource CRUD methods. ([#1112](https://github.com/hashicorp/terraform-plugin-framework/issues/1112))
+
+FEATURES:
+
+* tfsdk: Added `ResourceIdentity` struct to represent managed resource identity data. ([#1112](https://github.com/hashicorp/terraform-plugin-framework/issues/1112))
+* resource/identityschema: New package for implementing managed resource identity schemas. ([#1107](https://github.com/hashicorp/terraform-plugin-framework/issues/1107))
+* resource: Added new `ImportStatePassthroughWithIdentity` helper that can support both identity and ID importing via a single field. ([#1134](https://github.com/hashicorp/terraform-plugin-framework/issues/1134))
+* resource: Added `ResourceWithIdentity` interface for implementing managed resource identity. ([#1107](https://github.com/hashicorp/terraform-plugin-framework/issues/1107))
+
+ENHANCEMENTS:
+
+* resource: Updated `Create`, `Update`, `Read`, and `Delete` request and response objects to support the passing of identity data. ([#1112](https://github.com/hashicorp/terraform-plugin-framework/issues/1112))
+* resource: Updated `ImportState` method to allow importing by resource identity and returning identity data from import response. ([#1126](https://github.com/hashicorp/terraform-plugin-framework/issues/1126))
+
 ## 1.15.0-beta.1 (April 15, 2025)
 
 NOTES:

@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'resource/identityschema: New package for implementing managed resource identity schemas.'
-time: 2025-05-12T16:35:16.722291-04:00
-custom:
-    Issue: "1107"

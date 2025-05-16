@@ -432,13 +432,11 @@ func TestServerReadResource(t *testing.T) {
 												resp.TypeName = "test_resource"
 											},
 											ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-												var identityData struct {
+												identityData := struct {
 													TestID types.String `tfsdk:"test_id"`
+												}{
+													TestID: types.StringValue("new-id-123"),
 												}
-
-												resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
-
-												identityData.TestID = types.StringValue("new-id-123")
 
 												resp.Diagnostics.Append(resp.Identity.Set(ctx, identityData)...)
 											},
@@ -455,10 +453,7 @@ func TestServerReadResource(t *testing.T) {
 			},
 			request: &tfprotov6.ReadResourceRequest{
 				CurrentState: testEmptyDynamicValue,
-				CurrentIdentity: &tfprotov6.ResourceIdentityData{
-					IdentityData: testCurrentIdentityValue,
-				},
-				TypeName: "test_resource",
+				TypeName:     "test_resource",
 			},
 			expectedResponse: &tfprotov6.ReadResourceResponse{
 				NewState: testEmptyDynamicValue,

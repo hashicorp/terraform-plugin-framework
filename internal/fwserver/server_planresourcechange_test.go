@@ -3518,8 +3518,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
-				PriorState: testEmptyState,
-				// Resource supports identity but there isn't one in state yet
+				PriorState:     testEmptyState,
 				PriorIdentity:  nil,
 				IdentitySchema: testIdentitySchema,
 				ResourceSchema: testSchema,
@@ -3534,66 +3533,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 							TestID: types.StringValue("new-id-123"),
 						}
 
-						resp.Diagnostics.Append(req.Identity.Set(ctx, &data)...)
-					},
-					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
-						resp.IdentitySchema = testIdentitySchema
-					},
-				},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				PlannedIdentity: &tfsdk.ResourceIdentity{
-					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
-						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
-					}),
-					Schema: testIdentitySchema,
-				},
-				PlannedPrivate: testEmptyPrivate,
-			},
-		},
-		"create-resourcewithmodifyplan-response-plannedidentity-update": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, nil),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, nil),
-						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
-					}),
-					Schema: testSchema,
-				},
-				PriorState: testEmptyState,
-				PriorIdentity: &tfsdk.ResourceIdentity{
-					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
-						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
-					}),
-					Schema: testIdentitySchema,
-				},
-				IdentitySchema: testIdentitySchema,
-				ResourceSchema: testSchema,
-				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
-					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						var data testIdentitySchemaData
-						resp.Diagnostics.Append(req.Identity.Get(ctx, &data)...)
-
-						data.TestID = types.StringValue("new-id-123")
-
-						resp.Diagnostics.Append(req.Identity.Set(ctx, &data)...)
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &data)...)
 					},
 					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 						resp.IdentitySchema = testIdentitySchema
@@ -4048,6 +3988,157 @@ func TestServerPlanResourceChange(t *testing.T) {
 					}),
 					Schema: testSchema,
 				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"delete-resourcewithmodifyplan-no-prioridentity-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: testEmptyPlan,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
+					}),
+					Schema: testSchema,
+				},
+				// It's possible for an identity to not be in state while updating (like a refresh=false plan)
+				PriorIdentity:  nil,
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{
+							TestID: types.StringValue("new-id-123"),
+						})...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PlannedState:   testEmptyState,
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"delete-resourcewithmodifyplan-invalid-response-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: testEmptyPlan,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var identityData testIdentitySchemaData
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+						identityData.TestID = types.StringValue("new-id-123")
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Identity Change",
+						"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+							"Prior Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
+							"Planned Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",
+					),
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PlannedState:   testEmptyState,
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"delete-resourcewithmodifyplan-mutable-identity-response-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: testEmptyPlan,
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				ResourceBehavior: resource.ResourceBehavior{
+					MutableIdentity: true,
+				},
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var identityData testIdentitySchemaData
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+						identityData.TestID = types.StringValue("new-id-123")
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PlannedState:   testEmptyState,
 				PlannedPrivate: testEmptyPrivate,
 			},
 		},
@@ -6558,6 +6649,217 @@ func TestServerPlanResourceChange(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-resourcewithmodifyplan-no-prioridentity-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				// It's possible for an identity to not be in state while updating (like a refresh=false plan)
+				PriorIdentity:  nil,
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{
+							TestID: types.StringValue("new-id-123"),
+						})...)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testIdentitySchema
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-resourcewithmodifyplan-invalid-response-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+
+						var identityData testIdentitySchemaData
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+						identityData.TestID = types.StringValue("new-id-123")
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testIdentitySchema
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Unexpected Identity Change",
+						"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+							"Prior Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
+							"Planned Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",
+					),
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-resourcewithmodifyplan-mutable-identity-response-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				ResourceBehavior: resource.ResourceBehavior{
+					MutableIdentity: true,
+				},
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+
+						var identityData testIdentitySchemaData
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+						identityData.TestID = types.StringValue("new-id-123")
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testIdentitySchema
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentitySchemaType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
+					}),
+					Schema: testIdentitySchema,
+				},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
 						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),

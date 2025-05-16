@@ -205,6 +205,12 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	private := &privatestate.Data{}
 
+	// Set an internal private field that will get sent alongside the imported resource. This will be cleared by
+	// the following ReadResource RPC and is primarily used to control validation of resource identities during refresh.
+	private.Framework = map[string][]byte{
+		privatestate.ImportBeforeReadKey: []byte(`true`), // The actual data isn't important, we just use the map key to detect it.
+	}
+
 	if importResp.Private != nil {
 		private.Provider = importResp.Private
 	}

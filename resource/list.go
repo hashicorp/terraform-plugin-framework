@@ -118,7 +118,7 @@ type ListResult struct {
 	//
 	// If ListRequest.IncludeResourceObject is true, a nil value will raise
 	// a warning diagnostic.
-	Resource *tfsdk.ResourceObject
+	ResourceObject *tfsdk.ResourceObject
 
 	// DisplayName is a provider-defined human-readable description of the
 	// managed resource instance, intended for CLI and browser UIs.

@@ -120,7 +120,13 @@ type ListResult struct {
 	// a warning diagnostic.
 	Resource *tfsdk.ResourceObject
 
+	// DisplayName is a provider-defined human-readable description of the
+	// managed resource instance, intended for CLI and browser UIs.
 	DisplayName string
+
+	// Diagnostics report errors or warnings related to listing the
+	// resource. An empty slice indicates a successful operation with no
+	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
 }
 
@@ -142,8 +148,8 @@ type ValidateListConfigRequest struct {
 // supplied as an argument to the Resource ValidateListConfig receiver method
 // or automatically passed through to each ListConfigValidator.
 type ValidateListConfigResponse struct {
-	// Diagnostics report errors or warnings related to validating the resource
-	// configuration. An empty slice indicates success, with no warnings or
-	// errors generated.
+	// Diagnostics report errors or warnings related to validating the list
+	// configuration. An empty slice indicates success, with no warnings
+	// or errors generated.
 	Diagnostics diag.Diagnostics
 }

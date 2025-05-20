@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -8,14 +11,19 @@ import (
 )
 
 type List interface {
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 	ListSchema(context.Context, SchemaRequest, SchemaResponse)
 	ListResources(context.Context, ListRequest, ListResponse)
 }
 
-type ListWithValidate interface {
+type ListWithConfigure interface {
 	List
+	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+}
 
-	ValidateListConfig(context.Context, ValidateListConfigRequest, ValidateListConfigResponse)
+type ListWithValidateConfig interface {
+	List
+	ValidateListConfig(context.Context, ValidateListConfigRequest, *ValidateListConfigResponse)
 }
 
 type ListRequest struct {

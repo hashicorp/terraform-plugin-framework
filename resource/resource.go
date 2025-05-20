@@ -75,7 +75,7 @@ type ResourceWithConfigure interface {
 
 // ResourceWithConfigValidators is an interface type that extends Resource to include declarative validations.
 //
-// Declaring validation using this methodology simplifies implmentation of
+// Declaring validation using this methodology simplifies implementation of
 // reusable functionality. These also include descriptions, which can be used
 // for automating documentation.
 //

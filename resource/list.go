@@ -24,8 +24,8 @@ type List interface {
 	// such as examplecloud_thing..
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 
-	// Schema should return the schema for list blocks.
-	ListSchema(context.Context, SchemaRequest, SchemaResponse)
+	// ListConfigSchema should return the schema for list blocks.
+	ListConfigSchema(context.Context, SchemaRequest, SchemaResponse)
 
 	// ListResources is called when the provider must list instances of a
 	// managed resource type that satisfy a user-provided request.
@@ -38,9 +38,7 @@ type List interface {
 type ListWithConfigure interface {
 	List
 
-	// Configure enables provider-level data or clients to be set in the
-	// provider-defined Resource type. It is separately executed for each
-	// ReadResource RPC.
+	// Configure enables provider-level data or clients to be set.
 	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
 }
 
@@ -110,8 +108,18 @@ type ListResponse struct {
 // function implementation will emit zero or more results for a user-provided
 // request.
 type ListResult struct {
-	Identity    tfsdk.ResourceIdentity
-	Resource    tfsdk.ResourceObject
+	// Identity is the identity of the managed resource instance.
+	//
+	// A nil value will raise will raise a diagnostic.
+	Identity *tfsdk.ResourceIdentity
+
+	// ResourceObject is the provider's representation of all attributes of the
+	// managed resource instance.
+	//
+	// If ListRequest.IncludeResourceObject is true, a nil value will raise
+	// a warning diagnostic.
+	Resource *tfsdk.ResourceObject
+
 	DisplayName string
 	Diagnostics diag.Diagnostics
 }

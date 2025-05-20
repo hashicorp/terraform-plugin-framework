@@ -24,7 +24,7 @@ func (c *ComputeInstance) Configure(_ context.Context, _ resource.ConfigureReque
 	panic("not implemented")
 }
 
-func (c *ComputeInstance) ListSchema(_ context.Context, _ resource.SchemaRequest, _ resource.SchemaResponse) {
+func (c *ComputeInstance) ListConfigSchema(_ context.Context, _ resource.SchemaRequest, _ resource.SchemaResponse) {
 	panic("not implemented")
 }
 

@@ -24,6 +24,7 @@ type GetProviderSchemaResponse struct {
 	ResourceSchemas          map[string]fwschema.Schema
 	DataSourceSchemas        map[string]fwschema.Schema
 	EphemeralResourceSchemas map[string]fwschema.Schema
+	ListSchemas              map[string]fwschema.Schema
 	FunctionDefinitions      map[string]function.Definition
 	Diagnostics              diag.Diagnostics
 }

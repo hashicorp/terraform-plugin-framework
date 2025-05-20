@@ -20,8 +20,15 @@ import (
 //   - Validation: Schema-based or entire configuration via
 //     ListWithConfigValidators or ListWithValidateConfig.
 type List interface {
+	// Metadata should return the full name of the managed resource to be listed,
+	// such as examplecloud_thing..
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+
+	// Schema should return the schema for list blocks.
 	ListSchema(context.Context, SchemaRequest, SchemaResponse)
+
+	// ListResources is called when the provider must list instances of a
+	// managed resource type that satisfy a user-provided request.
 	ListResources(context.Context, ListRequest, ListResponse)
 }
 
@@ -30,6 +37,10 @@ type List interface {
 // opportunity to setup any necessary provider-level data or clients.
 type ListWithConfigure interface {
 	List
+
+	// Configure enables provider-level data or clients to be set in the
+	// provider-defined Resource type. It is separately executed for each
+	// ReadResource RPC.
 	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
 }
 
@@ -44,6 +55,8 @@ type ListWithConfigure interface {
 // are implemented, in addition to any Attribute or Type validation.
 type ListWithConfigValidators interface {
 	List
+
+	// ListConfigValidators returns a list of functions which will all be performed during validation.
 	ListConfigValidators(context.Context) []ListConfigValidator
 }
 
@@ -58,6 +71,8 @@ type ListWithConfigValidators interface {
 // are implemented, in addition to any Attribute or Type validation.
 type ListWithValidateConfig interface {
 	List
+
+	// ValidateListConfig performs the validation.
 	ValidateListConfig(context.Context, ValidateListConfigRequest, *ValidateListConfigResponse)
 }
 
@@ -66,8 +81,19 @@ type ListWithValidateConfig interface {
 // this rqeuest struct is passed as an argument to the provider's ListResources
 // function implementation.
 type ListRequest struct {
-	Config                tfsdk.Config
+	// Config is the configuration the user supplied for listing resource
+	// instances.
+	Config tfsdk.Config
+
+	// IncludeResourceObject indicates whether the provider should populate
+	// the ResourceObject field in the ListResult struct.
 	IncludeResourceObject bool
+
+	// TODO: consider applicability of:
+	//
+	// Private            *privatestate.ProviderData
+	// ProviderMeta       tfsdk.Config
+	// ClientCapabilities ReadClientCapabilities
 }
 
 // ListResponse represents a response to a ListRequest. An instance of this
@@ -75,6 +101,8 @@ type ListRequest struct {
 // function implementation function. The provider should set an iterator
 // function on the response struct.
 type ListResponse struct {
+	// Results is a function that emits ListRequest values via its yield
+	// function argument.
 	Results iter.Seq[ListResult] // Speculative + exploratory use of Go 1.23 iterators
 }
 

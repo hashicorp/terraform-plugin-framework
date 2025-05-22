@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      # Group all terraform-plugin-(go|sdk|framework|testing) dependencies together
+      "terraform-plugin":
+        patterns:
+          - "github.com/hashicorp/terraform-plugin-*"
   - package-ecosystem: "gomod"
     directory: "/tools"
     schedule:

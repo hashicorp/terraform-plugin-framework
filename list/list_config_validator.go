@@ -1,12 +1,12 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package resource
+package list
 
 import "context"
 
-// ListConfigValidator describes reusable List configuration validation functionality.
-type ListConfigValidator interface {
+// ConfigValidator describes reusable List configuration validation functionality.
+type ConfigValidator interface {
 	// Description describes the validation in plain text formatting.
 	//
 	// This information may be automatically added to resource plain text
@@ -24,5 +24,5 @@ type ListConfigValidator interface {
 	// This method name is separate from the datasource.ConfigValidator
 	// interface ValidateDataSource method name and provider.ConfigValidator
 	// interface ValidateProvider method name to allow generic validators.
-	ValidateList(context.Context, ValidateListConfigRequest, *ValidateListConfigResponse)
+	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

@@ -1,90 +1,91 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package resource
+package list
 
 import (
 	"context"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// List represents an implementation of listing instances of a managed resource
+// ListResource represents an implementation of listing instances of a managed resource
 // This is the core interface for all list implementations.
 //
-// List implementations can optionally implement these additional concepts:
+// ListResource implementations can optionally implement these additional concepts:
 //
 //   - Configure: Include provider-level data or clients.
 //   - Validation: Schema-based or entire configuration via
-//     ListWithConfigValidators or ListWithValidateConfig.
-type List interface {
+//     ListResourceWithConfigValidators or ListResourceWithValidateConfig.
+type ListResource interface {
 	// Metadata should return the full name of the managed resource to be listed,
-	// such as examplecloud_thing..
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+	// such as examplecloud_thing.
+	Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 
 	// ListConfigSchema should return the schema for list blocks.
-	ListConfigSchema(context.Context, SchemaRequest, SchemaResponse)
+	ListResourceConfigSchema(context.Context, resource.SchemaRequest, resource.SchemaResponse)
 
-	// ListResources is called when the provider must list instances of a
+	// ListResource is called when the provider must list instances of a
 	// managed resource type that satisfy a user-provided request.
-	ListResources(context.Context, ListRequest, ListResponse)
+	ListResource(context.Context, ListResourceRequest, ListResourceResponse)
 }
 
-// ListWithConfigure is an interface type that extends List to include a method
+// ListResourceWithConfigure is an interface type that extends ListResource to include a method
 // which the framework will automatically call so provider developers have the
 // opportunity to setup any necessary provider-level data or clients.
-type ListWithConfigure interface {
-	List
+type ListResourceWithConfigure interface {
+	ListResource
 
 	// Configure enables provider-level data or clients to be set.
-	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+	Configure(context.Context, resource.ConfigureRequest, *resource.ConfigureResponse)
 }
 
-// ListWithConfigValidators is an interface type that extends List to include
+// ListResourceWithConfigValidators is an interface type that extends ListResource to include
 // declarative validations.
 //
 // Declaring validation using this methodology simplifies implementation of
 // reusable functionality. These also include descriptions, which can be used
 // for automating documentation.
 //
-// Validation will include ListConfigValidators and ValidateListConfig, if both
+// Validation will include ListResourceConfigValidators and ValidateListResourceConfig, if both
 // are implemented, in addition to any Attribute or Type validation.
-type ListWithConfigValidators interface {
-	List
+type ListResourceWithConfigValidators interface {
+	ListResource
 
-	// ListConfigValidators returns a list of functions which will all be performed during validation.
-	ListConfigValidators(context.Context) []ListConfigValidator
+	// ListResourceConfigValidators returns a list of functions which will all be performed during validation.
+	ListResourceConfigValidators(context.Context) []ConfigValidator
 }
 
-// ListWithValidateConfig is an interface type that extends List to include
+// ListResourceWithValidateConfig is an interface type that extends ListResource to include
 // imperative validation.
 //
 // Declaring validation using this methodology simplifies one-off
 // functionality that typically applies to a single resource. Any documentation
 // of this functionality must be manually added into schema descriptions.
 //
-// Validation will include ListConfigValidators and ValidateListConfig, if both
+// Validation will include ListResourceConfigValidators and ValidateListResourceConfig, if both
 // are implemented, in addition to any Attribute or Type validation.
-type ListWithValidateConfig interface {
-	List
+type ListResourceWithValidateConfig interface {
+	ListResource
 
-	// ValidateListConfig performs the validation.
-	ValidateListConfig(context.Context, ValidateListConfigRequest, *ValidateListConfigResponse)
+	// ValidateListResourceConfig performs the validation.
+	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ListRequest represents a request for the provider to list instances of a
+// ListResourceRequest represents a request for the provider to list instances of a
 // managed resource type that satisfy a user-defined request. An instance of
-// this rqeuest struct is passed as an argument to the provider's ListResources
+// this rqeuest struct is passed as an argument to the provider's ListResourceResources
 // function implementation.
-type ListRequest struct {
+type ListResourceRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
 	Config tfsdk.Config
 
 	// IncludeResourceObject indicates whether the provider should populate
-	// the ResourceObject field in the ListResult struct.
+	// the ResourceObject field in the ListResourceResult struct.
 	IncludeResourceObject bool
 
 	// TODO: consider applicability of:
@@ -94,20 +95,20 @@ type ListRequest struct {
 	// ClientCapabilities ReadClientCapabilities
 }
 
-// ListResponse represents a response to a ListRequest. An instance of this
-// response struct is supplied as an argument to the provider's ListResource
+// ListResourceResponse represents a response to a ListResourceRequest. An instance of this
+// response struct is supplied as an argument to the provider's ListResourceResource
 // function implementation function. The provider should set an iterator
 // function on the response struct.
-type ListResponse struct {
-	// Results is a function that emits ListRequest values via its yield
+type ListResourceResponse struct {
+	// Results is a function that emits ListResourceRequest values via its yield
 	// function argument.
-	Results iter.Seq[ListResult] // Speculative + exploratory use of Go 1.23 iterators
+	Results iter.Seq[ListResourceEvent]
 }
 
-// ListResult represents a managed resource instance. A provider's ListResource
-// function implementation will emit zero or more results for a user-provided
-// request.
-type ListResult struct {
+// ListResourceEvent represents a managed resource instance. A provider's
+// ListManagedResources function implementation will emit zero or more results
+// for a user-provided request.
+type ListResourceEvent struct {
 	// Identity is the identity of the managed resource instance.
 	//
 	// A nil value will raise will raise a diagnostic.
@@ -116,7 +117,7 @@ type ListResult struct {
 	// ResourceObject is the provider's representation of all attributes of the
 	// managed resource instance.
 	//
-	// If ListRequest.IncludeResourceObject is true, a nil value will raise
+	// If ListResourceRequest.IncludeResourceObject is true, a nil value will raise
 	// a warning diagnostic.
 	ResourceObject *tfsdk.ResourceObject
 
@@ -130,11 +131,11 @@ type ListResult struct {
 	Diagnostics diag.Diagnostics
 }
 
-// ValidateListConfigRequest represents a request to validate the
+// ValidateConfigRequest represents a request to validate the
 // configuration of a resource. An instance of this request struct is
-// supplied as an argument to the Resource ValidateListConfig receiver method
-// or automatically passed through to each ListConfigValidator.
-type ValidateListConfigRequest struct {
+// supplied as an argument to the Resource ValidateListResourceConfig receiver method
+// or automatically passed through to each ListResourceConfigValidator.
+type ValidateConfigRequest struct {
 	// Config is the configuration the user supplied for the resource.
 	//
 	// This configuration may contain unknown values if a user uses
@@ -143,11 +144,11 @@ type ValidateListConfigRequest struct {
 	Config tfsdk.Config
 }
 
-// ValidateListConfigResponse represents a response to a
-// ValidateListConfigRequest. An instance of this response struct is
-// supplied as an argument to the Resource ValidateListConfig receiver method
-// or automatically passed through to each ListConfigValidator.
-type ValidateListConfigResponse struct {
+// ValidateConfigResponse represents a response to a
+// ValidateConfigRequest. An instance of this response struct is
+// supplied as an argument to the list.ValidateConfig receiver method
+// or automatically passed through to each ConfigValidator.
+type ValidateConfigResponse struct {
 	// Diagnostics report errors or warnings related to validating the list
 	// configuration. An empty slice indicates success, with no warnings
 	// or errors generated.

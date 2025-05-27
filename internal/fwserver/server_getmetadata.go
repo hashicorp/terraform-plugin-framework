@@ -82,6 +82,8 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resourceMetadatas, diags := s.ResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 
+	// Metadata for list resources must be retrieved after metadata for managed
+	// resources.
 	listResourceMetadatas, diags := s.ListResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 

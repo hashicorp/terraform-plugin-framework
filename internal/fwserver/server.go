@@ -862,13 +862,22 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 			continue
 		}
 
-		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyListResourceType: typeName})
+		logging.FrameworkTrace(ctx, "Found resource type", map[string]interface{}{logging.KeyListResourceType: typeName}) // TODO: y?
 
 		if _, ok := s.listResourceFuncs[typeName]; ok {
 			s.listResourceTypesDiags.AddError(
 				"Duplicate ListResource Type Defined",
-				fmt.Sprintf("The %s ListResource type name was returned for multiple resources. ", typeName)+
+				fmt.Sprintf("The %s ListResource type name was returned for multiple list resources. ", typeName)+
 					"ListResource type names must be unique. "+
+					"This is always an issue with the provider and should be reported to the provider developers.",
+			)
+			continue
+		}
+
+		if _, ok := s.resourceFuncs[typeName]; !ok {
+			s.listResourceTypesDiags.AddError(
+				"ListResource Type Defined without a Matching Managed Resource Type",
+				fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
@@ -877,7 +886,7 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 		s.listResourceFuncs[typeName] = listResourceFunc
 	}
 
-	return s.listResourceFuncs, s.resourceTypesDiags
+	return s.listResourceFuncs, s.listResourceTypesDiags
 }
 
 // ListResourceMetadatas returns a slice of ListResourceMetadata for the GetMetadata

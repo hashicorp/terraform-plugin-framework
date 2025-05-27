@@ -26,11 +26,11 @@ type ListResource interface {
 	Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
 
 	// ListConfigSchema should return the schema for list blocks.
-	ListResourceConfigSchema(context.Context, resource.SchemaRequest, resource.SchemaResponse)
+	ListResourceConfigSchema(context.Context, resource.SchemaRequest, *resource.SchemaResponse) // TODO: list.Schema{Request,Response}
 
 	// ListResource is called when the provider must list instances of a
 	// managed resource type that satisfy a user-provided request.
-	ListResource(context.Context, ListResourceRequest, ListResourceResponse)
+	ListResource(context.Context, ListResourceRequest, *ListResourceResponse)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method

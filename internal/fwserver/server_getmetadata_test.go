@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -497,6 +498,147 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 			},
 		},
+		"list-resources-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"ListResource Type Name Missing",
+						"The *testprovider.ListResource ListResource returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"list-resources-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate ListResource Type Defined",
+						"The test_resource ListResource type name was returned for multiple list resources. "+
+							"ListResource type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"list-resources-no-matching-managed-resource-type": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource_1"
+									},
+								}
+							},
+						}
+					},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource_2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"ListResource Type Defined without a Matching Managed Resource Type",
+						"The test_resource_1 ListResource type name was returned, but no matching managed Resource type was defined. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
 		"resources": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
@@ -680,6 +822,10 @@ func TestServerGetMetadata(t *testing.T) {
 
 			sort.Slice(response.Functions, func(i int, j int) bool {
 				return response.Functions[i].Name < response.Functions[j].Name
+			})
+
+			sort.Slice(response.ListResources, func(i int, j int) bool {
+				return response.ListResources[i].TypeName < response.ListResources[j].TypeName
 			})
 
 			sort.Slice(response.Resources, func(i int, j int) bool {

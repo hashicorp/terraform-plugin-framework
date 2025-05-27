@@ -36,6 +36,7 @@ func TestServerGetMetadata(t *testing.T) {
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
+				ListResources:      []fwserver.ListResourceMetadata{},
 				Resources:          []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -79,6 +80,7 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
+				ListResources:      []fwserver.ListResourceMetadata{},
 				Resources:          []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -122,8 +124,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -158,8 +161,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -195,6 +199,7 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
+				ListResources:      []fwserver.ListResourceMetadata{},
 				Resources:          []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -237,8 +242,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_ephemeral_resource2",
 					},
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -281,8 +287,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -317,8 +324,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -353,8 +361,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "testprovidertype_ephemeral_resource",
 					},
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -397,7 +406,8 @@ func TestServerGetMetadata(t *testing.T) {
 						Name: "function2",
 					},
 				},
-				Resources: []fwserver.ResourceMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -440,8 +450,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -476,8 +487,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -513,6 +525,7 @@ func TestServerGetMetadata(t *testing.T) {
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
+				ListResources:      []fwserver.ListResourceMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -563,8 +576,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -599,8 +613,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},
-				Functions: []fwserver.FunctionMetadata{},
-				Resources: []fwserver.ResourceMetadata{},
+				Functions:     []fwserver.FunctionMetadata{},
+				ListResources: []fwserver.ListResourceMetadata{},
+				Resources:     []fwserver.ResourceMetadata{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -632,6 +647,7 @@ func TestServerGetMetadata(t *testing.T) {
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
+				ListResources:      []fwserver.ListResourceMetadata{},
 				Resources: []fwserver.ResourceMetadata{
 					{
 						TypeName: "testprovidertype_resource",

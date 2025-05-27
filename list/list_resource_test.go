@@ -24,10 +24,10 @@ type ComputeInstanceWithListResourceConfigValidators struct {
 func (c *ComputeInstance) Configure(_ context.Context, _ resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 }
 
-func (c *ComputeInstance) ListResourceConfigSchema(_ context.Context, _ resource.SchemaRequest, _ resource.SchemaResponse) {
+func (c *ComputeInstance) ListResourceConfigSchema(_ context.Context, _ resource.SchemaRequest, _ *resource.SchemaResponse) {
 }
 
-func (c *ComputeInstance) ListResource(_ context.Context, _ list.ListResourceRequest, _ list.ListResourceResponse) {
+func (c *ComputeInstance) ListResource(_ context.Context, _ list.ListResourceRequest, _ *list.ListResourceResponse) {
 }
 
 func (c *ComputeInstance) Metadata(_ context.Context, _ resource.MetadataRequest, _ *resource.MetadataResponse) {

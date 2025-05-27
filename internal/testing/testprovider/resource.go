@@ -6,22 +6,24 @@ package testprovider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ list.ListResource = &ListResource{}
+var _ resource.Resource = &Resource{}
 
-// Declarative list.ListResource for unit testing.
-type ListResource struct {
-	// ListResource interface methods
-	MetadataMethod                 func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
-	ListResourceConfigSchemaMethod func(context.Context, resource.SchemaRequest, *resource.SchemaResponse)
-	ListResourceMethod             func(context.Context, list.ListResourceRequest, *list.ListResourceResponse)
+// Declarative resource.Resource for unit testing.
+type Resource struct {
+	// Resource interface methods
+	MetadataMethod func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+	SchemaMethod   func(context.Context, resource.SchemaRequest, *resource.SchemaResponse)
+	CreateMethod   func(context.Context, resource.CreateRequest, *resource.CreateResponse)
+	DeleteMethod   func(context.Context, resource.DeleteRequest, *resource.DeleteResponse)
+	ReadMethod     func(context.Context, resource.ReadRequest, *resource.ReadResponse)
+	UpdateMethod   func(context.Context, resource.UpdateRequest, *resource.UpdateResponse)
 }
 
-// Metadata satisfies the list.ListResource interface.
-func (r *ListResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+// Metadata satisfies the resource.Resource interface.
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	if r.MetadataMethod == nil {
 		return
 	}
@@ -29,19 +31,47 @@ func (r *ListResource) Metadata(ctx context.Context, req resource.MetadataReques
 	r.MetadataMethod(ctx, req, resp)
 }
 
-// ListResourceConfigSchema satisfies the list.ListResource interface.
-func (r *ListResource) ListResourceConfigSchema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	if r.ListResourceConfigSchemaMethod == nil {
+// Schema satisfies the resource.Resource interface.
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	if r.SchemaMethod == nil {
 		return
 	}
 
-	r.ListResourceConfigSchemaMethod(ctx, req, resp)
+	r.SchemaMethod(ctx, req, resp)
 }
 
-// ListResource satisfies the list.ListResource interface.
-func (r *ListResource) ListResource(ctx context.Context, req list.ListResourceRequest, resp *list.ListResourceResponse) {
-	if r.ListResourceMethod == nil {
+// Create satisfies the resource.Resource interface.
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	if r.CreateMethod == nil {
 		return
 	}
-	r.ListResourceMethod(ctx, req, resp)
+
+	r.CreateMethod(ctx, req, resp)
+}
+
+// Delete satisfies the resource.Resource interface.
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	if r.DeleteMethod == nil {
+		return
+	}
+
+	r.DeleteMethod(ctx, req, resp)
+}
+
+// Read satisfies the resource.Resource interface.
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	if r.ReadMethod == nil {
+		return
+	}
+
+	r.ReadMethod(ctx, req, resp)
+}
+
+// Update satisfies the resource.Resource interface.
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	if r.UpdateMethod == nil {
+		return
+	}
+
+	r.UpdateMethod(ctx, req, resp)
 }

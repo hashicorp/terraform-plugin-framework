@@ -15,6 +15,11 @@ type InvokeRequest struct {
 }
 
 type InvokeResponse struct {
+	NewConfig   *tfsdk.State
+	Diagnostics diag.Diagnostics
+}
+
+type InvokeCallbackResponse struct {
 	CancellationToken string
 	CallbackServer    InvokeActionCallBackServer
 	Diagnostics       diag.Diagnostics

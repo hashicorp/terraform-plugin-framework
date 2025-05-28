@@ -42,63 +42,21 @@ var (
 //	# underlying attribute
 //	.example_attribute.underlying_attribute
 type ResourceAttribute struct {
+	// Resource is the framework resource that constitutes
+	// the type of this attribute. The resource's Schema() func
+	// will be called to create type for the attribute.
 	Resource resource.Resource
 
-	// Required indicates whether the practitioner must enter a value for
-	// this attribute or not. Required and Optional cannot both be true,
-	// and Required and Computed cannot both be true.
 	Required bool
 
-	// Optional indicates whether the practitioner can choose to enter a value
-	// for this attribute or not. Optional and Required cannot both be true.
+	tftypes.Type
+
 	Optional bool
 
-	// Description is used in various tooling, like the language server, to
-	// give practitioners more information about what this attribute is,
-	// what it's for, and how it should be used. It should be written as
-	// plain text, with no special formatting.
 	Description string
 
-	// MarkdownDescription is used in various tooling, like the
-	// documentation generator, to give practitioners more information
-	// about what this attribute is, what it's for, and how it should be
-	// used. It should be formatted using Markdown.
 	MarkdownDescription string
 
-	// DeprecationMessage defines warning diagnostic details to display when
-	// practitioner configurations use this Attribute. The warning diagnostic
-	// summary is automatically set to "Attribute Deprecated" along with
-	// configuration source file and line information.
-	//
-	// Set this field to a practitioner actionable message such as:
-	//
-	//  - "Configure other_attribute instead. This attribute will be removed
-	//    in the next major version of the provider."
-	//  - "Remove this attribute's configuration as it no longer is used and
-	//    the attribute will be removed in the next major version of the
-	//    provider."
-	//
-	// In Terraform 1.2.7 and later, this warning diagnostic is displayed any
-	// time a practitioner attempts to configure a value for this attribute and
-	// certain scenarios where this attribute is referenced.
-	//
-	// In Terraform 1.2.6 and earlier, this warning diagnostic is only
-	// displayed when the Attribute is Required or Optional, and if the
-	// practitioner configuration sets the value to a known or unknown value
-	// (which may eventually be null). It has no effect when the Attribute is
-	// Computed-only (read-only; not Required or Optional).
-	//
-	// Across any Terraform version, there are no warnings raised for
-	// practitioner configuration values set directly to null, as there is no
-	// way for the framework to differentiate between an unset and null
-	// configuration due to how Terraform sends configuration information
-	// across the protocol.
-	//
-	// Additional information about deprecation enhancements for read-only
-	// attributes can be found in:
-	//
-	//  - https://github.com/hashicorp/terraform/issues/7569
-	//
 	DeprecationMessage string
 }
 

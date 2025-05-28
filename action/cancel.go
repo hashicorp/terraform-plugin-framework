@@ -12,7 +12,8 @@ import (
 // the resource's Cancel function.
 type CancelRequest struct {
 	CancellationToken string
-	CancellationType  CancelType
+	// CancellationFunc cancels all contexts associated with the given cancellation token
+	CancellationFunc CancellationFunc
 }
 
 // CancelResponse represents a response to a CancelRequest. An
@@ -20,26 +21,13 @@ type CancelRequest struct {
 // an argument to the resource's Cancel function, in which the provider
 // should set values on the CancelResponse as appropriate.
 type CancelResponse struct {
-	Diagnostics diag.Diagnostics
+	// InvokeActionCallBackServer is the callback server associated with the
+	// cancellation token. Use this to send ProgressActionEvent and CancelledActionEvent
+	// associated with the rollback and cancellation.
+	InvokeActionCallBackServer InvokeActionCallBackServer
+	Diagnostics                diag.Diagnostics
 }
 
-const (
-	ActionCancelTypeSoft CancelType = 0
-	ActionCancelTypeHard CancelType = 1
-)
-
-type ActionCancelType struct {
-	CancelType CancelType
-}
-
-type CancelType int32
-
-func (c CancelType) String() string {
-	switch c {
-	case 0:
-		return "SOFT"
-	case 1:
-		return "HARD"
-	}
-	return "UNKNOWN"
+type CancellationFunc interface {
+	Cancel(ctx context.Context, CancellationToken string) error
 }

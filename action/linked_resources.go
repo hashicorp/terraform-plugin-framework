@@ -13,3 +13,7 @@ type LinkedResource struct {
 
 	AttributePath path.Path
 }
+
+type LinkedAttributes struct {
+	AttributePath path.Path
+}

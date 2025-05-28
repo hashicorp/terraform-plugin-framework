@@ -1,8 +1,6 @@
 package action
 
 import (
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -23,7 +21,6 @@ type StartedActionEvent struct {
 func (s *StartedActionEvent) isInvokeActionEvent() {}
 
 type FinishedActionEvent struct {
-	Outputs     map[string]*tftypes.Value
 	NewConfig   *tfsdk.State
 	Diagnostics diag.Diagnostics
 }

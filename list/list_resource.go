@@ -36,7 +36,7 @@ type ListResource interface {
 
 	// ListResource is called when the provider must list instances of a
 	// managed resource type that satisfy a user-provided request.
-	ListResource(context.Context, ListResourceRequest, *ListResourceResponse)
+	ListResource(context.Context, ListResourceRequest, *ListResourceStream)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method
@@ -105,11 +105,16 @@ type ListResourceRequest struct {
 	// ClientCapabilities ReadClientCapabilities
 }
 
-// ListResourceResponse represents a response to a ListResourceRequest. An
-// instance of this response struct is supplied as an argument to the
-// provider's ListResource function implementation function. The provider
-// should set an iterator function on the response struct.
-type ListResourceResponse struct {
+// ListResourceStream represents a streaming response to a ListResourceRequest.
+// An instance of this struct is supplied as an argument to the provider's
+// ListResource function implementation function. The provider should set an
+// iterator function on the response struct.
+//
+// For convenience, a provider implementation may choose to convert a slice of
+// results into an iterator using [slices.All].
+//
+// [slices.All]: https://pkg.go.dev/iter/slices#All
+type ListResourceStream struct {
 	// Results is a function that emits ListResourceEvent values via its yield
 	// function argument.
 	Results iter.Seq[ListResourceEvent]

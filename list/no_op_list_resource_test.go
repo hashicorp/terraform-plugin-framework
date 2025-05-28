@@ -14,5 +14,5 @@ type NoOpListResource struct{}
 func (*NoOpListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, _ *list.ListResourceSchemaResponse) {
 }
 
-func (*NoOpListResource) ListResource(_ context.Context, _ list.ListResourceRequest, _ *list.ListResourceResponse) {
+func (*NoOpListResource) ListResource(_ context.Context, _ list.ListResourceRequest, _ *list.ListResourceStream) {
 }

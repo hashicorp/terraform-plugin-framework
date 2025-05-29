@@ -78,11 +78,10 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListResourceRequest, f
 }
 
 func listResourceEventStreamAdapter(stream iter.Seq[list.ListResourceEvent]) iter.Seq[ListResourceEvent] {
-	return func(yield func(ListResourceEvent) bool) {
-		for event := range stream {
-			if !yield(ListResourceEvent(event)) {
-				break
-			}
+	return func(yieldFw func(ListResourceEvent) bool) {
+		yield := func(event list.ListResourceEvent) bool {
+			return yieldFw(ListResourceEvent(event))
 		}
+		stream(yield)
 	}
 }

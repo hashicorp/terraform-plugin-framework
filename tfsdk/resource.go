@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// ResourceObject represents a Terraform resource.
-type ResourceObject struct {
+// Resource represents a Terraform resource.
+type Resource struct {
 	Raw    tftypes.Value
 	Schema fwschema.Schema
 }
 
 // Get populates the struct passed as `target` with the resource.
-func (c ResourceObject) Get(ctx context.Context, target interface{}) diag.Diagnostics {
+func (c Resource) Get(ctx context.Context, target interface{}) diag.Diagnostics {
 	return c.data().Get(ctx, target)
 }
 
@@ -31,7 +31,7 @@ func (c ResourceObject) Get(ctx context.Context, target interface{}) diag.Diagno
 //
 // Attributes or elements under null or unknown collections return null
 // values, however this behavior is not protected by compatibility promises.
-func (c ResourceObject) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
+func (c Resource) GetAttribute(ctx context.Context, path path.Path, target interface{}) diag.Diagnostics {
 	return c.data().GetAtPath(ctx, path, target)
 }
 
@@ -40,11 +40,11 @@ func (c ResourceObject) GetAttribute(ctx context.Context, path path.Path, target
 // If a parent path is null or unknown, which would prevent a full expression
 // from matching, the parent path is returned rather than no match to prevent
 // false positives.
-func (c ResourceObject) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
+func (c Resource) PathMatches(ctx context.Context, pathExpr path.Expression) (path.Paths, diag.Diagnostics) {
 	return c.data().PathMatches(ctx, pathExpr)
 }
 
-func (c ResourceObject) data() fwschemadata.Data {
+func (c Resource) data() fwschemadata.Data {
 	return fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionConfiguration,
 		Schema:         c.Schema,

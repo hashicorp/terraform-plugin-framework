@@ -94,9 +94,9 @@ type ListResourceRequest struct {
 	// instances.
 	Config tfsdk.Config
 
-	// IncludeResourceObject indicates whether the provider should populate
-	// the ResourceObject field in the ListResourceEvent struct.
-	IncludeResourceObject bool
+	// IncludeResource indicates whether the provider should populate the
+	// Resource field in the ListResourceEvent struct.
+	IncludeResource bool
 }
 
 // ListResourceStream represents a streaming response to a ListResourceRequest.
@@ -123,12 +123,12 @@ type ListResourceEvent struct {
 	// A nil value will raise will raise a diagnostic.
 	Identity *tfsdk.ResourceIdentity
 
-	// ResourceObject is the provider's representation of the attributes of the
+	// Resource is the provider's representation of the attributes of the
 	// listed managed resource instance.
 	//
-	// If ListResourceRequest.IncludeResourceObject is true, a nil value will raise
+	// If ListResourceRequest.IncludeResource is true, a nil value will raise
 	// a warning diagnostic.
-	ResourceObject *tfsdk.ResourceObject
+	Resource *tfsdk.Resource
 
 	// DisplayName is a provider-defined human-readable description of the
 	// listed managed resource instance, intended for CLI and browser UIs.

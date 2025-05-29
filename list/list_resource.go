@@ -34,9 +34,9 @@ type ListResource interface {
 	// ListResourceConfigSchema should return the schema for list blocks.
 	ListResourceConfigSchema(context.Context, ListResourceSchemaRequest, *ListResourceSchemaResponse)
 
-	// ListResource is called when the provider must list instances of a
-	// managed resource type that satisfy a user-provided request.
-	ListResource(context.Context, ListResourceRequest, *ListResourceStream)
+	// List is called when the provider must list instances of a managed
+	// resource type that satisfy a user-provided request.
+	List(context.Context, ListRequest, *ListResultsStream)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method
@@ -85,39 +85,37 @@ type ListResourceWithValidateConfig interface {
 	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ListResourceRequest represents a request for the provider to list instances
+// ListRequest represents a request for the provider to list instances
 // of a managed resource type that satisfy a user-defined request. An instance
 // of this reqeuest struct is passed as an argument to the provider's
 // ListResource function implementation.
-type ListResourceRequest struct {
+type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
 	Config tfsdk.Config
 
 	// IncludeResource indicates whether the provider should populate the
-	// Resource field in the ListResourceEvent struct.
+	// Resource field in the ListResult struct.
 	IncludeResource bool
 }
 
-// ListResourceStream represents a streaming response to a ListResourceRequest.
+// ListResultsStream represents a streaming response to a ListRequest.
 // An instance of this struct is supplied as an argument to the provider's
-// ListResource function implementation function. The provider should set an
-// iterator function on the response struct.
+// ListResource function implementation function. The provider should set a Results
+// iterator function that yields zero or more results of type ListResult.
 //
 // For convenience, a provider implementation may choose to convert a slice of
-// results into an iterator using [slices.All].
+// results into an iterator using [slices.Values].
 //
-// [slices.All]: https://pkg.go.dev/iter/slices#All
-type ListResourceStream struct {
-	// Results is a function that emits ListResourceEvent values via its yield
+// [slices.Values]: https://pkg.go.dev/slices#Values
+type ListResultsStream struct {
+	// Results is a function that emits ListResult values via its yield
 	// function argument.
-	Results iter.Seq[ListResourceEvent]
+	Results iter.Seq[ListResult]
 }
 
-// ListResourceEvent represents a listed managed resource instance. A
-// provider's ListResource function implementation will emit zero or more
-// events for a user-provided request.
-type ListResourceEvent struct {
+// ListResult represents a listed managed resource instance.
+type ListResult struct {
 	// Identity is the identity of the managed resource instance.
 	//
 	// A nil value will raise will raise a diagnostic.
@@ -126,7 +124,7 @@ type ListResourceEvent struct {
 	// Resource is the provider's representation of the attributes of the
 	// listed managed resource instance.
 	//
-	// If ListResourceRequest.IncludeResource is true, a nil value will raise
+	// If ListRequest.IncludeResource is true, a nil value will raise
 	// a warning diagnostic.
 	Resource *tfsdk.Resource
 

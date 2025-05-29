@@ -97,12 +97,6 @@ type ListResourceRequest struct {
 	// IncludeResourceObject indicates whether the provider should populate
 	// the ResourceObject field in the ListResourceEvent struct.
 	IncludeResourceObject bool
-
-	// TODO: consider applicability of:
-	//
-	// Private            *privatestate.ProviderData
-	// ProviderMeta       tfsdk.Config
-	// ClientCapabilities ReadClientCapabilities
 }
 
 // ListResourceStream represents a streaming response to a ListResourceRequest.

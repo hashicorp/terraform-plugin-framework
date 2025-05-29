@@ -112,6 +112,12 @@ type ListResultsStream struct {
 	// Results is a function that emits ListResult values via its yield
 	// function argument.
 	Results iter.Seq[ListResult]
+
+	// Diagnostics report errors or warnings related to the list resource
+	// operation. An empty slice indicates a successful operation with no
+	// warnings or errors generated. Individual ListResourceEvents may have
+	// specific diagnostics.
+	Diagnostics diag.Diagnostics
 }
 
 // ListResult represents a listed managed resource instance.

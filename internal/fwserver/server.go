@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -171,6 +172,20 @@ type Server struct {
 	// access resources. If not found, it will be fetched from the
 	// Provider.Resources() method.
 	resourceFuncs map[string]func() resource.Resource
+
+	// listResourceFuncs is the cached Resource List functions for RPCs that need to
+	// access resource lists. If not found, it will be fetched from the
+	// Provider.ListResources() method.
+	listResourceFuncs map[string]func() list.ListResource
+
+	// listResourceTypesDiags is the cached Diagnostics obtained while populating
+	// listResourceTypes. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching listResourceTypes.
+	listResourceTypesDiags diag.Diagnostics
+
+	// listResourceTypesMutex is a mutex to protect concurrent listResourceTypes
+	// access from race conditions.
+	listResourceTypesMutex sync.Mutex
 
 	// resourceTypesDiags is the cached Diagnostics obtained while populating
 	// resourceTypes. This is to ensure any warnings or errors are also

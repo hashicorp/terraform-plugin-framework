@@ -25,6 +25,7 @@ type GetProviderSchemaResponse struct {
 	DataSourceSchemas        map[string]fwschema.Schema
 	EphemeralResourceSchemas map[string]fwschema.Schema
 	FunctionDefinitions      map[string]function.Definition
+	ListResourceSchemas      map[string]fwschema.Schema
 	Diagnostics              diag.Diagnostics
 }
 
@@ -33,62 +34,51 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 	resp.ServerCapabilities = s.ServerCapabilities()
 
 	providerSchema, diags := s.ProviderSchema(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if diags.HasError() {
 		return
 	}
-
 	resp.Provider = providerSchema
 
 	providerMetaSchema, diags := s.ProviderMetaSchema(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if diags.HasError() {
 		return
 	}
-
 	resp.ProviderMeta = providerMetaSchema
 
 	resourceSchemas, diags := s.ResourceSchemas(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.ResourceSchemas = resourceSchemas
 
 	dataSourceSchemas, diags := s.DataSourceSchemas(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.DataSourceSchemas = dataSourceSchemas
 
 	functions, diags := s.FunctionDefinitions(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.FunctionDefinitions = functions
 
 	ephemeralResourceSchemas, diags := s.EphemeralResourceSchemas(ctx)
-
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	resp.EphemeralResourceSchemas = ephemeralResourceSchemas
+
+	listResourceSchemas, diags := s.ListResourceSchemas(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.ListResourceSchemas = listResourceSchemas
 }

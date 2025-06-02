@@ -3603,106 +3603,254 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 		},
-		//TODO
-		//"prior null nested objects": {
-		//	schema: schema.Schema{
-		//		Attributes: map[string]schema.Attribute{
-		//			"single_nested_attribute": schema.SingleNestedAttribute{
-		//				Optional: true,
-		//				Attributes: map[string]schema.Attribute{
-		//					"nested_list_nested_attribute": schema.ListNestedAttribute{
-		//						Optional: true,
-		//						NestedObject: schema.NestedAttributeObject{
-		//							Attributes: map[string]schema.Attribute{
-		//								"optional_nested_attribute": schema.StringAttribute{
-		//									Optional: true,
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//			"map_nested_attribute": schema.MapNestedAttribute{
-		//				Optional: true,
-		//				NestedObject: schema.NestedAttributeObject{
-		//					Attributes: map[string]schema.Attribute{
-		//						"nested_list_nested_attribute": schema.ListNestedAttribute{
-		//							Optional: true,
-		//							NestedObject: schema.NestedAttributeObject{
-		//								Attributes: map[string]schema.Attribute{
-		//									"optional_nested_attribute": schema.StringAttribute{
-		//										Optional: true,
-		//									},
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//		},
-		//	},
-		//	//TODO:
-		//	priorVal: map[string]tftypes.Value{
-		//		"set_nested_attribute": tftypes.NewValue(
-		//			tftypes.Set{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			[]tftypes.Value{
-		//				tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "old"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//	configVal: map[string]tftypes.Value{
-		//		"set_nested_attribute": tftypes.NewValue(
-		//			tftypes.Set{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			[]tftypes.Value{
-		//				tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "new"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//	expectedVal: map[string]tftypes.Value{
-		//		"set_nested_attribute": tftypes.NewValue(
-		//			tftypes.Set{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			[]tftypes.Value{
-		//				tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "new"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//},
+		"prior null nested objects": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"single_nested_attribute": schema.SingleNestedAttribute{
+						Optional: true,
+						Attributes: map[string]schema.Attribute{
+							"nested_list_nested_attribute": schema.ListNestedAttribute{
+								Optional: true,
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"optional_nested_attribute": schema.StringAttribute{
+											Optional: true,
+										},
+									},
+								},
+							},
+						},
+					},
+					"map_nested_attribute": schema.MapNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"nested_list_nested_attribute": schema.ListNestedAttribute{
+									Optional: true,
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"optional_nested_attribute": schema.StringAttribute{
+												Optional: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"single_nested_attribute": tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_nested_attribute": tftypes.String,
+								},
+							}},
+						},
+					},
+					nil,
+				),
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									},
+								}},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"one": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									},
+								},
+							}},
+							map[string]tftypes.Value{
+								"nested_list_nested_attribute": tftypes.NewValue(tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									}},
+									[]tftypes.Value{}),
+							}),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"single_nested_attribute": tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_nested_attribute": tftypes.String,
+								},
+							}},
+						},
+					},
+					map[string]tftypes.Value{
+						"nested_list_nested_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_nested_attribute": tftypes.String,
+							},
+						}},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									}}, map[string]tftypes.Value{
+									"optional_nested_attribute": tftypes.NewValue(tftypes.String, "a"),
+								}),
+								tftypes.NewValue(tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									}}, map[string]tftypes.Value{
+									"optional_nested_attribute": tftypes.NewValue(tftypes.String, "b"),
+								}),
+							}),
+					},
+				),
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									},
+								}},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"one": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									},
+								},
+							}},
+							map[string]tftypes.Value{
+								"nested_list_nested_attribute": tftypes.NewValue(tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									}},
+									[]tftypes.Value{
+										tftypes.NewValue(tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_nested_attribute": tftypes.String,
+											}}, map[string]tftypes.Value{
+											"optional_nested_attribute": tftypes.NewValue(tftypes.String, "a"),
+										}),
+										tftypes.NewValue(tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_nested_attribute": tftypes.String,
+											}}, map[string]tftypes.Value{
+											"optional_nested_attribute": tftypes.NewValue(tftypes.String, "b"),
+										}),
+									}),
+							}),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"single_nested_attribute": tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_nested_attribute": tftypes.String,
+								},
+							}},
+						},
+					},
+					map[string]tftypes.Value{
+						"nested_list_nested_attribute": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_nested_attribute": tftypes.String,
+							},
+						}},
+							[]tftypes.Value{
+								tftypes.NewValue(tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									}}, map[string]tftypes.Value{
+									"optional_nested_attribute": tftypes.NewValue(tftypes.String, "a"),
+								}),
+								tftypes.NewValue(tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									}}, map[string]tftypes.Value{
+									"optional_nested_attribute": tftypes.NewValue(tftypes.String, "b"),
+								}),
+							}),
+					},
+				),
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional_nested_attribute": tftypes.String,
+									},
+								}},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"one": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_list_nested_attribute": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									},
+								},
+							}},
+							map[string]tftypes.Value{
+								"nested_list_nested_attribute": tftypes.NewValue(tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_nested_attribute": tftypes.String,
+										},
+									}},
+									[]tftypes.Value{
+										tftypes.NewValue(tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_nested_attribute": tftypes.String,
+											}}, map[string]tftypes.Value{
+											"optional_nested_attribute": tftypes.NewValue(tftypes.String, "a"),
+										}),
+										tftypes.NewValue(tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_nested_attribute": tftypes.String,
+											}}, map[string]tftypes.Value{
+											"optional_nested_attribute": tftypes.NewValue(tftypes.String, "b"),
+										}),
+									}),
+							}),
+					},
+				),
+			},
+		},
 	}
 
 	for name, test := range tests {

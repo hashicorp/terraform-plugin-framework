@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -22,12 +23,12 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 		return nil, nil
 	}
 
-	logging.FrameworkTrace(ctx, "Checking ListResourceTypes lock")
+	logging.FrameworkTrace(ctx, "Checking ListResourceFuncs lock")
 	s.listResourceFuncsMutex.Lock()
 	defer s.listResourceFuncsMutex.Unlock()
 
 	if s.listResourceFuncs != nil {
-		return s.listResourceFuncs, s.resourceTypesDiags
+		return s.listResourceFuncs, s.listResourceFuncsDiags
 	}
 
 	providerTypeName := s.ProviderTypeName(ctx)
@@ -97,4 +98,38 @@ func (s *Server) ListResourceMetadatas(ctx context.Context) ([]ListResourceMetad
 	}
 
 	return resourceMetadatas, diags
+}
+
+// ListResourceSchemas returns a map of ListResource Schemas for the
+// GetProviderSchema RPC without caching since not all schemas are guaranteed to
+// be necessary for later provider operations. The schema implementations are
+// also validated.
+func (s *Server) ListResourceSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
+	listResourceSchemas := make(map[string]fwschema.Schema)
+	listResourceFuncs, diags := s.ListResourceFuncs(ctx)
+
+	for typeName, listResourceFunc := range listResourceFuncs {
+		listResource := listResourceFunc()
+		schemaReq := list.ListResourceSchemaRequest{}
+		schemaResp := list.ListResourceSchemaResponse{}
+
+		logging.FrameworkTrace(ctx, "Calling provider defined ListResource Schemas", map[string]interface{}{logging.KeyListResourceType: typeName})
+		listResource.ListResourceConfigSchema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Schemas", map[string]interface{}{logging.KeyListResourceType: typeName})
+
+		diags.Append(schemaResp.Diagnostics...)
+		if schemaResp.Diagnostics.HasError() {
+			continue
+		}
+
+		validateDiags := schemaResp.Schema.ValidateImplementation(ctx)
+		diags.Append(validateDiags...)
+		if validateDiags.HasError() {
+			continue
+		}
+
+		listResourceSchemas[typeName] = schemaResp.Schema
+	}
+
+	return listResourceSchemas, diags
 }

@@ -74,6 +74,7 @@ type Schema interface {
 	// the given Terraform path or return an error.
 	TypeAtTerraformPath(context.Context, *tftypes.AttributePath) (attr.Type, error)
 
+	// EmptyValue should return an empty tftypes.Value of the schema's TerraformType
 	EmptyValue(context.Context) tftypes.Value
 }
 

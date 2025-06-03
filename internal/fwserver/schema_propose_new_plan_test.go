@@ -3851,6 +3851,81 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 		},
+		"unknown prior nested objects": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"list": schema.ListNestedAttribute{
+						Computed: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"list": schema.ListNestedAttribute{
+									Computed: true,
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"foo": schema.StringAttribute{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"list": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"list": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"foo": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					tftypes.UnknownValue,
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"list": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"list": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"foo": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					nil,
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"list": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"list": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"foo": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					tftypes.UnknownValue,
+				),
+			},
+		},
 	}
 
 	for name, test := range tests {

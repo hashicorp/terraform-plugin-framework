@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-var testObj = tftypes.Object{}
-
 func TestSchemaProposeNewState(t *testing.T) {
 	tests := map[string]struct {
 		schema      fwschema.Schema
@@ -2061,7 +2059,10 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 		},
-		// TODO: Ask if we need this test case
+		// TODO: figure out if we need this test
+		// The set value is panicking because there are multiple types defined in the set.
+		// tftypes seems to treat each definition of the `nested_list_block` type as separate types,
+		// possibly because it has no attributes defined in the nested block object for equality comparison.
 		//"empty nested list in set": {
 		//	schema: schema.Schema{
 		//		Blocks: map[string]schema.Block{
@@ -2082,7 +2083,7 @@ func TestSchemaProposeNewState(t *testing.T) {
 		//				ElementType: tftypes.Object{
 		//					AttributeTypes: map[string]tftypes.Type{
 		//						"nested_list_block": tftypes.List{
-		//							ElementType: &testObj,
+		//							ElementType: tftypes.Object{},
 		//						},
 		//					},
 		//				},
@@ -2091,12 +2092,11 @@ func TestSchemaProposeNewState(t *testing.T) {
 		//				tftypes.NewValue(tftypes.Object{
 		//					AttributeTypes: map[string]tftypes.Type{
 		//						"nested_list_block": tftypes.List{
-		//							ElementType: &testObj,
+		//							ElementType: tftypes.Object{},
 		//						},
 		//					},
 		//				}, map[string]tftypes.Value{
-		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: &testObj},
-		//						[]tftypes.Value{}),
+		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{}}, []tftypes.Value{}),
 		//				}),
 		//			},
 		//		),
@@ -2120,10 +2120,7 @@ func TestSchemaProposeNewState(t *testing.T) {
 		//						},
 		//					},
 		//				}, map[string]tftypes.Value{
-		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{}},
-		//						[]tftypes.Value{
-		//							tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
-		//						}),
+		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{}}, []tftypes.Value{}),
 		//				}),
 		//			},
 		//		),
@@ -2147,10 +2144,7 @@ func TestSchemaProposeNewState(t *testing.T) {
 		//						},
 		//					},
 		//				}, map[string]tftypes.Value{
-		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{}},
-		//						[]tftypes.Value{
-		//							tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
-		//						}),
+		//					"nested_list_block": tftypes.NewValue(tftypes.List{ElementType: tftypes.Object{}}, []tftypes.Value{}),
 		//				}),
 		//			},
 		//		),
@@ -3851,18 +3845,20 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 		},
+
+		// Data sources are planned with an unknown value.
 		"unknown prior nested objects": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
-					"list": schema.ListNestedAttribute{
+					"list_nested_attribute": schema.ListNestedAttribute{
 						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
-								"list": schema.ListNestedAttribute{
+								"nested_list_nested_attribute": schema.ListNestedAttribute{
 									Computed: true,
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
-											"foo": schema.StringAttribute{},
+											"string_attribute": schema.StringAttribute{},
 										},
 									},
 								},
@@ -3872,14 +3868,14 @@ func TestSchemaProposeNewState(t *testing.T) {
 				},
 			},
 			priorVal: map[string]tftypes.Value{
-				"list": tftypes.NewValue(
+				"list_nested_attribute": tftypes.NewValue(
 					tftypes.List{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
-								"list": tftypes.List{
+								"nested_list_nested_attribute": tftypes.List{
 									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
-											"foo": tftypes.String,
+											"string_attribute": tftypes.String,
 										},
 									},
 								},
@@ -3890,14 +3886,14 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 			configVal: map[string]tftypes.Value{
-				"list": tftypes.NewValue(
+				"list_nested_attribute": tftypes.NewValue(
 					tftypes.List{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
-								"list": tftypes.List{
+								"nested_list_nested_attribute": tftypes.List{
 									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
-											"foo": tftypes.String,
+											"string_attribute": tftypes.String,
 										},
 									},
 								},
@@ -3908,14 +3904,14 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 			expectedVal: map[string]tftypes.Value{
-				"list": tftypes.NewValue(
+				"list_nested_attribute": tftypes.NewValue(
 					tftypes.List{
 						ElementType: tftypes.Object{
 							AttributeTypes: map[string]tftypes.Type{
-								"list": tftypes.List{
+								"nested_list_nested_attribute": tftypes.List{
 									ElementType: tftypes.Object{
 										AttributeTypes: map[string]tftypes.Type{
-											"foo": tftypes.String,
+											"string_attribute": tftypes.String,
 										},
 									},
 								},
@@ -3923,6 +3919,1833 @@ func TestSchemaProposeNewState(t *testing.T) {
 						},
 					},
 					tftypes.UnknownValue,
+				),
+			},
+		},
+
+		// A nested object with computed attributes, which is contained in an
+		// optional+computed container. The nested computed values should be
+		// represented in the proposed new object.
+		"config within optional+computed": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"list_nested_attribute": schema.ListNestedAttribute{
+						Optional: true,
+						Computed: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"nested_object": schema.SingleNestedAttribute{
+									Optional: true,
+									Attributes: map[string]schema.Attribute{
+										"optional": schema.StringAttribute{
+											Optional: true,
+										},
+										"computed": schema.StringAttribute{
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"list_nested_attribute": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_object": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_object": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_object": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "prior"),
+										"computed": tftypes.NewValue(tftypes.String, "prior computed"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"list_nested_attribute": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_object": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_object": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_object": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "prior"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"list_nested_attribute": tftypes.NewValue(
+					tftypes.List{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"nested_object": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"nested_object": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"nested_object": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "prior"),
+										"computed": tftypes.NewValue(tftypes.String, "prior computed"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		// A nested object with computed attributes, which is contained in an
+		// optional+computed set. The nested computed values should be
+		// represented in the proposed new object, and correlated with state
+		// via the non-computed attributes.
+		"config add within optional+computed set": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"set_nested_attribute": schema.SetNestedAttribute{
+						Optional: true,
+						Computed: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"single_nested_attribute": schema.SingleNestedAttribute{
+									Optional: true,
+									Attributes: map[string]schema.Attribute{
+										"optional": schema.StringAttribute{
+											Optional: true,
+										},
+										"computed": schema.StringAttribute{
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second computed"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "third"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "third"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		// A nested object with computed attributes, which is contained in a
+		// set. The nested computed values should be represented in the
+		// proposed new object, and correlated with state via the non-computed
+		// attributes.
+		"config add within set block": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"set_nested_block": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"single_nested_attribute": schema.SingleNestedAttribute{
+									Optional: true,
+									Attributes: map[string]schema.Attribute{
+										"optional": schema.StringAttribute{
+											Optional: true,
+										},
+										"computed": schema.StringAttribute{
+											Optional: true,
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second from config"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second from config"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "third"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second from config"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "third"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		// A nested object with computed attributes, which is contained in a
+		// set. The nested computed values should be represented in the
+		// proposed new object, and correlated with state via the non-computed
+		// attributes.
+		"config change within set block": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"set_nested_block": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"single_nested_attribute": schema.SingleNestedAttribute{
+									Optional: true,
+									Attributes: map[string]schema.Attribute{
+										"optional": schema.StringAttribute{
+											Optional: true,
+										},
+										"computed": schema.StringAttribute{
+											Optional: true,
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "second"),
+										"computed": tftypes.NewValue(tftypes.String, "second computed"),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "changed"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"single_nested_attribute": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"optional": tftypes.String,
+										"computed": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "first"),
+										"computed": tftypes.NewValue(tftypes.String, "first computed"),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"single_nested_attribute": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"single_nested_attribute": tftypes.NewValue(
+									tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional": tftypes.String,
+											"computed": tftypes.String,
+										},
+									},
+									map[string]tftypes.Value{
+										"optional": tftypes.NewValue(tftypes.String, "changed"),
+										"computed": tftypes.NewValue(tftypes.String, nil),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		"set attr with partial optional computed change": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"set_nested_block": schema.SetNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"optional": schema.StringAttribute{
+									Optional: true,
+								},
+								"computed": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "two"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "replaced"),
+								"computed": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "replaced"),
+								"computed": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		"set attr without optional computed change": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"set_nested_attribute": schema.SetNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"optional": schema.StringAttribute{
+									Optional: true,
+								},
+								"computed": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "two"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "two"),
+								"computed": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional": tftypes.String,
+								"computed": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "one"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional": tftypes.String,
+									"computed": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional": tftypes.NewValue(tftypes.String, "two"),
+								"computed": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		"set attr with all optional computed": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"set_nested_attribute": schema.SetNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"optional_computed_attribute_a": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"optional_computed_attribute_b": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+					},
+				),
+			},
+			// Each of these values can be correlated by the existence of the
+			// optional config attribute. Because "one" and "two" are set in
+			// the config, they must exist in the state regardless of
+			// optional&computed.
+			configVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_attribute": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+							},
+						),
+					},
+				),
+			},
+		},
+
+		"set block with all optional computed and nested object types": {
+			schema: schema.Schema{
+				Blocks: map[string]schema.Block{
+					"set_nested_block": schema.SetNestedBlock{
+						NestedObject: schema.NestedBlockObject{
+							Attributes: map[string]schema.Attribute{
+								"optional_computed_attribute_a": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"optional_computed_attribute_b": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"set_nested_attribute": schema.SetNestedAttribute{
+									Optional: true,
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"optional_computed_attribute_a": schema.StringAttribute{
+												Optional: true,
+												Computed: true,
+											},
+											"optional_computed_attribute_b": schema.StringAttribute{
+												Optional: true,
+												Computed: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+								"set_nested_attribute": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_computed_attribute_a": tftypes.String,
+											"optional_computed_attribute_b": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+											},
+										),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+											},
+										),
+									},
+								),
+							},
+						),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+								"set_nested_attribute": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_computed_attribute_a": tftypes.String,
+											"optional_computed_attribute_b": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+											},
+										),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+											},
+										),
+									},
+								),
+							},
+						),
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "three"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									nil,
+								),
+							},
+						),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"set_nested_block": tftypes.NewValue(
+					tftypes.Set{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"optional_computed_attribute_a": tftypes.String,
+								"optional_computed_attribute_b": tftypes.String,
+								"set_nested_attribute": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"optional_computed_attribute_a": tftypes.String,
+											"optional_computed_attribute_b": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					},
+					[]tftypes.Value{
+						// We can correlate this with prior from the outer object
+						// attributes, and the equal nested set.
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "one"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+											},
+										),
+									},
+								),
+							},
+						),
+						// This value is overridden by config, because we can't
+						// correlate optional+computed config values within nested
+						// sets.
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, "OK"),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									[]tftypes.Value{
+										tftypes.NewValue(
+											tftypes.Object{
+												AttributeTypes: map[string]tftypes.Type{
+													"optional_computed_attribute_a": tftypes.String,
+													"optional_computed_attribute_b": tftypes.String,
+												},
+											},
+											map[string]tftypes.Value{
+												"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "two"),
+												"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+											},
+										),
+									},
+								),
+							},
+						),
+						// This value was taken only from config
+						tftypes.NewValue(
+							tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"optional_computed_attribute_a": tftypes.String,
+									"optional_computed_attribute_b": tftypes.String,
+									"set_nested_attribute": tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+								},
+							},
+							map[string]tftypes.Value{
+								"optional_computed_attribute_a": tftypes.NewValue(tftypes.String, "three"),
+								"optional_computed_attribute_b": tftypes.NewValue(tftypes.String, nil),
+								"set_nested_attribute": tftypes.NewValue(
+									tftypes.Set{
+										ElementType: tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"optional_computed_attribute_a": tftypes.String,
+												"optional_computed_attribute_b": tftypes.String,
+											},
+										},
+									},
+									nil,
+								),
+							},
+						),
+					},
 				),
 			},
 		},

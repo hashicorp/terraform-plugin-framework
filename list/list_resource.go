@@ -85,10 +85,10 @@ type ListResourceWithValidateConfig interface {
 	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ListRequest represents a request for the provider to list instances
-// of a managed resource type that satisfy a user-defined request. An instance
-// of this reqeuest struct is passed as an argument to the provider's
-// ListResource function implementation.
+// ListRequest represents a request for the provider to list instances of a
+// managed resource type that satisfy a user-defined request. An instance of
+// this reqeuest struct is passed as an argument to the provider's List
+// function implementation.
 type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
@@ -99,10 +99,10 @@ type ListRequest struct {
 	IncludeResource bool
 }
 
-// ListResultsStream represents a streaming response to a ListRequest.
-// An instance of this struct is supplied as an argument to the provider's
-// ListResource function implementation function. The provider should set a Results
-// iterator function that yields zero or more results of type ListResult.
+// ListResultsStream represents a streaming response to a ListRequest.  An
+// instance of this struct is supplied as an argument to the provider's
+// ListResource function. The provider should set a Results iterator function
+// that yields zero or more results of type ListResult.
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].

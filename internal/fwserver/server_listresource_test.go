@@ -83,7 +83,7 @@ func TestServerListResource(t *testing.T) {
 			request: &fwserver.ListRequest{
 				ListResource: &testprovider.ListResource{
 					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) { // TODO
-						resp.Results = slices.Values([]list.ListResult{})
+						resp.Results = list.NoListResults
 					},
 				},
 			},

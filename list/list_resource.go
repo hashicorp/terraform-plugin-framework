@@ -102,17 +102,18 @@ type ListRequest struct {
 // ListResultsStream represents a streaming response to a ListRequest.  An
 // instance of this struct is supplied as an argument to the provider's
 // ListResource function. The provider should set a Results iterator function
-// that yields zero or more results of type ListResult.
+// that pushes zero or more results of type ListResult.
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].
-//
-// [slices.Values]: https://pkg.go.dev/slices#Values
 type ListResultsStream struct {
-	// Results is a function that emits ListResult values via its yield
+	// Results is a function that emits ListResult values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
 }
+
+// NoListResults is an iterator that pushes zero results.
+var NoListResults = func(func(ListResult) bool) {}
 
 // ListResult represents a listed managed resource instance.
 type ListResult struct {

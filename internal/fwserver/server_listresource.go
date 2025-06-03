@@ -33,7 +33,7 @@ type ListRequest struct {
 
 // ListResultsStream represents a streaming response to a ListRequest.  An
 // instance of this struct is supplied as an argument to the provider's List
-// function. The provider should set a Results iterator function that yields
+// function. The provider should set a Results iterator function that pushes
 // zero or more results of type ListResult.
 //
 // For convenience, a provider implementation may choose to convert a slice of
@@ -41,7 +41,7 @@ type ListRequest struct {
 //
 // [slices.Values]: https://pkg.go.dev/slices#Values
 type ListResourceStream struct {
-	// Results is a function that emits ListResult values via its yield
+	// Results is a function that emits ListResult values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
 }
@@ -85,19 +85,40 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	logging.FrameworkTrace(ctx, "Called provider defined ListResource")
 
 	if stream.Results == nil {
-		// If the provider returned a nil results stream, we treat it as an empty stream.
-		stream.Results = func(func(list.ListResult) bool) {}
+		// If the provider returned a nil results stream, we return an empty stream.
+		stream.Results = list.NoListResults
 	}
 
-	fwStream.Results = listResourceEventStreamAdapter(stream.Results)
+	fwStream.Results = processListResults(req, stream.Results)
 }
 
-func listResourceEventStreamAdapter(stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {
-	// TODO: is this any more efficient than a for-range?
-	return func(yieldFw func(ListResult) bool) {
-		yield := func(event list.ListResult) bool {
-			return yieldFw(ListResult(event))
+func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {
+	return func(push func(ListResult) bool) {
+		for result := range stream {
+			if !push(processListResult(req, result)) {
+				return
+			}
 		}
-		stream(yield)
 	}
+}
+
+// processListResult validates the content of a list.ListResult and returns a
+// ListResult
+func processListResult(req list.ListRequest, result list.ListResult) ListResult {
+	if result.Identity == nil {
+		return ListResult{
+			Diagnostics: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Incomplete List Result", "ListResult.Identity is nil."),
+			},
+		}
+	}
+
+	if req.IncludeResource && result.Resource == nil {
+		result.Diagnostics.AddWarning(
+			"Incomplete List Result",
+			"ListRequest.IncludeResource is true and ListResult.Resource is nil.",
+		)
+	}
+
+	return ListResult(result)
 }

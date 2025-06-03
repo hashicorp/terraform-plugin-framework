@@ -70,7 +70,7 @@ type ListResult struct {
 }
 
 // ListResource implements the framework server ListResource RPC.
-func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResourceStream) {
+func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResourceStream) error {
 	listResource := fwReq.ListResource
 
 	req := list.ListRequest{
@@ -90,6 +90,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	}
 
 	fwStream.Results = processListResults(req, stream.Results)
+	return nil
 }
 
 func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {

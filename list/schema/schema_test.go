@@ -1019,7 +1019,7 @@ func TestSchemaValidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			diags := testCase.schema.Validate()
+			diags := testCase.schema.Validate() //nolint:staticcheck
 
 			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
 				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)

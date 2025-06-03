@@ -6,3 +6,5 @@
 // plan, and state data. Schemas are implemented via the resource.Resource type
 // Schema method.
 package schema
+
+//go:generate go run github.com/hashicorp/terraform-plugin-framework/list/schema/generate

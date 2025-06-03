@@ -11,7 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	{{- if .Defaultiness }}
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	{{- end }}
+	{{ if .Planning }}
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	{{- end -}}
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -21,7 +26,12 @@ import (
 var (
 	_ Attribute                                    = StringAttribute{}
 	_ fwschema.AttributeWithValidateImplementation = StringAttribute{}
+	{{- if .Defaultiness }}
 	_ fwschema.AttributeWithStringDefaultValue     = StringAttribute{}
+	{{ end -}}
+	{{- if .Planning }}
+	_ fwxschema.AttributeWithStringPlanModifiers   = StringAttribute{}
+	{{ end -}}
 	_ fwxschema.AttributeWithStringValidators      = StringAttribute{}
 )
 
@@ -43,6 +53,7 @@ type StringAttribute struct {
 	// associated with this custom type must be used in place of types.String.
 	CustomType basetypes.StringTypable
 
+	{{ if .Optionality -}}
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true,
 	// and Required and Computed cannot both be true.
@@ -51,6 +62,26 @@ type StringAttribute struct {
 	// Optional indicates whether the practitioner can choose to enter a value
 	// for this attribute or not. Optional and Required cannot both be true.
 	Optional bool
+	{{ end -}}
+
+	{{ if .Computedness -}}
+	// Computed indicates whether the provider may return its own value for
+	// this Attribute or not. Required and Computed cannot both be true. If
+	// Required and Optional are both false, Computed must be true, and the
+	// attribute will be considered "read only" for the practitioner, with
+	// only the provider able to set its value.
+	Computed bool
+	{{ end -}}
+
+	{{ if .Sensitivity }}
+	// Sensitive indicates whether the value of this attribute should be
+	// considered sensitive data. Setting it to true will obscure the value
+	// in CLI output. Sensitive does not impact how values are stored, and
+	// practitioners are encouraged to store their state as if the entire
+	// file is sensitive.
+	Sensitive bool
+	{{ end -}}
+
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
 	// what it's for, and how it should be used. It should be written as
@@ -110,6 +141,27 @@ type StringAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.String
+
+	{{- if .Planning }}
+	// PlanModifiers defines a sequence of modifiers for this attribute at
+	// plan time. Schema-based plan modifications occur before any
+	// resource-level plan modifications.
+	//
+	// Schema-based plan modifications can adjust Terraform's plan by:
+	//
+	//  - Requiring resource recreation. Typically used for configuration
+	//    updates which cannot be done in-place.
+	//  - Setting the planned value. Typically used for enhancing the plan
+	//    to replace unknown values. Computed must be true or Terraform will
+	//    return an error. If the plan value is known due to a known
+	//    configuration value, the plan value cannot be changed or Terraform
+	//    will return an error.
+	//
+	// Any errors will prevent further execution of this sequence or modifiers.
+	PlanModifiers []planmodifier.String
+	{{ end -}}
+
+	{{- if .Defaultiness }}
 	// Default defines a proposed new state (plan) value for the attribute
 	// if the configuration value is null. Default prevents the framework
 	// from automatically marking the value as unknown during planning when
@@ -117,6 +169,19 @@ type StringAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.String
+	{{- end -}}
+
+	{{ if .WriteOnly }}
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
+	{{- end }}
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -159,11 +224,19 @@ func (a StringAttribute) GetType() attr.Type {
 	return types.StringType
 }
 
+{{ if .Computedness }}
+// IsComputed returns the Computed field value.
+func (a StringAttribute) IsComputed() bool {
+	return a.Computed
+}
+{{- else -}}
 // IsComputed returns false because it is not applicable
 func (a StringAttribute) IsComputed() bool {
 	return false
 }
+{{ end -}}
 
+{{ if .Optionality }}
 // IsOptional returns the Optional field value.
 func (a StringAttribute) IsOptional() bool {
 	return a.Optional
@@ -173,17 +246,51 @@ func (a StringAttribute) IsOptional() bool {
 func (a StringAttribute) IsRequired() bool {
 	return a.Required
 }
+{{- else -}}
+// IsOptional returns false because it is not applicable
+func (a StringAttribute) IsOptional() bool {
+	return false
+}
 
+// IsRequired returns false because it is not applicable
+func (a StringAttribute) IsRequired() bool {
+	return false
+}
+{{- end }}
+
+{{ if .Sensitivity }}
+// IsSensitive returns the Sensitive field value.
+func (a StringAttribute) IsSensitive() bool {
+	return a.Sensitive
+}
+{{- else -}}
 // IsSensitive returns false as this behavior is not applicable
 func (a StringAttribute) IsSensitive() bool {
 	return false
 }
+{{- end }}
 
+{{ if .WriteOnly }}
+// IsWriteOnly returns the WriteOnly field value.
+func (a StringAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
+}
+{{- else -}}
 // IsWriteOnly returns false as this behavior is not applicable
 func (a StringAttribute) IsWriteOnly() bool {
 	return false
 }
+{{- end }}
 
+{{ if .RequiredForImport }}
+func (a StringAttribute) IsRequiredForImport() bool {
+	return a.RequiredForImport
+}
+
+func (a StringAttribute) IsOptionalForImport() bool {
+	return a.OptionalForImport
+}
+{{- else -}}
 // IsRequiredForImport returns false as this behavior is not applicable
 func (a StringAttribute) IsRequiredForImport() bool {
 	return false
@@ -193,11 +300,21 @@ func (a StringAttribute) IsRequiredForImport() bool {
 func (a StringAttribute) IsOptionalForImport() bool {
 	return false
 }
+{{- end }}
 
+{{ if .Defaultiness }}
 // StringDefaultValue returns the Default field value.
 func (a StringAttribute) StringDefaultValue() defaults.String {
 	return a.Default
 }
+{{ end -}}
+
+{{ if .Planning }}
+// StringPlanModifiers returns the PlanModifiers field value.
+func (a StringAttribute) StringPlanModifiers() []planmodifier.String {
+	return a.PlanModifiers
+}
+{{- end }}
 
 // StringValidators returns the Validators field value.
 func (a StringAttribute) StringValidators() []validator.String {

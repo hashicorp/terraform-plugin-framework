@@ -13,6 +13,7 @@ import (
 )
 
 func TestSchemaProposeNewState(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		schema      fwschema.Schema
 		priorVal    map[string]tftypes.Value

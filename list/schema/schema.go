@@ -59,16 +59,6 @@ type Schema struct {
 	//    will be removed in the next major version of the provider."
 	//
 	DeprecationMessage string
-
-	// Version indicates the current version of the resource schema. Resource
-	// schema versioning enables state upgrades in conjunction with the
-	// [resource.ResourceWithStateUpgrades] interface. Versioning is only
-	// required if there is a breaking change involving existing state data,
-	// such as changing an attribute or block type in a manner that is
-	// incompatible with the Terraform type.
-	//
-	// Versions are conventionally only incremented by one each release.
-	Version int64
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
@@ -116,9 +106,9 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion returns the Version field value.
+// GetVersion returns zero because list resource schemas do not have a version.
 func (s Schema) GetVersion() int64 {
-	return s.Version
+	return 0
 }
 
 // Type returns the framework type of the schema.

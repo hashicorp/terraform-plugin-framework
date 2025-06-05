@@ -538,15 +538,6 @@ func TestSchemaGetVersion(t *testing.T) {
 			},
 			expected: 0,
 		},
-		"version": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"testattr": schema.StringAttribute{},
-				},
-				Version: 1,
-			},
-			expected: 1,
-		},
 	}
 
 	for name, testCase := range testCases {

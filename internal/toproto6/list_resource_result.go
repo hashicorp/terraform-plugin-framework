@@ -3,7 +3,6 @@ package toproto6
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
@@ -37,11 +36,7 @@ func ListResourceResultWithResource(ctx context.Context, result *fwserver.ListRe
 	resourceIdentity, d := ResourceIdentity(ctx, result.Identity)
 	diags.Append(d...)
 
-	resource, d := DynamicValue(ctx, &fwschemadata.Data{
-		Description:    fwschemadata.DataDescriptionResource,
-		Schema:         result.Resource.Schema,
-		TerraformValue: result.Resource.Raw,
-	})
+	resource, d := Resource(ctx, result.Resource)
 	diags.Append(d...)
 
 	return tfprotov6.ListResourceResult{

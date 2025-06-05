@@ -15,12 +15,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+type ListResourceTypeNotFoundError struct {
+	TypeName string
+}
+
+func (e *ListResourceTypeNotFoundError) Error() string {
+	return "listResource Type Not Found: no listResource type named " + e.TypeName + " was found in the provider."
+}
+
+func (e *ListResourceTypeNotFoundError) Is(err error) bool {
+	compatibleErr, ok := err.(*ListResourceTypeNotFoundError)
+	if !ok {
+		return false
+	}
+
+	return e.TypeName == compatibleErr.TypeName
+}
+
 func (s *Server) ListResourceOrError(ctx context.Context, typeName string) (list.ListResource, error) {
 	listResourceFuncs, _ := s.ListResourceFuncs(ctx)
 	listResourceFunc, ok := listResourceFuncs[typeName]
 
 	if !ok {
-		return nil, fmt.Errorf("listResource Type Not Found: No listResource type named %q was found in the provider.", typeName)
+		return nil, &ListResourceTypeNotFoundError{typeName}
 	}
 
 	return listResourceFunc(), nil
@@ -99,17 +116,17 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 // ListResourceMetadatas returns a slice of ListResourceMetadata for the GetMetadata
 // RPC.
 func (s *Server) ListResourceMetadatas(ctx context.Context) ([]ListResourceMetadata, diag.Diagnostics) {
-	resourceFuncs, diags := s.ListResourceFuncs(ctx)
+	listResourceFuncs, diags := s.ListResourceFuncs(ctx)
 
-	resourceMetadatas := make([]ListResourceMetadata, 0, len(resourceFuncs))
+	listResourceMetadatas := make([]ListResourceMetadata, 0, len(listResourceFuncs))
 
-	for typeName := range resourceFuncs {
-		resourceMetadatas = append(resourceMetadatas, ListResourceMetadata{
+	for typeName := range listResourceFuncs {
+		listResourceMetadatas = append(listResourceMetadatas, ListResourceMetadata{
 			TypeName: typeName,
 		})
 	}
 
-	return resourceMetadatas, diags
+	return listResourceMetadatas, diags
 }
 
 func (s *Server) ListResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {

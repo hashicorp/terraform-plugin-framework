@@ -23,6 +23,7 @@ type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
 	Config tfsdk.Config
+	// TODO: Config *tfsdk.Config
 
 	// IncludeResource indicates whether the provider should populate the
 	// Resource field in the ListResult struct.

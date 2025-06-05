@@ -54,23 +54,23 @@ func (s *Server) ListResource(ctx context.Context, proto5Req *tfprotov5.ListReso
 	}
 
 	proto5Stream := &tfprotov5.ListResourceServerStream{}
-	proto5Stream.Results = func(push func(tfprotov5.ListResult) bool) {
+	proto5Stream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
 		for result := range stream.Results {
 			identity, diags := toproto5.ResourceIdentity(ctx, result.Identity)
 			if diags.HasError() {
-				if !push(tfprotov5.ListResult{Diagnostics: toproto5.Diagnostics(ctx, diags)}) {
+				if !push(tfprotov5.ListResourceResult{Diagnostics: toproto5.Diagnostics(ctx, diags)}) {
 					return
 				}
 			}
 
 			resource, diags := toproto5.Resource(ctx, result.Resource)
 			if diags.HasError() {
-				if !push(tfprotov5.ListResult{Diagnostics: toproto5.Diagnostics(ctx, diags)}) {
+				if !push(tfprotov5.ListResourceResult{Diagnostics: toproto5.Diagnostics(ctx, diags)}) {
 					return
 				}
 			}
 
-			if !push(tfprotov5.ListResult{
+			if !push(tfprotov5.ListResourceResult{
 				Identity:    identity,
 				Resource:    resource,
 				DisplayName: result.DisplayName,

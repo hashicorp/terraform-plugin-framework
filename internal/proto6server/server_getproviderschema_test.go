@@ -1018,6 +1018,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@message": "Called provider defined Provider EphemeralResources",
 			"@module":  "sdk.framework",
 		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ListResourceFuncs lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ProviderTypeName lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined ListResources"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined ListResources"),
+			"@module":  string("sdk.framework"),
+		},
 	}
 
 	if diff := cmp.Diff(entries, expectedEntries); diff != "" {

@@ -6,7 +6,7 @@ toolchain go1.23.7
 
 require (
 	github.com/google/go-cmp v0.7.0
-	github.com/hashicorp/terraform-plugin-go v0.28.0
+	github.com/hashicorp/terraform-plugin-go v0.28.1-0.20250605133957-c369cdc8bb8d
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 )
 
@@ -28,7 +28,7 @@ require (
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
-	google.golang.org/grpc v1.72.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )

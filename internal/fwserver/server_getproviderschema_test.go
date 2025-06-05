@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/list"
+	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -41,6 +43,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ResourceSchemas:          map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -111,6 +114,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ResourceSchemas:          map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -318,6 +322,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ResourceSchemas:          map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -388,6 +393,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				FunctionDefinitions: map[string]function.Definition{},
+				ListResourceSchemas: map[string]fwschema.Schema{},
 				Provider:            providerschema.Schema{},
 				ResourceSchemas:     map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -601,6 +607,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				FunctionDefinitions: map[string]function.Definition{},
+				ListResourceSchemas: map[string]fwschema.Schema{},
 				Provider:            providerschema.Schema{},
 				ResourceSchemas:     map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
@@ -655,8 +662,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 						Return: function.StringReturn{},
 					},
 				},
-				Provider:        providerschema.Schema{},
-				ResourceSchemas: map[string]fwschema.Schema{},
+				ListResourceSchemas: map[string]fwschema.Schema{},
+				Provider:            providerschema.Schema{},
+				ResourceSchemas:     map[string]fwschema.Schema{},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -808,6 +816,158 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 			},
 		},
+		"listresource-schemas": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+										resp.Schema = listschema.Schema{
+											Attributes: map[string]listschema.Attribute{
+												"test1": listschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = resourceschema.Schema{
+											Attributes: map[string]resourceschema.Attribute{
+												"test1": resourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test1": listschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+				Provider: providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"test1": resourceschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listresource-schemas-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							func() list.ListResource {
+								return &testprovider.ListResource{
+									ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+										resp.Schema = listschema.Schema{
+											Attributes: map[string]listschema.Attribute{
+												"$filter": listschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+					ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							func() resource.Resource {
+								return &testprovider.Resource{
+									SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+										resp.Schema = resourceschema.Schema{
+											Attributes: map[string]resourceschema.Attribute{
+												"name": resourceschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										resp.TypeName = "test_resource"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				Provider:                 providerschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ResourceSchemas: map[string]fwschema.Schema{
+					"test_resource": resourceschema.Schema{
+						Attributes: map[string]resourceschema.Attribute{
+							"name": resourceschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$filter\" at schema path \"$filter\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+					),
+				},
+			},
+		},
 		"provider": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{
@@ -827,6 +987,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider: providerschema.Schema{
 					Attributes: map[string]providerschema.Attribute{
 						"test": providerschema.StringAttribute{
@@ -894,6 +1055,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ProviderMeta: metaschema.Schema{
 					Attributes: map[string]metaschema.Attribute{
@@ -990,6 +1152,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"test_resource1": resourceschema.Schema{
@@ -1203,6 +1366,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Provider:                 providerschema.Schema{},
 				ResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_resource": resourceschema.Schema{

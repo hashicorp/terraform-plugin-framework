@@ -83,8 +83,8 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.Diagnostics.Append(diags...)
 
 	// Metadata for list resources must be retrieved after metadata for managed
-	// resources. Server.ListResourceMetadatas checks that each list resource
-	// type nane matches a known managed Resource type name.
+	// resources. Server.ListResourceFuncs checks that each list resource type
+	// name matches a known managed resource type name.
 	listResourceMetadatas, diags := s.ListResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 

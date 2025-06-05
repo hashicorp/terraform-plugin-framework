@@ -4,8 +4,7 @@
 package schema_test
 
 import (
-	"context"
-  "fmt"
+	"fmt"
 	"strings"
 	"testing"
 

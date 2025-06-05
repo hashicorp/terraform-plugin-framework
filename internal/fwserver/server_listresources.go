@@ -15,6 +15,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+func (s *Server) ListResourceOrError(ctx context.Context, typeName string) (list.ListResource, error) {
+	listResourceFuncs, _ := s.ListResourceFuncs(ctx)
+	listResourceFunc, ok := listResourceFuncs[typeName]
+
+	if !ok {
+		return nil, fmt.Errorf("listResource Type Not Found: No listResource type named %q was found in the provider.", typeName)
+	}
+
+	return listResourceFunc(), nil
+}
+
 // ListResourceFuncs returns a map of ListResource functions. The results are
 // cached on first use.
 func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.ListResource, diag.Diagnostics) {
@@ -69,7 +80,8 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 			continue
 		}
 
-		if _, ok := s.resourceFuncs[typeName]; !ok {
+		resourceFuncs, _ := s.ResourceFuncs(ctx)
+		if _, ok := resourceFuncs[typeName]; !ok {
 			s.listResourceFuncsDiags.AddError(
 				"ListResource Type Defined without a Matching Managed Resource Type",
 				fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
@@ -98,6 +110,21 @@ func (s *Server) ListResourceMetadatas(ctx context.Context) ([]ListResourceMetad
 	}
 
 	return resourceMetadatas, diags
+}
+
+func (s *Server) ListResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
+	schemas, _ := s.ListResourceSchemas(ctx)
+	schema, ok := schemas[typeName]
+	if !ok {
+		return nil, diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"ListResource Schema Not Found",
+				fmt.Sprintf("No ListResource schema was found for type %q.", typeName),
+			),
+		}
+	}
+
+	return schema, nil
 }
 
 // ListResourceSchemas returns a map of ListResource Schemas for the

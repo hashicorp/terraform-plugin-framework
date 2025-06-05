@@ -17,9 +17,8 @@ import (
 // Schema must satify the fwschema.Schema interface.
 var _ fwschema.Schema = Schema{}
 
-// Schema defines the structure and value types of resource data. This type
-// is used as the resource.SchemaResponse type Schema field, which is
-// implemented by the resource.DataSource type Schema method.
+// Schema defines the structure and value types of a list block. This is
+// returned as a ListResourceSchemas map value by the GetProviderSchemas RPC.
 type Schema struct {
 	// Attributes is the mapping of underlying attribute names to attribute
 	// definitions.
@@ -106,7 +105,7 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion returns zero because list resource schemas do not have a version.
+// GetVersion always returns 0 as list resource schemas cannot be versioned.
 func (s Schema) GetVersion() int64 {
 	return 0
 }
@@ -126,18 +125,11 @@ func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePat
 	return fwschema.SchemaTypeAtTerraformPath(ctx, s, p)
 }
 
-// Validate verifies that the schema is not using a reserved field name for a top-level attribute.
-//
-// Deprecated: Use the ValidateImplementation method instead.
-func (s Schema) Validate() diag.Diagnostics {
-	return s.ValidateImplementation(context.Background())
-}
-
 // ValidateImplementation contains logic for validating the provider-defined
 // implementation of the schema and underlying attributes and blocks to prevent
 // unexpected errors or panics. This logic runs during the
-// ValidateResourceConfig RPC, or via provider-defined unit testing, and should
-// never include false positives.
+// ValidateListResourceConfig RPC, or via provider-defined unit testing, and
+// should never include false positives.
 func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 

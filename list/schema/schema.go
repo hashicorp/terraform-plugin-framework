@@ -105,7 +105,7 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion always returns 0 as list resource schemas cannot be versioned.
+// GetVersion always returns 0 because list resource schemas cannot be versioned.
 func (s Schema) GetVersion() int64 {
 	return 0
 }
@@ -128,8 +128,8 @@ func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePat
 // ValidateImplementation contains logic for validating the provider-defined
 // implementation of the schema and underlying attributes and blocks to prevent
 // unexpected errors or panics. This logic runs during the
-// ValidateListResourceConfig RPC, or via provider-defined unit testing, and
-// should never include false positives.
+// ValidateResourceConfig RPC, or via provider-defined unit testing, and should
+// never include false positives.
 func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 

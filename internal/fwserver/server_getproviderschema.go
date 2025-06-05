@@ -75,6 +75,9 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 	}
 	resp.EphemeralResourceSchemas = ephemeralResourceSchemas
 
+	// Schemas for list resources must be retrieved after schemas for managed
+	// resources. Server.ListResourceFuncs checks that each list resource type
+	// name matches a known managed resource type name.
 	listResourceSchemas, diags := s.ListResourceSchemas(ctx)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

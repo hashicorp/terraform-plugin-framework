@@ -8,6 +8,9 @@ import (
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -85,10 +88,10 @@ type ListResourceWithValidateConfig interface {
 	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ListRequest represents a request for the provider to list instances
-// of a managed resource type that satisfy a user-defined request. An instance
-// of this reqeuest struct is passed as an argument to the provider's
-// ListResource function implementation.
+// ListRequest represents a request for the provider to list instances of a
+// managed resource type that satisfy a user-defined request. An instance of
+// this reqeuest struct is passed as an argument to the provider's List
+// function implementation.
 type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
@@ -97,22 +100,80 @@ type ListRequest struct {
 	// IncludeResource indicates whether the provider should populate the
 	// Resource field in the ListResult struct.
 	IncludeResource bool
+
+	ResourceSchema         fwschema.Schema
+	ResourceIdentitySchema fwschema.Schema
 }
 
-// ListResultsStream represents a streaming response to a ListRequest.
-// An instance of this struct is supplied as an argument to the provider's
-// ListResource function implementation function. The provider should set a Results
-// iterator function that yields zero or more results of type ListResult.
+func (r ListRequest) ToResource(ctx context.Context, val any) (*tfsdk.Resource, diag.Diagnostics) {
+	resource := &tfsdk.Resource{Schema: r.ResourceSchema}
+
+	attrValue, diags := reflect.FromValue(ctx, r.ResourceSchema.Type(), val, path.Empty())
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	tfValue, err := attrValue.ToTerraformValue(ctx)
+
+	if err != nil {
+		diags.AddError("not good", "at all")
+		return nil, diags
+	}
+
+	resource.Raw = tfValue
+	return resource, diags
+}
+
+func (r ListRequest) ToIdentity(ctx context.Context, val any) (*tfsdk.ResourceIdentity, diag.Diagnostics) {
+	identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
+	diags := identity.Set(ctx, val)
+
+	return identity, diags
+}
+
+func (r ListRequest) ToResult(ctx context.Context, identityVal any, resourceVal any, displayName string) ListResult {
+	diags := diag.Diagnostics{}
+	identity, d := r.ToIdentity(ctx, identityVal)
+	diags.Append(d...)
+	if diags.HasError() {
+		return ListResult{Diagnostics: diags}
+	}
+
+	var resource *tfsdk.Resource
+	if r.IncludeResource && resourceVal != nil {
+		resource, d = r.ToResource(ctx, resourceVal)
+		diags.Append(d...)
+		if diags.HasError() {
+			return ListResult{Diagnostics: diags}
+		}
+	}
+
+	return ListResult{
+		DisplayName: displayName,
+		Resource:    resource,
+		Identity:    identity,
+		Diagnostics: diags,
+	}
+}
+
+// ListResultsStream represents a streaming response to a ListRequest.  An
+// instance of this struct is supplied as an argument to the provider's
+// ListResource function. The provider should set a Results iterator function
+// that pushes zero or more results of type ListResult.
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].
-//
-// [slices.Values]: https://pkg.go.dev/slices#Values
 type ListResultsStream struct {
-	// Results is a function that emits ListResult values via its yield
+	// Results is a function that emits ListResult values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
+
+	// Diagnostics report errors or warnings related to the list operation.
+	Diagnostics diag.Diagnostics
 }
+
+// NoListResults is an iterator that pushes zero results.
+var NoListResults = func(func(ListResult) bool) {}
 
 // ListResult represents a listed managed resource instance.
 type ListResult struct {

@@ -4,7 +4,6 @@
 package schema_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -13,15 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -260,12 +254,6 @@ func TestStringAttributeIsComputed(t *testing.T) {
 			attribute: schema.StringAttribute{},
 			expected:  false,
 		},
-		"computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -356,12 +344,6 @@ func TestStringAttributeIsSensitive(t *testing.T) {
 			attribute: schema.StringAttribute{},
 			expected:  false,
 		},
-		"sensitive": {
-			attribute: schema.StringAttribute{
-				Sensitive: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -388,12 +370,6 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.StringAttribute{},
 			expected:  false,
 		},
-		"writeOnly": {
-			attribute: schema.StringAttribute{
-				WriteOnly: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -401,83 +377,6 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsWriteOnly()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestStringAttributeStringDefaultValue(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.String) bool {
-		ctx := context.Background()
-		req := defaults.StringRequest{}
-
-		xResp := defaults.StringResponse{}
-		x.DefaultString(ctx, req, &xResp)
-
-		yResp := defaults.StringResponse{}
-		y.DefaultString(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		expected  defaults.String
-	}{
-		"no-default": {
-			attribute: schema.StringAttribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.StringAttribute{
-				Default: stringdefault.StaticString("test-value"),
-			},
-			expected: stringdefault.StaticString("test-value"),
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.StringDefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestStringAttributeStringPlanModifiers(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		expected  []planmodifier.String
-	}{
-		"no-planmodifiers": {
-			attribute: schema.StringAttribute{},
-			expected:  nil,
-		},
-		"planmodifiers": {
-			attribute: schema.StringAttribute{
-				PlanModifiers: []planmodifier.String{},
-			},
-			expected: []planmodifier.String{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.StringPlanModifiers()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -510,69 +409,6 @@ func TestStringAttributeStringValidators(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.StringValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestStringAttributeValidateImplementation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		request   fwschema.ValidateImplementationRequest
-		expected  *fwschema.ValidateImplementationResponse
-	}{
-		"computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"default-without-computed": {
-			attribute: schema.StringAttribute{
-				Default: stringdefault.StaticString("test"),
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Schema Using Attribute Default For Non-Computed Attribute",
-						"Attribute \"test\" must be computed when using default. "+
-							"This is an issue with the provider and should be reported to the provider developers.",
-					),
-				},
-			},
-		},
-		"default-with-computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-				Default:  stringdefault.StaticString("test"),
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := &fwschema.ValidateImplementationResponse{}
-			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

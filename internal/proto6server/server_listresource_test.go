@@ -23,39 +23,42 @@ import (
 func TestServerListResource(t *testing.T) {
 	t.Parallel()
 
-	type ThingResource struct {
-		Name string `tfsdk:"name"`
+	type ThingResourceIdentity struct {
+		Id string `tfsdk:"id"`
 	}
 
-	type ThingResourceIdentity struct {
+	type ThingResource struct {
+		// TODO: how do we feel about this?
+		ThingResourceIdentity
 		Name string `tfsdk:"name"`
 	}
 
 	resources := map[string]ThingResource{}
-	resourceIdentities := map[string]ThingResourceIdentity{}
 	expectedResources := map[string]*tfprotov6.DynamicValue{}
 	expectedResourceIdentities := map[string]*tfprotov6.ResourceIdentityData{}
 
 	examples := []string{"bookbag", "bookshelf", "bookworm", "plateau", "platinum", "platypus"}
 	for _, example := range examples {
-		resources[example] = ThingResource{Name: example}
-		resourceIdentities[example] = ThingResourceIdentity{Name: example}
+		id := "id-" + example
+		resources[example] = ThingResource{Name: example, ThingResourceIdentity: ThingResourceIdentity{Id: id}}
 
 		expectedResources[example] = testNewDynamicValue(t, tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
+				"id":   tftypes.String,
 				"name": tftypes.String,
 			},
 		}, map[string]tftypes.Value{
+			"id":   tftypes.NewValue(tftypes.String, id),
 			"name": tftypes.NewValue(tftypes.String, example),
 		})
 
 		expectedResourceIdentities[example] = &tfprotov6.ResourceIdentityData{
 			IdentityData: testNewDynamicValue(t, tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
-					"name": tftypes.String,
+					"id": tftypes.String,
 				},
 			}, map[string]tftypes.Value{
-				"name": tftypes.NewValue(tftypes.String, example),
+				"id": tftypes.NewValue(tftypes.String, id),
 			}),
 		}
 	}
@@ -100,25 +103,12 @@ func TestServerListResource(t *testing.T) {
 						continue
 					}
 
-					result := list.ListResult{}
-					identity, diags := req.ToIdentity(ctx, resourceIdentities[name])
-					if diags.HasError() {
-						result.Diagnostics = diags
-						results = append(results, result)
-						continue
-					}
+					result := req.ToResult(
+						ctx,
+						resources[name].ThingResourceIdentity,
+						resources[name],
+						name)
 
-					resource, diags := req.ToResource(ctx, resources[name])
-					if diags.HasError() {
-						result.Diagnostics = diags
-						results = append(results, result)
-						continue
-					}
-
-					result.DisplayName = name
-					result.Identity = identity
-					result.Resource = resource // maybe only include if request says so
-					result.Diagnostics = diags
 					results = append(results, result)
 				}
 				resp.Results = slices.Values(results)
@@ -134,7 +124,7 @@ func TestServerListResource(t *testing.T) {
 			IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 				resp.IdentitySchema = identityschema.Schema{
 					Attributes: map[string]identityschema.Attribute{
-						"name": identityschema.StringAttribute{},
+						"id": identityschema.StringAttribute{},
 					},
 				}
 			},
@@ -145,6 +135,7 @@ func TestServerListResource(t *testing.T) {
 				SchemaMethod: func(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 					resp.Schema = resourceschema.Schema{
 						Attributes: map[string]resourceschema.Attribute{
+							"id":   resourceschema.StringAttribute{},
 							"name": resourceschema.StringAttribute{},
 						},
 					}

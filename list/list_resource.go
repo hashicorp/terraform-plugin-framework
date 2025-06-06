@@ -131,6 +131,31 @@ func (r ListRequest) ToIdentity(ctx context.Context, val any) (*tfsdk.ResourceId
 	return identity, diags
 }
 
+func (r ListRequest) ToResult(ctx context.Context, identityVal any, resourceVal any, displayName string) ListResult {
+	diags := diag.Diagnostics{}
+	identity, d := r.ToIdentity(ctx, identityVal)
+	diags.Append(d...)
+	if diags.HasError() {
+		return ListResult{Diagnostics: diags}
+	}
+
+	var resource *tfsdk.Resource
+	if r.IncludeResource {
+		resource, d = r.ToResource(ctx, resourceVal)
+		diags.Append(d...)
+		if diags.HasError() {
+			return ListResult{Diagnostics: diags}
+		}
+	}
+
+	return ListResult{
+		DisplayName: displayName,
+		Resource:    resource,
+		Identity:    identity,
+		Diagnostics: diags,
+	}
+}
+
 // ListResultsStream represents a streaming response to a ListRequest.  An
 // instance of this struct is supplied as an argument to the provider's
 // ListResource function. The provider should set a Results iterator function

@@ -17,6 +17,7 @@ type ResourceSchemaNotFoundError struct {
 func (e *ResourceSchemaNotFoundError) Error() string {
 	return "resource schema not found for type: " + e.TypeName
 }
+
 func (e *ResourceSchemaNotFoundError) Is(err error) bool {
 	compatibleErr, ok := err.(*ResourceSchemaNotFoundError)
 	if !ok {
@@ -50,6 +51,7 @@ type ListResourceSchemaNotFoundError struct {
 func (e *ListResourceSchemaNotFoundError) Error() string {
 	return "list resource schema not found for type: " + e.TypeName
 }
+
 func (e *ListResourceSchemaNotFoundError) Is(err error) bool {
 	compatibleErr, ok := err.(*ListResourceSchemaNotFoundError)
 	if !ok {
@@ -78,39 +80,31 @@ func (e *ListResourceConfigError) Is(err error) bool {
 }
 
 func (s *Server) ListResource(ctx context.Context, proto6Req *tfprotov6.ListResourceRequest) (*tfprotov6.ListResourceServerStream, error) {
+	// proto6Stream := &tfprotov6.ListResourceServerStream{Results: tfprotov6.NoListResults}
+	proto6Stream := &tfprotov6.ListResourceServerStream{Results: func(func(tfprotov6.ListResourceResult) bool) {}}
+
 	listResource, err := s.FrameworkServer.ListResourceOrError(ctx, proto6Req.TypeName)
 	if err != nil {
-		proto6Stream := &tfprotov6.ListResourceServerStream{}
-		proto6Stream.Results = func(func(tfprotov6.ListResourceResult) bool) {}
-
 		return proto6Stream, err
 	}
 
 	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
 	if diags.HasError() {
-		proto6Stream := &tfprotov6.ListResourceServerStream{}
-		proto6Stream.Results = func(func(tfprotov6.ListResourceResult) bool) {}
 		return proto6Stream, &ResourceSchemaNotFoundError{TypeName: proto6Req.TypeName}
 	}
 
 	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto6Req.TypeName)
 	if diags.HasError() {
-		proto6Stream := &tfprotov6.ListResourceServerStream{}
-		proto6Stream.Results = func(func(tfprotov6.ListResourceResult) bool) {}
-		return proto6Stream, &ResourceIdentitySchemaNotFoundError{TypeName: proto6Req.TypeName} // TODO: return a diagnostic instead of an error?
+		return proto6Stream, &ResourceIdentitySchemaNotFoundError{TypeName: proto6Req.TypeName}
 	}
 
 	listResourceSchema, diags := s.FrameworkServer.ListResourceSchema(ctx, proto6Req.TypeName)
 	if diags.HasError() {
-		proto6Stream := &tfprotov6.ListResourceServerStream{}
-		proto6Stream.Results = func(func(tfprotov6.ListResourceResult) bool) {}
 		return proto6Stream, &ListResourceSchemaNotFoundError{TypeName: proto6Req.TypeName}
 	}
 
 	config, diags := fromproto6.Config(ctx, proto6Req.Config, listResourceSchema)
 	if diags.HasError() {
-		proto6Stream := &tfprotov6.ListResourceServerStream{}
-		proto6Stream.Results = func(func(tfprotov6.ListResourceResult) bool) {}
 		return proto6Stream, &ListResourceConfigError{TypeName: proto6Req.TypeName, Diagnostics: diags}
 	}
 
@@ -128,7 +122,6 @@ func (s *Server) ListResource(ctx context.Context, proto6Req *tfprotov6.ListReso
 		return nil, err
 	}
 
-	proto6Stream := &tfprotov6.ListResourceServerStream{}
 	proto6Stream.Results = func(push func(tfprotov6.ListResourceResult) bool) {
 		for result := range stream.Results {
 			var proto6Result tfprotov6.ListResourceResult

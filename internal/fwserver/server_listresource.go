@@ -113,7 +113,10 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 	if !result.Diagnostics.HasError() && result.Identity == nil { // TODO: write a test
 		return ListResult{
 			Diagnostics: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Incomplete List Result", "ListResult.Identity is nil."),
+				diag.NewErrorDiagnostic(
+					"Incomplete List Result",
+					"The provider did not populate the Identity field in the ListResourceResult. This may be due to an error in the provider's implementation.",
+				),
 			},
 		}
 	}
@@ -121,7 +124,7 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 	if !result.Diagnostics.HasError() && req.IncludeResource && result.Resource == nil { // TODO: write a test
 		result.Diagnostics.AddWarning(
 			"Incomplete List Result",
-			"ListRequest.IncludeResource is true and ListResult.Resource is nil.",
+			"The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",
 		)
 	}
 

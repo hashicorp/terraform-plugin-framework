@@ -140,7 +140,7 @@ func (r ListRequest) ToResult(ctx context.Context, identityVal any, resourceVal 
 	}
 
 	var resource *tfsdk.Resource
-	if r.IncludeResource {
+	if r.IncludeResource && resourceVal != nil {
 		resource, d = r.ToResource(ctx, resourceVal)
 		diags.Append(d...)
 		if diags.HasError() {

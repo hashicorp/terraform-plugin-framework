@@ -91,14 +91,14 @@ func TestServerListResource(t *testing.T) {
 				}
 			},
 			ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-				results := []list.ListResult{}
 				var config listConfig
 				diags := req.Config.Get(ctx, &config)
 				if len(diags) > 0 {
 					t.Fatalf("unexpected diagnostics: %s", diags)
 				}
 
-				for _, name := range []string{"plateau", "platinum", "platypus"} {
+				results := []list.ListResult{}
+				for name := range resources {
 					if !strings.HasPrefix(name, config.Filter) {
 						continue
 					}
@@ -117,6 +117,25 @@ func TestServerListResource(t *testing.T) {
 				resp.TypeName = "test_resource"
 			},
 		}
+	}
+
+	listResourceThatDoesNotPopulateResource := func() list.ListResource {
+		r, ok := listResource().(*testprovider.ListResource)
+		if !ok {
+			t.Fatal("listResourceThatDoesNotPopulateResource must be a testprovider.ListResource")
+		}
+
+		r.ListMethod = func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+			result := req.ToResult(
+				ctx,
+				resources["plateau"].ThingResourceIdentity,
+				nil,
+				"plateau")
+
+			resp.Results = slices.Values([]list.ListResult{result})
+		}
+
+		return r
 	}
 
 	managedResource := func() resource.Resource {
@@ -144,22 +163,26 @@ func TestServerListResource(t *testing.T) {
 		}
 	}
 
-	happyServer := &Server{
-		FrameworkServer: fwserver.Server{
-			Provider: &testprovider.Provider{
-				ListResourcesMethod: func(ctx context.Context) []func() list.ListResource {
-					return []func() list.ListResource{
-						listResource,
-					}
-				},
-				ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
-					return []func() resource.Resource{
-						managedResource,
-					}
+	server := func(listResource func() list.ListResource, managedResource func() resource.Resource) *Server {
+		return &Server{
+			FrameworkServer: fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(ctx context.Context) []func() list.ListResource {
+						return []func() list.ListResource{
+							listResource,
+						}
+					},
+					ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
+						return []func() resource.Resource{
+							managedResource,
+						}
+					},
 				},
 			},
-		},
+		}
 	}
+
+	happyServer := server(listResource, managedResource)
 
 	testCases := map[string]struct {
 		server              *Server
@@ -226,6 +249,29 @@ func TestServerListResource(t *testing.T) {
 				},
 			},
 		},
+		"result-with-include-resource-warning": {
+			server: server(listResourceThatDoesNotPopulateResource, managedResource),
+			request: &tfprotov6.ListResourceRequest{
+				TypeName:        "test_resource",
+				Config:          plateau,
+				IncludeResource: true,
+			},
+			expectedError:       nil,
+			expectedDiagnostics: diag.Diagnostics{},
+			expectedResults: []tfprotov6.ListResourceResult{
+				{
+					DisplayName: "plateau",
+					Identity:    expectedResourceIdentities["plateau"],
+					Diagnostics: []*tfprotov6.Diagnostic{
+						{
+							Severity: tfprotov6.DiagnosticSeverityWarning,
+							Summary:  "Incomplete List Result",
+							Detail:   "The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -245,7 +291,11 @@ func TestServerListResource(t *testing.T) {
 				t.Errorf("unexpected error difference: %s", diff)
 			}
 
-			if diff := cmp.Diff(testCase.expectedResults, slices.Collect(got.Results), cmpopts.EquateEmpty()); diff != "" {
+			sortResults := cmpopts.SortSlices(func(a, b tfprotov6.ListResourceResult) bool {
+				return a.DisplayName < b.DisplayName
+			})
+
+			if diff := cmp.Diff(testCase.expectedResults, slices.Collect(got.Results), sortResults, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("unexpected results difference: %s", diff)
 			}
 		})

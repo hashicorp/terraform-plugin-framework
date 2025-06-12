@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
@@ -26,6 +26,16 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.BoolRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Bool,
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.BoolNull(),
 				PlanValue:   types.BoolUnknown(),
 				ConfigValue: types.BoolNull(),
@@ -42,6 +52,18 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.BoolRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Bool,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Bool, false),
+						},
+					),
+				},
 				StateValue:  types.BoolValue(false),
 				PlanValue:   types.BoolValue(true),
 				ConfigValue: types.BoolNull(),
@@ -50,16 +72,51 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 				PlanValue: types.BoolValue(true),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.BoolRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Bool,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Bool, true),
+						},
+					),
+				},
 				StateValue:  types.BoolValue(true),
 				PlanValue:   types.BoolUnknown(),
 				ConfigValue: types.BoolNull(),
 			},
 			expected: &planmodifier.BoolResponse{
 				PlanValue: types.BoolValue(true),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.BoolRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Bool,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Bool, nil),
+						},
+					),
+				},
+				StateValue:  types.BoolNull(),
+				PlanValue:   types.BoolUnknown(),
+				ConfigValue: types.BoolNull(),
+			},
+			expected: &planmodifier.BoolResponse{
+				PlanValue: types.BoolNull(),
 			},
 		},
 		"unknown-config": {
@@ -73,46 +130,6 @@ func TestUseStateForUnknownModifierPlanModifyBool(t *testing.T) {
 				StateValue:  types.BoolValue(true),
 				PlanValue:   types.BoolUnknown(),
 				ConfigValue: types.BoolUnknown(),
-			},
-			expected: &planmodifier.BoolResponse{
-				PlanValue: types.BoolUnknown(),
-			},
-		},
-		"under-list": {
-			request: planmodifier.BoolRequest{
-				ConfigValue: types.BoolNull(),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.BoolUnknown(),
-				StateValue:  types.BoolNull(),
-			},
-			expected: &planmodifier.BoolResponse{
-				PlanValue: types.BoolUnknown(),
-			},
-		},
-		"under-set": {
-			request: planmodifier.BoolRequest{
-				ConfigValue: types.BoolNull(),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.BoolType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.BoolType,
-								},
-								map[string]attr.Value{
-									"nested_test": types.BoolUnknown(),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.BoolUnknown(),
-				StateValue: types.BoolNull(),
 			},
 			expected: &planmodifier.BoolResponse{
 				PlanValue: types.BoolUnknown(),

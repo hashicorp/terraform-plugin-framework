@@ -2949,6 +2949,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"key1": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.MapValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -3028,6 +3066,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 							AttrTypes: map[string]attr.Type{
 								"nested_computed": types.StringType,
 							},
+						},
+					),
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"key1": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
 						},
 					),
 				},

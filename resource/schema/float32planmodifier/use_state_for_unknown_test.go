@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyFloat32(t *testing.T) {
@@ -26,6 +26,16 @@ func TestUseStateForUnknownModifierPlanModifyFloat32(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.Float32Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.Float32Null(),
 				PlanValue:   types.Float32Unknown(),
 				ConfigValue: types.Float32Null(),
@@ -42,6 +52,18 @@ func TestUseStateForUnknownModifierPlanModifyFloat32(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.Float32Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 2.4),
+						},
+					),
+				},
 				StateValue:  types.Float32Value(2.4),
 				PlanValue:   types.Float32Value(1.2),
 				ConfigValue: types.Float32Null(),
@@ -50,16 +72,51 @@ func TestUseStateForUnknownModifierPlanModifyFloat32(t *testing.T) {
 				PlanValue: types.Float32Value(1.2),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.Float32Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
 				StateValue:  types.Float32Value(1.2),
 				PlanValue:   types.Float32Unknown(),
 				ConfigValue: types.Float32Null(),
 			},
 			expected: &planmodifier.Float32Response{
 				PlanValue: types.Float32Value(1.2),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.Float32Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, nil),
+						},
+					),
+				},
+				StateValue:  types.Float32Null(),
+				PlanValue:   types.Float32Unknown(),
+				ConfigValue: types.Float32Null(),
+			},
+			expected: &planmodifier.Float32Response{
+				PlanValue: types.Float32Null(),
 			},
 		},
 		"unknown-config": {
@@ -73,46 +130,6 @@ func TestUseStateForUnknownModifierPlanModifyFloat32(t *testing.T) {
 				StateValue:  types.Float32Value(1.2),
 				PlanValue:   types.Float32Unknown(),
 				ConfigValue: types.Float32Unknown(),
-			},
-			expected: &planmodifier.Float32Response{
-				PlanValue: types.Float32Unknown(),
-			},
-		},
-		"under-list": {
-			request: planmodifier.Float32Request{
-				ConfigValue: types.Float32Null(),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.Float32Unknown(),
-				StateValue:  types.Float32Null(),
-			},
-			expected: &planmodifier.Float32Response{
-				PlanValue: types.Float32Unknown(),
-			},
-		},
-		"under-set": {
-			request: planmodifier.Float32Request{
-				ConfigValue: types.Float32Null(),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.Float32Type,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.Float32Type,
-								},
-								map[string]attr.Value{
-									"nested_test": types.Float32Unknown(),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.Float32Unknown(),
-				StateValue: types.Float32Null(),
 			},
 			expected: &planmodifier.Float32Response{
 				PlanValue: types.Float32Unknown(),

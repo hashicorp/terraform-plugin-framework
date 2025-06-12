@@ -10,7 +10,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
@@ -23,19 +25,17 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 		"null-state": {
 			// when we first create the resource, use the unknown value
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.DynamicNull(),
-				PlanValue:   types.DynamicUnknown(),
-				ConfigValue: types.DynamicNull(),
-			},
-			expected: &planmodifier.DynamicResponse{
-				PlanValue: types.DynamicUnknown(),
-			},
-		},
-		"null-underlying-state-value": {
-			// if the state value has a known underlying type, but a null underlying value,
-			// use the unknown value
-			request: planmodifier.DynamicRequest{
-				StateValue:  types.DynamicValue(types.StringNull()),
 				PlanValue:   types.DynamicUnknown(),
 				ConfigValue: types.DynamicNull(),
 			},
@@ -48,6 +48,18 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 			// modifier setting the value before this plan modifier
 			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, "other"),
+						},
+					),
+				},
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicValue(types.StringValue("test")),
 				ConfigValue: types.DynamicNull(),
@@ -61,6 +73,18 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 			// modifier setting the value before this plan modifier
 			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, "other"),
+						},
+					),
+				},
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicNull(),
 				ConfigValue: types.DynamicNull(),
@@ -74,6 +98,18 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 			// modifier setting the value before this plan modifier
 			// got to it. We still want to preserve that value, in this case
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, "other"),
+						},
+					),
+				},
 				StateValue:  types.DynamicValue(types.StringValue("other")),
 				PlanValue:   types.DynamicValue(types.StringNull()),
 				ConfigValue: types.DynamicNull(),
@@ -82,9 +118,21 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 				PlanValue: types.DynamicValue(types.StringNull()),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state in
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, "test"),
+						},
+					),
+				},
 				StateValue:  types.DynamicValue(types.StringValue("test")),
 				PlanValue:   types.DynamicUnknown(),
 				ConfigValue: types.DynamicNull(),
@@ -93,16 +141,74 @@ func TestUseStateForUnknownModifierPlanModifyDynamic(t *testing.T) {
 				PlanValue: types.DynamicValue(types.StringValue("test")),
 			},
 		},
-		"non-null-state-unknown-underlying-plan-value": {
+		"non-null-state-value-unknown-underlying-plan-value": {
 			// if the plan value has a known underlying type, but an unknown underlying value
 			// we want to preserve the state
 			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, "test"),
+						},
+					),
+				},
 				StateValue:  types.DynamicValue(types.StringValue("test")),
 				PlanValue:   types.DynamicValue(types.StringUnknown()),
 				ConfigValue: types.DynamicNull(),
 			},
 			expected: &planmodifier.DynamicResponse{
 				PlanValue: types.DynamicValue(types.StringValue("test")),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+						},
+					),
+				},
+				StateValue:  types.DynamicNull(),
+				PlanValue:   types.DynamicUnknown(),
+				ConfigValue: types.DynamicNull(),
+			},
+			expected: &planmodifier.DynamicResponse{
+				PlanValue: types.DynamicNull(),
+			},
+		},
+		"null-underlying-state-value-unknown-plan": {
+			// if the state value has a known underlying type, but a null underlying value, we should preserve this as well.
+			request: planmodifier.DynamicRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.DynamicPseudoType,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.String, nil),
+						},
+					),
+				},
+				StateValue:  types.DynamicValue(types.StringNull()),
+				PlanValue:   types.DynamicUnknown(),
+				ConfigValue: types.DynamicNull(),
+			},
+			expected: &planmodifier.DynamicResponse{
+				PlanValue: types.DynamicValue(types.StringNull()),
 			},
 		},
 		"unknown-config": {

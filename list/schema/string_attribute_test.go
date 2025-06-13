@@ -4,7 +4,6 @@
 package schema_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -13,15 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -30,31 +24,31 @@ func TestStringAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute     schema.StringAttribute
+		attribute     listschema.StringAttribute
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName": {
-			attribute:     schema.StringAttribute{},
+			attribute:     listschema.StringAttribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.StringType"),
 		},
 		"ElementKeyInt": {
-			attribute:     schema.StringAttribute{},
+			attribute:     listschema.StringAttribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.StringType"),
 		},
 		"ElementKeyString": {
-			attribute:     schema.StringAttribute{},
+			attribute:     listschema.StringAttribute{},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.StringType"),
 		},
 		"ElementKeyValue": {
-			attribute:     schema.StringAttribute{},
+			attribute:     listschema.StringAttribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.StringType"),
@@ -92,15 +86,15 @@ func TestStringAttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  string
 	}{
 		"no-deprecation-message": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  "",
 		},
 		"deprecation-message": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -124,18 +118,18 @@ func TestStringAttributeEqual(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		other     fwschema.Attribute
 		expected  bool
 	}{
 		"different-type": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			other:     testschema.AttributeWithStringValidators{},
 			expected:  false,
 		},
 		"equal": {
-			attribute: schema.StringAttribute{},
-			other:     schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
+			other:     listschema.StringAttribute{},
 			expected:  true,
 		},
 	}
@@ -157,15 +151,15 @@ func TestStringAttributeGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  string
 	}{
 		"no-description": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  "",
 		},
 		"description": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -189,15 +183,15 @@ func TestStringAttributeGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  string
 	}{
 		"no-markdown-description": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  "",
 		},
 		"markdown-description": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -221,15 +215,15 @@ func TestStringAttributeGetType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  attr.Type
 	}{
 		"base": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  types.StringType,
 		},
 		"custom-type": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				CustomType: testtypes.StringType{},
 			},
 			expected: testtypes.StringType{},
@@ -253,18 +247,12 @@ func TestStringAttributeIsComputed(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-computed": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
-		},
-		"computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-			},
-			expected: true,
 		},
 	}
 
@@ -285,15 +273,15 @@ func TestStringAttributeIsOptional(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-optional": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
 		},
 		"optional": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				Optional: true,
 			},
 			expected: true,
@@ -317,15 +305,15 @@ func TestStringAttributeIsRequired(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-required": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
 		},
 		"required": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				Required: true,
 			},
 			expected: true,
@@ -349,18 +337,12 @@ func TestStringAttributeIsSensitive(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-sensitive": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
-		},
-		"sensitive": {
-			attribute: schema.StringAttribute{
-				Sensitive: true,
-			},
-			expected: true,
 		},
 	}
 
@@ -381,18 +363,12 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-writeOnly": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
-		},
-		"writeOnly": {
-			attribute: schema.StringAttribute{
-				WriteOnly: true,
-			},
-			expected: true,
 		},
 	}
 
@@ -409,96 +385,19 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 	}
 }
 
-func TestStringAttributeStringDefaultValue(t *testing.T) {
-	t.Parallel()
-
-	opt := cmp.Comparer(func(x, y defaults.String) bool {
-		ctx := context.Background()
-		req := defaults.StringRequest{}
-
-		xResp := defaults.StringResponse{}
-		x.DefaultString(ctx, req, &xResp)
-
-		yResp := defaults.StringResponse{}
-		y.DefaultString(ctx, req, &yResp)
-
-		return xResp.PlanValue.Equal(yResp.PlanValue)
-	})
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		expected  defaults.String
-	}{
-		"no-default": {
-			attribute: schema.StringAttribute{},
-			expected:  nil,
-		},
-		"default": {
-			attribute: schema.StringAttribute{
-				Default: stringdefault.StaticString("test-value"),
-			},
-			expected: stringdefault.StaticString("test-value"),
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.StringDefaultValue()
-
-			if diff := cmp.Diff(got, testCase.expected, opt); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestStringAttributeStringPlanModifiers(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		expected  []planmodifier.String
-	}{
-		"no-planmodifiers": {
-			attribute: schema.StringAttribute{},
-			expected:  nil,
-		},
-		"planmodifiers": {
-			attribute: schema.StringAttribute{
-				PlanModifiers: []planmodifier.String{},
-			},
-			expected: []planmodifier.String{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.StringPlanModifiers()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestStringAttributeStringValidators(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  []validator.String
 	}{
 		"no-validators": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  nil,
 		},
 		"validators": {
-			attribute: schema.StringAttribute{
+			attribute: listschema.StringAttribute{
 				Validators: []validator.String{},
 			},
 			expected: []validator.String{},
@@ -518,78 +417,15 @@ func TestStringAttributeStringValidators(t *testing.T) {
 	}
 }
 
-func TestStringAttributeValidateImplementation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.StringAttribute
-		request   fwschema.ValidateImplementationRequest
-		expected  *fwschema.ValidateImplementationResponse
-	}{
-		"computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"default-without-computed": {
-			attribute: schema.StringAttribute{
-				Default: stringdefault.StaticString("test"),
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Schema Using Attribute Default For Non-Computed Attribute",
-						"Attribute \"test\" must be computed when using default. "+
-							"This is an issue with the provider and should be reported to the provider developers.",
-					),
-				},
-			},
-		},
-		"default-with-computed": {
-			attribute: schema.StringAttribute{
-				Computed: true,
-				Default:  stringdefault.StaticString("test"),
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := &fwschema.ValidateImplementationResponse{}
-			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestStringAttributeIsRequiredForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-requiredForImport": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
 		},
 	}
@@ -611,11 +447,11 @@ func TestStringAttributeIsOptionalForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.StringAttribute
+		attribute listschema.StringAttribute
 		expected  bool
 	}{
 		"not-optionalForImport": {
-			attribute: schema.StringAttribute{},
+			attribute: listschema.StringAttribute{},
 			expected:  false,
 		},
 	}

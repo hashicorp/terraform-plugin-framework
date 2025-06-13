@@ -12,6 +12,7 @@ import (
 )
 
 var _ tfprotov5.ProviderServer = &Server{}
+var _ tfprotov5.ProviderServerWithListResource = &Server{} //nolint:staticcheck
 
 // Provider server implementation.
 type Server struct {

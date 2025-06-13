@@ -8,6 +8,7 @@ import (
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -97,6 +98,9 @@ type ListRequest struct {
 	// IncludeResource indicates whether the provider should populate the
 	// [ListResult.Resource] field.
 	IncludeResource bool
+
+	ResourceSchema         fwschema.Schema
+	ResourceIdentitySchema fwschema.Schema
 }
 
 // ListResultsStream represents a streaming response to a [ListRequest].  An
@@ -113,6 +117,9 @@ type ListResultsStream struct {
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
 	Results iter.Seq[ListResult]
+
+	// Diagnostics report errors or warnings related to the list operation.
+	Diagnostics diag.Diagnostics
 }
 
 // NoListResults is an iterator that pushes zero results.

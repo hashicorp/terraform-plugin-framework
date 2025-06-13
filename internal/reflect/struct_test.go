@@ -809,7 +809,7 @@ func TestNewStruct_structtags_ignores(t *testing.T) {
 
 	var s struct {
 		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
+		unexported          string //nolint:unused
 		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
@@ -850,13 +850,13 @@ func TestNewStruct_embedded_structtags_ignores(t *testing.T) {
 
 	type s1 struct {
 		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
+		unexported          string //nolint:unused
 		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
 	type s2 struct {
-		unexportedField string //nolint:structcheck,unused
+		unexportedField string //nolint:unused
 	}
 
 	var s struct {
@@ -2149,7 +2149,7 @@ func TestFromStruct_structtags_ignores(t *testing.T) {
 
 	type s struct {
 		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
+		unexported          string //nolint:unused
 		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
@@ -2188,13 +2188,13 @@ func TestFromStruct_embedded_structtags_ignores(t *testing.T) {
 
 	type s1 struct {
 		ExportedAndTagged   string `tfsdk:"exported_and_tagged"`
-		unexported          string //nolint:structcheck,unused
+		unexported          string //nolint:unused
 		unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 		ExportedAndExcluded string `tfsdk:"-"`
 	}
 
 	type s2 struct {
-		unexportedField string //nolint:structcheck,unused
+		unexportedField string //nolint:unused
 	}
 
 	type s struct {

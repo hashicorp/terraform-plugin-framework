@@ -21,7 +21,7 @@ type ExampleStruct struct {
 	BoolField bool   `tfsdk:"bool_field"`
 	IgnoreMe  string `tfsdk:"-"`
 
-	unexported          string //nolint:structcheck,unused
+	unexported          string //nolint:unused
 	unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 }
 
@@ -136,7 +136,7 @@ func TestGetStructTags(t *testing.T) {
 				ExampleStruct
 				Field5 string `tfsdk:"field5"`
 
-				unexported          string //nolint:structcheck,unused
+				unexported          string //nolint:unused
 				unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 			}{},
 			expectedTags: map[string][]int{
@@ -193,7 +193,7 @@ func TestGetStructTags(t *testing.T) {
 				*ExampleStruct
 				Field5 string `tfsdk:"field5"`
 
-				unexported          string //nolint:structcheck,unused
+				unexported          string //nolint:unused
 				unexportedAndTagged string `tfsdk:"unexported_and_tagged"`
 			}{},
 			expectedTags: map[string][]int{

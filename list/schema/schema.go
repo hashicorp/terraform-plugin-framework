@@ -17,9 +17,8 @@ import (
 // Schema must satify the fwschema.Schema interface.
 var _ fwschema.Schema = Schema{}
 
-// Schema defines the structure and value types of resource data. This type
-// is used as the resource.SchemaResponse type Schema field, which is
-// implemented by the resource.DataSource type Schema method.
+// Schema defines the structure and value types of a list block. This is
+// returned as a ListResourceSchemas map value by the GetProviderSchemas RPC.
 type Schema struct {
 	// Attributes is the mapping of underlying attribute names to attribute
 	// definitions.
@@ -106,7 +105,7 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion returns zero because list resource schemas do not have a version.
+// GetVersion always returns 0 because list resource schemas cannot be versioned.
 func (s Schema) GetVersion() int64 {
 	return 0
 }
@@ -124,13 +123,6 @@ func (s Schema) TypeAtPath(ctx context.Context, p path.Path) (attr.Type, diag.Di
 // TypeAtTerraformPath returns the framework type at the given tftypes path.
 func (s Schema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (attr.Type, error) {
 	return fwschema.SchemaTypeAtTerraformPath(ctx, s, p)
-}
-
-// Validate verifies that the schema is not using a reserved field name for a top-level attribute.
-//
-// Deprecated: Use the ValidateImplementation method instead.
-func (s Schema) Validate() diag.Diagnostics {
-	return s.ValidateImplementation(context.Background())
 }
 
 // ValidateImplementation contains logic for validating the provider-defined

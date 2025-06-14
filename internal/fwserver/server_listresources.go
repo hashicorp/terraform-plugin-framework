@@ -117,19 +117,48 @@ func (s *Server) ListResourceMetadatas(ctx context.Context) ([]ListResourceMetad
 	return listResourceMetadatas, diags
 }
 
+// ListResourceSchema returns the ListResource Schema for the given type name and
+// caches the result for later ListResource operations.
 func (s *Server) ListResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
-	schemas, _ := s.ListResourceSchemas(ctx)
-	schema, ok := schemas[typeName]
-	if !ok {
-		return nil, diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"ListResource Schema Not Found",
-				fmt.Sprintf("No ListResource schema was found for type %q.", typeName),
-			),
-		}
+	s.listResourceSchemasMutex.RLock()
+	listResourceSchema, ok := s.listResourceSchemas[typeName]
+	s.listResourceSchemasMutex.RUnlock()
+
+	if ok {
+		return listResourceSchema, nil
 	}
 
-	return schema, nil
+	var diags diag.Diagnostics
+
+	listResource, listResourceDiags := s.ListResourceType(ctx, typeName)
+	diags.Append(listResourceDiags...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	schemaReq := list.ListResourceSchemaRequest{}
+	schemaResp := list.ListResourceSchemaResponse{}
+
+	logging.FrameworkTrace(ctx, "Calling provider defined ListResourceConfigSchema method", map[string]interface{}{logging.KeyListResourceType: typeName})
+	listResource.ListResourceConfigSchema(ctx, schemaReq, &schemaResp)
+	logging.FrameworkTrace(ctx, "Called provider defined ListResourceConfigSchema method", map[string]interface{}{logging.KeyListResourceType: typeName})
+
+	diags.Append(schemaResp.Diagnostics...)
+	if diags.HasError() {
+		return schemaResp.Schema, diags
+	}
+
+	s.listResourceSchemasMutex.Lock()
+
+	if s.listResourceSchemas == nil {
+		s.listResourceSchemas = make(map[string]fwschema.Schema)
+	}
+
+	s.listResourceSchemas[typeName] = schemaResp.Schema
+
+	s.listResourceSchemasMutex.Unlock()
+
+	return schemaResp.Schema, diags
 }
 
 // ListResourceSchemas returns a map of ListResource Schemas for the

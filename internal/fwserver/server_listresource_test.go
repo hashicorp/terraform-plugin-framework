@@ -109,7 +109,7 @@ func TestServerListResource(t *testing.T) {
 			request: &fwserver.ListRequest{
 				Config: &tfsdk.Config{},
 				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) { // TODO
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
 						resp.Results = slices.Values([]list.ListResult{
 							{
 								Identity: &tfsdk.ResourceIdentity{

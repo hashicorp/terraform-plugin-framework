@@ -88,8 +88,8 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
-		ResourceSchema:         fwReq.ResourceSchema,         // TODO: revisit
-		ResourceIdentitySchema: fwReq.ResourceIdentitySchema, // TODO: revisit
+		ResourceSchema:         fwReq.ResourceSchema,
+		ResourceIdentitySchema: fwReq.ResourceIdentitySchema,
 	}
 
 	stream := &list.ListResultsStream{}
@@ -140,5 +140,5 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 		}
 	}
 
-	return ListResult(result) // TODO: do we need to .Copy() the raw Identity and Resource values?
+	return ListResult(result) // TODO: do we want to .Copy() the raw Identity and Resource values?
 }

@@ -56,8 +56,8 @@ func ListResultError(summary string, detail string) ListResult {
 
 // ListResult represents a listed managed resource instance.
 type ListResult struct {
-	// Identity is the identity of the managed resource instance.  A nil value
-	// will raise will raise a diagnostic.
+	// Identity is the identity of the managed resource instance. A nil value
+	// will raise an error diagnostic.
 	Identity *tfsdk.ResourceIdentity
 
 	// Resource is the provider's representation of the attributes of the

@@ -129,7 +129,7 @@ var NoListResults = func(func(ListResult) bool) {}
 type ListResult struct {
 	// Identity is the identity of the managed resource instance.
 	//
-	// A nil value will raise will raise a diagnostic.
+	// A nil value will raise an error diagnostic.
 	Identity *tfsdk.ResourceIdentity
 
 	// Resource is the provider's representation of the attributes of the

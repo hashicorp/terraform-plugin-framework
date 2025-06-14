@@ -11,41 +11,41 @@ import (
 )
 
 func ListResourceResult(ctx context.Context, result *fwserver.ListResult) tfprotov5.ListResourceResult {
-	diags := result.Diagnostics
-	if diags.HasError() {
+	allDiags := result.Diagnostics
+	if allDiags.HasError() {
 		return tfprotov5.ListResourceResult{
-			Diagnostics: Diagnostics(ctx, diags),
+			Diagnostics: Diagnostics(ctx, allDiags),
 		}
 	}
 
-	resourceIdentity, d := ResourceIdentity(ctx, result.Identity)
-	diags.Append(d...)
+	resourceIdentity, diags := ResourceIdentity(ctx, result.Identity)
+	allDiags.Append(diags...)
 
 	return tfprotov5.ListResourceResult{
 		DisplayName: result.DisplayName,
 		Identity:    resourceIdentity,
-		Diagnostics: Diagnostics(ctx, result.Diagnostics),
+		Diagnostics: Diagnostics(ctx, allDiags),
 	}
 }
 
 func ListResourceResultWithResource(ctx context.Context, result *fwserver.ListResult) tfprotov5.ListResourceResult {
-	diags := result.Diagnostics
-	if diags.HasError() {
+	allDiags := result.Diagnostics
+	if allDiags.HasError() {
 		return tfprotov5.ListResourceResult{
-			Diagnostics: Diagnostics(ctx, diags),
+			Diagnostics: Diagnostics(ctx, allDiags),
 		}
 	}
 
-	resourceIdentity, d := ResourceIdentity(ctx, result.Identity)
-	diags.Append(d...)
+	resourceIdentity, diags := ResourceIdentity(ctx, result.Identity)
+	allDiags.Append(diags...)
 
-	resource, d := Resource(ctx, result.Resource)
-	diags.Append(d...)
+	resource, diags := Resource(ctx, result.Resource)
+	allDiags.Append(diags...)
 
 	return tfprotov5.ListResourceResult{
 		DisplayName: result.DisplayName,
 		Identity:    resourceIdentity,
 		Resource:    resource,
-		Diagnostics: Diagnostics(ctx, result.Diagnostics),
+		Diagnostics: Diagnostics(ctx, allDiags),
 	}
 }

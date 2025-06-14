@@ -133,7 +133,6 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 
 	if req.IncludeResource {
 		if result.Resource == nil { // TODO: is result.Resource.Raw.IsNull() a practical concern?
-			result.Identity = nil
 			result.Diagnostics.AddWarning(
 				"Incomplete List Result",
 				"The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",

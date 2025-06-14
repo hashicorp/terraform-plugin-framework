@@ -15,23 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-type ListResourceTypeNotFoundError struct {
-	TypeName string
-}
-
-func (e *ListResourceTypeNotFoundError) Error() string {
-	return "listResource Type Not Found: no listResource type named " + e.TypeName + " was found in the provider."
-}
-
-func (e *ListResourceTypeNotFoundError) Is(err error) bool {
-	compatibleErr, ok := err.(*ListResourceTypeNotFoundError)
-	if !ok {
-		return false
-	}
-
-	return e.TypeName == compatibleErr.TypeName
-}
-
 func (s *Server) ListResourceType(ctx context.Context, typeName string) (list.ListResource, diag.Diagnostics) {
 	listResourceFuncs, diags := s.ListResourceFuncs(ctx)
 	listResourceFunc, ok := listResourceFuncs[typeName]

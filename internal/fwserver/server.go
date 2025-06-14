@@ -125,6 +125,16 @@ type Server struct {
 	// access from race conditions.
 	listResourceFuncsMutex sync.Mutex
 
+	// listResourceSchemas is the cached ListResource Schemas for RPCs that
+	// need to convert configuration data from the protocol. If not found, it
+	// will be fetched from the [list.ListResource.ListResourceConfigSchema]
+	// method.
+	listResourceSchemas map[string]fwschema.Schema
+
+	// listResourceSchemasMutex is a mutex to protect concurrent
+	// listResourceSchemas access from race conditions.
+	listResourceSchemasMutex sync.RWMutex
+
 	// providerSchema is the cached Provider Schema for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Provider.GetSchema() method.

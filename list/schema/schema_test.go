@@ -797,47 +797,6 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 	}
 }
 
-func TestSchemaValidate(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		schema        schema.Schema
-		expectedDiags diag.Diagnostics
-	}{
-		"empty-schema": {
-			schema: schema.Schema{},
-		},
-		"validate-implementation-error": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"depends_on": schema.StringAttribute{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Reserved Root Attribute/Block Name",
-					"When validating the resource or data source schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"depends_on\" is a reserved root attribute/block name. "+
-						"This is to prevent practitioners from needing special Terraform configuration syntax.",
-				),
-			},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			diags := testCase.schema.Validate()
-
-			if diff := cmp.Diff(diags, testCase.expectedDiags); diff != "" {
-				t.Errorf("Unexpected diagnostics (+wanted, -got): %s", diff)
-			}
-		})
-	}
-}
-
 func TestSchemaValidateImplementation(t *testing.T) {
 	t.Parallel()
 

@@ -85,34 +85,38 @@ type ListResourceWithValidateConfig interface {
 	ValidateListResourceConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ListRequest represents a request for the provider to list instances
-// of a managed resource type that satisfy a user-defined request. An instance
-// of this reqeuest struct is passed as an argument to the provider's
-// ListResource function implementation.
+// ListRequest represents a request for the provider to list instances of a
+// managed resource type that satisfy a user-defined request. An instance of
+// this reqeuest struct is passed as an argument to the provider's List
+// function implementation.
 type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource
 	// instances.
 	Config tfsdk.Config
 
 	// IncludeResource indicates whether the provider should populate the
-	// Resource field in the ListResult struct.
+	// [ListResult.Resource] field.
 	IncludeResource bool
 }
 
-// ListResultsStream represents a streaming response to a ListRequest.
-// An instance of this struct is supplied as an argument to the provider's
-// ListResource function implementation function. The provider should set a Results
-// iterator function that yields zero or more results of type ListResult.
+// ListResultsStream represents a streaming response to a [ListRequest].  An
+// instance of this struct is supplied as an argument to the provider's
+// [ListResource.List] function. The provider should set a Results iterator
+// function that pushes zero or more results of type [ListResult].
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].
-//
-// [slices.Values]: https://pkg.go.dev/slices#Values
 type ListResultsStream struct {
-	// Results is a function that emits ListResult values via its yield
+	// Results is a function that emits [ListResult] values via its push
 	// function argument.
+	//
+	// To indicate a fatal processing error, push a [ListResult] that contains
+	// a [diag.ErrorDiagnostic].
 	Results iter.Seq[ListResult]
 }
+
+// NoListResults is an iterator that pushes zero results.
+var NoListResults = func(func(ListResult) bool) {}
 
 // ListResult represents a listed managed resource instance.
 type ListResult struct {
@@ -124,7 +128,7 @@ type ListResult struct {
 	// Resource is the provider's representation of the attributes of the
 	// listed managed resource instance.
 	//
-	// If ListRequest.IncludeResource is true, a nil value will raise
+	// If [ListRequest.IncludeResource] is true, a nil value will raise
 	// a warning diagnostic.
 	Resource *tfsdk.Resource
 
@@ -140,8 +144,8 @@ type ListResult struct {
 
 // ValidateConfigRequest represents a request to validate the configuration of
 // a list resource. An instance of this request struct is supplied as an
-// argument to the ValidateListResourceConfig receiver method or automatically
-// passed through to each ListResourceConfigValidator.
+// argument to the [ListResourceWithValidateConfig.ValidateListResourceConfig]
+// receiver method or automatically passed through to each [ConfigValidator].
 type ValidateConfigRequest struct {
 	// Config is the configuration the user supplied for the resource.
 	//
@@ -151,10 +155,10 @@ type ValidateConfigRequest struct {
 	Config tfsdk.Config
 }
 
-// ValidateConfigResponse represents a response to a ValidateConfigRequest. An
-// instance of this response struct is supplied as an argument to the
-// list.ValidateListResourceConfig receiver method or automatically passed
-// through to each ConfigValidator.
+// ValidateConfigResponse represents a response to a [ValidateConfigRequest].
+// An instance of this response struct is supplied as an argument to the
+// [list.ValidateListResourceConfig] receiver method or automatically passed
+// through to each [ConfigValidator].
 type ValidateConfigResponse struct {
 	// Diagnostics report errors or warnings related to validating the list
 	// configuration. An empty slice indicates success, with no warnings

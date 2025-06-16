@@ -8,6 +8,7 @@ import (
 	"errors"
 	"iter"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -31,6 +32,9 @@ type ListRequest struct {
 
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
+
+	ResourceSchemaType         attr.Type
+	ResourceIdentitySchemaType attr.Type
 }
 
 // ListResultsStream represents a streaming response to a [ListRequest].  An
@@ -86,10 +90,12 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	}
 
 	req := list.ListRequest{
-		Config:                 *fwReq.Config,
-		IncludeResource:        fwReq.IncludeResource,
-		ResourceSchema:         fwReq.ResourceSchema,
-		ResourceIdentitySchema: fwReq.ResourceIdentitySchema,
+		Config:                     *fwReq.Config,
+		IncludeResource:            fwReq.IncludeResource,
+		ResourceSchema:             fwReq.ResourceSchema,
+		ResourceIdentitySchema:     fwReq.ResourceIdentitySchema,
+		ResourceSchemaType:         fwReq.ResourceSchemaType,
+		ResourceIdentitySchemaType: fwReq.ResourceIdentitySchemaType,
 	}
 
 	stream := &list.ListResultsStream{}

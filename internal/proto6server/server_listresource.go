@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -60,11 +61,13 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov6.ListResou
 	}
 
 	req := &fwserver.ListRequest{
-		Config:                 config,
-		ListResource:           listResource,
-		ResourceSchema:         resourceSchema,
-		ResourceIdentitySchema: identitySchema,
-		IncludeResource:        protoReq.IncludeResource,
+		Config:                     config,
+		ListResource:               listResource,
+		ResourceSchema:             resourceSchema,
+		ResourceIdentitySchema:     identitySchema,
+		ResourceSchemaType:         fwschema.SchemaType(resourceSchema),
+		ResourceIdentitySchemaType: fwschema.SchemaType(identitySchema),
+		IncludeResource:            protoReq.IncludeResource,
 	}
 	stream := &fwserver.ListResultsStream{}
 

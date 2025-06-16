@@ -7,6 +7,7 @@ import (
 	"context"
 	"iter"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -101,6 +102,9 @@ type ListRequest struct {
 
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
+
+	ResourceSchemaType         attr.Type
+	ResourceIdentitySchemaType attr.Type
 }
 
 // ListResultsStream represents a streaming response to a [ListRequest].  An

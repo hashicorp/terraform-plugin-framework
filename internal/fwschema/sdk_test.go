@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package fwschema_test
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 	"testing"
@@ -9,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	sdkschema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -31,7 +37,7 @@ func TestFromSDK(t *testing.T) { //nolint:paralleltest
 					Schema: map[string]*sdkschema.Schema{
 						"capacity": {
 							Type:     sdkschema.TypeInt,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -68,6 +74,58 @@ func TestFromSDK(t *testing.T) { //nolint:paralleltest
 	}
 }
 
+func TestReify(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Recovered from panic: %v\n", r)
+		}
+	}()
+	sdkBlockSchema := sdkschema.Resource{
+		Schema: map[string]*sdkschema.Schema{
+			"capacity": {
+				Type:     sdkschema.TypeInt,
+				Required: true,
+			},
+		},
+	}
+	sdkResourceSchema := sdkschema.Resource{
+		Schema: map[string]*sdkschema.Schema{
+			"cpu": {
+				Type:     sdkschema.TypeInt,
+				Required: true,
+			},
+			"disk": {
+				Type: sdkschema.TypeList,
+				Elem: &sdkBlockSchema,
+			},
+		},
+	}
+
+	ctx := context.Background()
+	fwSchema := NewSDKSchema(sdkResourceSchema)
+
+	fwSchemaType := fwSchema.Type()
+	fmt.Printf("fwSchemaType: %#v\n", fwSchemaType)
+	tfSchemaType := fwSchemaType.TerraformType(ctx)
+	tfBlockSchemaType := NewSDKSchema(sdkBlockSchema).Type().TerraformType(ctx)
+	tfBlockValue := tftypes.NewValue(tfBlockSchemaType, map[string]tftypes.Value{})
+	tfValue := tftypes.NewValue(
+		tfSchemaType,
+		map[string]tftypes.Value{
+			"disk": tftypes.NewValue(tfBlockSchemaType, tfBlockValue),
+		},
+	)
+
+	fwData := fwschemadata.Data{
+		Description:    fwschemadata.DataDescriptionResourceIdentity,
+		Schema:         fwSchema,
+		TerraformValue: tfValue,
+	}
+	fwData.ReifyNullCollectionBlocks(ctx)
+	fmt.Printf("%#v\n", fwData.TerraformValue)
+
+}
+
 var _ fwschema.Schema = &SDKSchema{}
 var _ fwschema.Attribute = &SDKAttribute{}
 var _ fwschema.Block = &SDKBlock{}
@@ -81,6 +139,7 @@ type SDKSchema struct {
 }
 
 type SDKAttribute struct {
+	typ       attr.Type
 	sdkSchema *sdkschema.Schema
 }
 
@@ -138,7 +197,9 @@ func (s *SDKBlock) GetNestingMode() fwschema.BlockNestingMode {
 
 // Type should return the framework type of a block.
 func (s *SDKBlock) Type() attr.Type {
-	return nil
+	return types.ListType{
+		// ElemType: s.NestedObject().Type(),
+	}
 }
 
 // Return the attribute or element the AttributePathStep is referring
@@ -179,7 +240,7 @@ func (s *SDKAttribute) GetMarkdownDescription() string {
 // differently than Type to prevent a conflict with the tfsdk.Attribute
 // field name.
 func (s *SDKAttribute) GetType() attr.Type {
-	return nil
+	return s.typ
 }
 
 // IsComputed should return true if the attribute configuration value is
@@ -261,8 +322,10 @@ func (s *SDKSchema) GetAttributes() map[string]fwschema.Attribute {
 	schemaMap := s.sdkResourceSchema.Schema
 	for name, sdkAttr := range schemaMap {
 		switch sdkAttr.Type {
-		case sdkschema.TypeInt, sdkschema.TypeString:
-			attributes[name] = &SDKAttribute{sdkSchema: sdkAttr}
+		case sdkschema.TypeInt:
+			attributes[name] = &SDKAttribute{typ: types.NumberType, sdkSchema: sdkAttr}
+		case sdkschema.TypeString:
+			attributes[name] = &SDKAttribute{typ: types.StringType, sdkSchema: sdkAttr}
 		}
 	}
 
@@ -317,7 +380,7 @@ func (s *SDKSchema) GetVersion() int64 {
 
 // Type should return the framework type of the schema.
 func (s *SDKSchema) Type() attr.Type {
-	return nil
+	return fwschema.SchemaType(s)
 }
 
 // TypeAtPath should return the framework type of the Attribute at the

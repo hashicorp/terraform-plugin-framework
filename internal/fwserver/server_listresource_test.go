@@ -73,6 +73,7 @@ func TestServerListResource(t *testing.T) {
 		server               *fwserver.Server
 		request              *fwserver.ListRequest
 		expectedStreamEvents []fwserver.ListResult
+		expectedError        string
 	}{
 		"success-with-zero-results": {
 			server: &fwserver.Server{
@@ -166,6 +167,21 @@ func TestServerListResource(t *testing.T) {
 				},
 			},
 		},
+		"error-on-nil-config": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: nil,
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						resp.Results = list.NoListResults
+					},
+				},
+			},
+			expectedError:        "Invalid ListResource request: Config cannot be nil",
+			expectedStreamEvents: []fwserver.ListResult{},
+		},
 		"error-on-nil-resource-identity": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -244,7 +260,7 @@ func TestServerListResource(t *testing.T) {
 
 			response := &fwserver.ListResultsStream{}
 			err := testCase.server.ListResource(context.Background(), testCase.request, response)
-			if err != nil {
+			if err != nil && err.Error() != testCase.expectedError {
 				t.Fatalf("unexpected error: %s", err)
 			}
 

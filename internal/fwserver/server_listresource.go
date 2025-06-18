@@ -77,11 +77,14 @@ type ListResult struct {
 	Diagnostics diag.Diagnostics
 }
 
+var NoListResults = func(func(ListResult) bool) {}
+
 // ListResource implements the framework server ListResource RPC.
 func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) error {
 	listResource := fwReq.ListResource
 
 	if fwReq.Config == nil {
+		fwStream.Results = NoListResults
 		return errors.New("Invalid ListResource request: Config cannot be nil")
 	}
 

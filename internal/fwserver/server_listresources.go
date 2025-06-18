@@ -15,6 +15,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
+func (s *Server) ListResourceType(ctx context.Context, typeName string) (list.ListResource, diag.Diagnostics) {
+	listResourceFuncs, diags := s.ListResourceFuncs(ctx)
+	listResourceFunc, ok := listResourceFuncs[typeName]
+
+	if !ok {
+		diags.AddError(
+			"List Resource Type Not Found",
+			fmt.Sprintf("No list resource type named %q was found in the provider.", typeName),
+		)
+
+		return nil, diags
+	}
+
+	return listResourceFunc(), nil
+}
+
 // ListResourceFuncs returns a map of ListResource functions. The results are
 // cached on first use.
 func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.ListResource, diag.Diagnostics) {
@@ -69,7 +85,8 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 			continue
 		}
 
-		if _, ok := s.resourceFuncs[typeName]; !ok {
+		resourceFuncs, _ := s.ResourceFuncs(ctx)
+		if _, ok := resourceFuncs[typeName]; !ok {
 			s.listResourceFuncsDiags.AddError(
 				"ListResource Type Defined without a Matching Managed Resource Type",
 				fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
@@ -87,17 +104,61 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 // ListResourceMetadatas returns a slice of ListResourceMetadata for the GetMetadata
 // RPC.
 func (s *Server) ListResourceMetadatas(ctx context.Context) ([]ListResourceMetadata, diag.Diagnostics) {
-	resourceFuncs, diags := s.ListResourceFuncs(ctx)
+	listResourceFuncs, diags := s.ListResourceFuncs(ctx)
 
-	resourceMetadatas := make([]ListResourceMetadata, 0, len(resourceFuncs))
+	listResourceMetadatas := make([]ListResourceMetadata, 0, len(listResourceFuncs))
 
-	for typeName := range resourceFuncs {
-		resourceMetadatas = append(resourceMetadatas, ListResourceMetadata{
+	for typeName := range listResourceFuncs {
+		listResourceMetadatas = append(listResourceMetadatas, ListResourceMetadata{
 			TypeName: typeName,
 		})
 	}
 
-	return resourceMetadatas, diags
+	return listResourceMetadatas, diags
+}
+
+// ListResourceSchema returns the ListResource Schema for the given type name and
+// caches the result for later ListResource operations.
+func (s *Server) ListResourceSchema(ctx context.Context, typeName string) (fwschema.Schema, diag.Diagnostics) {
+	s.listResourceSchemasMutex.RLock()
+	listResourceSchema, ok := s.listResourceSchemas[typeName]
+	s.listResourceSchemasMutex.RUnlock()
+
+	if ok {
+		return listResourceSchema, nil
+	}
+
+	var diags diag.Diagnostics
+
+	listResource, listResourceDiags := s.ListResourceType(ctx, typeName)
+	diags.Append(listResourceDiags...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	schemaReq := list.ListResourceSchemaRequest{}
+	schemaResp := list.ListResourceSchemaResponse{}
+
+	logging.FrameworkTrace(ctx, "Calling provider defined ListResourceConfigSchema method", map[string]interface{}{logging.KeyListResourceType: typeName})
+	listResource.ListResourceConfigSchema(ctx, schemaReq, &schemaResp)
+	logging.FrameworkTrace(ctx, "Called provider defined ListResourceConfigSchema method", map[string]interface{}{logging.KeyListResourceType: typeName})
+
+	diags.Append(schemaResp.Diagnostics...)
+	if diags.HasError() {
+		return schemaResp.Schema, diags
+	}
+
+	s.listResourceSchemasMutex.Lock()
+
+	if s.listResourceSchemas == nil {
+		s.listResourceSchemas = make(map[string]fwschema.Schema)
+	}
+
+	s.listResourceSchemas[typeName] = schemaResp.Schema
+
+	s.listResourceSchemasMutex.Unlock()
+
+	return schemaResp.Schema, diags
 }
 
 // ListResourceSchemas returns a map of ListResource Schemas for the

@@ -8,6 +8,7 @@ import (
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -97,6 +98,9 @@ type ListRequest struct {
 	// IncludeResource indicates whether the provider should populate the
 	// [ListResult.Resource] field.
 	IncludeResource bool
+
+	ResourceSchema         fwschema.Schema
+	ResourceIdentitySchema fwschema.Schema
 }
 
 // ListResultsStream represents a streaming response to a [ListRequest].  An
@@ -122,7 +126,7 @@ var NoListResults = func(func(ListResult) bool) {}
 type ListResult struct {
 	// Identity is the identity of the managed resource instance.
 	//
-	// A nil value will raise will raise a diagnostic.
+	// A nil value will raise an error diagnostic.
 	Identity *tfsdk.ResourceIdentity
 
 	// Resource is the provider's representation of the attributes of the

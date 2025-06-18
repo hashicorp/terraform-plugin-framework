@@ -44,7 +44,7 @@ func (r Resource) PathMatches(ctx context.Context, pathExpr path.Expression) (pa
 	return r.data().PathMatches(ctx, pathExpr)
 }
 
-// Set populates the entire identity using the supplied Go value. The value `val`
+// Set populates the entire resource using the supplied Go value. The value `val`
 // should be a struct whose values have one of the attr.Value types. Each field
 // must be tagged with the corresponding schema field.
 func (r *Resource) Set(ctx context.Context, val interface{}) diag.Diagnostics {

@@ -140,5 +140,5 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 		}
 	}
 
-	return ListResult(result) // TODO: do we want to .Copy() the raw Identity and Resource values?
+	return ListResult(result)
 }

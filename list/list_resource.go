@@ -117,9 +117,6 @@ type ListResultsStream struct {
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
 	Results iter.Seq[ListResult]
-
-	// Diagnostics report errors or warnings related to the list operation.
-	Diagnostics diag.Diagnostics
 }
 
 // NoListResults is an iterator that pushes zero results.

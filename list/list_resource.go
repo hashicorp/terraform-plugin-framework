@@ -103,6 +103,18 @@ type ListRequest struct {
 	ResourceIdentitySchema fwschema.Schema
 }
 
+func (r ListRequest) NewListResult() ListResult {
+	identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
+	resource := &tfsdk.Resource{Schema: r.ResourceSchema}
+
+	return ListResult{
+		DisplayName: "",
+		Resource:    resource,
+		Identity:    identity,
+		Diagnostics: diag.Diagnostics{},
+	}
+}
+
 // ListResultsStream represents a streaming response to a [ListRequest].  An
 // instance of this struct is supplied as an argument to the provider's
 // [ListResource.List] function. The provider should set a Results iterator

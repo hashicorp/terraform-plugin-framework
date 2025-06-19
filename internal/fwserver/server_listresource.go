@@ -127,7 +127,7 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 		return ListResult(result)
 	}
 
-	if result.Identity == nil { // TODO: is result.Identity.Raw.IsNull() a practical concern?
+	if result.Identity == nil || result.Identity.Raw.IsNull() {
 		return ListResultError(
 			"Incomplete List Result",
 			"When listing resources, an implementation issue was found. "+
@@ -137,7 +137,7 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 	}
 
 	if req.IncludeResource {
-		if result.Resource == nil { // TODO: is result.Resource.Raw.IsNull() a practical concern?
+		if result.Resource == nil || result.Resource.Raw.IsNull() {
 			result.Diagnostics.AddWarning(
 				"Incomplete List Result",
 				"When listing resources, an implementation issue was found. "+

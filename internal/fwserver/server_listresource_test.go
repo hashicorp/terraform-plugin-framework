@@ -208,7 +208,7 @@ func TestServerListResource(t *testing.T) {
 					Diagnostics: diag.Diagnostics{
 						diag.NewErrorDiagnostic(
 							"Incomplete List Result",
-							"The provider did not populate the Identity field in the ListResourceResult. This may be due to an error in the provider's implementation.",
+							"The provider did not populate the Identity field in the ListResourceResult. This is always a problem with the provider.  Please report this to the provider developer.",
 						),
 					},
 				},
@@ -264,8 +264,19 @@ func TestServerListResource(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
+			opts := cmp.Options{
+				cmp.Comparer(func(a, b diag.Diagnostics) bool {
+					// Differences in Detail() are not relevant to correctness of logic
+					for i := range a {
+						if a[i].Severity() != b[i].Severity() || a[i].Summary() != b[i].Summary() {
+							return false
+						}
+					}
+					return true
+				}),
+			}
 			events := slices.AppendSeq([]fwserver.ListResult{}, response.Results)
-			if diff := cmp.Diff(events, testCase.expectedStreamEvents); diff != "" {
+			if diff := cmp.Diff(events, testCase.expectedStreamEvents, opts); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

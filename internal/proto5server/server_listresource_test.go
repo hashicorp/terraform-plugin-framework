@@ -106,7 +106,11 @@ func TestServerListResource(t *testing.T) {
 						continue
 					}
 
-					result := req.ToListResult(ctx, resources[name].ThingResourceIdentity, resources[name], name)
+					result := req.NewListResult()
+					result.Identity.Set(ctx, resources[name].ThingResourceIdentity)
+					result.Resource.Set(ctx, resources[name])
+					result.DisplayName = name
+
 					results = append(results, result)
 				}
 				resp.Results = slices.Values(results)
@@ -124,7 +128,9 @@ func TestServerListResource(t *testing.T) {
 		}
 
 		r.ListMethod = func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-			result := req.ToListResult(ctx, resources["plateau"].ThingResourceIdentity, nil, "plateau")
+			result := req.NewListResult()
+			result.Identity.Set(ctx, resources["plateau"].ThingResourceIdentity)
+			result.DisplayName = "plateau"
 
 			resp.Results = slices.Values([]list.ListResult{result})
 		}
@@ -264,6 +270,7 @@ func TestServerListResource(t *testing.T) {
 				{
 					DisplayName: "plateau",
 					Identity:    expectedResourceIdentities["plateau"],
+					Resource:    &tfprotov5.DynamicValue{MsgPack: []uint8{0xc0}},
 					Diagnostics: []*tfprotov5.Diagnostic{
 						{
 							Severity: tfprotov5.DiagnosticSeverityWarning,

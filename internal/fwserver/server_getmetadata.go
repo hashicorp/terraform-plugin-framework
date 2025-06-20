@@ -20,6 +20,7 @@ type GetMetadataResponse struct {
 	Diagnostics        diag.Diagnostics
 	EphemeralResources []EphemeralResourceMetadata
 	Functions          []FunctionMetadata
+	ListResources      []ListResourceMetadata
 	Resources          []ResourceMetadata
 	ServerCapabilities *ServerCapabilities
 }
@@ -52,28 +53,39 @@ type ResourceMetadata struct {
 	TypeName string
 }
 
+// ListResourceMetadata is the framework server equivalent of the
+// tfprotov5.ListResourceMetadata and tfprotov6.ListResourceMetadata types.
+type ListResourceMetadata struct {
+	// TypeName is the name of the list resource.
+	TypeName string
+}
+
 // GetMetadata implements the framework server GetMetadata RPC.
 func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp *GetMetadataResponse) {
 	resp.DataSources = []DataSourceMetadata{}
 	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
+	resp.ListResources = []ListResourceMetadata{}
 	resp.Resources = []ResourceMetadata{}
+
 	resp.ServerCapabilities = s.ServerCapabilities()
 
 	datasourceMetadatas, diags := s.DataSourceMetadatas(ctx)
-
 	resp.Diagnostics.Append(diags...)
 
 	ephemeralResourceMetadatas, diags := s.EphemeralResourceMetadatas(ctx)
-
 	resp.Diagnostics.Append(diags...)
 
 	functionMetadatas, diags := s.FunctionMetadatas(ctx)
-
 	resp.Diagnostics.Append(diags...)
 
 	resourceMetadatas, diags := s.ResourceMetadatas(ctx)
+	resp.Diagnostics.Append(diags...)
 
+	// Metadata for list resources must be retrieved after metadata for managed
+	// resources. Server.ListResourceFuncs checks that each list resource type
+	// name matches a known managed resource type name.
+	listResourceMetadatas, diags := s.ListResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
@@ -83,5 +95,6 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.DataSources = datasourceMetadatas
 	resp.EphemeralResources = ephemeralResourceMetadatas
 	resp.Functions = functionMetadatas
+	resp.ListResources = listResourceMetadatas
 	resp.Resources = resourceMetadatas
 }

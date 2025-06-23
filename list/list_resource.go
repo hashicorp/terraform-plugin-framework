@@ -134,22 +134,13 @@ type ListResultsStream struct {
 // NoListResults is an iterator that pushes zero results.
 var NoListResults = func(func(ListResult) bool) {}
 
-// ListResultsStreamError returns a function that yields a single
-// [[ListResult]] with an error diagnostic
-func ListResultsStreamError(summary string, detail string) iter.Seq[ListResult] {
+// ListResultsStreamDiagnostics returns a function that yields a single
+// [[ListResult]] with the given Diagnostics
+func ListResultsStreamDiagnostics(diags diag.Diagnostics) iter.Seq[ListResult] {
 	return func(push func(ListResult) bool) {
-		if !push(ListResultError(summary, detail)) {
+		if !push(ListResult{Diagnostics: diags}) {
 			return
 		}
-	}
-}
-
-// ListResultError constructs a [[ListResult]] with an error diagnostic
-func ListResultError(summary string, detail string) ListResult {
-	return ListResult{
-		Diagnostics: diag.Diagnostics{
-			diag.NewErrorDiagnostic(summary, detail),
-		},
 	}
 }
 

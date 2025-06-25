@@ -106,9 +106,13 @@ func TestServerListResource(t *testing.T) {
 					}
 
 					result := req.NewListResult()
-					result.Identity.Set(ctx, resources[name].ThingResourceIdentity)
-					result.Resource.Set(ctx, resources[name])
 					result.DisplayName = name
+
+					diags = result.Identity.Set(ctx, resources[name].ThingResourceIdentity)
+					result.Diagnostics = append(result.Diagnostics, diags...)
+
+					diags = result.Resource.Set(ctx, resources[name])
+					result.Diagnostics = append(result.Diagnostics, diags...)
 
 					results = append(results, result)
 				}
@@ -128,10 +132,13 @@ func TestServerListResource(t *testing.T) {
 
 		r.ListMethod = func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
 			result := req.NewListResult()
-			result.Identity.Set(ctx, resources["plateau"].ThingResourceIdentity)
 			result.DisplayName = "plateau"
 
-			resp.Results = slices.Values([]list.ListResult{result})
+			diags := result.Identity.Set(ctx, resources["plateau"].ThingResourceIdentity)
+			result.Diagnostics = append(result.Diagnostics, diags...)
+
+			results := []list.ListResult{result}
+			resp.Results = slices.Values(results)
 		}
 
 		return r

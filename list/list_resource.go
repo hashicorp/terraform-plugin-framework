@@ -103,6 +103,8 @@ type ListRequest struct {
 	ResourceIdentitySchema fwschema.Schema
 }
 
+// NewListResult creates a new [ListResult] with convenient defaults
+// for each field.
 func (r ListRequest) NewListResult() ListResult {
 	identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
 	resource := &tfsdk.Resource{Schema: r.ResourceSchema}
@@ -132,10 +134,10 @@ type ListResultsStream struct {
 }
 
 // NoListResults is an iterator that pushes zero results.
-var NoListResults = func(func(ListResult) bool) {}
+var NoListResults = func(push func(ListResult) bool) {}
 
 // ListResultsStreamDiagnostics returns a function that yields a single
-// [[ListResult]] with the given Diagnostics
+// [ListResult] with the given Diagnostics
 func ListResultsStreamDiagnostics(diags diag.Diagnostics) iter.Seq[ListResult] {
 	return func(push func(ListResult) bool) {
 		if !push(ListResult{Diagnostics: diags}) {
@@ -144,7 +146,8 @@ func ListResultsStreamDiagnostics(diags diag.Diagnostics) iter.Seq[ListResult] {
 	}
 }
 
-// ListResult represents a listed managed resource instance.
+// ListResult represents a listed managed resource instance. For convenience,
+// create new values using [NewListResult] instead of struct literals.
 type ListResult struct {
 	// Identity is the identity of the managed resource instance.
 	//

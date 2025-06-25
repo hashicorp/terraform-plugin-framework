@@ -103,6 +103,20 @@ type ListRequest struct {
 	ResourceIdentitySchema fwschema.Schema
 }
 
+// NewListResult creates a new [ListResult] with convenient defaults
+// for each field.
+func (r ListRequest) NewListResult() ListResult {
+	identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
+	resource := &tfsdk.Resource{Schema: r.ResourceSchema}
+
+	return ListResult{
+		DisplayName: "",
+		Resource:    resource,
+		Identity:    identity,
+		Diagnostics: diag.Diagnostics{},
+	}
+}
+
 // ListResultsStream represents a streaming response to a [ListRequest].  An
 // instance of this struct is supplied as an argument to the provider's
 // [ListResource.List] function. The provider should set a Results iterator
@@ -120,9 +134,20 @@ type ListResultsStream struct {
 }
 
 // NoListResults is an iterator that pushes zero results.
-var NoListResults = func(func(ListResult) bool) {}
+var NoListResults = func(push func(ListResult) bool) {}
 
-// ListResult represents a listed managed resource instance.
+// ListResultsStreamDiagnostics returns a function that yields a single
+// [ListResult] with the given Diagnostics
+func ListResultsStreamDiagnostics(diags diag.Diagnostics) iter.Seq[ListResult] {
+	return func(push func(ListResult) bool) {
+		if !push(ListResult{Diagnostics: diags}) {
+			return
+		}
+	}
+}
+
+// ListResult represents a listed managed resource instance. For convenience,
+// create new values using [NewListResult] instead of struct literals.
 type ListResult struct {
 	// Identity is the identity of the managed resource instance.
 	//

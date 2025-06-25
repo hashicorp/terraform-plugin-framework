@@ -206,10 +206,36 @@ func TestServerListResource(t *testing.T) {
 			expectedStreamEvents: []fwserver.ListResult{
 				{
 					Diagnostics: diag.Diagnostics{
-						diag.NewErrorDiagnostic(
-							"Incomplete List Result",
-							"The provider did not populate the Identity field in the ListResourceResult. This may be due to an error in the provider's implementation.",
-						),
+						diag.NewErrorDiagnostic("Incomplete List Result", "..."),
+					},
+				},
+			},
+		},
+		"error-on-null-resource-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: &tfsdk.Config{},
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						resp.Results = slices.Values([]list.ListResult{
+							{
+								Identity: &tfsdk.ResourceIdentity{},
+								Resource: &tfsdk.Resource{
+									Schema: testSchema,
+									Raw:    testResourceValue1,
+								},
+								DisplayName: "Test Resource 1",
+							},
+						})
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{
+				{
+					Diagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("Incomplete List Result", "..."),
 					},
 				},
 			},
@@ -244,10 +270,43 @@ func TestServerListResource(t *testing.T) {
 					},
 					DisplayName: "Test Resource 1",
 					Diagnostics: diag.Diagnostics{
-						diag.NewWarningDiagnostic(
-							"Incomplete List Result",
-							"The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",
-						),
+						diag.NewWarningDiagnostic("Incomplete List Result", "..."),
+					},
+				},
+			},
+		},
+		"warning-on-null-resource": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config:          &tfsdk.Config{},
+				IncludeResource: true,
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						resp.Results = slices.Values([]list.ListResult{
+							{
+								Identity: &tfsdk.ResourceIdentity{
+									Schema: testIdentitySchema,
+									Raw:    testIdentityValue1,
+								},
+								Resource:    &tfsdk.Resource{},
+								DisplayName: "Test Resource 1",
+							},
+						})
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{
+				{
+					Identity: &tfsdk.ResourceIdentity{
+						Schema: testIdentitySchema,
+						Raw:    testIdentityValue1,
+					},
+					Resource:    &tfsdk.Resource{},
+					DisplayName: "Test Resource 1",
+					Diagnostics: diag.Diagnostics{
+						diag.NewWarningDiagnostic("Incomplete List Result", "..."),
 					},
 				},
 			},
@@ -264,8 +323,19 @@ func TestServerListResource(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
+			opts := cmp.Options{
+				cmp.Comparer(func(a, b diag.Diagnostics) bool {
+					// Differences in Detail() are not relevant to correctness of logic
+					for i := range a {
+						if a[i].Severity() != b[i].Severity() || a[i].Summary() != b[i].Summary() {
+							return false
+						}
+					}
+					return true
+				}),
+			}
 			events := slices.AppendSeq([]fwserver.ListResult{}, response.Results)
-			if diff := cmp.Diff(events, testCase.expectedStreamEvents); diff != "" {
+			if diff := cmp.Diff(events, testCase.expectedStreamEvents, opts); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}
 		})

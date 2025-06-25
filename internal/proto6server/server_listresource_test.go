@@ -31,7 +31,6 @@ func TestServerListResource(t *testing.T) {
 	}
 
 	type ThingResource struct {
-		// TODO: how do we feel about this?
 		ThingResourceIdentity
 		Name string `tfsdk:"name"`
 	}
@@ -106,7 +105,15 @@ func TestServerListResource(t *testing.T) {
 						continue
 					}
 
-					result := req.ToListResult(ctx, resources[name].ThingResourceIdentity, resources[name], name)
+					result := req.NewListResult()
+					result.DisplayName = name
+
+					diags = result.Identity.Set(ctx, resources[name].ThingResourceIdentity)
+					result.Diagnostics = append(result.Diagnostics, diags...)
+
+					diags = result.Resource.Set(ctx, resources[name])
+					result.Diagnostics = append(result.Diagnostics, diags...)
+
 					results = append(results, result)
 				}
 				resp.Results = slices.Values(results)
@@ -124,9 +131,14 @@ func TestServerListResource(t *testing.T) {
 		}
 
 		r.ListMethod = func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-			result := req.ToListResult(ctx, resources["plateau"].ThingResourceIdentity, nil, "plateau")
+			result := req.NewListResult()
+			result.DisplayName = "plateau"
 
-			resp.Results = slices.Values([]list.ListResult{result})
+			diags := result.Identity.Set(ctx, resources["plateau"].ThingResourceIdentity)
+			result.Diagnostics = append(result.Diagnostics, diags...)
+
+			results := []list.ListResult{result}
+			resp.Results = slices.Values(results)
 		}
 
 		return r
@@ -264,6 +276,7 @@ func TestServerListResource(t *testing.T) {
 				{
 					DisplayName: "plateau",
 					Identity:    expectedResourceIdentities["plateau"],
+					Resource:    &tfprotov6.DynamicValue{MsgPack: []uint8{0xc0}},
 					Diagnostics: []*tfprotov6.Diagnostic{
 						{
 							Severity: tfprotov6.DiagnosticSeverityWarning,

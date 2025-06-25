@@ -127,18 +127,22 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 		return ListResult(result)
 	}
 
-	if result.Identity == nil { // TODO: is result.Identity.Raw.IsNull() a practical concern?
+	if result.Identity == nil || result.Identity.Raw.IsNull() {
 		return ListResultError(
 			"Incomplete List Result",
-			"The provider did not populate the Identity field in the ListResourceResult. This may be due to an error in the provider's implementation.",
+			"When listing resources, an implementation issue was found. "+
+				"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
+				"The \"Identity\" field is nil.\n\n",
 		)
 	}
 
 	if req.IncludeResource {
-		if result.Resource == nil { // TODO: is result.Resource.Raw.IsNull() a practical concern?
+		if result.Resource == nil || result.Resource.Raw.IsNull() {
 			result.Diagnostics.AddWarning(
 				"Incomplete List Result",
-				"The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",
+				"When listing resources, an implementation issue was found. "+
+					"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
+					"The \"IncludeResource\" field in the ListRequest is true, but the \"Resource\" field in the ListResult is nil.\n\n",
 			)
 		}
 	}

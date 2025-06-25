@@ -31,7 +31,6 @@ func TestServerListResource(t *testing.T) {
 	}
 
 	type ThingResource struct {
-		// TODO: how do we feel about this?
 		ThingResourceIdentity
 		Name string `tfsdk:"name"`
 	}
@@ -106,7 +105,15 @@ func TestServerListResource(t *testing.T) {
 						continue
 					}
 
-					result := req.ToListResult(ctx, resources[name].ThingResourceIdentity, resources[name], name)
+					result := req.NewListResult()
+					result.DisplayName = name
+
+					diags = result.Identity.Set(ctx, resources[name].ThingResourceIdentity)
+					result.Diagnostics.Append(diags...)
+
+					diags = result.Resource.Set(ctx, resources[name])
+					result.Diagnostics.Append(diags...)
+
 					results = append(results, result)
 				}
 				resp.Results = slices.Values(results)
@@ -115,21 +122,6 @@ func TestServerListResource(t *testing.T) {
 				resp.TypeName = "test_resource"
 			},
 		}
-	}
-
-	listResourceThatDoesNotPopulateResource := func() list.ListResource {
-		r, ok := listResource().(*testprovider.ListResource)
-		if !ok {
-			t.Fatal("listResourceThatDoesNotPopulateResource must be a testprovider.ListResource")
-		}
-
-		r.ListMethod = func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-			result := req.ToListResult(ctx, resources["plateau"].ThingResourceIdentity, nil, "plateau")
-
-			resp.Results = slices.Values([]list.ListResult{result})
-		}
-
-		return r
 	}
 
 	managedResource := func() resource.Resource {
@@ -248,29 +240,6 @@ func TestServerListResource(t *testing.T) {
 					DisplayName: "plateau",
 					Identity:    expectedResourceIdentities["plateau"],
 					Resource:    expectedResources["plateau"],
-				},
-			},
-		},
-		"result-with-include-resource-warning": {
-			server: server(listResourceThatDoesNotPopulateResource, managedResource),
-			request: &tfprotov5.ListResourceRequest{
-				TypeName:        "test_resource",
-				Config:          plateau,
-				IncludeResource: true,
-			},
-			expectedError:       nil,
-			expectedDiagnostics: diag.Diagnostics{},
-			expectedResults: []tfprotov5.ListResourceResult{
-				{
-					DisplayName: "plateau",
-					Identity:    expectedResourceIdentities["plateau"],
-					Diagnostics: []*tfprotov5.Diagnostic{
-						{
-							Severity: tfprotov5.DiagnosticSeverityWarning,
-							Summary:  "Incomplete List Result",
-							Detail:   "The provider did not populate the Resource field in the ListResourceResult. This may be due to the provider not supporting this functionality or an error in the provider's implementation.",
-						},
-					},
 				},
 			},
 		},

@@ -88,7 +88,7 @@ type ListResourceWithValidateConfig interface {
 
 // ListRequest represents a request for the provider to list instances of a
 // managed resource type that satisfy a user-defined request. An instance of
-// this reqeuest struct is passed as an argument to the provider's List
+// this request struct is passed as an argument to the provider's List
 // function implementation.
 type ListRequest struct {
 	// Config is the configuration the user supplied for listing resource

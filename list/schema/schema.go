@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-// Schema must satify the fwschema.Schema interface.
+// Schema must satisfy the fwschema.Schema interface.
 var _ fwschema.Schema = Schema{}
 
 // Schema defines the structure and value types of a list block. This is

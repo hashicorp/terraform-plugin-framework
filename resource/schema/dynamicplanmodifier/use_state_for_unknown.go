@@ -36,9 +36,8 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyDynamic implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyDynamic(ctx context.Context, req planmodifier.DynamicRequest, resp *planmodifier.DynamicResponse) {
-	// Do nothing if there is no state value.
-	// This also requires checking if the underlying value is null.
-	if req.StateValue.IsNull() || req.StateValue.IsUnderlyingValueNull() {
+	// Do nothing if there is no state (resource is being created).
+	if req.State.Raw.IsNull() {
 		return
 	}
 

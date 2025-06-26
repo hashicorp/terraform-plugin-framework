@@ -9,10 +9,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
@@ -26,6 +27,16 @@ func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.MapRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Map{ElementType: tftypes.String},
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.MapNull(types.StringType),
 				PlanValue:   types.MapUnknown(types.StringType),
 				ConfigValue: types.MapNull(types.StringType),
@@ -42,6 +53,23 @@ func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.MapRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Map{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.Map{ElementType: tftypes.String},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(tftypes.String, "other"),
+								},
+							),
+						},
+					),
+				},
 				StateValue:  types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("other")}),
 				PlanValue:   types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")}),
 				ConfigValue: types.MapNull(types.StringType),
@@ -50,16 +78,59 @@ func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
 				PlanValue: types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")}),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.MapRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Map{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.Map{ElementType: tftypes.String},
+								map[string]tftypes.Value{
+									"testkey": tftypes.NewValue(tftypes.String, "test"),
+								},
+							),
+						},
+					),
+				},
 				StateValue:  types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")}),
 				PlanValue:   types.MapUnknown(types.StringType),
 				ConfigValue: types.MapNull(types.StringType),
 			},
 			expected: &planmodifier.MapResponse{
 				PlanValue: types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")}),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.MapRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Map{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.Map{ElementType: tftypes.String},
+								nil,
+							),
+						},
+					),
+				},
+				StateValue:  types.MapNull(types.StringType),
+				PlanValue:   types.MapUnknown(types.StringType),
+				ConfigValue: types.MapNull(types.StringType),
+			},
+			expected: &planmodifier.MapResponse{
+				PlanValue: types.MapNull(types.StringType),
 			},
 		},
 		"unknown-config": {
@@ -73,46 +144,6 @@ func TestUseStateForUnknownModifierPlanModifyMap(t *testing.T) {
 				StateValue:  types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")}),
 				PlanValue:   types.MapUnknown(types.StringType),
 				ConfigValue: types.MapUnknown(types.StringType),
-			},
-			expected: &planmodifier.MapResponse{
-				PlanValue: types.MapUnknown(types.StringType),
-			},
-		},
-		"under-list": {
-			request: planmodifier.MapRequest{
-				ConfigValue: types.MapNull(types.StringType),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.MapUnknown(types.StringType),
-				StateValue:  types.MapNull(types.StringType),
-			},
-			expected: &planmodifier.MapResponse{
-				PlanValue: types.MapUnknown(types.StringType),
-			},
-		},
-		"under-set": {
-			request: planmodifier.MapRequest{
-				ConfigValue: types.MapNull(types.StringType),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.MapType{ElemType: types.StringType},
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.MapType{ElemType: types.StringType},
-								},
-								map[string]attr.Value{
-									"nested_test": types.MapUnknown(types.StringType),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.MapUnknown(types.StringType),
-				StateValue: types.MapNull(types.StringType),
 			},
 			expected: &planmodifier.MapResponse{
 				PlanValue: types.MapUnknown(types.StringType),

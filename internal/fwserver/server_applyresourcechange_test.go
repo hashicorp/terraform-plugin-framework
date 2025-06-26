@@ -1840,7 +1840,7 @@ func TestServerApplyResourceChange(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unexpected Identity Change",
-						"During the update operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+						"During the update operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 							"Planned Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
 							"New Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",

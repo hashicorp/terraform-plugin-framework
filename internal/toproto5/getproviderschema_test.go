@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -83,6 +84,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -114,6 +116,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -147,6 +150,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -178,6 +182,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -211,6 +216,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -242,6 +248,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -275,6 +282,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -307,6 +315,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -338,6 +347,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -369,6 +379,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -400,6 +411,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -431,6 +443,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -462,6 +475,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -500,6 +514,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -535,6 +550,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -577,6 +593,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -611,6 +628,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -646,6 +664,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -680,6 +699,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -711,6 +731,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -749,6 +770,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -784,6 +806,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -826,6 +849,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -864,6 +888,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -898,6 +923,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -931,6 +957,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -962,6 +989,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -993,6 +1021,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1038,6 +1067,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1083,6 +1113,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1126,6 +1157,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas:          map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -1174,8 +1206,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-computed": {
@@ -1205,8 +1238,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-deprecated": {
@@ -1238,8 +1272,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-optional": {
@@ -1269,8 +1304,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-optional-computed": {
@@ -1302,8 +1338,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-required": {
@@ -1333,8 +1370,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-sensitive": {
@@ -1366,8 +1404,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-write-only": {
@@ -1398,8 +1437,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-bool": {
@@ -1429,8 +1469,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-float32": {
@@ -1460,8 +1501,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-float64": {
@@ -1491,8 +1533,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-int32": {
@@ -1522,8 +1565,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-int64": {
@@ -1553,8 +1597,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-list-string": {
@@ -1591,8 +1636,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-nested-attributes": {
@@ -1626,8 +1672,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-object": {
@@ -1668,8 +1715,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-string": {
@@ -1702,8 +1750,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-map-nested-attributes": {
@@ -1737,8 +1786,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-map-string": {
@@ -1771,8 +1821,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-number": {
@@ -1802,8 +1853,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-object": {
@@ -1840,8 +1892,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-nested-attributes": {
@@ -1875,8 +1928,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-object": {
@@ -1917,8 +1971,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-set-string": {
@@ -1955,8 +2010,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-string": {
@@ -1989,8 +2045,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-single-nested-attributes": {
@@ -2022,8 +2079,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the ephemeral resource \"test_ephemeral_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-string": {
@@ -2053,8 +2111,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-dynamic": {
@@ -2084,8 +2143,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-block-list": {
@@ -2129,8 +2189,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-block-set": {
@@ -2174,8 +2235,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"ephemeral-resource-block-single": {
@@ -2217,8 +2279,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions": {
@@ -2249,7 +2312,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-deprecationmessage": {
@@ -2273,7 +2337,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-description": {
@@ -2297,7 +2362,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-parameters": {
@@ -2334,7 +2400,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-result": {
@@ -2356,7 +2423,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-summary": {
@@ -2380,7 +2448,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Summary: "test summary",
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"functions-variadicparameter": {
@@ -2406,6 +2475,187 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
+			},
+		},
+		"list-resource-multiple-list-resources": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_list_resource_1": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_list_resource_2": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource_1": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Required: true,
+									Name:     "test_attribute",
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+					"test_list_resource_2": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Required: true,
+									Name:     "test_attribute",
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"list-resource-attribute-deprecated": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_list_resource": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								DeprecationMessage: "deprecated",
+								Optional:           true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Deprecated: true,
+									Name:       "test_attribute",
+									Optional:   true,
+									Type:       tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"list-resource-attribute-optional": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_list_resource": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Optional: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"list-resource-attribute-required": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_list_resource": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+			},
+		},
+		"list-resource-attribute-type-string": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ListResourceSchemas: map[string]fwschema.Schema{
+					"test_list_resource": listschema.Schema{
+						Attributes: map[string]listschema.Attribute{
+							"test_attribute": listschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Required: true,
+									Name:     "test_attribute",
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
 				ResourceSchemas: map[string]*tfprotov5.Schema{},
 			},
 		},
@@ -2424,6 +2674,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2453,6 +2704,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2481,6 +2733,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2510,6 +2763,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2539,6 +2793,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2568,6 +2823,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2596,6 +2852,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2624,6 +2881,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2652,6 +2910,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2680,6 +2939,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2711,6 +2971,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2756,8 +3017,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-attribute-type-list-object": {
@@ -2779,6 +3041,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2814,6 +3077,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2857,8 +3121,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-attribute-type-map-string": {
@@ -2876,6 +3141,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2906,6 +3172,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2937,6 +3204,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -2982,8 +3250,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-attribute-type-set-object": {
@@ -3005,6 +3274,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3042,6 +3312,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3075,6 +3346,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3116,8 +3388,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-attribute-type-string": {
@@ -3134,6 +3407,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3162,6 +3436,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3196,6 +3471,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -3238,6 +3514,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -3278,6 +3555,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						BlockTypes: []*tfprotov5.SchemaNestedBlock{
@@ -3314,6 +3592,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3342,6 +3621,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3370,6 +3650,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3398,6 +3679,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3426,6 +3708,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3457,6 +3740,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3502,8 +3786,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-object": {
@@ -3541,8 +3826,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-string": {
@@ -3560,6 +3846,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3603,8 +3890,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-map-string": {
@@ -3622,6 +3910,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3652,6 +3941,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3683,6 +3973,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3728,8 +4019,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-set-object": {
@@ -3751,6 +4043,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3788,6 +4081,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3821,6 +4115,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3862,8 +4157,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The provider_meta schema couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions:       map[string]*tfprotov5.Function{},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
+				ResourceSchemas:     map[string]*tfprotov5.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-string": {
@@ -3880,6 +4176,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ProviderMeta: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -3917,6 +4214,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource_1": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3959,6 +4257,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -3991,6 +4290,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4023,6 +4323,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4055,6 +4356,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4087,6 +4389,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4119,6 +4422,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4152,6 +4456,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4184,6 +4489,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4215,6 +4521,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4246,6 +4553,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4277,6 +4585,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4308,6 +4617,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4342,6 +4652,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4390,7 +4701,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -4417,6 +4729,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4455,6 +4768,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4501,7 +4815,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -4524,6 +4839,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4557,6 +4873,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4591,6 +4908,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4639,7 +4957,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -4666,6 +4985,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4706,6 +5026,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4742,6 +5063,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4786,7 +5108,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Detail:   "The schema for the resource \"test_resource\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\nAttributeName(\"test_attribute\"): protocol version 5 cannot have Attributes set",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": nil,
 				},
@@ -4808,6 +5131,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4839,6 +5163,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4876,6 +5201,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4921,6 +5247,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4964,6 +5291,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block: &tfprotov5.SchemaBlock{
@@ -4999,6 +5327,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				ResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_resource": {
 						Block:   &tfprotov5.SchemaBlock{},

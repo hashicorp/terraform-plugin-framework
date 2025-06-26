@@ -107,6 +107,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -163,8 +164,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -174,7 +174,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -206,8 +208,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -216,7 +217,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -298,7 +301,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:           map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -355,8 +359,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -366,7 +369,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				Functions:                map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -398,8 +403,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -408,7 +412,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -473,6 +479,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -521,8 +528,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -532,7 +538,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -564,8 +572,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -574,7 +581,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -607,6 +616,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
@@ -648,6 +658,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -718,6 +729,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -797,8 +809,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -808,7 +819,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -840,8 +853,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
 						Severity: tfprotov5.DiagnosticSeverityError,
@@ -850,7 +862,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},

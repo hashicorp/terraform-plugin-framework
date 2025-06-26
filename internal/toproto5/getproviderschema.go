@@ -22,6 +22,7 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		Diagnostics:              Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema, len(fw.EphemeralResourceSchemas)),
 		Functions:                make(map[string]*tfprotov5.Function, len(fw.FunctionDefinitions)),
+		ListResourceSchemas:      make(map[string]*tfprotov5.Schema, len(fw.ListResourceSchemas)),
 		ResourceSchemas:          make(map[string]*tfprotov5.Schema, len(fw.ResourceSchemas)),
 		ServerCapabilities:       ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
@@ -95,6 +96,18 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 			})
 
 			return protov5
+		}
+	}
+
+	for listResourceType, listResourceSchema := range fw.ListResourceSchemas {
+		protov5.ListResourceSchemas[listResourceType], err = Schema(ctx, listResourceSchema)
+
+		if err != nil {
+			protov5.Diagnostics = append(protov5.Diagnostics, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Error converting list resource schema",
+				Detail:   "The schema for the list resource \"" + listResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
 		}
 	}
 

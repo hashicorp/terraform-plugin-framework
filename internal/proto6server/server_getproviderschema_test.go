@@ -107,6 +107,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -173,8 +174,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions:                map[string]*tfprotov6.Function{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -215,8 +217,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions:                map[string]*tfprotov6.Function{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -298,7 +301,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				Functions:           map[string]*tfprotov6.Function{},
+				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -355,8 +359,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -366,7 +369,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -398,8 +403,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -408,7 +412,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -473,6 +479,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
+				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -521,8 +528,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -532,7 +538,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -564,8 +572,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -574,7 +581,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -607,6 +616,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{
 						Attributes: []*tfprotov6.SchemaAttribute{
@@ -648,6 +658,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -718,6 +729,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -797,8 +809,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -808,7 +819,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},
@@ -840,8 +853,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov6.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
-				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
-				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -850,7 +862,9 @@ func TestServerGetProviderSchema(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: map[string]*tfprotov6.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				Provider: &tfprotov6.Schema{
 					Block: &tfprotov6.SchemaBlock{},
 				},

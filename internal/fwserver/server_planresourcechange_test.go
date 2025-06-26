@@ -4075,7 +4075,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unexpected Identity Change",
-						"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+						"During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 							"Prior Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
 							"Planned Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",
@@ -6777,7 +6777,7 @@ func TestServerPlanResourceChange(t *testing.T) {
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Unexpected Identity Change",
-						"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+						"During the planning operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
 							"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
 							"Prior Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"id-123\">>\n\n"+
 							"Planned Identity: tftypes.Object[\"test_id\":tftypes.String]<\"test_id\":tftypes.String<\"new-id-123\">>",

@@ -6,6 +6,8 @@ package proto5server
 import (
 	"bytes"
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/list"
+	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -578,6 +580,376 @@ func TestServerGetProviderSchema(t *testing.T) {
 						Severity: tfprotov5.DiagnosticSeverityError,
 						Summary:  "Function Name Missing",
 						Detail: "The *testprovider.Function Function returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listschemas": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = listschema.Schema{
+												Attributes: map[string]listschema.Attribute{
+													"test1": listschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource1"
+										},
+									}
+								},
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = listschema.Schema{
+												Attributes: map[string]listschema.Attribute{
+													"test2": listschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource2"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource1"
+										},
+									}
+								},
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test2": resourceschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource1": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+					"test_list_resource2": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test2",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource1": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+					"test_list_resource2": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test2",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listschemas-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = listschema.Schema{
+												Attributes: map[string]listschema.Attribute{
+													"test1": listschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = listschema.Schema{
+												Attributes: map[string]listschema.Attribute{
+													"test2": listschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Duplicate ListResource Type Defined",
+						Detail: "The test_list_resource ListResource type name was returned for multiple list resources. " +
+							"ListResource type names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				Functions:                map[string]*tfprotov5.Function{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listschemas-empty-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = ""
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+											resp.Schema = resourceschema.Schema{
+												Attributes: map[string]resourceschema.Attribute{
+													"test1": resourceschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "ListResource Type Name Missing",
+						Detail: "The *testprovider.ListResource ListResource returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": {
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+				},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listschemas-missing-resource-definition": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = listschema.Schema{
+												Attributes: map[string]listschema.Attribute{
+													"test1": listschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				DataSourceSchemas: map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "ListResource Type Defined without a Matching Managed Resource Type",
+						Detail: "The test_list_resource ListResource type name was returned, but no matching managed Resource type was defined. " +
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},

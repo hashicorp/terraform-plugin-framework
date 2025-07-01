@@ -22,6 +22,7 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 		Diagnostics:        Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0, len(fw.EphemeralResources)),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0, len(fw.Functions)),
+		ListResources:      make([]tfprotov5.ListResourceMetadata, 0, len(fw.ListResources)),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(fw.Resources)),
 		ServerCapabilities: ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
@@ -36,6 +37,10 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 
 	for _, function := range fw.Functions {
 		protov5.Functions = append(protov5.Functions, FunctionMetadata(ctx, function))
+	}
+
+	for _, listResource := range fw.ListResources {
+		protov5.ListResources = append(protov5.ListResources, ListResourceMetadata(ctx, listResource))
 	}
 
 	for _, resource := range fw.Resources {

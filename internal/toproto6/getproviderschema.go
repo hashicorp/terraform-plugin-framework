@@ -22,6 +22,7 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		Diagnostics:              Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfprotov6.Schema, len(fw.EphemeralResourceSchemas)),
 		Functions:                make(map[string]*tfprotov6.Function, len(fw.FunctionDefinitions)),
+		ListResourceSchemas:      make(map[string]*tfprotov6.Schema, len(fw.ListResourceSchemas)),
 		ResourceSchemas:          make(map[string]*tfprotov6.Schema, len(fw.ResourceSchemas)),
 		ServerCapabilities:       ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
@@ -92,6 +93,20 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 				Severity: tfprotov6.DiagnosticSeverityError,
 				Summary:  "Error converting ephemeral resource schema",
 				Detail:   "The schema for the ephemeral resource \"" + ephemeralResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
+	}
+
+	for listResourceType, listResourceSchema := range fw.ListResourceSchemas {
+		protov6.ListResourceSchemas[listResourceType], err = Schema(ctx, listResourceSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting list resource schema",
+				Detail:   "The schema for the list resource \"" + listResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
 			})
 
 			return protov6

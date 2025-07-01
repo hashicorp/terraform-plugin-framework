@@ -73,6 +73,9 @@ type Schema interface {
 	// AttributeTypeAtPath should return the framework type of the Attribute at
 	// the given Terraform path or return an error.
 	TypeAtTerraformPath(context.Context, *tftypes.AttributePath) (attr.Type, error)
+
+	// EmptyValue should return an empty tftypes.Value of the schema's TerraformType
+	EmptyValue(context.Context) tftypes.Value
 }
 
 // SchemaApplyTerraform5AttributePathStep is a helper function to perform base
@@ -193,6 +196,19 @@ func SchemaTypeAtPath(ctx context.Context, s Schema, p path.Path) (attr.Type, di
 	}
 
 	return attrType, diags
+}
+
+func EmptySchemaValue(ctx context.Context, s Schema) tftypes.Value {
+	vals := make(map[string]tftypes.Value)
+	for name, attr := range s.GetAttributes() {
+		attr.GetType()
+		vals[name] = tftypes.NewValue(attr.GetType().TerraformType(ctx), nil)
+	}
+	for name, block := range s.GetBlocks() {
+		vals[name] = tftypes.NewValue(block.Type().TerraformType(ctx), nil)
+	}
+
+	return tftypes.NewValue(s.Type().TerraformType(ctx), vals)
 }
 
 // SchemaTypeAtTerraformPath is a helper function to perform base type handling

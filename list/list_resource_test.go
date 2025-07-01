@@ -5,9 +5,15 @@ package list_test
 
 import (
 	"context"
+	"fmt"
+	"testing"
 
+	"github.com/hashicorp/go-cty/cty/msgpack"
+	"github.com/hashicorp/terraform-plugin-framework/hcl2shim"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	sdk "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	tsdk "github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 type ComputeInstanceResource struct {
@@ -48,4 +54,63 @@ func ExampleResource_listable() {
 	var _ resource.ResourceWithConfigure = &ComputeInstanceResource{}
 
 	// Output:
+}
+
+func TestListResultToResourceData(t *testing.T) {
+	t.Parallel()
+
+	// 1: we have a resource type defined in SDKv2
+	sdkResource := sdk.Resource{
+		Schema: map[string]*sdk.Schema{
+			"id": &sdk.Schema{
+				Type: sdk.TypeString,
+			},
+			"name": &sdk.Schema{
+				Type: sdk.TypeString,
+			},
+		},
+	}
+
+	// 2: from the resource type, we can obtain an initialized ResourceData value
+	d := sdkResource.Data(&tsdk.InstanceState{})
+
+	// 3: the initialized ResourceData value is schema-aware
+	d.SetId("#groot")
+
+	if err := d.Set("name", "groot"); err != nil {
+		t.Fatalf("Error setting `name`: %v", err)
+	}
+
+	if err := d.Set("nom", "groot"); err == nil {
+		t.Fatal("False negative outcome: `nom` is not a schema attribute")
+	}
+
+	// 4: mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
+
+	state := d.State()
+	if state == nil {
+		t.Fatal("Expected state to be non-nil")
+	}
+
+	schemaBlock := sdkResource.CoreConfigSchema()
+	if schemaBlock == nil {
+		t.Fatal("Expected schemaBlock to be non-nil")
+	}
+
+	// Copied hcl2shim wholesale for purposes of making the test pass
+	newStateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, schemaBlock.ImpliedType())
+	if err != nil {
+		t.Fatalf("Error converting state attributes to HCL2 value: %v", err)
+	}
+
+	// newStateVal = normalizeNullValues(newStateVal, stateVal, false)
+	// newStateVal = copyTimeoutValues(newStateVal, stateVal)
+	// newStateVal = setWriteOnlyNullValues(newStateVal, schemaBlock)
+
+	pack, err := msgpack.Marshal(newStateVal, schemaBlock.ImpliedType())
+	if err != nil {
+		t.Fatalf("Error marshaling new state value to MsgPack: %v", err)
+	}
+
+	fmt.Printf("MsgPack: %s\n", pack)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
@@ -62,8 +63,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_data_source2",
 					},
 				},
-				Functions:          []tfprotov6.FunctionMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -109,8 +111,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions:          []tfprotov6.FunctionMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -148,8 +151,9 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions:          []tfprotov6.FunctionMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
@@ -194,8 +198,9 @@ func TestServerGetMetadata(t *testing.T) {
 						TypeName: "test_ephemeral_resource2",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				Functions:     []tfprotov6.FunctionMetadata{},
+				ListResources: []tfprotov6.ListResourceMetadata{},
+				Resources:     []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -230,8 +235,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -241,8 +245,10 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -270,8 +276,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -280,8 +285,10 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -326,7 +333,8 @@ func TestServerGetMetadata(t *testing.T) {
 						Name: "function2",
 					},
 				},
-				Resources: []tfprotov6.ResourceMetadata{},
+				ListResources: []tfprotov6.ListResourceMetadata{},
+				Resources:     []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -361,8 +369,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -372,8 +379,10 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -401,8 +410,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -411,8 +419,231 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listresources": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource1"
+										},
+									}
+								},
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource2"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource1"
+										},
+									}
+								},
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources: []tfprotov6.ListResourceMetadata{
+					{
+						TypeName: "test_list_resource1",
+					},
+					{
+						TypeName: "test_list_resource2",
+					},
+				},
+				Resources: []tfprotov6.ResourceMetadata{
+					{
+						TypeName: "test_list_resource1",
+					},
+					{
+						TypeName: "test_list_resource2",
+					},
+				},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listresources-duplicate-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "Duplicate ListResource Type Defined",
+						Detail: "The test_list_resource ListResource type name was returned for multiple list resources. " +
+							"ListResource type names must be unique. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listresources-empty-type-name": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = ""
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "ListResource Type Name Missing",
+						Detail: "The *testprovider.ListResource ListResource returned an empty string from the Metadata method. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"listresources-missing-resource-definition": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
+							return []func() list.ListResource{
+								func() list.ListResource {
+									return &testprovider.ListResource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+											resp.TypeName = "test_list_resource"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{},
+				Diagnostics: []*tfprotov6.Diagnostic{
+					{
+						Severity: tfprotov6.DiagnosticSeverityError,
+						Summary:  "ListResource Type Defined without a Matching Managed Resource Type",
+						Detail: "The test_list_resource ListResource type name was returned, but no matching managed Resource type was defined. " +
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					},
+				},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -450,6 +681,7 @@ func TestServerGetMetadata(t *testing.T) {
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{
 					{
 						TypeName: "test_resource1",
@@ -492,8 +724,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -503,8 +734,10 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -532,8 +765,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &tfprotov6.GetMetadataRequest{},
 			expectedResponse: &tfprotov6.GetMetadataResponse{
-				DataSources:        []tfprotov6.DataSourceMetadata{},
-				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
@@ -542,8 +774,10 @@ func TestServerGetMetadata(t *testing.T) {
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,

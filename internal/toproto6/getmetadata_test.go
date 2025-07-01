@@ -47,6 +47,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 			},
 		},
@@ -74,6 +75,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 			},
 		},
@@ -98,8 +100,9 @@ func TestGetMetadataResponse(t *testing.T) {
 						TypeName: "test_ephemeral_resource_2",
 					},
 				},
-				Functions: []tfprotov6.FunctionMetadata{},
-				Resources: []tfprotov6.ResourceMetadata{},
+				Functions:     []tfprotov6.FunctionMetadata{},
+				ListResources: []tfprotov6.ListResourceMetadata{},
+				Resources:     []tfprotov6.ResourceMetadata{},
 			},
 		},
 		"functions": {
@@ -124,6 +127,33 @@ func TestGetMetadataResponse(t *testing.T) {
 						Name: "function2",
 					},
 				},
+				ListResources: []tfprotov6.ListResourceMetadata{},
+				Resources:     []tfprotov6.ResourceMetadata{},
+			},
+		},
+		"listresources": {
+			input: &fwserver.GetMetadataResponse{
+				ListResources: []fwserver.ListResourceMetadata{
+					{
+						TypeName: "test_list_resource_1",
+					},
+					{
+						TypeName: "test_list_resource_2",
+					},
+				},
+			},
+			expected: &tfprotov6.GetMetadataResponse{
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources: []tfprotov6.ListResourceMetadata{
+					{
+						TypeName: "test_list_resource_1",
+					},
+					{
+						TypeName: "test_list_resource_2",
+					},
+				},
 				Resources: []tfprotov6.ResourceMetadata{},
 			},
 		},
@@ -142,6 +172,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources: []tfprotov6.ResourceMetadata{
 					{
 						TypeName: "test_resource_1",
@@ -163,6 +194,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
 				ServerCapabilities: &tfprotov6.ServerCapabilities{
 					GetProviderSchemaOptional: true,

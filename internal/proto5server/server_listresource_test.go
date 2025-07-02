@@ -282,19 +282,68 @@ func TestServerListResource(t *testing.T) {
 	}
 }
 
+type SDKContext string
+
+var SDKResource SDKContext = "sdk_resource"
+
+// a resource type defined in SDKv2
+var sdkResource sdk.Resource = sdk.Resource{
+	Schema: map[string]*sdk.Schema{
+		"id": &sdk.Schema{
+			Type: sdk.TypeString,
+		},
+		"name": &sdk.Schema{
+			Type: sdk.TypeString,
+		},
+	},
+}
+
+func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
+	panic("hats")
+}
+
 func TestServerListResourceProto5ToProto5(t *testing.T) {
 	t.Parallel()
 
-	// 1: we have a resource type defined in SDKv2
-	sdkResource := sdk.Resource{
-		Schema: map[string]*sdk.Schema{
-			"id": &sdk.Schema{
-				Type: sdk.TypeString,
+	server := func(listResource func() list.ListResource) *Server {
+		return &Server{
+			FrameworkServer: fwserver.Server{
+				Provider: &testprovider.Provider{
+					ListResourcesMethod: func(ctx context.Context) []func() list.ListResource {
+						return []func() list.ListResource{listResource}
+					},
+				},
 			},
-			"name": &sdk.Schema{
-				Type: sdk.TypeString,
+		}
+	}
+
+	listResource := func() list.ListResource {
+		return &testprovider.ListResource{
+			ListMethod: listFunc,
+			MetadataMethod: func(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+				resp.TypeName = "test_resource"
 			},
-		},
+		}
+	}
+	aServer := server(listResource)
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, SDKResource, sdkResource)
+	req := &tfprotov5.ListResourceRequest{}
+
+	stream, err := aServer.ListResource(ctx, req)
+	if err != nil {
+		t.Fatalf("unexpected error returned from ListResource: %v", err)
+	}
+
+	values := slices.Collect(stream.Results)
+	if len(values) > 0 {
+		if len(values[0].Diagnostics) > 0 {
+			for _, diag := range values[0].Diagnostics {
+				t.Logf("unexpected diagnostic returned from ListResource: %v", diag)
+			}
+			t.FailNow()
+		}
 	}
 
 	// 2: from the resource type, we can obtain an initialized ResourceData value

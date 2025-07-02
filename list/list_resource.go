@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ListResource represents an implementation of listing instances of a managed resource
@@ -130,7 +131,8 @@ type ListResultsStream struct {
 	//
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
-	Results iter.Seq[ListResult]
+	Results       iter.Seq[ListResult]
+	Proto5Results iter.Seq[tfprotov5.ListResourceResult]
 }
 
 // NoListResults is an iterator that pushes zero results.

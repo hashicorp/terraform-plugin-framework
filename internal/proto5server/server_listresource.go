@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	sdk "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // ListRequestErrorDiagnostics returns a value suitable for
@@ -23,6 +25,21 @@ func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) 
 			push(tfprotov5.ListResourceResult{Diagnostics: protoDiags})
 		},
 	}, nil
+}
+
+type SDKContext string
+
+var SDKResourceKey SDKContext = "sdk_resource"
+
+// NewContextWithSDKResource returns a new Context that carries value r
+func NewContextWithSDKResource(ctx context.Context, r *sdk.Resource) context.Context {
+	return context.WithValue(ctx, SDKResourceKey, r)
+}
+
+// FromContext returns the SDK Resource value stored in ctx, if any.
+func SDKResourceFromContext(ctx context.Context) (*sdk.Resource, bool) {
+	r, ok := ctx.Value(SDKResourceKey).(*sdk.Resource)
+	return r, ok
 }
 
 func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
@@ -47,43 +64,57 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		return ListRequestErrorDiagnostics(ctx, allDiags...)
 	}
 
-	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
+	// For something that passes a test, use presence of SDKResource in the context
+	// to choose our adventure. We can refactor this to something more general
+	// that does not couple to SDK.
+	_, ok := SDKResourceFromContext(ctx)
 
-	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
+	switch ok {
+	case true:
+		// A simpler path for list resources that return tfprotov5 results
+		req := list.ListRequest{}
+		stream := list.ListResultsStream{Proto5Results: tfprotov5.NoListResults}
+		listResource.List(ctx, req, &stream)
+		protoStream.Results = stream.Proto5Results
+	case false:
+		resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
 
-	req := &fwserver.ListRequest{
-		Config:                 config,
-		ListResource:           listResource,
-		ResourceSchema:         resourceSchema,
-		ResourceIdentitySchema: identitySchema,
-		IncludeResource:        protoReq.IncludeResource,
-	}
-	stream := &fwserver.ListResultsStream{}
+		identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
 
-	err := s.FrameworkServer.ListResource(ctx, req, stream)
-	if err != nil {
-		return protoStream, err
-	}
+		req := &fwserver.ListRequest{
+			Config:                 config,
+			ListResource:           listResource,
+			ResourceSchema:         resourceSchema,
+			ResourceIdentitySchema: identitySchema,
+			IncludeResource:        protoReq.IncludeResource,
+		}
+		stream := &fwserver.ListResultsStream{}
 
-	protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
-		for result := range stream.Results {
-			var protoResult tfprotov5.ListResourceResult
-			if req.IncludeResource {
-				protoResult = toproto5.ListResourceResultWithResource(ctx, &result)
-			} else {
-				protoResult = toproto5.ListResourceResult(ctx, &result)
-			}
+		err := s.FrameworkServer.ListResource(ctx, req, stream)
+		if err != nil {
+			return protoStream, err
+		}
 
-			if !push(protoResult) {
-				return
+		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
+			for result := range stream.Results {
+				var protoResult tfprotov5.ListResourceResult
+				if req.IncludeResource {
+					protoResult = toproto5.ListResourceResultWithResource(ctx, &result)
+				} else {
+					protoResult = toproto5.ListResourceResult(ctx, &result)
+				}
+
+				if !push(protoResult) {
+					return
+				}
 			}
 		}
 	}

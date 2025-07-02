@@ -282,10 +282,6 @@ func TestServerListResource(t *testing.T) {
 	}
 }
 
-type SDKContext string
-
-var SDKResource SDKContext = "sdk_resource"
-
 // a resource type defined in SDKv2
 var sdkResource sdk.Resource = sdk.Resource{
 	Schema: map[string]*sdk.Schema{
@@ -328,8 +324,10 @@ func TestServerListResourceProto5ToProto5(t *testing.T) {
 	aServer := server(listResource)
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, SDKResource, sdkResource)
-	req := &tfprotov5.ListResourceRequest{}
+	ctx = NewContextWithSDKResource(ctx, &sdkResource)
+	req := &tfprotov5.ListResourceRequest{
+		TypeName: "test_resource",
+	}
 
 	stream, err := aServer.ListResource(ctx, req)
 	if err != nil {
@@ -344,6 +342,10 @@ func TestServerListResourceProto5ToProto5(t *testing.T) {
 			}
 			t.FailNow()
 		}
+	}
+
+	if len(values) == 0 {
+		t.Fatalf("expected 1 list result; got 0 list results")
 	}
 
 	// 2: from the resource type, we can obtain an initialized ResourceData value

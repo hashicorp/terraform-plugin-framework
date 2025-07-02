@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	sdk "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -66,10 +67,10 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 	_, ok := SDKResourceFromContext(ctx)
 	switch ok {
 	case true:
-		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
-			listResult := tfprotov5.ListResourceResult{}
-			push(listResult)
-		}
+		req := list.ListRequest{}
+		stream := list.ListResultsStream{Proto5Results: tfprotov5.NoListResults}
+		listResource.List(ctx, req, &stream)
+		protoStream.Results = stream.Proto5Results
 	case false:
 		resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
 		allDiags.Append(diags...)

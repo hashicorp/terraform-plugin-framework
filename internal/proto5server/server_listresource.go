@@ -64,9 +64,14 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		return ListRequestErrorDiagnostics(ctx, allDiags...)
 	}
 
+	// For something that passes a test, use presence of SDKResource in the context
+	// to choose our adventure. We can refactor this to something more general
+	// that does not couple to SDK.
 	_, ok := SDKResourceFromContext(ctx)
+
 	switch ok {
 	case true:
+		// A simpler path for list resources that return tfprotov5 results
 		req := list.ListRequest{}
 		stream := list.ListResultsStream{Proto5Results: tfprotov5.NoListResults}
 		listResource.List(ctx, req, &stream)

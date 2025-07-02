@@ -40,10 +40,44 @@ func diagnosticResult(format string, args ...any) tfprotov5.ListResourceResult {
 			},
 		},
 	}
-
 }
-func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
 
+// Mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
+func NewProtoV5ListResult(d *sdk.ResourceData, displayName string) tfprotov5.ListResourceResult {
+	state := d.State()
+	if state == nil {
+		return diagnosticResult("Expected state to be non-nil")
+	}
+
+	schemaBlock := sdkResource.CoreConfigSchema()
+	if schemaBlock == nil {
+		return diagnosticResult("Expected schemaBlock to be non-nil")
+	}
+
+	// We've copied hcl2shim wholesale for purposes of making the test pass
+	newStateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, schemaBlock.ImpliedType())
+	if err != nil {
+		return diagnosticResult("Error converting state attributes to HCL2 value: %v", err)
+	}
+
+	// Think about this later
+	// newStateVal = normalizeNullValues(newStateVal, stateVal, false)
+
+	pack, err := msgpack.Marshal(newStateVal, schemaBlock.ImpliedType())
+	if err != nil {
+		return diagnosticResult("Error marshaling new state value to MsgPack: %v", err)
+	}
+
+	fmt.Printf("MsgPack: %s\n", pack)
+
+	listResult := tfprotov5.ListResourceResult{}
+	listResult.Resource = &tfprotov5.DynamicValue{MsgPack: pack}
+	listResult.DisplayName = displayName
+
+	return listResult
+}
+
+func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
 	// This likely gets refactored info as an "adapter" / "mux" concern.
 	sdkResource, ok := SDKResourceFromContext(ctx)
 	if !ok {
@@ -71,65 +105,27 @@ func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResult
 
 		displayName := "I am Groot"
 
-		// Mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
-		// All this logic belongs in an "adapter" concern
-		//
-		// e.g. NewProtoV5ListResult(data *ResourceData, displayName string, diag sdkdiag.Diagnostics)
-		state := d.State()
-		if state == nil {
-			push(diagnosticResult("Expected state to be non-nil"))
-			return
-		}
-
-		schemaBlock := sdkResource.CoreConfigSchema()
-		if schemaBlock == nil {
-			push(diagnosticResult("Expected schemaBlock to be non-nil"))
-			return
-		}
-
-		// We've copied hcl2shim wholesale for purposes of making the test pass
-		newStateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, schemaBlock.ImpliedType())
-		if err != nil {
-			push(diagnosticResult("Error converting state attributes to HCL2 value: %v", err))
-			return
-		}
-
-		// Think about this later
-		// newStateVal = normalizeNullValues(newStateVal, stateVal, false)
-
-		pack, err := msgpack.Marshal(newStateVal, schemaBlock.ImpliedType())
-		if err != nil {
-			push(diagnosticResult("Error marshaling new state value to MsgPack: %v", err))
-			return
-		}
-
-		fmt.Printf("MsgPack: %s\n", pack)
-
-		// Construct a tfprotov5.ListResourceResult
-		listResult := tfprotov5.ListResourceResult{}
-		listResult.Resource = &tfprotov5.DynamicValue{MsgPack: pack}
-		listResult.DisplayName = displayName
-
+		listResult := NewProtoV5ListResult(d, displayName)
 		if !push(listResult) {
 			return
 		}
 	}
 }
 
-func TestServerListResourceProto5ToProto5(t *testing.T) {
-	t.Parallel()
-
-	server := func(listResource func() list.ListResource) *Server {
-		return &Server{
-			FrameworkServer: fwserver.Server{
-				Provider: &testprovider.Provider{
-					ListResourcesMethod: func(ctx context.Context) []func() list.ListResource {
-						return []func() list.ListResource{listResource}
-					},
+func newServer(listResource func() list.ListResource) *Server {
+	return &Server{
+		FrameworkServer: fwserver.Server{
+			Provider: &testprovider.Provider{
+				ListResourcesMethod: func(ctx context.Context) []func() list.ListResource {
+					return []func() list.ListResource{listResource}
 				},
 			},
-		}
+		},
 	}
+}
+
+func TestServerListResourceProto5ToProto5(t *testing.T) {
+	t.Parallel()
 
 	listResource := func() list.ListResource {
 		return &testprovider.ListResource{
@@ -139,7 +135,8 @@ func TestServerListResourceProto5ToProto5(t *testing.T) {
 			},
 		}
 	}
-	aServer := server(listResource)
+
+	server := newServer(listResource)
 
 	ctx := context.Background()
 	ctx = NewContextWithSDKResource(ctx, &sdkResource)
@@ -147,7 +144,7 @@ func TestServerListResourceProto5ToProto5(t *testing.T) {
 		TypeName: "test_resource",
 	}
 
-	stream, err := aServer.ListResource(ctx, req)
+	stream, err := server.ListResource(ctx, req)
 	if err != nil {
 		t.Fatalf("unexpected error returned from ListResource: %v", err)
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package proto5server
 
 import (
@@ -69,6 +72,9 @@ func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResult
 		displayName := "I am Groot"
 
 		// Mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
+		// All this logic belongs in an "adapter" concern
+		//
+		// e.g. NewProtoV5ListResult(data *ResourceData, displayName string, diag sdkdiag.Diagnostics)
 		state := d.State()
 		if state == nil {
 			push(diagnosticResult("Expected state to be non-nil"))

@@ -40,11 +40,17 @@ func diagnosticResult(format string, args ...any) tfprotov5.ListResourceResult {
 
 }
 func listFunc(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
+
+	// This likely gets refactored info as an "adapter" / "mux" concern.
 	sdkResource, ok := SDKResourceFromContext(ctx)
 	if !ok {
 		return
 	}
 
+	// This is different. We've added `stream.Proto5Results` so the provider
+	// can generate plugin-go values instead of Framework values. Framework
+	// performs no further processing on these values -- it only returns them
+	// to plugin-go.
 	stream.Proto5Results = func(push func(tfprotov5.ListResourceResult) bool) {
 		// From the resource type, we can obtain an initialized ResourceData value
 		d := sdkResource.Data(&terraformsdk.InstanceState{ID: "#groot"})

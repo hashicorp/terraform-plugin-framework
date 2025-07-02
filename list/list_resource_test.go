@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/hcl2shim"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	sdk "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	tsdk "github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -72,12 +73,10 @@ func TestListResultToResourceData(t *testing.T) {
 	}
 
 	// 2: from the resource type, we can obtain an initialized ResourceData value
-	d := sdkResource.Data(&tsdk.InstanceState{})
+	d := sdkResource.Data(&tsdk.InstanceState{ID: "#groot"})
 
 	// 3: the initialized ResourceData value is schema-aware
-	d.SetId("#groot")
-
-	if err := d.Set("name", "groot"); err != nil {
+	if err := d.Set("name", "Groot"); err != nil {
 		t.Fatalf("Error setting `name`: %v", err)
 	}
 
@@ -85,8 +84,9 @@ func TestListResultToResourceData(t *testing.T) {
 		t.Fatal("False negative outcome: `nom` is not a schema attribute")
 	}
 
-	// 4: mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
+	displayName := "I am Groot"
 
+	// 4: mimic SDK GRPCProviderServer.ReadResource ResourceData -> MsgPack
 	state := d.State()
 	if state == nil {
 		t.Fatal("Expected state to be non-nil")
@@ -104,8 +104,6 @@ func TestListResultToResourceData(t *testing.T) {
 	}
 
 	// newStateVal = normalizeNullValues(newStateVal, stateVal, false)
-	// newStateVal = copyTimeoutValues(newStateVal, stateVal)
-	// newStateVal = setWriteOnlyNullValues(newStateVal, schemaBlock)
 
 	pack, err := msgpack.Marshal(newStateVal, schemaBlock.ImpliedType())
 	if err != nil {
@@ -113,4 +111,9 @@ func TestListResultToResourceData(t *testing.T) {
 	}
 
 	fmt.Printf("MsgPack: %s\n", pack)
+
+	// 5: construct a tfprotov5.ListResourceResult
+	listResult := tfprotov5.ListResourceResult{}
+	listResult.Resource = &tfprotov5.DynamicValue{MsgPack: pack}
+	listResult.DisplayName = displayName
 }

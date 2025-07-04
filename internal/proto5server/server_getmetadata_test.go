@@ -810,6 +810,10 @@ func TestServerGetMetadata(t *testing.T) {
 				return got.Functions[i].Name < got.Functions[j].Name
 			})
 
+			sort.Slice(got.ListResources, func(i int, j int) bool {
+				return got.ListResources[i].TypeName < got.ListResources[j].TypeName
+			})
+
 			sort.Slice(got.Resources, func(i int, j int) bool {
 				return got.Resources[i].TypeName < got.Resources[j].TypeName
 			})

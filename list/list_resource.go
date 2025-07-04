@@ -100,8 +100,8 @@ type ListRequest struct {
 	// [ListResult.Resource] field.
 	IncludeResource bool
 
-	ResourceSchema         fwschema.Schema
-	ResourceIdentitySchema fwschema.Schema
+	ResourceSchema         fwschema.Schema // 💭
+	ResourceIdentitySchema fwschema.Schema // 💭
 }
 
 // NewListResult creates a new [ListResult] with convenient defaults
@@ -125,7 +125,7 @@ func (r ListRequest) NewListResult() ListResult {
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].
-type ListResultsStream struct {
+type ListResultsStream struct { // 💭 this is kind-of a "union" type; use one, but not both
 	// Results is a function that emits [ListResult] values via its push
 	// function argument.
 	//

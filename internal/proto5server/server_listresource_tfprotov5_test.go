@@ -23,10 +23,10 @@ import (
 // a resource type defined in SDKv2
 var sdkResource sdk.Resource = sdk.Resource{
 	Schema: map[string]*sdk.Schema{
-		"id": &sdk.Schema{
+		"id": {
 			Type: sdk.TypeString,
 		},
-		"name": &sdk.Schema{
+		"name": {
 			Type: sdk.TypeString,
 		},
 	},

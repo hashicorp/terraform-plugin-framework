@@ -16,6 +16,7 @@ import (
 //   - Int64Attribute
 //   - ListAttribute
 //   - MapAttribute
+//   - NumberAttribute
 //   - StringAttribute
 //
 // In practitioner configurations, an equals sign (=) is required to set

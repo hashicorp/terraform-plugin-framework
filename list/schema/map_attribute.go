@@ -61,8 +61,7 @@ type MapAttribute struct {
 	CustomType basetypes.MapTypable
 
 	// Required indicates whether the practitioner must enter a value for
-	// this attribute or not. Required and Optional cannot both be true,
-	// and Required and Computed cannot both be true.
+	// this attribute or not. Required and Optional cannot both be true.
 	Required bool
 
 	// Optional indicates whether the practitioner can choose to enter a value

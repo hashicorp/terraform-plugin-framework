@@ -5,7 +5,6 @@ package fwserver
 
 import (
 	"context"
-	"fmt"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -88,7 +87,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
 				"Invalid ListResource Request",
-				fmt.Sprintf("Config cannot be nil"),
+				"Config cannot be nil",
 			),
 		}
 	}

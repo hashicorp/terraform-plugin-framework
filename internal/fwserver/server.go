@@ -40,6 +40,11 @@ type Server struct {
 	// to [ephemeral.ConfigureRequest.ProviderData].
 	EphemeralResourceConfigureData any
 
+	// ListResourceConfigureData is the
+	// [provider.ConfigureResponse.ListResourceData] field value which is passed
+	// to [list.ConfigureRequest.ProviderData].
+	ListResourceConfigureData any
+
 	// dataSourceSchemas is the cached DataSource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the DataSourceType.GetSchema() method.

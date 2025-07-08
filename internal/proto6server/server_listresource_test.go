@@ -193,7 +193,7 @@ func TestServerListResource(t *testing.T) {
 	testCases := map[string]struct {
 		server              *Server
 		request             *tfprotov6.ListResourceRequest
-		expectedError       error
+		expectedError       diag.Diagnostics
 		expectedDiagnostics diag.Diagnostics
 		expectedResults     []tfprotov6.ListResourceResult
 	}{

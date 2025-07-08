@@ -19,26 +19,41 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfpr
 	fwResp := &fwserver.ValidateListResourceConfigResponse{}
 
 	listResource, diags := s.FrameworkServer.ListResourceType(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	listResourceSchema, diags := s.FrameworkServer.ListResourceSchema(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	config, diags := fromproto5.Config(ctx, proto5Req.Config, listResourceSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
@@ -53,7 +68,7 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfpr
 
 	err := s.FrameworkServer.ListResource(ctx, req, stream)
 	if err != nil {
-		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), err
+		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	fwReq, diags := fromproto5.ValidateListResourceConfigRequest(ctx, proto5Req, listResource, listResourceSchema)

@@ -5,7 +5,6 @@ package proto6server
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
@@ -19,26 +18,41 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto6Req *tfpr
 	fwResp := &fwserver.ValidateListResourceConfigResponse{}
 
 	listResource, diags := s.FrameworkServer.ListResourceType(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	listResourceSchema, diags := s.FrameworkServer.ListResourceSchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	config, diags := fromproto6.Config(ctx, proto6Req.Config, listResourceSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if diags.HasError() {
 		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
@@ -53,7 +67,7 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto6Req *tfpr
 
 	err := s.FrameworkServer.ListResource(ctx, req, stream)
 	if err != nil {
-		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), err
+		return toproto6.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
 	fwReq, diags := fromproto6.ValidateListResourceConfigRequest(ctx, proto6Req, listResource, listResourceSchema)

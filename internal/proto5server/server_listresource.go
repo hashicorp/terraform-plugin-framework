@@ -16,7 +16,7 @@ import (
 // ListRequestErrorDiagnostics returns a value suitable for
 // [ListResourceServerStream.Results]. It yields a single result that contains
 // the given error diagnostics.
-func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) (*tfprotov5.ListResourceServerStream, error) {
+func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) (*tfprotov5.ListResourceServerStream, diag.Diagnostics) {
 	protoDiags := toproto5.Diagnostics(ctx, diags)
 	return &tfprotov5.ListResourceServerStream{
 		Results: func(push func(tfprotov5.ListResourceResult) bool) {
@@ -25,7 +25,7 @@ func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) 
 	}, nil
 }
 
-func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
+func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, diag.Diagnostics) {
 	protoStream := &tfprotov5.ListResourceServerStream{Results: tfprotov5.NoListResults}
 	allDiags := diag.Diagnostics{}
 

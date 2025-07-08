@@ -5,7 +5,7 @@ package fwserver
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -80,12 +80,17 @@ type ListResult struct {
 var NoListResults = func(func(ListResult) bool) {}
 
 // ListResource implements the framework server ListResource RPC.
-func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) error {
+func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) diag.Diagnostics {
 	listResource := fwReq.ListResource
 
 	if fwReq.Config == nil {
 		fwStream.Results = NoListResults
-		return errors.New("Invalid ListResource request: Config cannot be nil")
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Invalid ListResource Request",
+				fmt.Sprintf("Config cannot be nil"),
+			),
+		}
 	}
 
 	req := list.ListRequest{

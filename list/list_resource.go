@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ListResource represents an implementation of listing instances of a managed resource
@@ -99,8 +100,8 @@ type ListRequest struct {
 	// [ListResult.Resource] field.
 	IncludeResource bool
 
-	ResourceSchema         fwschema.Schema
-	ResourceIdentitySchema fwschema.Schema
+	ResourceSchema         fwschema.Schema // 💭
+	ResourceIdentitySchema fwschema.Schema // 💭
 }
 
 // NewListResult creates a new [ListResult] with convenient defaults
@@ -124,13 +125,14 @@ func (r ListRequest) NewListResult() ListResult {
 //
 // For convenience, a provider implementation may choose to convert a slice of
 // results into an iterator using [slices.Values].
-type ListResultsStream struct {
+type ListResultsStream struct { // 💭 this is kind-of a "union" type; use one, but not both
 	// Results is a function that emits [ListResult] values via its push
 	// function argument.
 	//
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
-	Results iter.Seq[ListResult]
+	Results       iter.Seq[ListResult]
+	Proto5Results iter.Seq[tfprotov5.ListResourceResult]
 }
 
 // NoListResults is an iterator that pushes zero results.

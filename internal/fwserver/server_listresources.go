@@ -82,16 +82,7 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 					"ListResource type names must be unique. "+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
-			continue
-		}
-
-		resourceFuncs, _ := s.ResourceFuncs(ctx)
-		if _, ok := resourceFuncs[typeName]; !ok {
-			s.listResourceFuncsDiags.AddError(
-				"ListResource Type Defined without a Matching Managed Resource Type",
-				fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
-					"This is always an issue with the provider and should be reported to the provider developers.",
-			)
+			fmt.Printf("The %s ListResource type name was returned for multiple list resources. ", typeName)
 			continue
 		}
 

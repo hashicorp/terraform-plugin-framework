@@ -29,9 +29,6 @@ var (
 // as the value type unless the CustomType field is set. The ElementType field
 // must be set.
 //
-// Use MapNestedAttribute if the underlying elements should be objects and
-// require definition beyond type information.
-//
 // Terraform configurations configure this attribute using expressions that
 // return a map or directly via curly brace syntax.
 //

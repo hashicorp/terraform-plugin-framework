@@ -3,7 +3,12 @@
 
 package schema
 
-import "github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+)
 
 // TODO:Actions: Implement lifecycle and linked schemas
 //
@@ -19,6 +24,16 @@ import "github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 //   - [LinkedSchema] actions are actions that can cause changes to one or more resource states.
 type SchemaType interface {
 	fwschema.Schema
+
+	// MAINTAINER NOTE: Action schemas are unique to other schema types in framework in that the
+	// exported methods all return a schema interface ([SchemaType]) rather than a schema struct,
+	// due to the multiple different types of action schema implementations.
+	//
+	// As a result, there are certain methods that all schema structs implement that aren't defined in
+	// the [fwschema.Schema] interface, such as the ValidateImplementation method. So we are adding that
+	// here to the action schema interface to avoid additional internal interfaces and unnecessary
+	// type assertions.
+	ValidateImplementation(context.Context) diag.Diagnostics
 
 	// Action schema types are statically defined in the protocol, so this
 	// interface is not meant to be implemented outside of this package

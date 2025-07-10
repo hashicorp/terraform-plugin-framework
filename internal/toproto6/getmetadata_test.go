@@ -25,6 +25,33 @@ func TestGetMetadataResponse(t *testing.T) {
 			input:    nil,
 			expected: nil,
 		},
+		"actions": {
+			input: &fwserver.GetMetadataResponse{
+				Actions: []fwserver.ActionMetadata{
+					{
+						TypeName: "test_action_1",
+					},
+					{
+						TypeName: "test_action_2",
+					},
+				},
+			},
+			expected: &tfprotov6.GetMetadataResponse{
+				Actions: []tfprotov6.ActionMetadata{
+					{
+						TypeName: "test_action_1",
+					},
+					{
+						TypeName: "test_action_2",
+					},
+				},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+			},
+		},
 		"datasources": {
 			input: &fwserver.GetMetadataResponse{
 				DataSources: []fwserver.DataSourceMetadata{
@@ -37,6 +64,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions: []tfprotov6.ActionMetadata{},
 				DataSources: []tfprotov6.DataSourceMetadata{
 					{
 						TypeName: "test_data_source_1",
@@ -63,6 +91,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:     []tfprotov6.ActionMetadata{},
 				DataSources: []tfprotov6.DataSourceMetadata{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
@@ -91,6 +120,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:     []tfprotov6.ActionMetadata{},
 				DataSources: []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{
 					{
@@ -117,6 +147,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:            []tfprotov6.ActionMetadata{},
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions: []tfprotov6.FunctionMetadata{
@@ -143,6 +174,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:            []tfprotov6.ActionMetadata{},
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
@@ -169,6 +201,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:            []tfprotov6.ActionMetadata{},
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},
@@ -191,6 +224,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetMetadataResponse{
+				Actions:            []tfprotov6.ActionMetadata{},
 				DataSources:        []tfprotov6.DataSourceMetadata{},
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 				Functions:          []tfprotov6.FunctionMetadata{},

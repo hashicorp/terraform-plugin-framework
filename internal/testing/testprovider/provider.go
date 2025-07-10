@@ -6,6 +6,7 @@ package testprovider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -21,6 +22,7 @@ type Provider struct {
 	MetadataMethod           func(context.Context, provider.MetadataRequest, *provider.MetadataResponse)
 	ConfigureMethod          func(context.Context, provider.ConfigureRequest, *provider.ConfigureResponse)
 	SchemaMethod             func(context.Context, provider.SchemaRequest, *provider.SchemaResponse)
+	ActionsMethod            func(context.Context) []func() action.Action
 	DataSourcesMethod        func(context.Context) []func() datasource.DataSource
 	EphemeralResourcesMethod func(context.Context) []func() ephemeral.EphemeralResource
 	ListResourcesMethod      func(context.Context) []func() list.ListResource
@@ -34,6 +36,15 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	p.ConfigureMethod(ctx, req, resp)
+}
+
+// Actions satisfies the provider.Provider interface.
+func (p *Provider) Actions(ctx context.Context) []func() action.Action {
+	if p == nil || p.ActionsMethod == nil {
+		return nil
+	}
+
+	return p.ActionsMethod(ctx)
 }
 
 // DataSources satisfies the provider.Provider interface.

@@ -4,8 +4,8 @@
 package action
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
 // SchemaRequest represents a request for the Action to return its schema.
@@ -17,10 +17,15 @@ type SchemaRequest struct{}
 // response struct is supplied as an argument to the Action type Schema
 // method.
 type SchemaResponse struct {
-	// TODO:Actions: This will eventually be replaced by an interface defined in
-	// an "actions/schema" package. Schema implementations that will fulfill this
-	// interface will be unlinked, linked, or lifecycle. (also defined in the "actions/schema" package)
-	Schema fwschema.Schema
+
+	// Schema is the schema of the action.
+	//
+	// There are three different types of actions, which define how a practitioner can trigger an action,
+	// as well as what effect the action can have on the state.
+	//   - [schema.UnlinkedSchema] actions are actions that cannot cause changes to resource states.
+	//   - [schema.LifecycleSchema] actions are actions that can cause changes to exactly one resource state.
+	//   - [schema.LinkedSchema] actions are actions that can cause changes to one or more resource states.
+	Schema schema.SchemaType
 
 	// Diagnostics report errors or warnings related to retrieving the action schema.
 	// An empty slice indicates success, with no warnings or errors generated.

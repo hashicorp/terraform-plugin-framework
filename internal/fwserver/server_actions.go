@@ -53,9 +53,9 @@ func (s *Server) ActionFuncs(ctx context.Context) (map[string]func() action.Acti
 		return s.actionFuncs, s.actionFuncsDiags
 	}
 
-	logging.FrameworkTrace(ctx, "Calling provider defined Provider Actions")
+	logging.FrameworkTrace(ctx, "Calling provider defined Actions")
 	actionFuncsSlice := provider.Actions(ctx)
-	logging.FrameworkTrace(ctx, "Called provider defined Provider Actions")
+	logging.FrameworkTrace(ctx, "Called provider defined Actions")
 
 	for _, actionFunc := range actionFuncsSlice {
 		actionImpl := actionFunc()

@@ -65,6 +65,7 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		ResourceSchema:         resourceSchema,
 		ResourceIdentitySchema: identitySchema,
 		IncludeResource:        protoReq.IncludeResource,
+		Limit:                  protoReq.Limit,
 	}
 	stream := &fwserver.ListResultsStream{}
 

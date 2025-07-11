@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -40,7 +39,7 @@ func TestActionSchema(t *testing.T) {
 					},
 				},
 				Blocks: map[string]actionschema.Block{
-					"single_block": schema.SingleNestedBlock{
+					"single_block": actionschema.SingleNestedBlock{
 						Attributes: map[string]actionschema.Attribute{
 							"bool": actionschema.BoolAttribute{
 								Required: true,

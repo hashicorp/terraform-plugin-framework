@@ -37,7 +37,8 @@ func PlanActionRequest(ctx context.Context, proto6 *tfprotov6.PlanActionRequest,
 	}
 
 	fw := &fwserver.PlanActionRequest{
-		ActionSchema: actionSchema,
+		ActionSchema:       actionSchema,
+		ClientCapabilities: ModifyPlanActionClientCapabilities(proto6.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, actionSchema)
@@ -46,7 +47,7 @@ func PlanActionRequest(ctx context.Context, proto6 *tfprotov6.PlanActionRequest,
 
 	fw.Config = config
 
-	// TODO:Actions: Here we need to retrieve client capabilities and linked resource data
+	// TODO:Actions: Here we need to retrieve linked resource data
 
 	return fw, diags
 }

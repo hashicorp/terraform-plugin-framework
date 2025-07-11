@@ -6,6 +6,7 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -13,12 +14,14 @@ import (
 
 // PlanActionRequest is the framework server request for the PlanAction RPC.
 type PlanActionRequest struct {
-	ActionSchema fwschema.Schema
-	Config       *tfsdk.Config
+	ClientCapabilities action.ModifyPlanClientCapabilities
+	ActionSchema       fwschema.Schema
+	Config             *tfsdk.Config
 }
 
 // PlanActionResponse is the framework server response for the PlanAction RPC.
 type PlanActionResponse struct {
+	Deferred    *action.Deferred
 	Diagnostics diag.Diagnostics
 }
 

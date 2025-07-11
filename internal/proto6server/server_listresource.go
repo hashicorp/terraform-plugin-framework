@@ -16,7 +16,7 @@ import (
 // ListRequestErrorDiagnostics returns a value suitable for
 // [ListResourceServerStream.Results]. It yields a single result that contains
 // the given error diagnostics.
-func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) (*tfprotov6.ListResourceServerStream, diag.Diagnostics) {
+func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) (*tfprotov6.ListResourceServerStream, error) {
 	protoDiags := toproto6.Diagnostics(ctx, diags)
 	return &tfprotov6.ListResourceServerStream{
 		Results: func(push func(tfprotov6.ListResourceResult) bool) {
@@ -25,7 +25,7 @@ func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) 
 	}, nil
 }
 
-func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov6.ListResourceRequest) (*tfprotov6.ListResourceServerStream, diag.Diagnostics) {
+func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov6.ListResourceRequest) (*tfprotov6.ListResourceServerStream, error) {
 	protoStream := &tfprotov6.ListResourceServerStream{Results: tfprotov6.NoListResults}
 	allDiags := diag.Diagnostics{}
 
@@ -68,10 +68,7 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov6.ListResou
 	}
 	stream := &fwserver.ListResultsStream{}
 
-	err := s.FrameworkServer.ListResource(ctx, req, stream)
-	if err != nil {
-		return protoStream, err
-	}
+	s.FrameworkServer.ListResource(ctx, req, stream)
 
 	protoStream.Results = func(push func(tfprotov6.ListResourceResult) bool) {
 		for result := range stream.Results {

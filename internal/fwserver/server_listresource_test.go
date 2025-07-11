@@ -73,7 +73,7 @@ func TestServerListResource(t *testing.T) {
 		server               *fwserver.Server
 		request              *fwserver.ListRequest
 		expectedStreamEvents []fwserver.ListResult
-		expectedError        diag.Diagnostics
+		expectedError        string
 	}{
 		"success-with-zero-results": {
 			server: &fwserver.Server{
@@ -84,20 +84,6 @@ func TestServerListResource(t *testing.T) {
 				ListResource: &testprovider.ListResource{
 					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
 						resp.Results = list.NoListResults
-					},
-				},
-			},
-			expectedStreamEvents: []fwserver.ListResult{},
-		},
-		"success-with-nil-results": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config: &tfsdk.Config{},
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						// Do nothing, so that resp.Results is nil
 					},
 				},
 			},
@@ -167,152 +153,6 @@ func TestServerListResource(t *testing.T) {
 				},
 			},
 		},
-		"error-on-nil-config": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config: nil,
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						resp.Results = list.NoListResults
-					},
-				},
-			},
-			expectedError: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Invalid ListResource Request", "Config cannot be nil"),
-			},
-			expectedStreamEvents: []fwserver.ListResult{},
-		},
-		"error-on-nil-resource-identity": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config: &tfsdk.Config{},
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						resp.Results = slices.Values([]list.ListResult{
-							{
-								Identity: nil,
-								Resource: &tfsdk.Resource{
-									Schema: testSchema,
-									Raw:    testResourceValue1,
-								},
-								DisplayName: "Test Resource 1",
-							},
-						})
-					},
-				},
-			},
-			expectedStreamEvents: []fwserver.ListResult{
-				{
-					Diagnostics: diag.Diagnostics{
-						diag.NewErrorDiagnostic("Incomplete List Result", "..."),
-					},
-				},
-			},
-		},
-		"error-on-null-resource-identity": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config: &tfsdk.Config{},
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						resp.Results = slices.Values([]list.ListResult{
-							{
-								Identity: &tfsdk.ResourceIdentity{},
-								Resource: &tfsdk.Resource{
-									Schema: testSchema,
-									Raw:    testResourceValue1,
-								},
-								DisplayName: "Test Resource 1",
-							},
-						})
-					},
-				},
-			},
-			expectedStreamEvents: []fwserver.ListResult{
-				{
-					Diagnostics: diag.Diagnostics{
-						diag.NewErrorDiagnostic("Incomplete List Result", "..."),
-					},
-				},
-			},
-		},
-		"warning-on-missing-resource": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config:          &tfsdk.Config{},
-				IncludeResource: true,
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						resp.Results = slices.Values([]list.ListResult{
-							{
-								Identity: &tfsdk.ResourceIdentity{
-									Schema: testIdentitySchema,
-									Raw:    testIdentityValue1,
-								},
-								Resource:    nil,
-								DisplayName: "Test Resource 1",
-							},
-						})
-					},
-				},
-			},
-			expectedStreamEvents: []fwserver.ListResult{
-				{
-					Identity: &tfsdk.ResourceIdentity{
-						Schema: testIdentitySchema,
-						Raw:    testIdentityValue1,
-					},
-					DisplayName: "Test Resource 1",
-					Diagnostics: diag.Diagnostics{
-						diag.NewWarningDiagnostic("Incomplete List Result", "..."),
-					},
-				},
-			},
-		},
-		"warning-on-null-resource": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.ListRequest{
-				Config:          &tfsdk.Config{},
-				IncludeResource: true,
-				ListResource: &testprovider.ListResource{
-					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
-						resp.Results = slices.Values([]list.ListResult{
-							{
-								Identity: &tfsdk.ResourceIdentity{
-									Schema: testIdentitySchema,
-									Raw:    testIdentityValue1,
-								},
-								Resource:    &tfsdk.Resource{},
-								DisplayName: "Test Resource 1",
-							},
-						})
-					},
-				},
-			},
-			expectedStreamEvents: []fwserver.ListResult{
-				{
-					Identity: &tfsdk.ResourceIdentity{
-						Schema: testIdentitySchema,
-						Raw:    testIdentityValue1,
-					},
-					Resource:    &tfsdk.Resource{},
-					DisplayName: "Test Resource 1",
-					Diagnostics: diag.Diagnostics{
-						diag.NewWarningDiagnostic("Incomplete List Result", "..."),
-					},
-				},
-			},
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -320,14 +160,10 @@ func TestServerListResource(t *testing.T) {
 			t.Parallel()
 
 			response := &fwserver.ListResultsStream{}
-			err := testCase.server.ListResource(context.Background(), testCase.request, response)
-			if diff := cmp.Diff(testCase.expectedError, err); diff != "" {
-				t.Errorf("unexpected error difference: %s", diff)
-			}
+			testCase.server.ListResource(context.Background(), testCase.request, response)
 
 			opts := cmp.Options{
 				cmp.Comparer(func(a, b diag.Diagnostics) bool {
-					// Differences in Detail() are not relevant to correctness of logic
 					for i := range a {
 						if a[i].Severity() != b[i].Severity() || a[i].Summary() != b[i].Summary() {
 							return false

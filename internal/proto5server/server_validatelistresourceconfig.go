@@ -66,10 +66,7 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfpr
 	}
 	stream := &fwserver.ListResultsStream{}
 
-	err := s.FrameworkServer.ListResource(ctx, req, stream)
-	if err != nil {
-		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	}
+	s.FrameworkServer.ListResource(ctx, req, stream)
 
 	fwReq, diags := fromproto5.ValidateListResourceConfigRequest(ctx, proto5Req, listResource, listResourceSchema)
 

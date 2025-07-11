@@ -6,6 +6,7 @@ package proto5server
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,11 +15,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerValidateListResourceConfig(t *testing.T) {
 	t.Parallel()
+
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_optional": schema.StringAttribute{
+				Optional: false,
+			},
+			"test_required": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
 
 	testType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
@@ -33,15 +44,7 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 	testDynamicValue, err := tfprotov5.NewDynamicValue(testType, testValue)
 
 	if err != nil {
-		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
-	}
-
-	testSchema := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"test": schema.StringAttribute{
-				Required: true,
-			},
-		},
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
 	testCases := map[string]struct {
@@ -58,9 +61,19 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 							return []func() list.ListResource{
 								func() list.ListResource {
 									return &testprovider.ListResource{
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
+										},
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+											resp.Schema = schema.Schema{
+												Attributes: map[string]schema.Attribute{
+													"example_attribute": schema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										ListMethod: func(_ context.Context, _ list.ListRequest, resp *list.ListResultsStream) {
 										},
 									}
 								},

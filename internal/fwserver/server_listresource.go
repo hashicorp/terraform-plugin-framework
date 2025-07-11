@@ -28,6 +28,10 @@ type ListRequest struct {
 	// Resource field in the ListResult struct.
 	IncludeResource bool
 
+	// Limit specifies the maximum number of results that Terraform is
+	// expecting.
+	Limit int64
+
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
 }
@@ -79,17 +83,11 @@ type ListResult struct {
 var NoListResults = func(func(ListResult) bool) {}
 
 // ListResource implements the framework server ListResource RPC.
-func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) diag.Diagnostics {
+func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) {
 	listResource := fwReq.ListResource
 
 	if fwReq.Config == nil {
 		fwStream.Results = NoListResults
-		return diag.Diagnostics{
-			diag.NewErrorDiagnostic(
-				"Invalid ListResource Request",
-				"Config cannot be nil",
-			),
-		}
 	}
 
 	req := list.ListRequest{
@@ -111,7 +109,6 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	}
 
 	fwStream.Results = processListResults(req, stream.Results)
-	return nil
 }
 
 func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {

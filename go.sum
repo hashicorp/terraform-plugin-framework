@@ -21,10 +21,8 @@ github.com/hashicorp/go-plugin v1.6.3 h1:xgHB+ZUSYeuJi96WtxEjzi23uh7YQpznjGh0U0U
 github.com/hashicorp/go-plugin v1.6.3/go.mod h1:MRobyh+Wc/nYy1V4KAXUiYfzxoYhs7V1mlH1Z7iY2h0=
 github.com/hashicorp/go-uuid v1.0.3 h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8=
 github.com/hashicorp/go-uuid v1.0.3/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
-github.com/hashicorp/terraform-plugin-go v0.28.1-0.20250616135123-a19df43120ea h1:U9EAAeQtszGlR7mDS7rY77B/a4/XiMDB8HfAtqLAuAQ=
-github.com/hashicorp/terraform-plugin-go v0.28.1-0.20250616135123-a19df43120ea/go.mod h1:hL//wLEfYo0YVt0TC/VLzia/ADQQto3HEm4/jX2gkdY=
-github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1 h1:ZId6oWG8VTKhz207quE/Xh8a3HuoLtM/QkcSSypekIQ=
-github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1/go.mod h1:hL//wLEfYo0YVt0TC/VLzia/ADQQto3HEm4/jX2gkdY=
+github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1.0.20250709165734-a8477a15f806 h1:i3kA1sT/Fk8Ex+VVKdjf9sFOPwS7w3Q73pfbnxKwdjg=
+github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1.0.20250709165734-a8477a15f806/go.mod h1:hL//wLEfYo0YVt0TC/VLzia/ADQQto3HEm4/jX2gkdY=
 github.com/hashicorp/terraform-plugin-log v0.9.0 h1:i7hOA+vdAItN1/7UrfBqBwvYPQ9TFvymaRGZED3FCV0=
 github.com/hashicorp/terraform-plugin-log v0.9.0/go.mod h1:rKL8egZQ/eXSyDqzLUuwUYLVdlYeamldAHSxjUFADow=
 github.com/hashicorp/terraform-registry-address v0.3.0 h1:HMpK3nqaGFPS9VmgRXrJL/dzHNdheGVKk5k7VlFxzCo=

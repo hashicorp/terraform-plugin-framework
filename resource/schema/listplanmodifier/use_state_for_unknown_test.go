@@ -9,10 +9,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyList(t *testing.T) {
@@ -26,6 +27,16 @@ func TestUseStateForUnknownModifierPlanModifyList(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.ListRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.ListNull(types.StringType),
 				PlanValue:   types.ListUnknown(types.StringType),
 				ConfigValue: types.ListNull(types.StringType),
@@ -42,6 +53,23 @@ func TestUseStateForUnknownModifierPlanModifyList(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.ListRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								[]tftypes.Value{
+									tftypes.NewValue(tftypes.String, "other"),
+								},
+							),
+						},
+					),
+				},
 				StateValue:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("other")}),
 				PlanValue:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 				ConfigValue: types.ListNull(types.StringType),
@@ -50,16 +78,59 @@ func TestUseStateForUnknownModifierPlanModifyList(t *testing.T) {
 				PlanValue: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.ListRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								[]tftypes.Value{
+									tftypes.NewValue(tftypes.String, "test"),
+								},
+							),
+						},
+					),
+				},
 				StateValue:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 				PlanValue:   types.ListUnknown(types.StringType),
 				ConfigValue: types.ListNull(types.StringType),
 			},
 			expected: &planmodifier.ListResponse{
 				PlanValue: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.ListRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.List{ElementType: tftypes.String},
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(
+								tftypes.List{ElementType: tftypes.String},
+								nil,
+							),
+						},
+					),
+				},
+				StateValue:  types.ListNull(types.StringType),
+				PlanValue:   types.ListUnknown(types.StringType),
+				ConfigValue: types.ListNull(types.StringType),
+			},
+			expected: &planmodifier.ListResponse{
+				PlanValue: types.ListNull(types.StringType),
 			},
 		},
 		"unknown-config": {
@@ -73,46 +144,6 @@ func TestUseStateForUnknownModifierPlanModifyList(t *testing.T) {
 				StateValue:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("test")}),
 				PlanValue:   types.ListUnknown(types.StringType),
 				ConfigValue: types.ListUnknown(types.StringType),
-			},
-			expected: &planmodifier.ListResponse{
-				PlanValue: types.ListUnknown(types.StringType),
-			},
-		},
-		"under-list": {
-			request: planmodifier.ListRequest{
-				ConfigValue: types.ListNull(types.StringType),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.ListUnknown(types.StringType),
-				StateValue:  types.ListNull(types.StringType),
-			},
-			expected: &planmodifier.ListResponse{
-				PlanValue: types.ListUnknown(types.StringType),
-			},
-		},
-		"under-set": {
-			request: planmodifier.ListRequest{
-				ConfigValue: types.ListNull(types.StringType),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.ListType{ElemType: types.StringType},
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.ListType{ElemType: types.StringType},
-								},
-								map[string]attr.Value{
-									"nested_test": types.ListUnknown(types.StringType),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.ListUnknown(types.StringType),
-				StateValue: types.ListNull(types.StringType),
 			},
 			expected: &planmodifier.ListResponse{
 				PlanValue: types.ListUnknown(types.StringType),

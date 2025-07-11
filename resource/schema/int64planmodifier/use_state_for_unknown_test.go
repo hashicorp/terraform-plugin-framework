@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
@@ -26,6 +26,16 @@ func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.Int64Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.Int64Null(),
 				PlanValue:   types.Int64Unknown(),
 				ConfigValue: types.Int64Null(),
@@ -42,6 +52,18 @@ func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.Int64Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 2),
+						},
+					),
+				},
 				StateValue:  types.Int64Value(2),
 				PlanValue:   types.Int64Value(1),
 				ConfigValue: types.Int64Null(),
@@ -50,16 +72,51 @@ func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
 				PlanValue: types.Int64Value(1),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.Int64Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 1),
+						},
+					),
+				},
 				StateValue:  types.Int64Value(1),
 				PlanValue:   types.Int64Unknown(),
 				ConfigValue: types.Int64Null(),
 			},
 			expected: &planmodifier.Int64Response{
 				PlanValue: types.Int64Value(1),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.Int64Request{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, nil),
+						},
+					),
+				},
+				StateValue:  types.Int64Null(),
+				PlanValue:   types.Int64Unknown(),
+				ConfigValue: types.Int64Null(),
+			},
+			expected: &planmodifier.Int64Response{
+				PlanValue: types.Int64Null(),
 			},
 		},
 		"unknown-config": {
@@ -73,46 +130,6 @@ func TestUseStateForUnknownModifierPlanModifyInt64(t *testing.T) {
 				StateValue:  types.Int64Value(1),
 				PlanValue:   types.Int64Unknown(),
 				ConfigValue: types.Int64Unknown(),
-			},
-			expected: &planmodifier.Int64Response{
-				PlanValue: types.Int64Unknown(),
-			},
-		},
-		"under-list": {
-			request: planmodifier.Int64Request{
-				ConfigValue: types.Int64Null(),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.Int64Unknown(),
-				StateValue:  types.Int64Null(),
-			},
-			expected: &planmodifier.Int64Response{
-				PlanValue: types.Int64Unknown(),
-			},
-		},
-		"under-set": {
-			request: planmodifier.Int64Request{
-				ConfigValue: types.Int64Null(),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.Int64Type,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.Int64Type,
-								},
-								map[string]attr.Value{
-									"nested_test": types.Int64Unknown(),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.Int64Unknown(),
-				StateValue: types.Int64Null(),
 			},
 			expected: &planmodifier.Int64Response{
 				PlanValue: types.Int64Unknown(),

@@ -36,8 +36,8 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyBool implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyBool(_ context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
-	// Do nothing if there is no state value.
-	if req.StateValue.IsNull() {
+	// Do nothing if there is no state (resource is being created).
+	if req.State.Raw.IsNull() {
 		return
 	}
 

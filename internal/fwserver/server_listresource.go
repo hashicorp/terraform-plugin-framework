@@ -93,6 +93,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
+		Limit:                  fwReq.Limit,
 		ResourceSchema:         fwReq.ResourceSchema,
 		ResourceIdentitySchema: fwReq.ResourceIdentitySchema,
 	}

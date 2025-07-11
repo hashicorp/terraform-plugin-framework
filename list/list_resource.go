@@ -99,6 +99,10 @@ type ListRequest struct {
 	// [ListResult.Resource] field.
 	IncludeResource bool
 
+	// Limit specifies the maximum number of results that Terraform is
+	// expecting.
+	Limit int64
+
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
 }

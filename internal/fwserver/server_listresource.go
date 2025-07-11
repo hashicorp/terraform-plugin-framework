@@ -29,6 +29,10 @@ type ListRequest struct {
 	// Resource field in the ListResult struct.
 	IncludeResource bool
 
+	// Limit specifies the maximum number of results that Terraform is
+	// expecting.
+	Limit int64
+
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
 }
@@ -91,6 +95,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
+		Limit:                  fwReq.Limit,
 		ResourceSchema:         fwReq.ResourceSchema,
 		ResourceIdentitySchema: fwReq.ResourceIdentitySchema,
 	}

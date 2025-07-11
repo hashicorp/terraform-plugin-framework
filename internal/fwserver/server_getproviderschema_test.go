@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,6 +42,305 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"actionschemas": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test1": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action1"
+									},
+								}
+							},
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test2": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{
+					"test_action1": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test1": actionschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_action2": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test2": actionschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				ProviderMeta:      nil,
+				DataSourceSchemas: map[string]fwschema.Schema{},
+				Diagnostics:       diag.Diagnostics{},
+			},
+		},
+		"actionschemas-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"$": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action1"
+									},
+								}
+							},
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test2": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				Provider: providerschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+					),
+				},
+				ProviderMeta:             nil,
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+			},
+		},
+		"actionschemas-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test1": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action"
+									},
+								}
+							},
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test2": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Action Defined",
+						"The test_action action type was returned for multiple actions. "+
+							"Action types must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				ProviderMeta:             nil,
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+			},
+		},
+		"actionschemas-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: nil,
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Action Type Missing",
+						"The *testprovider.Action Action returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				ProviderMeta:             nil,
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+			},
+		},
+		"actionschemas-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+										resp.Schema = actionschema.UnlinkedSchema{
+											Attributes: map[string]actionschema.Attribute{
+												"test": actionschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_action"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{
+					"testprovidertype_action": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test": actionschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -96,6 +397,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{},
 				DataSourceSchemas: map[string]fwschema.Schema{
 					"test_data_source1": datasourceschema.Schema{
 						Attributes: map[string]datasourceschema.Attribute{
@@ -311,6 +613,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{},
 				DataSourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_data_source": datasourceschema.Schema{
 						Attributes: map[string]datasourceschema.Attribute{
@@ -375,6 +678,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]actionschema.SchemaType{},
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{
 					"test_ephemeral_resource1": ephemeralschema.Schema{
@@ -596,6 +900,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]actionschema.SchemaType{},
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_ephemeral_resource": ephemeralschema.Schema{
@@ -652,6 +957,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions: map[string]function.Definition{
@@ -863,6 +1169,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -984,6 +1291,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1052,6 +1360,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1149,6 +1458,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1363,6 +1673,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.SchemaType{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},

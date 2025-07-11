@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -38,6 +40,96 @@ func TestServerGetProviderSchema(t *testing.T) {
 		expectedError    error
 		expectedResponse *tfprotov5.GetProviderSchemaResponse
 	}{
+		"actionschemas": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ActionsMethod: func(_ context.Context) []func() action.Action {
+							return []func() action.Action{
+								func() action.Action {
+									return &testprovider.Action{
+										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+											resp.Schema = actionschema.UnlinkedSchema{
+												Attributes: map[string]actionschema.Attribute{
+													"test1": actionschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+											resp.TypeName = "test_action1"
+										},
+									}
+								},
+								func() action.Action {
+									return &testprovider.Action{
+										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+											resp.Schema = actionschema.UnlinkedSchema{
+												Attributes: map[string]actionschema.Attribute{
+													"test2": actionschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+											resp.TypeName = "test_action2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov5.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov5.ActionSchema{
+					"test_action1": {
+						Type: tfprotov5.UnlinkedActionSchemaType{},
+						Schema: &tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "test1",
+										Required: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					"test_action2": {
+						Type: tfprotov5.UnlinkedActionSchemaType{},
+						Schema: &tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "test2",
+										Required: true,
+										Type:     tftypes.String,
+									},
+								},
+							},
+						},
+					},
+				},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
+				Provider: &tfprotov5.Schema{
+					Block: &tfprotov5.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov5.Schema{},
+				ServerCapabilities: &tfprotov5.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
 		"datasourceschemas": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -83,6 +175,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov5.Schema{
 					"test_data_source1": {
 						Block: &tfprotov5.SchemaBlock{
@@ -105,118 +198,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"datasourceschemas-duplicate-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
-							return []func() datasource.DataSource{
-								func() datasource.DataSource {
-									return &testprovider.DataSource{
-										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = datasourceschema.Schema{
-												Attributes: map[string]datasourceschema.Attribute{
-													"test1": datasourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-											resp.TypeName = "test_data_source"
-										},
-									}
-								},
-								func() datasource.DataSource {
-									return &testprovider.DataSource{
-										SchemaMethod: func(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-											resp.Schema = datasourceschema.Schema{
-												Attributes: map[string]datasourceschema.Attribute{
-													"test2": datasourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-											resp.TypeName = "test_data_source"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Duplicate Data Source Type Defined",
-						Detail: "The test_data_source data source type name was returned for multiple data sources. " +
-							"Data source type names must be unique. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"datasourceschemas-empty-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						DataSourcesMethod: func(_ context.Context) []func() datasource.DataSource {
-							return []func() datasource.DataSource{
-								func() datasource.DataSource {
-									return &testprovider.DataSource{
-										MetadataMethod: func(_ context.Context, _ datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-											resp.TypeName = ""
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Data Source Type Name Missing",
-						Detail: "The *testprovider.DataSource DataSource returned an empty string from the Metadata method. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
 					},
 				},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
@@ -278,6 +259,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_ephemeral_resource1": {
@@ -305,118 +287,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 				Functions:           map[string]*tfprotov5.Function{},
 				ListResourceSchemas: map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"ephemeralschemas-duplicate-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
-							return []func() ephemeral.EphemeralResource{
-								func() ephemeral.EphemeralResource {
-									return &testprovider.EphemeralResource{
-										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
-											resp.Schema = ephemeralschema.Schema{
-												Attributes: map[string]ephemeralschema.Attribute{
-													"test1": ephemeralschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-											resp.TypeName = "test_ephemeral_resource"
-										},
-									}
-								},
-								func() ephemeral.EphemeralResource {
-									return &testprovider.EphemeralResource{
-										SchemaMethod: func(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
-											resp.Schema = ephemeralschema.Schema{
-												Attributes: map[string]ephemeralschema.Attribute{
-													"test2": ephemeralschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-											resp.TypeName = "test_ephemeral_resource"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Duplicate Ephemeral Resource Type Defined",
-						Detail: "The test_ephemeral_resource ephemeral resource type name was returned for multiple ephemeral resources. " +
-							"Ephemeral resource type names must be unique. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				Functions:                map[string]*tfprotov5.Function{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"ephemeralschemas-empty-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						EphemeralResourcesMethod: func(_ context.Context) []func() ephemeral.EphemeralResource {
-							return []func() ephemeral.EphemeralResource{
-								func() ephemeral.EphemeralResource {
-									return &testprovider.EphemeralResource{
-										MetadataMethod: func(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-											resp.TypeName = ""
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Ephemeral Resource Type Name Missing",
-						Detail: "The *testprovider.EphemeralResource EphemeralResource returned an empty string from the Metadata method. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -465,6 +335,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions: map[string]*tfprotov5.Function{
@@ -482,110 +353,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 					},
 				},
 				ListResourceSchemas: map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"functions-duplicate-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithFunctions{
-						FunctionsMethod: func(_ context.Context) []func() function.Function {
-							return []func() function.Function{
-								func() function.Function {
-									return &testprovider.Function{
-										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
-											resp.Definition = function.Definition{
-												Return: function.StringReturn{},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
-											resp.Name = "testfunction" // intentionally duplicate
-										},
-									}
-								},
-								func() function.Function {
-									return &testprovider.Function{
-										DefinitionMethod: func(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
-											resp.Definition = function.Definition{
-												Return: function.StringReturn{},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
-											resp.Name = "testfunction" // intentionally duplicate
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Duplicate Function Name Defined",
-						Detail: "The testfunction function name was returned for multiple functions. " +
-							"Function names must be unique. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"functions-empty-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.ProviderWithFunctions{
-						FunctionsMethod: func(_ context.Context) []func() function.Function {
-							return []func() function.Function{
-								func() function.Function {
-									return &testprovider.Function{
-										MetadataMethod: func(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
-											resp.Name = "" // intentionally empty
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Function Name Missing",
-						Detail: "The *testprovider.Function Function returned an empty string from the Metadata method. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
 				Provider: &tfprotov5.Schema{
 					Block: &tfprotov5.SchemaBlock{},
 				},
@@ -678,6 +445,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
@@ -739,234 +507,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 				},
 			},
 		},
-		"listschemas-duplicate-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
-							return []func() list.ListResource{
-								func() list.ListResource {
-									return &testprovider.ListResource{
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
-											resp.Schema = listschema.Schema{
-												Attributes: map[string]listschema.Attribute{
-													"test1": listschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_list_resource"
-										},
-									}
-								},
-								func() list.ListResource {
-									return &testprovider.ListResource{
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
-											resp.Schema = listschema.Schema{
-												Attributes: map[string]listschema.Attribute{
-													"test2": listschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_list_resource"
-										},
-									}
-								},
-							}
-						},
-						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-							return []func() resource.Resource{
-								func() resource.Resource {
-									return &testprovider.Resource{
-										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-											resp.Schema = resourceschema.Schema{
-												Attributes: map[string]resourceschema.Attribute{
-													"test1": resourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_list_resource"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Duplicate ListResource Type Defined",
-						Detail: "The test_list_resource ListResource type name was returned for multiple list resources. " +
-							"ListResource type names must be unique. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				Functions:                map[string]*tfprotov5.Function{},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{
-					"test_list_resource": {
-						Block: &tfprotov5.SchemaBlock{
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:     "test1",
-									Required: true,
-									Type:     tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"listschemas-empty-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
-							return []func() list.ListResource{
-								func() list.ListResource {
-									return &testprovider.ListResource{
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = ""
-										},
-									}
-								},
-							}
-						},
-						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-							return []func() resource.Resource{
-								func() resource.Resource {
-									return &testprovider.Resource{
-										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-											resp.Schema = resourceschema.Schema{
-												Attributes: map[string]resourceschema.Attribute{
-													"test1": resourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_list_resource"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "ListResource Type Name Missing",
-						Detail: "The *testprovider.ListResource ListResource returned an empty string from the Metadata method. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{
-					"test_list_resource": {
-						Block: &tfprotov5.SchemaBlock{
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:     "test1",
-									Required: true,
-									Type:     tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"listschemas-missing-resource-definition": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						ListResourcesMethod: func(_ context.Context) []func() list.ListResource {
-							return []func() list.ListResource{
-								func() list.ListResource {
-									return &testprovider.ListResource{
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
-											resp.Schema = listschema.Schema{
-												Attributes: map[string]listschema.Attribute{
-													"test1": listschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_list_resource"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "ListResource Type Defined without a Matching Managed Resource Type",
-						Detail: "The test_list_resource ListResource type name was returned, but no matching managed Resource type was defined. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
 		"provider": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -985,6 +525,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
@@ -1027,6 +568,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
@@ -1098,6 +640,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &tfprotov5.GetProviderSchemaRequest{},
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
 				Functions:                map[string]*tfprotov5.Function{},
@@ -1129,118 +672,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"resourceschemas-duplicate-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-							return []func() resource.Resource{
-								func() resource.Resource {
-									return &testprovider.Resource{
-										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-											resp.Schema = resourceschema.Schema{
-												Attributes: map[string]resourceschema.Attribute{
-													"test1": resourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
-										},
-									}
-								},
-								func() resource.Resource {
-									return &testprovider.Resource{
-										SchemaMethod: func(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-											resp.Schema = resourceschema.Schema{
-												Attributes: map[string]resourceschema.Attribute{
-													"test2": resourceschema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = "test_resource"
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Duplicate Resource Type Defined",
-						Detail: "The test_resource resource type name was returned for multiple resources. " +
-							"Resource type names must be unique. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
-				ServerCapabilities: &tfprotov5.ServerCapabilities{
-					GetProviderSchemaOptional: true,
-					MoveResourceState:         true,
-					PlanDestroy:               true,
-				},
-			},
-		},
-		"resourceschemas-empty-type-name": {
-			server: &Server{
-				FrameworkServer: fwserver.Server{
-					Provider: &testprovider.Provider{
-						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
-							return []func() resource.Resource{
-								func() resource.Resource {
-									return &testprovider.Resource{
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
-											resp.TypeName = ""
-										},
-									}
-								},
-							}
-						},
-					},
-				},
-			},
-			request: &tfprotov5.GetProviderSchemaRequest{},
-			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{},
-				Diagnostics: []*tfprotov5.Diagnostic{
-					{
-						Severity: tfprotov5.DiagnosticSeverityError,
-						Summary:  "Resource Type Name Missing",
-						Detail: "The *testprovider.Resource Resource returned an empty string from the Metadata method. " +
-							"This is always an issue with the provider and should be reported to the provider developers.",
-					},
-				},
-				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
-				Functions:                map[string]*tfprotov5.Function{},
-				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
-				Provider: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{},
 				ServerCapabilities: &tfprotov5.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
@@ -1432,6 +863,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   string("trace"),
 			"@message": string("Called provider defined ListResources"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ActionFuncs lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ProviderTypeName lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Actions"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Actions"),
 			"@module":  string("sdk.framework"),
 		},
 	}

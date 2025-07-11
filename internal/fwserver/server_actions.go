@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
@@ -53,9 +53,9 @@ func (s *Server) ActionFuncs(ctx context.Context) (map[string]func() action.Acti
 		return s.actionFuncs, s.actionFuncsDiags
 	}
 
-	logging.FrameworkTrace(ctx, "Calling provider defined Provider Actions")
+	logging.FrameworkTrace(ctx, "Calling provider defined Actions")
 	actionFuncsSlice := provider.Actions(ctx)
-	logging.FrameworkTrace(ctx, "Called provider defined Provider Actions")
+	logging.FrameworkTrace(ctx, "Called provider defined Actions")
 
 	for _, actionFunc := range actionFuncsSlice {
 		actionImpl := actionFunc()
@@ -94,9 +94,25 @@ func (s *Server) ActionFuncs(ctx context.Context) (map[string]func() action.Acti
 	return s.actionFuncs, s.actionFuncsDiags
 }
 
+// ActionMetadatas returns a slice of ActionMetadata for the GetMetadata
+// RPC.
+func (s *Server) ActionMetadatas(ctx context.Context) ([]ActionMetadata, diag.Diagnostics) {
+	actionFuncs, diags := s.ActionFuncs(ctx)
+
+	actionMetadatas := make([]ActionMetadata, 0, len(actionFuncs))
+
+	for typeName := range actionFuncs {
+		actionMetadatas = append(actionMetadatas, ActionMetadata{
+			TypeName: typeName,
+		})
+	}
+
+	return actionMetadatas, diags
+}
+
 // ActionSchema returns the Action Schema for the given type name and
 // caches the result for later Action operations.
-func (s *Server) ActionSchema(ctx context.Context, actionType string) (fwschema.Schema, diag.Diagnostics) {
+func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionschema.SchemaType, diag.Diagnostics) {
 	s.actionSchemasMutex.RLock()
 	actionSchema, ok := s.actionSchemas[actionType]
 	s.actionSchemasMutex.RUnlock()
@@ -131,7 +147,7 @@ func (s *Server) ActionSchema(ctx context.Context, actionType string) (fwschema.
 	s.actionSchemasMutex.Lock()
 
 	if s.actionSchemas == nil {
-		s.actionSchemas = make(map[string]fwschema.Schema)
+		s.actionSchemas = make(map[string]actionschema.SchemaType)
 	}
 
 	s.actionSchemas[actionType] = schemaResp.Schema
@@ -139,4 +155,43 @@ func (s *Server) ActionSchema(ctx context.Context, actionType string) (fwschema.
 	s.actionSchemasMutex.Unlock()
 
 	return schemaResp.Schema, diags
+}
+
+// ActionSchemas returns a map of Action Schemas for the
+// GetProviderSchema RPC without caching since not all schemas are guaranteed to
+// be necessary for later provider operations. The schema implementations are
+// also validated.
+func (s *Server) ActionSchemas(ctx context.Context) (map[string]actionschema.SchemaType, diag.Diagnostics) {
+	actionSchemas := make(map[string]actionschema.SchemaType)
+
+	actionFuncs, diags := s.ActionFuncs(ctx)
+
+	for typeName, actionFunc := range actionFuncs {
+		actionImpl := actionFunc()
+
+		schemaReq := action.SchemaRequest{}
+		schemaResp := action.SchemaResponse{}
+
+		logging.FrameworkTrace(ctx, "Calling provider defined Action Schema", map[string]interface{}{logging.KeyActionType: typeName})
+		actionImpl.Schema(ctx, schemaReq, &schemaResp)
+		logging.FrameworkTrace(ctx, "Called provider defined Action Schema", map[string]interface{}{logging.KeyActionType: typeName})
+
+		diags.Append(schemaResp.Diagnostics...)
+
+		if schemaResp.Diagnostics.HasError() {
+			continue
+		}
+
+		validateDiags := schemaResp.Schema.ValidateImplementation(ctx)
+
+		diags.Append(validateDiags...)
+
+		if validateDiags.HasError() {
+			continue
+		}
+
+		actionSchemas[typeName] = schemaResp.Schema
+	}
+
+	return actionSchemas, diags
 }

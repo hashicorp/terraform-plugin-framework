@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	ephemeralschema "github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
@@ -38,6 +39,118 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			input:    nil,
 			expected: nil,
 		},
+		"action-multiple-actions": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{
+					"test_action_1": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test_attribute": actionschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_action_2": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test_attribute": actionschema.StringAttribute{
+								Optional:           true,
+								DeprecationMessage: "deprecated",
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{
+					"test_action_1": {
+						Type: tfprotov6.UnlinkedActionSchemaType{},
+						Schema: &tfprotov6.Schema{
+							Version: 0,
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "test_attribute",
+										Type:     tftypes.String,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+					"test_action_2": {
+						Type: tfprotov6.UnlinkedActionSchemaType{},
+						Schema: &tfprotov6.Schema{
+							Version: 0,
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:       "test_attribute",
+										Type:       tftypes.String,
+										Optional:   true,
+										Deprecated: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+			},
+		},
+		"action-type-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas: map[string]actionschema.SchemaType{
+					"test_action": actionschema.UnlinkedSchema{
+						Attributes: map[string]actionschema.Attribute{
+							"test_attribute": actionschema.SingleNestedAttribute{
+								Attributes: map[string]actionschema.Attribute{
+									"test_nested_attribute": actionschema.StringAttribute{
+										Required: true,
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{
+					"test_action": {
+						Type: tfprotov6.UnlinkedActionSchemaType{},
+						Schema: &tfprotov6.Schema{
+							Version: 0,
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name: "test_attribute",
+										NestedType: &tfprotov6.SchemaObject{
+											Attributes: []*tfprotov6.SchemaAttribute{
+												{
+													Name:     "test_nested_attribute",
+													Type:     tftypes.String,
+													Required: true,
+												},
+											},
+											Nesting: tfprotov6.SchemaObjectNestingModeSingle,
+										},
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+			},
+		},
 		"data-source-multiple-data-sources": {
 			input: &fwserver.GetProviderSchemaResponse{
 				DataSourceSchemas: map[string]fwschema.Schema{
@@ -58,6 +171,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source_1": {
 						Block: &tfprotov6.SchemaBlock{
@@ -101,6 +215,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -134,6 +249,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -167,6 +283,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -200,6 +317,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -233,6 +351,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -266,6 +385,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -299,6 +419,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -332,6 +453,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -364,6 +486,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -396,6 +519,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -428,6 +552,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -463,6 +588,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -506,6 +632,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -552,6 +679,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -591,6 +719,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -632,6 +761,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -674,6 +804,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -708,6 +839,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -743,6 +875,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -786,6 +919,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -832,6 +966,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -873,6 +1008,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -910,6 +1046,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -949,6 +1086,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -990,6 +1128,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -1022,6 +1161,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -1060,6 +1200,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -1106,6 +1247,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -1150,6 +1292,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": {
 						Block: &tfprotov6.SchemaBlock{
@@ -1197,6 +1340,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource_1": {
@@ -1240,6 +1384,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1273,6 +1418,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1306,6 +1452,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1339,6 +1486,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1372,6 +1520,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1405,6 +1554,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1438,6 +1588,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1470,6 +1621,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1502,6 +1654,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1534,6 +1687,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1566,6 +1720,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1601,6 +1756,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1644,6 +1800,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1690,6 +1847,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1729,6 +1887,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1770,6 +1929,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1812,6 +1972,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1846,6 +2007,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1881,6 +2043,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1924,6 +2087,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -1970,6 +2134,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2011,6 +2176,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2048,6 +2214,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2087,6 +2254,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2128,6 +2296,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2160,6 +2329,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2198,6 +2368,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2244,6 +2415,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2288,6 +2460,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:     map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": {
@@ -2327,6 +2500,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2357,6 +2531,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2382,6 +2557,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2411,6 +2587,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2444,6 +2621,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2468,6 +2646,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2493,6 +2672,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions: map[string]*tfprotov6.Function{
@@ -2530,6 +2710,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2574,6 +2755,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2607,6 +2789,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2639,6 +2822,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2671,6 +2855,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2702,6 +2887,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2732,6 +2918,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2761,6 +2948,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2791,6 +2979,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2821,6 +3010,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2851,6 +3041,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2880,6 +3071,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2909,6 +3101,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2938,6 +3131,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -2970,6 +3164,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3010,6 +3205,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3053,6 +3249,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3089,6 +3286,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3127,6 +3325,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3166,6 +3365,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3197,6 +3397,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3229,6 +3430,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3269,6 +3471,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3312,6 +3515,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3350,6 +3554,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3384,6 +3589,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3420,6 +3626,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3458,6 +3665,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3487,6 +3695,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3522,6 +3731,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3565,6 +3775,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3606,6 +3817,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3643,6 +3855,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3672,6 +3885,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3701,6 +3915,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3730,6 +3945,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3759,6 +3975,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3791,6 +4008,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3831,6 +4049,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3874,6 +4093,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3910,6 +4130,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3948,6 +4169,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -3987,6 +4209,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4018,6 +4241,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4050,6 +4274,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4090,6 +4315,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4133,6 +4359,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4171,6 +4398,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4205,6 +4433,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4241,6 +4470,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4279,6 +4509,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4317,6 +4548,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4360,6 +4592,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4393,6 +4626,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4426,6 +4660,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4459,6 +4694,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4492,6 +4728,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4525,6 +4762,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4559,6 +4797,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4592,6 +4831,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4624,6 +4864,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4656,6 +4897,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4688,6 +4930,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4723,6 +4966,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4766,6 +5010,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4812,6 +5057,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4851,6 +5097,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4892,6 +5139,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4934,6 +5182,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -4968,6 +5217,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5003,6 +5253,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5046,6 +5297,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5092,6 +5344,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5133,6 +5386,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5170,6 +5424,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5209,6 +5464,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5250,6 +5506,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5282,6 +5539,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5320,6 +5578,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5366,6 +5625,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5410,6 +5670,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
@@ -5446,6 +5707,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
 				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},

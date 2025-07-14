@@ -37,6 +37,7 @@ func PlanActionRequest(ctx context.Context, proto6 *tfprotov6.PlanActionRequest,
 	}
 
 	fw := &fwserver.PlanActionRequest{
+		Action:             reqAction,
 		ActionSchema:       actionSchema,
 		ClientCapabilities: ModifyPlanActionClientCapabilities(proto6.ClientCapabilities),
 	}

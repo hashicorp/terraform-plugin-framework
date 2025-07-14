@@ -12,7 +12,10 @@ type Action interface {
 	// Metadata should return the full name of the action, such as examplecloud_do_thing.
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 
-	// TODO:Actions: Eventual landing place for all required methods to implement for an action
+	// Invoke is called to run the logic of the action and update linked resources if applicable.
+	// Config, linked resource planned state, and linked resource prior state values should
+	// be read from the InvokeRequest and new linked resource state values set on the InvokeResponse.
+	Invoke(context.Context, InvokeRequest, *InvokeResponse)
 }
 
 // ActionWithConfigure is an interface type that extends Action to

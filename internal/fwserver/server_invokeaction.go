@@ -6,13 +6,17 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // InvokeActionRequest is the framework server request for the InvokeAction RPC.
 type InvokeActionRequest struct {
+	Action       action.Action
 	ActionSchema fwschema.Schema
 	Config       *tfsdk.Config
 }
@@ -24,9 +28,44 @@ type InvokeActionResponse struct {
 
 // InvokeAction implements the framework server InvokeAction RPC.
 func (s *Server) InvokeAction(ctx context.Context, req *InvokeActionRequest, resp *InvokeActionResponse) {
-	// TODO:Actions: Implementation coming soon...
-	resp.Diagnostics.AddError(
-		"InvokeAction Not Implemented",
-		"InvokeAction has not yet been implemented in terraform-plugin-framework.",
-	)
+	if req == nil {
+		return
+	}
+
+	if actionWithConfigure, ok := req.Action.(action.ActionWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "Action implements ActionWithConfigure")
+
+		configureReq := action.ConfigureRequest{
+			ProviderData: s.ActionConfigureData,
+		}
+		configureResp := action.ConfigureResponse{}
+
+		logging.FrameworkTrace(ctx, "Calling provider defined Action Configure")
+		actionWithConfigure.Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkTrace(ctx, "Called provider defined Action Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	if req.Config == nil {
+		req.Config = &tfsdk.Config{
+			Raw:    tftypes.NewValue(req.ActionSchema.Type().TerraformType(ctx), nil),
+			Schema: req.ActionSchema,
+		}
+	}
+
+	invokeReq := action.InvokeRequest{
+		Config: *req.Config,
+	}
+	invokeResp := action.InvokeResponse{}
+
+	logging.FrameworkTrace(ctx, "Calling provider defined Action Invoke")
+	req.Action.Invoke(ctx, invokeReq, &invokeResp)
+	logging.FrameworkTrace(ctx, "Called provider defined Action Invoke")
+
+	resp.Diagnostics = invokeResp.Diagnostics
 }

@@ -60,6 +60,8 @@ func (s *Server) InvokeAction(ctx context.Context, proto6Req *tfprotov6.InvokeAc
 		return invokeActionErrorDiagnostics(ctx, fwResp.Diagnostics)
 	}
 
+	// TODO:Actions: Create messaging call back for progress updates
+
 	s.FrameworkServer.InvokeAction(ctx, fwReq, fwResp)
 
 	// TODO:Actions: This is a stub implementation, so we aren't currently exposing any streaming mechanism to the developer.

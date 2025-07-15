@@ -15,6 +15,9 @@ type Action interface {
 	// Invoke is called to run the logic of the action and update linked resources if applicable.
 	// Config, linked resource planned state, and linked resource prior state values should
 	// be read from the InvokeRequest and new linked resource state values set on the InvokeResponse.
+	//
+	// The [InvokeResponse.SendProgress] function can be called in the Invoke method to immediately
+	// report progress events related to the invocation of the action to Terraform.
 	Invoke(context.Context, InvokeRequest, *InvokeResponse)
 }
 

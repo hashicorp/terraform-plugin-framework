@@ -12,28 +12,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Ensure the implementation satisfies the desired interfaces.
+// Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute = BoolAttribute{}
+	_ Attribute = DynamicAttribute{}
 )
 
-// BoolAttribute represents a schema attribute that is a boolean. When
-// retrieving the value for this attribute, use types.Bool as the value type
+// DynamicAttribute represents a schema attribute that is a dynamic, rather
+// than a single static type. Static types are always preferable over dynamic
+// types in Terraform as practitioners will receive less helpful configuration
+// assistance from validation error diagnostics and editor integrations. When
+// retrieving the value for this attribute, use types.Dynamic as the value type
 // unless the CustomType field is set.
 //
-// Terraform configurations configure this attribute using expressions that
-// return a boolean or directly via the true/false keywords.
+// The concrete value type for a dynamic is determined at runtime in this order:
+//  1. By Terraform, if defined in the configuration (if Required or Optional).
+//  2. By the provider (if Computed).
 //
-//	example_attribute = true
-//
-// Terraform configurations reference this attribute using the attribute name.
-//
-//	.example_attribute
-type BoolAttribute struct {
+// Once the concrete value type has been determined, it must remain consistent between
+// plan and apply or Terraform will return an error.
+type DynamicAttribute struct {
 	// CustomType enables the use of a custom attribute type in place of the
-	// default basetypes.BoolType. When retrieving data, the basetypes.BoolValuable
-	// associated with this custom type must be used in place of types.Bool.
-	CustomType basetypes.BoolTypable
+	// default basetypes.DynamicType. When retrieving data, the basetypes.DynamicValuable
+	// associated with this custom type must be used in place of types.Dynamic.
+	CustomType basetypes.DynamicTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true.
@@ -92,15 +93,15 @@ type BoolAttribute struct {
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
-// possible to step further into a BoolAttribute.
-func (a BoolAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+// possible to step further into a DynamicAttribute.
+func (a DynamicAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// Equal returns true if the given Attribute is a BoolAttribute
+// Equal returns true if the given Attribute is a DynamicAttribute
 // and all fields are equal.
-func (a BoolAttribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(BoolAttribute); !ok {
+func (a DynamicAttribute) Equal(o fwschema.Attribute) bool {
+	if _, ok := o.(DynamicAttribute); !ok {
 		return false
 	}
 
@@ -108,62 +109,62 @@ func (a BoolAttribute) Equal(o fwschema.Attribute) bool {
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.
-func (a BoolAttribute) GetDeprecationMessage() string {
+func (a DynamicAttribute) GetDeprecationMessage() string {
 	return a.DeprecationMessage
 }
 
 // GetDescription returns the Description field value.
-func (a BoolAttribute) GetDescription() string {
+func (a DynamicAttribute) GetDescription() string {
 	return a.Description
 }
 
 // GetMarkdownDescription returns the MarkdownDescription field value.
-func (a BoolAttribute) GetMarkdownDescription() string {
+func (a DynamicAttribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
-// GetType returns types.StringType or the CustomType field value if defined.
-func (a BoolAttribute) GetType() attr.Type {
+// GetType returns types.DynamicType or the CustomType field value if defined.
+func (a DynamicAttribute) GetType() attr.Type {
 	if a.CustomType != nil {
 		return a.CustomType
 	}
 
-	return types.BoolType
+	return types.DynamicType
 }
 
 // IsComputed always returns false as action schema attributes cannot be Computed.
-func (a BoolAttribute) IsComputed() bool {
+func (a DynamicAttribute) IsComputed() bool {
 	return false
 }
 
 // IsOptional returns the Optional field value.
-func (a BoolAttribute) IsOptional() bool {
+func (a DynamicAttribute) IsOptional() bool {
 	return a.Optional
 }
 
 // IsRequired returns the Required field value.
-func (a BoolAttribute) IsRequired() bool {
+func (a DynamicAttribute) IsRequired() bool {
 	return a.Required
 }
 
 // IsSensitive always returns false as action schema attributes cannot be Sensitive.
-func (a BoolAttribute) IsSensitive() bool {
+func (a DynamicAttribute) IsSensitive() bool {
 	return false
 }
 
 // IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
-func (a BoolAttribute) IsWriteOnly() bool {
+func (a DynamicAttribute) IsWriteOnly() bool {
 	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsRequiredForImport() bool {
+func (a DynamicAttribute) IsRequiredForImport() bool {
 	return false
 }
 
 // IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsOptionalForImport() bool {
+func (a DynamicAttribute) IsOptionalForImport() bool {
 	return false
 }

@@ -4,36 +4,60 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Ensure the implementation satisfies the desired interfaces.
+// Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute = BoolAttribute{}
+	_ NestedAttribute                              = SetNestedAttribute{}
+	_ fwschema.AttributeWithValidateImplementation = SetNestedAttribute{}
 )
 
-// BoolAttribute represents a schema attribute that is a boolean. When
-// retrieving the value for this attribute, use types.Bool as the value type
-// unless the CustomType field is set.
+// SetNestedAttribute represents an attribute that is a set of objects where
+// the object attributes can be fully defined, including further nested
+// attributes. When retrieving the value for this attribute, use types.Set
+// as the value type unless the CustomType field is set. The NestedObject field
+// must be set. Nested attributes are only compatible with protocol version 6.
+//
+// Use SetAttribute if the underlying elements are of a single type and do
+// not require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a boolean or directly via the true/false keywords.
+// return a set of objects or directly via square and curly brace syntax.
 //
-//	example_attribute = true
+//	# set of objects
+//	example_attribute = [
+//		{
+//			nested_attribute = #...
+//		},
+//	]
 //
-// Terraform configurations reference this attribute using the attribute name.
-//
-//	.example_attribute
-type BoolAttribute struct {
+// Terraform configurations reference this attribute using expressions that
+// accept a set of objects. Sets cannot be indexed in Terraform, therefore
+// an expression is required to access an explicit element.
+type SetNestedAttribute struct {
+	// NestedObject is the underlying object that contains nested attributes.
+	// This field must be set.
+	//
+	// Nested attributes that contain a dynamic type (i.e. DynamicAttribute) are not supported.
+	// If underlying dynamic values are required, replace this attribute definition with
+	// DynamicAttribute instead.
+	NestedObject NestedAttributeObject
+
 	// CustomType enables the use of a custom attribute type in place of the
-	// default basetypes.BoolType. When retrieving data, the basetypes.BoolValuable
-	// associated with this custom type must be used in place of types.Bool.
-	CustomType basetypes.BoolTypable
+	// default types.SetType of types.ObjectType. When retrieving data, the
+	// basetypes.SetValuable associated with this custom type must be used in
+	// place of types.Set.
+	CustomType basetypes.SetTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true.
@@ -91,79 +115,109 @@ type BoolAttribute struct {
 	DeprecationMessage string
 }
 
-// ApplyTerraform5AttributePathStep always returns an error as it is not
-// possible to step further into a BoolAttribute.
-func (a BoolAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	return a.GetType().ApplyTerraform5AttributePathStep(step)
+// ApplyTerraform5AttributePathStep returns the Attributes field value if step
+// is ElementKeyValue, otherwise returns an error.
+func (a SetNestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	_, ok := step.(tftypes.ElementKeyValue)
+
+	if !ok {
+		return nil, fmt.Errorf("cannot apply step %T to SetNestedAttribute", step)
+	}
+
+	return a.NestedObject, nil
 }
 
-// Equal returns true if the given Attribute is a BoolAttribute
+// Equal returns true if the given Attribute is a SetNestedAttribute
 // and all fields are equal.
-func (a BoolAttribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(BoolAttribute); !ok {
+func (a SetNestedAttribute) Equal(o fwschema.Attribute) bool {
+	other, ok := o.(SetNestedAttribute)
+
+	if !ok {
 		return false
 	}
 
-	return fwschema.AttributesEqual(a, o)
+	return fwschema.NestedAttributesEqual(a, other)
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.
-func (a BoolAttribute) GetDeprecationMessage() string {
+func (a SetNestedAttribute) GetDeprecationMessage() string {
 	return a.DeprecationMessage
 }
 
 // GetDescription returns the Description field value.
-func (a BoolAttribute) GetDescription() string {
+func (a SetNestedAttribute) GetDescription() string {
 	return a.Description
 }
 
 // GetMarkdownDescription returns the MarkdownDescription field value.
-func (a BoolAttribute) GetMarkdownDescription() string {
+func (a SetNestedAttribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
-// GetType returns types.StringType or the CustomType field value if defined.
-func (a BoolAttribute) GetType() attr.Type {
+// GetNestedObject returns the NestedObject field value.
+func (a SetNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
+	return a.NestedObject
+}
+
+// GetNestingMode always returns NestingModeSet.
+func (a SetNestedAttribute) GetNestingMode() fwschema.NestingMode {
+	return fwschema.NestingModeSet
+}
+
+// GetType returns SetType of ObjectType or CustomType.
+func (a SetNestedAttribute) GetType() attr.Type {
 	if a.CustomType != nil {
 		return a.CustomType
 	}
 
-	return types.BoolType
+	return types.SetType{
+		ElemType: a.NestedObject.Type(),
+	}
 }
 
 // IsComputed always returns false as action schema attributes cannot be Computed.
-func (a BoolAttribute) IsComputed() bool {
+func (a SetNestedAttribute) IsComputed() bool {
 	return false
 }
 
 // IsOptional returns the Optional field value.
-func (a BoolAttribute) IsOptional() bool {
+func (a SetNestedAttribute) IsOptional() bool {
 	return a.Optional
 }
 
 // IsRequired returns the Required field value.
-func (a BoolAttribute) IsRequired() bool {
+func (a SetNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
 // IsSensitive always returns false as action schema attributes cannot be Sensitive.
-func (a BoolAttribute) IsSensitive() bool {
+func (a SetNestedAttribute) IsSensitive() bool {
 	return false
 }
 
 // IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
-func (a BoolAttribute) IsWriteOnly() bool {
+func (a SetNestedAttribute) IsWriteOnly() bool {
 	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsRequiredForImport() bool {
+func (a SetNestedAttribute) IsRequiredForImport() bool {
 	return false
 }
 
 // IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsOptionalForImport() bool {
+func (a SetNestedAttribute) IsOptionalForImport() bool {
 	return false
+}
+
+// ValidateImplementation contains logic for validating the
+// provider-defined implementation of the attribute to prevent unexpected
+// errors or panics. This logic runs during the GetProviderSchema RPC and
+// should never include false positives.
+func (a SetNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
+		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
 }

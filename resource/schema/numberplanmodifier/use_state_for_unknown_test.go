@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
@@ -27,6 +27,16 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 			// when we first create the resource, use the unknown
 			// value
 			request: planmodifier.NumberRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						nil,
+					),
+				},
 				StateValue:  types.NumberNull(),
 				PlanValue:   types.NumberUnknown(),
 				ConfigValue: types.NumberNull(),
@@ -43,6 +53,18 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 			// but we still want to preserve that value, in this
 			// case
 			request: planmodifier.NumberRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 2.4),
+						},
+					),
+				},
 				StateValue:  types.NumberValue(big.NewFloat(2.4)),
 				PlanValue:   types.NumberValue(big.NewFloat(1.2)),
 				ConfigValue: types.NumberNull(),
@@ -51,16 +73,51 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 				PlanValue: types.NumberValue(big.NewFloat(1.2)),
 			},
 		},
-		"non-null-state-unknown-plan": {
+		"non-null-state-value-unknown-plan": {
 			// this is the situation we want to preserve the state
 			// in
 			request: planmodifier.NumberRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
 				StateValue:  types.NumberValue(big.NewFloat(1.2)),
 				PlanValue:   types.NumberUnknown(),
 				ConfigValue: types.NumberNull(),
 			},
 			expected: &planmodifier.NumberResponse{
 				PlanValue: types.NumberValue(big.NewFloat(1.2)),
+			},
+		},
+		"null-state-value-unknown-plan": {
+			// Null state values are still known, so we should preserve this as well.
+			request: planmodifier.NumberRequest{
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"attr": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"attr": tftypes.NewValue(tftypes.Number, nil),
+						},
+					),
+				},
+				StateValue:  types.NumberNull(),
+				PlanValue:   types.NumberUnknown(),
+				ConfigValue: types.NumberNull(),
+			},
+			expected: &planmodifier.NumberResponse{
+				PlanValue: types.NumberNull(),
 			},
 		},
 		"unknown-config": {
@@ -74,46 +131,6 @@ func TestUseStateForUnknownModifierPlanModifyNumber(t *testing.T) {
 				StateValue:  types.NumberValue(big.NewFloat(1.2)),
 				PlanValue:   types.NumberUnknown(),
 				ConfigValue: types.NumberUnknown(),
-			},
-			expected: &planmodifier.NumberResponse{
-				PlanValue: types.NumberUnknown(),
-			},
-		},
-		"under-list": {
-			request: planmodifier.NumberRequest{
-				ConfigValue: types.NumberNull(),
-				Path:        path.Root("test").AtListIndex(0).AtName("nested_test"),
-				PlanValue:   types.NumberUnknown(),
-				StateValue:  types.NumberNull(),
-			},
-			expected: &planmodifier.NumberResponse{
-				PlanValue: types.NumberUnknown(),
-			},
-		},
-		"under-set": {
-			request: planmodifier.NumberRequest{
-				ConfigValue: types.NumberNull(),
-				Path: path.Root("test").AtSetValue(
-					types.SetValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"nested_test": types.NumberType,
-							},
-						},
-						[]attr.Value{
-							types.ObjectValueMust(
-								map[string]attr.Type{
-									"nested_test": types.NumberType,
-								},
-								map[string]attr.Value{
-									"nested_test": types.NumberUnknown(),
-								},
-							),
-						},
-					),
-				).AtName("nested_test"),
-				PlanValue:  types.NumberUnknown(),
-				StateValue: types.NumberNull(),
 			},
 			expected: &planmodifier.NumberResponse{
 				PlanValue: types.NumberUnknown(),

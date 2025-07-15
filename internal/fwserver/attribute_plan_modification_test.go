@@ -641,6 +641,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -720,6 +758,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 							AttrTypes: map[string]attr.Type{
 								"nested_computed": types.StringType,
 							},
+						},
+					),
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
 						},
 					),
 				},
@@ -979,6 +1055,60 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.List{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue1"),
+										},
+									),
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue2"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue2"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -1537,6 +1667,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -1616,6 +1784,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 							AttrTypes: map[string]attr.Type{
 								"nested_computed": types.StringType,
 							},
+						},
+					),
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
 						},
 					),
 				},
@@ -1742,6 +1948,60 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue1"),
+										},
+									),
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue2"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue2"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -1887,6 +2147,60 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue1"),
+										},
+									),
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue2"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue2"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -2016,6 +2330,60 @@ func TestAttributeModifyPlan(t *testing.T) {
 						),
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Set{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+											"nested_required": tftypes.String,
+										},
+									},
+								},
+								[]tftypes.Value{
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue1"),
+										},
+									),
+									tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+												"nested_required": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue2"),
+											"nested_required": tftypes.NewValue(tftypes.String, "testvalue2"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.SetValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -2581,6 +2949,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 						},
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"key1": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.MapValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -2660,6 +3066,44 @@ func TestAttributeModifyPlan(t *testing.T) {
 							AttrTypes: map[string]attr.Type{
 								"nested_computed": types.StringType,
 							},
+						},
+					),
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Map{
+									ElementType: tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"nested_computed": tftypes.String,
+										},
+									},
+								},
+								map[string]tftypes.Value{
+									"key1": tftypes.NewValue(
+										tftypes.Object{
+											AttributeTypes: map[string]tftypes.Type{
+												"nested_computed": tftypes.String,
+											},
+										},
+										map[string]tftypes.Value{
+											"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+										},
+									),
+								},
+							),
 						},
 					),
 				},
@@ -2977,6 +3421,31 @@ func TestAttributeModifyPlan(t *testing.T) {
 						"nested_computed": types.StringType,
 					},
 				),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_computed": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_computed": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+								},
+							),
+						},
+					),
+				},
 				AttributeState: types.ObjectValueMust(
 					map[string]attr.Type{
 						"nested_computed": types.StringType,
@@ -3032,6 +3501,31 @@ func TestAttributeModifyPlan(t *testing.T) {
 					ObjectValue: types.ObjectUnknown(
 						map[string]attr.Type{
 							"nested_computed": types.StringType,
+						},
+					),
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_computed": tftypes.String,
+									},
+								},
+							},
+						},
+						map[string]tftypes.Value{
+							"test": tftypes.NewValue(
+								tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"nested_computed": tftypes.String,
+									},
+								},
+								map[string]tftypes.Value{
+									"nested_computed": tftypes.NewValue(tftypes.String, "statevalue1"),
+								},
+							),
 						},
 					),
 				},

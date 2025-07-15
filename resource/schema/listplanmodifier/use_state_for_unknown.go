@@ -36,8 +36,8 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyList implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyList(_ context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	// Do nothing if there is no state value.
-	if req.StateValue.IsNull() {
+	// Do nothing if there is no state (resource is being created).
+	if req.State.Raw.IsNull() {
 		return
 	}
 

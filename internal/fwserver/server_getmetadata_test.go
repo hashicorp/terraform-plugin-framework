@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -35,6 +36,170 @@ func TestServerGetMetadata(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"actions": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action1"
+									},
+								}
+							},
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions: []fwserver.ActionMetadata{
+					{
+						TypeName: "test_action1",
+					},
+					{
+						TypeName: "test_action2",
+					},
+				},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"actions-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action"
+									},
+								}
+							},
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = "test_action"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate Action Defined",
+						"The test_action action type was returned for multiple actions. "+
+							"Action types must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"actions-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Action Type Missing",
+						"The *testprovider.Action Action returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"actions-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					ActionsMethod: func(_ context.Context) []func() action.Action {
+						return []func() action.Action{
+							func() action.Action {
+								return &testprovider.Action{
+									MetadataMethod: func(_ context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_action"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions: []fwserver.ActionMetadata{
+					{
+						TypeName: "testprovidertype_action",
+					},
+				},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
@@ -71,6 +236,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions: []fwserver.ActionMetadata{},
 				DataSources: []fwserver.DataSourceMetadata{
 					{
 						TypeName: "test_data_source1",
@@ -114,6 +280,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -151,6 +318,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -190,6 +358,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions: []fwserver.ActionMetadata{},
 				DataSources: []fwserver.DataSourceMetadata{
 					{
 						TypeName: "testprovidertype_data_source",
@@ -230,6 +399,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:     []fwserver.ActionMetadata{},
 				DataSources: []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{
 					{
@@ -273,6 +443,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -310,6 +481,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -349,6 +521,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:     []fwserver.ActionMetadata{},
 				DataSources: []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{
 					{
@@ -389,6 +562,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions: []fwserver.FunctionMetadata{
@@ -432,6 +606,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -469,6 +644,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -516,6 +692,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics:        diag.Diagnostics{},
@@ -551,6 +728,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -605,6 +783,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -653,6 +832,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -696,6 +876,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},
@@ -739,6 +920,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -776,6 +958,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Diagnostics: diag.Diagnostics{
@@ -815,6 +998,7 @@ func TestServerGetMetadata(t *testing.T) {
 			},
 			request: &fwserver.GetMetadataRequest{},
 			expectedResponse: &fwserver.GetMetadataResponse{
+				Actions:            []fwserver.ActionMetadata{},
 				DataSources:        []fwserver.DataSourceMetadata{},
 				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
 				Functions:          []fwserver.FunctionMetadata{},

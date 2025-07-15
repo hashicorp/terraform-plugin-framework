@@ -23,7 +23,21 @@ type InvokeActionRequest struct {
 
 // InvokeActionEventsStream is the framework server stream for the InvokeAction RPC.
 type InvokeActionResponse struct {
-	Diagnostics diag.Diagnostics
+	// ProgressEvents is a channel provided by the consuming proto{5/6}server implementation
+	// that allows the provider developers to return progress events while the action is being invoked.
+	ProgressEvents chan InvokeProgressEvent
+	Diagnostics    diag.Diagnostics
+}
+
+type InvokeProgressEvent struct {
+	Message string
+}
+
+// SendProgress is injected into the action.InvokeResponse for use by the provider developer
+func (r *InvokeActionResponse) SendProgress(event action.InvokeProgressEvent) {
+	r.ProgressEvents <- InvokeProgressEvent{
+		Message: event.Message,
+	}
 }
 
 // InvokeAction implements the framework server InvokeAction RPC.
@@ -61,7 +75,9 @@ func (s *Server) InvokeAction(ctx context.Context, req *InvokeActionRequest, res
 	invokeReq := action.InvokeRequest{
 		Config: *req.Config,
 	}
-	invokeResp := action.InvokeResponse{}
+	invokeResp := action.InvokeResponse{
+		SendProgress: resp.SendProgress,
+	}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined Action Invoke")
 	req.Action.Invoke(ctx, invokeReq, &invokeResp)

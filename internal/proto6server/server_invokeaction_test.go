@@ -5,6 +5,7 @@ package proto6server
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -120,6 +121,57 @@ func TestServerInvokeAction(t *testing.T) {
 				},
 			},
 		},
+		"response-progress-events": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ActionsMethod: func(_ context.Context) []func() action.Action {
+							return []func() action.Action{
+								func() action.Action {
+									return &testprovider.Action{
+										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+											resp.Schema = testUnlinkedSchema
+										},
+										MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+											resp.TypeName = "test_action"
+										},
+										InvokeMethod: func(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
+											resp.SendProgress(action.InvokeProgressEvent{Message: "progress event 1"})
+											resp.SendProgress(action.InvokeProgressEvent{Message: "progress event 2"})
+											resp.SendProgress(action.InvokeProgressEvent{Message: "progress event 3"})
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.InvokeActionRequest{
+				Config:     testConfigDynamicValue,
+				ActionType: "test_action",
+			},
+			expectedEvents: []tfprotov6.InvokeActionEvent{
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 1",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 2",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 3",
+					},
+				},
+				{
+					Type: tfprotov6.CompletedInvokeActionEventType{},
+				},
+			},
+		},
 		"response-diagnostics": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
@@ -150,6 +202,83 @@ func TestServerInvokeAction(t *testing.T) {
 				ActionType: "test_action",
 			},
 			expectedEvents: []tfprotov6.InvokeActionEvent{
+				{
+					Type: tfprotov6.CompletedInvokeActionEventType{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityWarning,
+								Summary:  "warning summary",
+								Detail:   "warning detail",
+							},
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "error summary",
+								Detail:   "error detail",
+							},
+						},
+					},
+				},
+			},
+		},
+		"response-diagnostics-with-progress-events": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						ActionsMethod: func(_ context.Context) []func() action.Action {
+							return []func() action.Action{
+								func() action.Action {
+									return &testprovider.Action{
+										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+											resp.Schema = testUnlinkedSchema
+										},
+										MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+											resp.TypeName = "test_action"
+										},
+										InvokeMethod: func(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
+											for i := 0; i < 5; i++ {
+												resp.SendProgress(action.InvokeProgressEvent{Message: fmt.Sprintf("progress event %d", i+1)})
+											}
+
+											resp.Diagnostics.AddWarning("warning summary", "warning detail")
+											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.InvokeActionRequest{
+				Config:     testConfigDynamicValue,
+				ActionType: "test_action",
+			},
+			expectedEvents: []tfprotov6.InvokeActionEvent{
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 1",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 2",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 3",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 4",
+					},
+				},
+				{
+					Type: tfprotov6.ProgressInvokeActionEventType{
+						Message: "progress event 5",
+					},
+				},
 				{
 					Type: tfprotov6.CompletedInvokeActionEventType{
 						Diagnostics: []*tfprotov6.Diagnostic{

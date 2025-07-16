@@ -22,10 +22,7 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 
 	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"test_optional": schema.StringAttribute{
-				Optional: false,
-			},
-			"test_required": schema.StringAttribute{
+			"test": schema.StringAttribute{
 				Required: true,
 			},
 		},
@@ -64,16 +61,17 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
-											resp.Schema = schema.Schema{
-												Attributes: map[string]schema.Attribute{
-													"example_attribute": schema.StringAttribute{
-														Required: true,
-													},
-												},
-											}
-										},
-										ListMethod: func(_ context.Context, _ list.ListRequest, resp *list.ListResultsStream) {
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},
@@ -100,6 +98,17 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},
@@ -133,6 +142,17 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										ValidateConfigMethod: func(ctx context.Context, req list.ValidateConfigRequest, resp *list.ValidateConfigResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
 											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},

@@ -88,6 +88,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 
 	if fwReq.Config == nil {
 		fwStream.Results = NoListResults
+		return
 	}
 
 	req := list.ListRequest{

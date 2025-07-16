@@ -6,6 +6,7 @@ package proto6server
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -14,11 +15,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerValidateListResourceConfig(t *testing.T) {
 	t.Parallel()
+
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
 
 	testType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
@@ -36,14 +44,6 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testSchema := schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"test": schema.StringAttribute{
-				Required: true,
-			},
-		},
-	}
-
 	testCases := map[string]struct {
 		server           *Server
 		request          *tfprotov6.ValidateListResourceConfigRequest
@@ -58,9 +58,20 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 							return []func() list.ListResource{
 								func() list.ListResource {
 									return &testprovider.ListResource{
-										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
+										},
+										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(_ context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},
@@ -87,6 +98,17 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										},
 										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},
@@ -120,6 +142,17 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										ValidateConfigMethod: func(ctx context.Context, req list.ValidateConfigRequest, resp *list.ValidateConfigResponse) {
 											resp.Diagnostics.AddWarning("warning summary", "warning detail")
 											resp.Diagnostics.AddError("error summary", "error detail")
+										},
+									}
+								},
+							}
+						},
+						ResourcesMethod: func(ctx context.Context) []func() resource.Resource {
+							return []func() resource.Resource{
+								func() resource.Resource {
+									return &testprovider.Resource{
+										MetadataMethod: func(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+											response.TypeName = "test_resource"
 										},
 									}
 								},

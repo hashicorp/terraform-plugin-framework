@@ -414,12 +414,12 @@ func TestListNestedBlockType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	block: schema.ListNestedBlock{
-		// 		CustomType: testtypes.ListType{},
-		// 	},
-		// 	expected: testtypes.ListType{},
-		// },
+		"custom-type": {
+			block: schema.ListNestedBlock{
+				CustomType: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+			},
+			expected: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

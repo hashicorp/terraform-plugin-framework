@@ -373,12 +373,12 @@ func TestMapNestedAttributeGetType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	attribute: schema.MapNestedAttribute{
-		// 		CustomType: testtypes.MapType{},
-		// 	},
-		// 	expected: testtypes.MapType{},
-		// },
+		"custom-type": {
+			attribute: schema.MapNestedAttribute{
+				CustomType: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+			},
+			expected: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -414,12 +414,12 @@ func TestSetNestedBlockType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	block: schema.SetNestedBlock{
-		// 		CustomType: testtypes.SetType{},
-		// 	},
-		// 	expected: testtypes.SetType{},
-		// },
+		"custom-type": {
+			block: schema.SetNestedBlock{
+				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			},
+			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

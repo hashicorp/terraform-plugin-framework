@@ -41,7 +41,6 @@ type Server struct {
 	// to [ephemeral.ConfigureRequest.ProviderData].
 	EphemeralResourceConfigureData any
 
-
 	// ListResourceConfigureData is the
 	// [provider.ConfigureResponse.ListResourceData] field value which is passed
 	// to [list.ConfigureRequest.ProviderData].
@@ -69,7 +68,6 @@ type Server struct {
 	// actionFuncsMutex is a mutex to protect concurrent actionFuncs
 	// access from race conditions.
 	actionFuncsMutex sync.Mutex
-
 
 	// dataSourceSchemas is the cached DataSource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be

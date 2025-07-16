@@ -173,6 +173,11 @@ func (s SetValue) Elements() []attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the Set.
+func (s SetValue) Length() int {
+	return len(s.elements)
+}
+
 // ElementsAs populates `target` with the elements of the SetValue, throwing an
 // error if the elements cannot be stored in `target`.
 func (s SetValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {

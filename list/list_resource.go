@@ -22,15 +22,13 @@ import (
 //   - Validation: Schema-based or entire configuration via
 //     ListResourceWithConfigValidators or ListResourceWithValidateConfig.
 type ListResource interface {
-	// Metadata should return the full name of the list resource such as
-	// examplecloud_thing. This name should match the full name of the managed
-	// resource to be listed; otherwise, the GetMetadata RPC will return an
-	// error diagnostic.
-	//
-	// The method signature is intended to be compatible with the Metadata
-	// method signature in the Resource interface. One implementation of
-	// Metadata can satisfy both interfaces.
-	Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+	// A single provider-defined type can implement the
+	// Create-Read-Update-Delete (CRUD) operations ([resource.Resource]) and
+	// the List (L) operation ([list.ListResource]). The
+	// [resource.ResourceMetadata] interface is embedded in both interfaces.
+	// This allows a single implementation of `Metadata()` to satisfy both
+	// interfaces without code duplication.
+	resource.ResourceMetadata
 
 	// ListResourceConfigSchema should return the schema for list blocks.
 	ListResourceConfigSchema(context.Context, ListResourceSchemaRequest, *ListResourceSchemaResponse)

@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// TODO:Actions: Add all of the attribute and nested attribute types listed below
-//
 // Attribute define a value field inside an action type schema. Implementations in this
 // package include:
 //   - BoolAttribute

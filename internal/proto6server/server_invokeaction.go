@@ -60,19 +60,34 @@ func (s *Server) InvokeAction(ctx context.Context, proto6Req *tfprotov6.InvokeAc
 		return invokeActionErrorDiagnostics(ctx, fwResp.Diagnostics)
 	}
 
-	s.FrameworkServer.InvokeAction(ctx, fwReq, fwResp)
-
-	// TODO:Actions: This is a stub implementation, so we aren't currently exposing any streaming mechanism to the developer.
-	// That will eventually need to change to send progress events back to Terraform.
-	//
-	// This logic will likely need to be moved over to the "toproto" package as well.
 	protoStream := &tfprotov6.InvokeActionServerStream{
 		Events: func(push func(tfprotov6.InvokeActionEvent) bool) {
-			push(tfprotov6.InvokeActionEvent{
-				Type: tfprotov6.CompletedInvokeActionEventType{
-					Diagnostics: toproto6.Diagnostics(ctx, fwResp.Diagnostics),
-				},
-			})
+			// Create a channel for framework to receive progress events
+			progressChan := make(chan fwserver.InvokeProgressEvent)
+			fwResp.ProgressEvents = progressChan
+
+			// Create a channel to be triggered when the invoke action method has finished
+			completedChan := make(chan any)
+			go func() {
+				s.FrameworkServer.InvokeAction(ctx, fwReq, fwResp)
+				close(completedChan)
+			}()
+
+			for {
+				select {
+				// Actions can only push one completed event and it's automatically handled by the framework
+				// by closing the completed channel above.
+				case <-completedChan:
+					push(toproto6.CompletedInvokeActionEventType(ctx, fwResp))
+					return
+
+				// Actions can push multiple progress events
+				case progressEvent := <-fwResp.ProgressEvents:
+					if !push(toproto6.ProgressInvokeActionEventType(ctx, progressEvent)) {
+						return
+					}
+				}
+			}
 		},
 	}
 

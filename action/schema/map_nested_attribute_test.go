@@ -10,50 +10,77 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
+func TestMapNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute     schema.SetAttribute
+		attribute     schema.MapNestedAttribute
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to SetType"),
+			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to MapNestedAttribute"),
 		},
 		"ElementKeyInt": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to SetType"),
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to MapNestedAttribute"),
 		},
 		"ElementKeyString": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
-			step:          tftypes.ElementKeyString("test"),
-			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyString to SetType"),
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			step: tftypes.ElementKeyString("test"),
+			expected: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{},
+				},
+			},
+			expectedError: nil,
 		},
 		"ElementKeyValue": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
-			expected:      types.StringType,
-			expectedError: nil,
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyValue to MapNestedAttribute"),
 		},
 	}
 
@@ -84,19 +111,25 @@ func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetDeprecationMessage(t *testing.T) {
+func TestMapNestedAttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  string
 	}{
 		"no-deprecation-message": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  "",
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: "",
 		},
 		"deprecation-message": {
-			attribute: schema.SetAttribute{
+			attribute: schema.MapNestedAttribute{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -116,28 +149,79 @@ func TestSetAttributeGetDeprecationMessage(t *testing.T) {
 	}
 }
 
-func TestSetAttributeEqual(t *testing.T) {
+func TestMapNestedAttributeEqual(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		other     fwschema.Attribute
 		expected  bool
 	}{
 		"different-type": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     testschema.AttributeWithSetValidators{},
-			expected:  false,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			other:    testschema.AttributeWithMapValidators{},
+			expected: false,
 		},
-		"different-element-type": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     schema.SetAttribute{ElementType: types.BoolType},
-			expected:  false,
+		"different-attributes-definitions": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
+			},
+			other: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		"different-attributes-types": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			other: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.BoolAttribute{},
+					},
+				},
+			},
+			expected: false,
 		},
 		"equal": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     schema.SetAttribute{ElementType: types.StringType},
-			expected:  true,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			other: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: true,
 		},
 	}
 
@@ -154,19 +238,25 @@ func TestSetAttributeEqual(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetDescription(t *testing.T) {
+func TestMapNestedAttributeGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  string
 	}{
 		"no-description": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  "",
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: "",
 		},
 		"description": {
-			attribute: schema.SetAttribute{
+			attribute: schema.MapNestedAttribute{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -186,19 +276,25 @@ func TestSetAttributeGetDescription(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetMarkdownDescription(t *testing.T) {
+func TestMapNestedAttributeGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  string
 	}{
 		"no-markdown-description": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  "",
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: "",
 		},
 		"markdown-description": {
-			attribute: schema.SetAttribute{
+			attribute: schema.MapNestedAttribute{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -218,22 +314,70 @@ func TestSetAttributeGetMarkdownDescription(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetType(t *testing.T) {
+func TestMapNestedAttributeGetNestedObject(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
+		expected  schema.NestedAttributeObject
+	}{
+		"nested-object": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{},
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.GetNestedObject()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMapNestedAttributeGetType(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.MapNestedAttribute
 		expected  attr.Type
 	}{
 		"base": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  types.SetType{ElemType: types.StringType},
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: types.MapType{
+				ElemType: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"testattr": types.StringType,
+					},
+				},
+			},
 		},
 		"custom-type": {
-			attribute: schema.SetAttribute{
-				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			attribute: schema.MapNestedAttribute{
+				CustomType: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
 			},
-			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			expected: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
 		},
 	}
 
@@ -250,22 +394,22 @@ func TestSetAttributeGetType(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsComputed(t *testing.T) {
+func TestMapNestedAttributeIsComputed(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-computed": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  false,
-		},
-		"computed": {
-			attribute: schema.SetAttribute{
-				Computed: true,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
 			},
-			expected: true,
+			expected: false,
 		},
 	}
 
@@ -282,19 +426,25 @@ func TestSetAttributeIsComputed(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsOptional(t *testing.T) {
+func TestMapNestedAttributeIsOptional(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-optional": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  false,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: false,
 		},
 		"optional": {
-			attribute: schema.SetAttribute{
+			attribute: schema.MapNestedAttribute{
 				Optional: true,
 			},
 			expected: true,
@@ -314,19 +464,25 @@ func TestSetAttributeIsOptional(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsRequired(t *testing.T) {
+func TestMapNestedAttributeIsRequired(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-required": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  false,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: false,
 		},
 		"required": {
-			attribute: schema.SetAttribute{
+			attribute: schema.MapNestedAttribute{
 				Required: true,
 			},
 			expected: true,
@@ -346,22 +502,22 @@ func TestSetAttributeIsRequired(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsSensitive(t *testing.T) {
+func TestMapNestedAttributeIsSensitive(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-sensitive": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  false,
-		},
-		"sensitive": {
-			attribute: schema.SetAttribute{
-				Sensitive: true,
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
 			},
-			expected: true,
+			expected: false,
 		},
 	}
 
@@ -378,15 +534,15 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsWriteOnly(t *testing.T) {
+func TestMapNestedAttributeIsWriteOnly(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-writeOnly": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.MapNestedAttribute{},
 			expected:  false,
 		},
 	}
@@ -404,50 +560,18 @@ func TestSetAttributeIsWriteOnly(t *testing.T) {
 	}
 }
 
-func TestSetAttributeSetValidators(t *testing.T) {
+func TestMapNestedAttributeValidateImplementation(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
-		expected  []validator.Set
-	}{
-		"no-validators": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  nil,
-		},
-		"validators": {
-			attribute: schema.SetAttribute{
-				Validators: []validator.Set{},
-			},
-			expected: []validator.Set{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.SetValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestSetAttributeValidateImplementation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		request   fwschema.ValidateImplementationRequest
 		expected  *fwschema.ValidateImplementationResponse
 	}{
 		"customtype": {
-			attribute: schema.SetAttribute{
-				CustomType: testtypes.SetType{},
-				Optional:   true,
+			attribute: schema.MapNestedAttribute{
+				Required:   true,
+				CustomType: testtypes.MapType{},
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -455,10 +579,15 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
-		"elementtype": {
-			attribute: schema.SetAttribute{
-				Computed:    true,
-				ElementType: types.StringType,
+		"nestedobject": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -466,10 +595,15 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
-		"elementtype-dynamic": {
-			attribute: schema.SetAttribute{
-				Computed:    true,
-				ElementType: types.DynamicType,
+		"nestedobject-dynamic": {
+			attribute: schema.MapNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_dyn": schema.DynamicAttribute{
+							Required: true,
+						},
+					},
+				},
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -484,26 +618,6 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
-					),
-				},
-			},
-		},
-		"elementtype-missing": {
-			attribute: schema.SetAttribute{
-				Computed: true,
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
-						"When validating the schema, an implementation issue was found. "+
-							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
-							"One of these fields is required to prevent other unexpected errors or panics.",
 					),
 				},
 			},
@@ -524,15 +638,15 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsRequiredForImport(t *testing.T) {
+func TestMapNestedAttributeIsRequiredForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-requiredForImport": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.MapNestedAttribute{},
 			expected:  false,
 		},
 	}
@@ -550,15 +664,15 @@ func TestSetAttributeIsRequiredForImport(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsOptionalForImport(t *testing.T) {
+func TestMapNestedAttributeIsOptionalForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.MapNestedAttribute
 		expected  bool
 	}{
 		"not-optionalForImport": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.MapNestedAttribute{},
 			expected:  false,
 		},
 	}

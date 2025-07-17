@@ -10,14 +10,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -261,12 +260,6 @@ func TestSetAttributeIsComputed(t *testing.T) {
 			attribute: schema.SetAttribute{ElementType: types.StringType},
 			expected:  false,
 		},
-		"computed": {
-			attribute: schema.SetAttribute{
-				Computed: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -357,12 +350,6 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 			attribute: schema.SetAttribute{ElementType: types.StringType},
 			expected:  false,
 		},
-		"sensitive": {
-			attribute: schema.SetAttribute{
-				Sensitive: true,
-			},
-			expected: true,
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -404,38 +391,6 @@ func TestSetAttributeIsWriteOnly(t *testing.T) {
 	}
 }
 
-func TestSetAttributeSetValidators(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.SetAttribute
-		expected  []validator.Set
-	}{
-		"no-validators": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  nil,
-		},
-		"validators": {
-			attribute: schema.SetAttribute{
-				Validators: []validator.Set{},
-			},
-			expected: []validator.Set{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.SetValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
 func TestSetAttributeValidateImplementation(t *testing.T) {
 	t.Parallel()
 
@@ -457,7 +412,7 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 		},
 		"elementtype": {
 			attribute: schema.SetAttribute{
-				Computed:    true,
+				Required:    true,
 				ElementType: types.StringType,
 			},
 			request: fwschema.ValidateImplementationRequest{
@@ -468,7 +423,7 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 		},
 		"elementtype-dynamic": {
 			attribute: schema.SetAttribute{
-				Computed:    true,
+				Required:    true,
 				ElementType: types.DynamicType,
 			},
 			request: fwschema.ValidateImplementationRequest{
@@ -490,7 +445,7 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 		},
 		"elementtype-missing": {
 			attribute: schema.SetAttribute{
-				Computed: true,
+				Required: true,
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",

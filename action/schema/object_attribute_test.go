@@ -10,50 +10,56 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
+func TestObjectAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute     schema.SetAttribute
+		attribute     schema.ObjectAttribute
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
-			step:          tftypes.AttributeName("test"),
-			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to SetType"),
-		},
-		"ElementKeyInt": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
-			step:          tftypes.ElementKeyInt(1),
-			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to SetType"),
-		},
-		"ElementKeyString": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
-			step:          tftypes.ElementKeyString("test"),
-			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyString to SetType"),
-		},
-		"ElementKeyValue": {
-			attribute:     schema.SetAttribute{ElementType: types.StringType},
-			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
+			attribute:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			step:          tftypes.AttributeName("testattr"),
 			expected:      types.StringType,
 			expectedError: nil,
+		},
+		"AttributeName-missing": {
+			attribute:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			step:          tftypes.AttributeName("other"),
+			expected:      nil,
+			expectedError: fmt.Errorf("undefined attribute name other in ObjectType"),
+		},
+		"ElementKeyInt": {
+			attribute:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			step:          tftypes.ElementKeyInt(1),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to ObjectType"),
+		},
+		"ElementKeyString": {
+			attribute:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			step:          tftypes.ElementKeyString("test"),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyString to ObjectType"),
+		},
+		"ElementKeyValue": {
+			attribute:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyValue to ObjectType"),
 		},
 	}
 
@@ -84,19 +90,19 @@ func TestSetAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetDeprecationMessage(t *testing.T) {
+func TestObjectAttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  string
 	}{
 		"no-deprecation-message": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  "",
 		},
 		"deprecation-message": {
-			attribute: schema.SetAttribute{
+			attribute: schema.ObjectAttribute{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -116,27 +122,27 @@ func TestSetAttributeGetDeprecationMessage(t *testing.T) {
 	}
 }
 
-func TestSetAttributeEqual(t *testing.T) {
+func TestObjectAttributeEqual(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		other     fwschema.Attribute
 		expected  bool
 	}{
 		"different-type": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     testschema.AttributeWithSetValidators{},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			other:     testschema.AttributeWithObjectValidators{},
 			expected:  false,
 		},
-		"different-element-type": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     schema.SetAttribute{ElementType: types.BoolType},
+		"different-attribute-type": {
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			other:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.BoolType}},
 			expected:  false,
 		},
 		"equal": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			other:     schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			other:     schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  true,
 		},
 	}
@@ -154,19 +160,19 @@ func TestSetAttributeEqual(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetDescription(t *testing.T) {
+func TestObjectAttributeGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  string
 	}{
 		"no-description": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  "",
 		},
 		"description": {
-			attribute: schema.SetAttribute{
+			attribute: schema.ObjectAttribute{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -186,19 +192,19 @@ func TestSetAttributeGetDescription(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetMarkdownDescription(t *testing.T) {
+func TestObjectAttributeGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  string
 	}{
 		"no-markdown-description": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  "",
 		},
 		"markdown-description": {
-			attribute: schema.SetAttribute{
+			attribute: schema.ObjectAttribute{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -218,22 +224,22 @@ func TestSetAttributeGetMarkdownDescription(t *testing.T) {
 	}
 }
 
-func TestSetAttributeGetType(t *testing.T) {
+func TestObjectAttributeGetType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  attr.Type
 	}{
 		"base": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  types.SetType{ElemType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
+			expected:  types.ObjectType{AttrTypes: map[string]attr.Type{"testattr": types.StringType}},
 		},
 		"custom-type": {
-			attribute: schema.SetAttribute{
-				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			attribute: schema.ObjectAttribute{
+				CustomType: testtypes.ObjectType{},
 			},
-			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
+			expected: testtypes.ObjectType{},
 		},
 	}
 
@@ -250,22 +256,16 @@ func TestSetAttributeGetType(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsComputed(t *testing.T) {
+func TestObjectAttributeIsComputed(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-computed": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  false,
-		},
-		"computed": {
-			attribute: schema.SetAttribute{
-				Computed: true,
-			},
-			expected: true,
 		},
 	}
 
@@ -282,19 +282,19 @@ func TestSetAttributeIsComputed(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsOptional(t *testing.T) {
+func TestObjectAttributeIsOptional(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-optional": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  false,
 		},
 		"optional": {
-			attribute: schema.SetAttribute{
+			attribute: schema.ObjectAttribute{
 				Optional: true,
 			},
 			expected: true,
@@ -314,19 +314,19 @@ func TestSetAttributeIsOptional(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsRequired(t *testing.T) {
+func TestObjectAttributeIsRequired(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-required": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  false,
 		},
 		"required": {
-			attribute: schema.SetAttribute{
+			attribute: schema.ObjectAttribute{
 				Required: true,
 			},
 			expected: true,
@@ -346,22 +346,16 @@ func TestSetAttributeIsRequired(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsSensitive(t *testing.T) {
+func TestObjectAttributeIsSensitive(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-sensitive": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
+			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  false,
-		},
-		"sensitive": {
-			attribute: schema.SetAttribute{
-				Sensitive: true,
-			},
-			expected: true,
 		},
 	}
 
@@ -378,15 +372,15 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsWriteOnly(t *testing.T) {
+func TestObjectAttributeIsWriteOnly(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-writeOnly": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.ObjectAttribute{},
 			expected:  false,
 		},
 	}
@@ -404,50 +398,20 @@ func TestSetAttributeIsWriteOnly(t *testing.T) {
 	}
 }
 
-func TestSetAttributeSetValidators(t *testing.T) {
+func TestObjectAttributeValidateImplementation(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
-		expected  []validator.Set
-	}{
-		"no-validators": {
-			attribute: schema.SetAttribute{ElementType: types.StringType},
-			expected:  nil,
-		},
-		"validators": {
-			attribute: schema.SetAttribute{
-				Validators: []validator.Set{},
-			},
-			expected: []validator.Set{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.SetValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestSetAttributeValidateImplementation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		request   fwschema.ValidateImplementationRequest
 		expected  *fwschema.ValidateImplementationResponse
 	}{
-		"customtype": {
-			attribute: schema.SetAttribute{
-				CustomType: testtypes.SetType{},
-				Optional:   true,
+		"attributetypes": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.StringType,
+				},
+				Required: true,
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -455,10 +419,20 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
-		"elementtype": {
-			attribute: schema.SetAttribute{
-				Computed:    true,
-				ElementType: types.StringType,
+		"attributetypes-dynamic": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.DynamicType,
+					"test_list": types.ListType{
+						ElemType: types.StringType,
+					},
+					"test_obj": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"test_attr": types.DynamicType,
+						},
+					},
+				},
+				Required: true,
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -466,10 +440,14 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 			},
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
-		"elementtype-dynamic": {
-			attribute: schema.SetAttribute{
-				Computed:    true,
-				ElementType: types.DynamicType,
+		"attributetypes-nested-collection-dynamic": {
+			attribute: schema.ObjectAttribute{
+				AttributeTypes: map[string]attr.Type{
+					"test_attr": types.ListType{
+						ElemType: types.DynamicType,
+					},
+				},
+				Required: true,
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -488,9 +466,9 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 				},
 			},
 		},
-		"elementtype-missing": {
-			attribute: schema.SetAttribute{
-				Computed: true,
+		"attributetypes-missing": {
+			attribute: schema.ObjectAttribute{
+				Required: true,
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -502,11 +480,22 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 						"Invalid Attribute Implementation",
 						"When validating the schema, an implementation issue was found. "+
 							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
+							"\"test\" is missing the AttributeTypes or CustomType field on an object Attribute. "+
 							"One of these fields is required to prevent other unexpected errors or panics.",
 					),
 				},
 			},
+		},
+		"customtype": {
+			attribute: schema.ObjectAttribute{
+				Required:   true,
+				CustomType: testtypes.ObjectType{},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
 		},
 	}
 
@@ -524,15 +513,15 @@ func TestSetAttributeValidateImplementation(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsRequiredForImport(t *testing.T) {
+func TestObjectAttributeIsRequiredForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-requiredForImport": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.ObjectAttribute{},
 			expected:  false,
 		},
 	}
@@ -550,15 +539,15 @@ func TestSetAttributeIsRequiredForImport(t *testing.T) {
 	}
 }
 
-func TestSetAttributeIsOptionalForImport(t *testing.T) {
+func TestObjectAttributeIsOptionalForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.SetAttribute
+		attribute schema.ObjectAttribute
 		expected  bool
 	}{
 		"not-optionalForImport": {
-			attribute: schema.SetAttribute{},
+			attribute: schema.ObjectAttribute{},
 			expected:  false,
 		},
 	}

@@ -10,29 +10,28 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestListNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
+func TestSetNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block         schema.ListNestedBlock
+		block         schema.SetNestedBlock
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -41,26 +40,22 @@ func TestListNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
 			},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to ListNestedBlock"),
+			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to SetNestedBlock"),
 		},
 		"ElementKeyInt": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
 					},
 				},
 			},
-			step: tftypes.ElementKeyInt(1),
-			expected: schema.NestedBlockObject{
-				Attributes: map[string]schema.Attribute{
-					"testattr": schema.StringAttribute{},
-				},
-			},
-			expectedError: nil,
+			step:          tftypes.ElementKeyInt(1),
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to SetNestedBlock"),
 		},
 		"ElementKeyString": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -69,19 +64,23 @@ func TestListNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
 			},
 			step:          tftypes.ElementKeyString("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyString to ListNestedBlock"),
+			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyString to SetNestedBlock"),
 		},
 		"ElementKeyValue": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
 					},
 				},
 			},
-			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
-			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyValue to ListNestedBlock"),
+			step: tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
+			expected: schema.NestedBlockObject{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{},
+				},
+			},
+			expectedError: nil,
 		},
 	}
 
@@ -112,15 +111,15 @@ func TestListNestedBlockApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockGetDeprecationMessage(t *testing.T) {
+func TestSetNestedBlockGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		expected string
 	}{
 		"no-deprecation-message": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -130,7 +129,7 @@ func TestListNestedBlockGetDeprecationMessage(t *testing.T) {
 			expected: "",
 		},
 		"deprecation-message": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -150,27 +149,27 @@ func TestListNestedBlockGetDeprecationMessage(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockEqual(t *testing.T) {
+func TestSetNestedBlockEqual(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		other    fwschema.Block
 		expected bool
 	}{
 		"different-type": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
 					},
 				},
 			},
-			other:    testschema.BlockWithListValidators{},
+			other:    testschema.BlockWithSetValidators{},
 			expected: false,
 		},
 		"different-attributes-definitions": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{
@@ -179,7 +178,7 @@ func TestListNestedBlockEqual(t *testing.T) {
 					},
 				},
 			},
-			other: schema.ListNestedBlock{
+			other: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{
@@ -191,14 +190,14 @@ func TestListNestedBlockEqual(t *testing.T) {
 			expected: false,
 		},
 		"different-attributes-types": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
 					},
 				},
 			},
-			other: schema.ListNestedBlock{
+			other: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.BoolAttribute{},
@@ -208,7 +207,7 @@ func TestListNestedBlockEqual(t *testing.T) {
 			expected: false,
 		},
 		"different-blocks-definitions": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Blocks: map[string]schema.Block{
 						"testblock": schema.SingleNestedBlock{
@@ -221,7 +220,7 @@ func TestListNestedBlockEqual(t *testing.T) {
 					},
 				},
 			},
-			other: schema.ListNestedBlock{
+			other: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Blocks: map[string]schema.Block{
 						"testblock": schema.SingleNestedBlock{
@@ -237,14 +236,14 @@ func TestListNestedBlockEqual(t *testing.T) {
 			expected: false,
 		},
 		"equal": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
 					},
 				},
 			},
-			other: schema.ListNestedBlock{
+			other: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -268,15 +267,15 @@ func TestListNestedBlockEqual(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockGetDescription(t *testing.T) {
+func TestSetNestedBlockGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		expected string
 	}{
 		"no-description": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -286,7 +285,7 @@ func TestListNestedBlockGetDescription(t *testing.T) {
 			expected: "",
 		},
 		"description": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -306,15 +305,15 @@ func TestListNestedBlockGetDescription(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockGetMarkdownDescription(t *testing.T) {
+func TestSetNestedBlockGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		expected string
 	}{
 		"no-markdown-description": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -324,7 +323,7 @@ func TestListNestedBlockGetMarkdownDescription(t *testing.T) {
 			expected: "",
 		},
 		"markdown-description": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -344,15 +343,15 @@ func TestListNestedBlockGetMarkdownDescription(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockGetNestedObject(t *testing.T) {
+func TestSetNestedBlockGetNestedObject(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		expected schema.NestedBlockObject
 	}{
 		"nested-object": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -380,53 +379,15 @@ func TestListNestedBlockGetNestedObject(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockListValidators(t *testing.T) {
+func TestSetNestedBlockType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
-		expected []validator.List
-	}{
-		"no-validators": {
-			block: schema.ListNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"testattr": schema.StringAttribute{},
-					},
-				},
-			},
-			expected: nil,
-		},
-		"validators": {
-			block: schema.ListNestedBlock{
-				Validators: []validator.List{},
-			},
-			expected: []validator.List{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.block.ListValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestListNestedBlockType(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		expected attr.Type
 	}{
 		"base": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"testattr": schema.StringAttribute{},
@@ -440,7 +401,7 @@ func TestListNestedBlockType(t *testing.T) {
 					},
 				},
 			},
-			expected: types.ListType{
+			expected: types.SetType{
 				ElemType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"testattr": types.StringType,
@@ -454,10 +415,10 @@ func TestListNestedBlockType(t *testing.T) {
 			},
 		},
 		"custom-type": {
-			block: schema.ListNestedBlock{
-				CustomType: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+			block: schema.SetNestedBlock{
+				CustomType: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
 			},
-			expected: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+			expected: testtypes.SetType{SetType: types.SetType{ElemType: types.StringType}},
 		},
 	}
 
@@ -474,17 +435,17 @@ func TestListNestedBlockType(t *testing.T) {
 	}
 }
 
-func TestListNestedBlockValidateImplementation(t *testing.T) {
+func TestSetNestedBlockValidateImplementation(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		block    schema.ListNestedBlock
+		block    schema.SetNestedBlock
 		request  fwschema.ValidateImplementationRequest
 		expected *fwschema.ValidateImplementationResponse
 	}{
 		"customtype": {
-			block: schema.ListNestedBlock{
-				CustomType: testtypes.ListType{},
+			block: schema.SetNestedBlock{
+				CustomType: testtypes.SetType{},
 			},
 			request: fwschema.ValidateImplementationRequest{
 				Name: "test",
@@ -493,11 +454,11 @@ func TestListNestedBlockValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
 		"nestedobject": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"test_attr": schema.StringAttribute{
-							Computed: true,
+							Required: true,
 						},
 					},
 				},
@@ -509,11 +470,11 @@ func TestListNestedBlockValidateImplementation(t *testing.T) {
 			expected: &fwschema.ValidateImplementationResponse{},
 		},
 		"nestedobject-dynamic": {
-			block: schema.ListNestedBlock{
+			block: schema.SetNestedBlock{
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"test_dyn": schema.DynamicAttribute{
-							Computed: true,
+							Required: true,
 						},
 					},
 				},

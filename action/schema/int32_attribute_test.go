@@ -4,56 +4,53 @@
 package schema_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
-	"github.com/hashicorp/terraform-plugin-framework/list/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestMapAttributeApplyTerraform5AttributePathStep(t *testing.T) {
+func TestInt32AttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute     schema.MapAttribute
+		attribute     schema.Int32Attribute
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName": {
-			attribute:     schema.MapAttribute{ElementType: types.StringType},
+			attribute:     schema.Int32Attribute{},
 			step:          tftypes.AttributeName("test"),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.AttributeName to MapType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.AttributeName to basetypes.Int32Type"),
 		},
 		"ElementKeyInt": {
-			attribute:     schema.MapAttribute{ElementType: types.StringType},
+			attribute:     schema.Int32Attribute{},
 			step:          tftypes.ElementKeyInt(1),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyInt to MapType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to basetypes.Int32Type"),
 		},
 		"ElementKeyString": {
-			attribute:     schema.MapAttribute{ElementType: types.StringType},
+			attribute:     schema.Int32Attribute{},
 			step:          tftypes.ElementKeyString("test"),
-			expected:      types.StringType,
-			expectedError: nil,
+			expected:      nil,
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to basetypes.Int32Type"),
 		},
 		"ElementKeyValue": {
-			attribute:     schema.MapAttribute{ElementType: types.StringType},
+			attribute:     schema.Int32Attribute{},
 			step:          tftypes.ElementKeyValue(tftypes.NewValue(tftypes.String, "test")),
 			expected:      nil,
-			expectedError: fmt.Errorf("cannot apply step tftypes.ElementKeyValue to MapType"),
+			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyValue to basetypes.Int32Type"),
 		},
 	}
 
@@ -84,19 +81,19 @@ func TestMapAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 	}
 }
 
-func TestMapAttributeGetDeprecationMessage(t *testing.T) {
+func TestInt32AttributeGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  string
 	}{
 		"no-deprecation-message": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  "",
 		},
 		"deprecation-message": {
-			attribute: schema.MapAttribute{
+			attribute: schema.Int32Attribute{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -116,27 +113,22 @@ func TestMapAttributeGetDeprecationMessage(t *testing.T) {
 	}
 }
 
-func TestMapAttributeEqual(t *testing.T) {
+func TestInt32AttributeEqual(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		other     fwschema.Attribute
 		expected  bool
 	}{
 		"different-type": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
-			other:     testschema.AttributeWithMapValidators{},
-			expected:  false,
-		},
-		"different-element-type": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
-			other:     schema.MapAttribute{ElementType: types.BoolType},
+			attribute: schema.Int32Attribute{},
+			other:     testschema.AttributeWithInt32Validators{},
 			expected:  false,
 		},
 		"equal": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
-			other:     schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
+			other:     schema.Int32Attribute{},
 			expected:  true,
 		},
 	}
@@ -154,19 +146,19 @@ func TestMapAttributeEqual(t *testing.T) {
 	}
 }
 
-func TestMapAttributeGetDescription(t *testing.T) {
+func TestInt32AttributeGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  string
 	}{
 		"no-description": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  "",
 		},
 		"description": {
-			attribute: schema.MapAttribute{
+			attribute: schema.Int32Attribute{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -186,19 +178,19 @@ func TestMapAttributeGetDescription(t *testing.T) {
 	}
 }
 
-func TestMapAttributeGetMarkdownDescription(t *testing.T) {
+func TestInt32AttributeGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  string
 	}{
 		"no-markdown-description": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  "",
 		},
 		"markdown-description": {
-			attribute: schema.MapAttribute{
+			attribute: schema.Int32Attribute{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -218,22 +210,22 @@ func TestMapAttributeGetMarkdownDescription(t *testing.T) {
 	}
 }
 
-func TestMapAttributeGetType(t *testing.T) {
+func TestInt32AttributeGetType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  attr.Type
 	}{
 		"base": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
-			expected:  types.MapType{ElemType: types.StringType},
+			attribute: schema.Int32Attribute{},
+			expected:  types.Int32Type,
 		},
 		"custom-type": {
-			attribute: schema.MapAttribute{
-				CustomType: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+			attribute: schema.Int32Attribute{
+				CustomType: testtypes.Int32Type{},
 			},
-			expected: testtypes.MapType{MapType: types.MapType{ElemType: types.StringType}},
+			expected: testtypes.Int32Type{},
 		},
 	}
 
@@ -250,15 +242,15 @@ func TestMapAttributeGetType(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsComputed(t *testing.T) {
+func TestInt32AttributeIsComputed(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-computed": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 	}
@@ -276,19 +268,19 @@ func TestMapAttributeIsComputed(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsOptional(t *testing.T) {
+func TestInt32AttributeIsOptional(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-optional": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 		"optional": {
-			attribute: schema.MapAttribute{
+			attribute: schema.Int32Attribute{
 				Optional: true,
 			},
 			expected: true,
@@ -308,19 +300,19 @@ func TestMapAttributeIsOptional(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsRequired(t *testing.T) {
+func TestInt32AttributeIsRequired(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-required": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 		"required": {
-			attribute: schema.MapAttribute{
+			attribute: schema.Int32Attribute{
 				Required: true,
 			},
 			expected: true,
@@ -340,15 +332,15 @@ func TestMapAttributeIsRequired(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsSensitive(t *testing.T) {
+func TestInt32AttributeIsSensitive(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-sensitive": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 	}
@@ -366,15 +358,15 @@ func TestMapAttributeIsSensitive(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsWriteOnly(t *testing.T) {
+func TestInt2AttributeIsWriteOnly(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-writeOnly": {
-			attribute: schema.MapAttribute{},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 	}
@@ -392,130 +384,15 @@ func TestMapAttributeIsWriteOnly(t *testing.T) {
 	}
 }
 
-func TestMapAttributeMapValidators(t *testing.T) {
+func TestInt32AttributeIsRequiredForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
-		expected  []validator.Map
-	}{
-		"no-validators": {
-			attribute: schema.MapAttribute{ElementType: types.StringType},
-			expected:  nil,
-		},
-		"validators": {
-			attribute: schema.MapAttribute{
-				Validators: []validator.Map{},
-			},
-			expected: []validator.Map{},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := testCase.attribute.MapValidators()
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestMapAttributeValidateImplementation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.MapAttribute
-		request   fwschema.ValidateImplementationRequest
-		expected  *fwschema.ValidateImplementationResponse
-	}{
-		"customtype": {
-			attribute: schema.MapAttribute{
-				CustomType: testtypes.MapType{},
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"elementtype": {
-			attribute: schema.MapAttribute{
-				ElementType: types.StringType,
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{},
-		},
-		"elementtype-dynamic": {
-			attribute: schema.MapAttribute{
-				ElementType: types.DynamicType,
-			},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Invalid Schema Implementation",
-						"When validating the schema, an implementation issue was found. "+
-							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
-							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
-							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
-					),
-				},
-			},
-		},
-		"elementtype-missing": {
-			attribute: schema.MapAttribute{},
-			request: fwschema.ValidateImplementationRequest{
-				Name: "test",
-				Path: path.Root("test"),
-			},
-			expected: &fwschema.ValidateImplementationResponse{
-				Diagnostics: diag.Diagnostics{
-					diag.NewErrorDiagnostic(
-						"Invalid Attribute Implementation",
-						"When validating the schema, an implementation issue was found. "+
-							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-							"\"test\" is missing the CustomType or ElementType field on a collection Attribute. "+
-							"One of these fields is required to prevent other unexpected errors or panics.",
-					),
-				},
-			},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := &fwschema.ValidateImplementationResponse{}
-			testCase.attribute.ValidateImplementation(context.Background(), testCase.request, got)
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestMapAttributeIsRequiredForImport(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-requiredForImport": {
-			attribute: schema.MapAttribute{},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 	}
@@ -533,15 +410,15 @@ func TestMapAttributeIsRequiredForImport(t *testing.T) {
 	}
 }
 
-func TestMapAttributeIsOptionalForImport(t *testing.T) {
+func TestInt32AttributeIsOptionalForImport(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		attribute schema.MapAttribute
+		attribute schema.Int32Attribute
 		expected  bool
 	}{
 		"not-optionalForImport": {
-			attribute: schema.MapAttribute{},
+			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
 	}

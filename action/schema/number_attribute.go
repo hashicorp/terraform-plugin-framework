@@ -12,28 +12,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Ensure the implementation satisfies the desired interfaces.
+// Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute = BoolAttribute{}
+	_ Attribute = NumberAttribute{}
 )
 
-// BoolAttribute represents a schema attribute that is a boolean. When
-// retrieving the value for this attribute, use types.Bool as the value type
-// unless the CustomType field is set.
+// NumberAttribute represents a schema attribute that is a generic number with
+// up to 512 bits of floating point or integer precision. When retrieving the
+// value for this attribute, use types.Number as the value type unless the
+// CustomType field is set.
+//
+// Use Float64Attribute for 64-bit floating point number attributes or
+// Int64Attribute for 64-bit integer number attributes.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a boolean or directly via the true/false keywords.
+// return a number or directly via a floating point or integer value.
 //
-//	example_attribute = true
+//	example_attribute = 123
 //
 // Terraform configurations reference this attribute using the attribute name.
 //
 //	.example_attribute
-type BoolAttribute struct {
+type NumberAttribute struct {
 	// CustomType enables the use of a custom attribute type in place of the
-	// default basetypes.BoolType. When retrieving data, the basetypes.BoolValuable
-	// associated with this custom type must be used in place of types.Bool.
-	CustomType basetypes.BoolTypable
+	// default basetypes.NumberType. When retrieving data, the basetypes.NumberValuable
+	// associated with this custom type must be used in place of types.Number.
+	CustomType basetypes.NumberTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true.
@@ -92,15 +96,15 @@ type BoolAttribute struct {
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
-// possible to step further into a BoolAttribute.
-func (a BoolAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+// possible to step further into a NumberAttribute.
+func (a NumberAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
 	return a.GetType().ApplyTerraform5AttributePathStep(step)
 }
 
-// Equal returns true if the given Attribute is a BoolAttribute
+// Equal returns true if the given Attribute is a NumberAttribute
 // and all fields are equal.
-func (a BoolAttribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(BoolAttribute); !ok {
+func (a NumberAttribute) Equal(o fwschema.Attribute) bool {
+	if _, ok := o.(NumberAttribute); !ok {
 		return false
 	}
 
@@ -108,62 +112,62 @@ func (a BoolAttribute) Equal(o fwschema.Attribute) bool {
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.
-func (a BoolAttribute) GetDeprecationMessage() string {
+func (a NumberAttribute) GetDeprecationMessage() string {
 	return a.DeprecationMessage
 }
 
 // GetDescription returns the Description field value.
-func (a BoolAttribute) GetDescription() string {
+func (a NumberAttribute) GetDescription() string {
 	return a.Description
 }
 
 // GetMarkdownDescription returns the MarkdownDescription field value.
-func (a BoolAttribute) GetMarkdownDescription() string {
+func (a NumberAttribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
-// GetType returns types.StringType or the CustomType field value if defined.
-func (a BoolAttribute) GetType() attr.Type {
+// GetType returns types.NumberType or the CustomType field value if defined.
+func (a NumberAttribute) GetType() attr.Type {
 	if a.CustomType != nil {
 		return a.CustomType
 	}
 
-	return types.BoolType
+	return types.NumberType
 }
 
 // IsComputed always returns false as action schema attributes cannot be Computed.
-func (a BoolAttribute) IsComputed() bool {
+func (a NumberAttribute) IsComputed() bool {
 	return false
 }
 
 // IsOptional returns the Optional field value.
-func (a BoolAttribute) IsOptional() bool {
+func (a NumberAttribute) IsOptional() bool {
 	return a.Optional
 }
 
 // IsRequired returns the Required field value.
-func (a BoolAttribute) IsRequired() bool {
+func (a NumberAttribute) IsRequired() bool {
 	return a.Required
 }
 
 // IsSensitive always returns false as action schema attributes cannot be Sensitive.
-func (a BoolAttribute) IsSensitive() bool {
+func (a NumberAttribute) IsSensitive() bool {
 	return false
 }
 
 // IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
-func (a BoolAttribute) IsWriteOnly() bool {
+func (a NumberAttribute) IsWriteOnly() bool {
 	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsRequiredForImport() bool {
+func (a NumberAttribute) IsRequiredForImport() bool {
 	return false
 }
 
 // IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a BoolAttribute) IsOptionalForImport() bool {
+func (a NumberAttribute) IsOptionalForImport() bool {
 	return false
 }

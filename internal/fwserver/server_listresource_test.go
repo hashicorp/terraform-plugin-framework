@@ -167,6 +167,21 @@ func TestServerListResource(t *testing.T) {
 				},
 			},
 		},
+		"zero-results-on-nil-config": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: nil, // Simulating a nil config
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						resp.Results = list.NoListResults // Expecting no results when config is nil
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{},
+			expectedError:        "config cannot be nil",
+		},
 	}
 
 	for name, testCase := range testCases {

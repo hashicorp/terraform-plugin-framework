@@ -87,9 +87,14 @@ var NoListResults = func(func(ListResult) bool) {}
 func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) {
 	listResource := fwReq.ListResource
 
-	if fwReq.Config == nil {
+	if fwReq.Config == nil && fwReq.ResourceSchema != nil {
 		fwReq.Config = &tfsdk.Config{
 			Raw:    tftypes.NewValue(fwReq.ResourceSchema.Type().TerraformType(ctx), nil),
+			Schema: fwReq.ResourceSchema,
+		}
+	} else if fwReq.Config == nil && fwReq.ResourceIdentitySchema == nil {
+		fwReq.Config = &tfsdk.Config{
+			Raw:    tftypes.NewValue(tftypes.Object{}, nil),
 			Schema: fwReq.ResourceSchema,
 		}
 	}

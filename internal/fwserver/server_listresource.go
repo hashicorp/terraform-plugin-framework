@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -87,8 +88,10 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	listResource := fwReq.ListResource
 
 	if fwReq.Config == nil {
-		fwStream.Results = NoListResults
-		return
+		fwReq.Config = &tfsdk.Config{
+			Raw:    tftypes.NewValue(fwReq.ResourceSchema.Type().TerraformType(ctx), nil),
+			Schema: fwReq.ResourceSchema,
+		}
 	}
 
 	req := list.ListRequest{

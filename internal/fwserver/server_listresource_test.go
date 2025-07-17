@@ -89,6 +89,20 @@ func TestServerListResource(t *testing.T) {
 			},
 			expectedStreamEvents: []fwserver.ListResult{},
 		},
+		"success-with-nil-results": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: &tfsdk.Config{},
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						// Do nothing, so that resp.Results is nil
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{},
+		},
 		"success-with-multiple-results": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

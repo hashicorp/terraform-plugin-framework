@@ -6,10 +6,10 @@ package fwserver
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/action"
-	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -427,6 +428,44 @@ func TestListNestedBlockType(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.block.Type()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListNestedBlockListValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block    schema.ListNestedBlock
+		expected []validator.List
+	}{
+		"no-validators": {
+			block: schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: nil,
+		},
+		"validators": {
+			block: schema.ListNestedBlock{
+				Validators: []validator.List{},
+			},
+			expected: []validator.List{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.block.ListValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

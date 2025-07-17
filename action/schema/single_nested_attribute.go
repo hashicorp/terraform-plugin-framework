@@ -10,13 +10,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ NestedAttribute = SingleNestedAttribute{}
+	_ NestedAttribute                         = SingleNestedAttribute{}
+	_ fwxschema.AttributeWithObjectValidators = SingleNestedAttribute{}
 )
 
 // SingleNestedAttribute represents an attribute that is a single object where
@@ -105,6 +108,18 @@ type SingleNestedAttribute struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Object
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -163,6 +178,7 @@ func (a SingleNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject 
 	return NestedAttributeObject{
 		Attributes: a.Attributes,
 		CustomType: a.CustomType,
+		Validators: a.Validators,
 	}
 }
 
@@ -223,4 +239,9 @@ func (a SingleNestedAttribute) IsRequiredForImport() bool {
 // for managed resource identity schema attributes.
 func (a SingleNestedAttribute) IsOptionalForImport() bool {
 	return false
+}
+
+// ObjectValidators returns the Validators field value.
+func (a SingleNestedAttribute) ObjectValidators() []validator.Object {
+	return a.Validators
 }

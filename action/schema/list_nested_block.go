@@ -9,7 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -19,6 +21,7 @@ import (
 var (
 	_ Block                                    = ListNestedBlock{}
 	_ fwschema.BlockWithValidateImplementation = ListNestedBlock{}
+	_ fwxschema.BlockWithListValidators        = ListNestedBlock{}
 )
 
 // ListNestedBlock represents a block that is a list of objects where
@@ -113,6 +116,18 @@ type ListNestedBlock struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.List
 }
 
 // ApplyTerraform5AttributePathStep returns the NestedObject field value if step
@@ -171,6 +186,11 @@ func (b ListNestedBlock) Type() attr.Type {
 	return types.ListType{
 		ElemType: b.NestedObject.Type(),
 	}
+}
+
+// ListValidators returns the Validators field value.
+func (b ListNestedBlock) ListValidators() []validator.List {
+	return b.Validators
 }
 
 // ValidateImplementation contains logic for validating the

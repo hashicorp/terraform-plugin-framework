@@ -8,13 +8,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute = Int64Attribute{}
+	_ Attribute                              = Int64Attribute{}
+	_ fwxschema.AttributeWithInt64Validators = Int64Attribute{}
 )
 
 // Int64Attribute represents a schema attribute that is a 64-bit integer.
@@ -92,6 +95,18 @@ type Int64Attribute struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Int64
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -169,4 +184,9 @@ func (a Int64Attribute) IsRequiredForImport() bool {
 // for managed resource identity schema attributes.
 func (a Int64Attribute) IsOptionalForImport() bool {
 	return false
+}
+
+// Int64Validators returns the Validators field value.
+func (a Int64Attribute) Int64Validators() []validator.Int64 {
+	return a.Validators
 }

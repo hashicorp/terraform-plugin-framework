@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -383,6 +384,38 @@ func TestSetAttributeIsWriteOnly(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetAttributeSetValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SetAttribute
+		expected  []validator.Set
+	}{
+		"no-validators": {
+			attribute: schema.SetAttribute{ElementType: types.StringType},
+			expected:  nil,
+		},
+		"validators": {
+			attribute: schema.SetAttribute{
+				Validators: []validator.Set{},
+			},
+			expected: []validator.Set{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.SetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

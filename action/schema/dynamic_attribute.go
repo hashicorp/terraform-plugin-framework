@@ -8,13 +8,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Attribute = DynamicAttribute{}
+	_ Attribute                                = DynamicAttribute{}
+	_ fwxschema.AttributeWithDynamicValidators = DynamicAttribute{}
 )
 
 // DynamicAttribute represents a schema attribute that is a dynamic, rather
@@ -90,6 +93,18 @@ type DynamicAttribute struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Dynamic
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -167,4 +182,9 @@ func (a DynamicAttribute) IsRequiredForImport() bool {
 // for managed resource identity schema attributes.
 func (a DynamicAttribute) IsOptionalForImport() bool {
 	return false
+}
+
+// DynamicValidators returns the Validators field value.
+func (a DynamicAttribute) DynamicValidators() []validator.Dynamic {
+	return a.Validators
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -428,6 +429,38 @@ func TestInt64AttributeIsOptionalForImport(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInt64AttributeInt64Validators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Int64Attribute
+		expected  []validator.Int64
+	}{
+		"no-validators": {
+			attribute: schema.Int64Attribute{},
+			expected:  nil,
+		},
+		"validators": {
+			attribute: schema.Int64Attribute{
+				Validators: []validator.Int64{},
+			},
+			expected: []validator.Int64{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.Int64Validators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

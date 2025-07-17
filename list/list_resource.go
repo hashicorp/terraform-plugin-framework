@@ -50,7 +50,7 @@ type ListResourceWithConfigure interface {
 	// signature is intended to be compatible with the Configure method
 	// signature in the Resource interface. One implementation of Configure can
 	// satisfy both interfaces.
-	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+	Configure(context.Context, resource.ConfigureRequest, *resource.ConfigureResponse)
 }
 
 // ListResourceWithConfigValidators is an interface type that extends

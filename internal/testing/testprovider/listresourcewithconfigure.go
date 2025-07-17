@@ -5,6 +5,7 @@ package testprovider
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/hashicorp/terraform-plugin-framework/list"
 )
@@ -17,11 +18,11 @@ type ListResourceWithConfigure struct {
 	*ListResource
 
 	// ListResourceWithConfigure interface methods
-	ConfigureMethod func(context.Context, list.ConfigureRequest, *list.ConfigureResponse)
+	ConfigureMethod func(context.Context, resource.ConfigureRequest, *resource.ConfigureResponse)
 }
 
 // Configure satisfies the list.ListResourceWithConfigure interface.
-func (d *ListResourceWithConfigure) Configure(ctx context.Context, req list.ConfigureRequest, resp *list.ConfigureResponse) {
+func (d *ListResourceWithConfigure) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if d.ConfigureMethod == nil {
 		return
 	}

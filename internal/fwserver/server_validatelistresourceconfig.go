@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -34,10 +35,10 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, req *ValidateLi
 	if listResourceWithConfigure, ok := req.ListResource.(list.ListResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
 
-		configureReq := list.ConfigureRequest{
+		configureReq := resource.ConfigureRequest{
 			ProviderData: s.ListResourceConfigureData,
 		}
-		configureResp := list.ConfigureResponse{}
+		configureResp := resource.ConfigureResponse{}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined ListResource Configure")
 		listResourceWithConfigure.Configure(ctx, configureReq, &configureResp)

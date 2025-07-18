@@ -9,7 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -19,6 +21,7 @@ import (
 var (
 	_ Block                                    = SetNestedBlock{}
 	_ fwschema.BlockWithValidateImplementation = SetNestedBlock{}
+	_ fwxschema.BlockWithSetValidators         = SetNestedBlock{}
 )
 
 // SetNestedBlock represents a block that is a set of objects where
@@ -113,6 +116,18 @@ type SetNestedBlock struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Set
 }
 
 // ApplyTerraform5AttributePathStep returns the NestedObject field value if step
@@ -160,6 +175,11 @@ func (b SetNestedBlock) GetNestedObject() fwschema.NestedBlockObject {
 // GetNestingMode always returns BlockNestingModeSet.
 func (b SetNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSet
+}
+
+// SetValidators returns the Validators field value.
+func (b SetNestedBlock) SetValidators() []validator.Set {
+	return b.Validators
 }
 
 // Type returns SetType of ObjectType or CustomType.

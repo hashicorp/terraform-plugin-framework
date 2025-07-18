@@ -1,0 +1,5 @@
+kind: NOTES
+body: This alpha pre-release contains the initial implementation for list resource that  returns a list of resource identities for a single managed resource type.
+time: 2025-07-18T10:18:05.438972-04:00
+custom:
+    Issue: "1157"

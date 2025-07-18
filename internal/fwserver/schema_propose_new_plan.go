@@ -50,7 +50,16 @@ func SchemaProposeNewState(ctx context.Context, s fwschema.Schema, req ProposeNe
 func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
 	// TODO: This is in core's logic, but I'm not sure what how this scenario would be triggered
 	// Need to verify if it's relevant...
-	if config.IsNull() || !config.IsKnown() {
+	//if config.IsNull() || !config.IsKnown() {
+	//	return prior
+	//}
+
+	// TODO: double check this logic
+	if config.IsNull() {
+		return config
+	}
+
+	if !config.IsKnown() {
 		return prior
 	}
 
@@ -81,25 +90,44 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 		attrPath := path.WithAttributeName(name)
 
 		var priorVal tftypes.Value
-		if priorObj.IsNull() {
+		switch {
+		case priorObj.IsNull():
 			priorObjType := priorObj.Type().(tftypes.Object) //nolint
 			// TODO: validate before doing this? To avoid panic
 			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], nil)
-		} else {
+		case !priorObj.IsKnown():
+			priorObjType := priorObj.Type().(tftypes.Object) //nolint
+			// TODO: validate before doing this? To avoid panic
+			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], tftypes.UnknownValue)
+		default:
 			// TODO: handle error
 			attrVal, err := priorObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
 			if err != nil {
 				panic(err)
 			}
 			priorVal = attrVal.(tftypes.Value) //nolint
+
 		}
 
-		// TODO: handle error
-		configIface, err := configObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
-		if err != nil {
-			panic(err)
+		var configVal tftypes.Value
+		switch {
+		case configObj.IsNull():
+			configObjType := configObj.Type().(tftypes.Object) //nolint
+			// TODO: validate before doing this? To avoid panic
+			configVal = tftypes.NewValue(configObjType.AttributeTypes[name], nil)
+		case !configObj.IsKnown():
+			configObjType := configObj.Type().(tftypes.Object) //nolint
+			// TODO: validate before doing this? To avoid panic
+			configVal = tftypes.NewValue(configObjType.AttributeTypes[name], tftypes.UnknownValue)
+		default:
+			// TODO: handle error
+			configIface, err := configObj.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+			if err != nil {
+				panic(err)
+			}
+			configVal = configIface.(tftypes.Value) //nolint
+
 		}
-		configVal := configIface.(tftypes.Value) //nolint
 
 		var newVal tftypes.Value
 		if attr.IsComputed() && configVal.IsNull() {
@@ -196,9 +224,9 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 	case fwschema.NestingModeList:
 		newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeMap:
-		// TODO: handle map
+
 	case fwschema.NestingModeSet:
-		// TODO: handle set
+		newVal = proposedNewSetNested(ctx, s, attr, path, prior, config)
 	default:
 		// TODO: Shouldn't happen, return diag
 		panic(fmt.Sprintf("unsupported attribute nesting mode %d", attr.GetNestingMode()))
@@ -352,6 +380,72 @@ func proposedNewListNested(ctx context.Context, s fwschema.Schema, attr fwschema
 
 			priorEV := priorVals[idx]
 			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyInt(idx), priorEV, configEV))
+		}
+
+		// TODO: should work for tuples + lists
+		newVal = tftypes.NewValue(config.Type(), newVals)
+	}
+
+	return newVal
+}
+
+func proposedNewSetNested(ctx context.Context, s fwschema.Schema, attr fwschema.NestedAttribute, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	newVal := config
+
+	configVals := make([]tftypes.Value, 0)
+	priorVals := make([]tftypes.Value, 0)
+
+	configValLen := 0
+	if !config.IsNull() {
+		err := config.As(&configVals)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+		configValLen = len(configVals)
+	}
+
+	if !prior.IsNull() {
+		err := prior.As(&priorVals)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if configValLen > 0 {
+		// track which prior elements have been used
+		used := make([]bool, len(priorVals))
+		newVals := make([]tftypes.Value, 0, configValLen)
+		for _, configEV := range configVals {
+			var priorEV tftypes.Value
+			for i, priorCmp := range priorVals {
+				if used[i] {
+					continue
+				}
+
+				// It is possible that multiple prior elements could be valid
+				// matches for a configuration value, in which case we will end up
+				// picking the first match encountered (but it will always be
+				// consistent due to cty's iteration order). Because configured set
+				// elements must also be entirely unique in order to be included in
+				// the set, these matches either will not matter because they only
+				// differ by computed values, or could not have come from a valid
+				// config with all unique set elements.
+				if validPriorFromConfig(ctx, s, path, priorCmp, configEV) {
+					priorEV = priorCmp
+					used[i] = true
+					break
+				}
+			}
+
+			if priorEV.IsNull() {
+				// TODO might have to come back to figure out how to get elem type
+				priorEV = tftypes.NewValue(attr.GetNestedObject().Type().TerraformType(ctx), nil)
+			}
+			//block.GetNestedObject().GetAttributes()
+			// TODO create proposed new nested block object
+			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyValue(priorEV), priorEV, configEV))
 		}
 
 		// TODO: should work for tuples + lists

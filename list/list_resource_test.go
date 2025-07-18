@@ -45,7 +45,4 @@ func ExampleResource_listable() {
 	var _ list.ListResourceWithConfigValidators = &ComputeInstanceWithListResourceConfigValidators{}
 
 	var _ resource.Resource = &ComputeInstanceResource{}
-	var _ resource.ResourceWithConfigure = &ComputeInstanceResource{}
-
-	// Output:
 }

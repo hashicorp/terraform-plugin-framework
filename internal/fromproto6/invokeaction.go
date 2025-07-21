@@ -37,6 +37,7 @@ func InvokeActionRequest(ctx context.Context, proto6 *tfprotov6.InvokeActionRequ
 	}
 
 	fw := &fwserver.InvokeActionRequest{
+		Action:       reqAction,
 		ActionSchema: actionSchema,
 	}
 

@@ -349,6 +349,10 @@ func TestServerGetMetadata(t *testing.T) {
 			}
 
 			// Prevent false positives with random map access in testing
+			sort.Slice(got.Actions, func(i int, j int) bool {
+				return got.Actions[i].TypeName < got.Actions[j].TypeName
+			})
+
 			sort.Slice(got.DataSources, func(i int, j int) bool {
 				return got.DataSources[i].TypeName < got.DataSources[j].TypeName
 			})

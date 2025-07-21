@@ -67,6 +67,11 @@ type ConfigureResponse struct {
 	// EphemeralResource type that implements the Configure method.
 	EphemeralResourceData any
 
+	// ActionData is provider-defined data, clients, etc. that is
+	// passed to [action.ConfigureRequest.ProviderData] for each
+	// Action type that implements the Configure method.
+	ActionData any
+
 	// Deferred indicates that Terraform should automatically defer
 	// all resources and data sources for this provider.
 	//

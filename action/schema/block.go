@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// TODO:Actions: Add all of the block and nested block types listed below
-//
 // Block defines a structural field inside an action type schema. Implementations in this
 // package include:
 //   - ListNestedBlock

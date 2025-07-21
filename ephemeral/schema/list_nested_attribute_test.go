@@ -374,12 +374,12 @@ func TestListNestedAttributeGetType(t *testing.T) {
 				},
 			},
 		},
-		// "custom-type": {
-		// 	attribute: schema.ListNestedAttribute{
-		// 		CustomType: testtypes.ListType{},
-		// 	},
-		// 	expected: testtypes.ListType{},
-		// },
+		"custom-type": {
+			attribute: schema.ListNestedAttribute{
+				CustomType: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+			},
+			expected: testtypes.ListType{ListType: types.ListType{ElemType: types.StringType}},
+		},
 	}
 
 	for name, testCase := range testCases {

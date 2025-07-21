@@ -19,9 +19,10 @@ func PlanActionResponse(ctx context.Context, fw *fwserver.PlanActionResponse) *t
 
 	proto5 := &tfprotov5.PlanActionResponse{
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
+		Deferred:    ActionDeferred(fw.Deferred),
 	}
 
-	// TODO:Actions: Here we need to set deferred and linked resource data
+	// TODO:Actions: Here we need to set linked resource data
 
 	return proto5
 }

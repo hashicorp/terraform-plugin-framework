@@ -42,6 +42,11 @@ type Server struct {
 	// to [ephemeral.ConfigureRequest.ProviderData].
 	EphemeralResourceConfigureData any
 
+	// ActionConfigureData is the
+	// [provider.ConfigureResponse.ActionData] field value which is passed
+	// to [action.ConfigureRequest.ProviderData].
+	ActionConfigureData any
+
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Action.Schema() method.

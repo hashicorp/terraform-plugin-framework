@@ -16,6 +16,7 @@ type Action struct {
 	// Action interface methods
 	MetadataMethod func(context.Context, action.MetadataRequest, *action.MetadataResponse)
 	SchemaMethod   func(context.Context, action.SchemaRequest, *action.SchemaResponse)
+	InvokeMethod   func(context.Context, action.InvokeRequest, *action.InvokeResponse)
 }
 
 // Metadata satisfies the action.Action interface.
@@ -34,4 +35,13 @@ func (d *Action) Schema(ctx context.Context, req action.SchemaRequest, resp *act
 	}
 
 	d.SchemaMethod(ctx, req, resp)
+}
+
+// Invoke satisfies the action.Action interface.
+func (d *Action) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
+	if d.InvokeMethod == nil {
+		return
+	}
+
+	d.InvokeMethod(ctx, req, resp)
 }

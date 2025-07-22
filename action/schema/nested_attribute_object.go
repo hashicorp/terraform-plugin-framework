@@ -5,14 +5,14 @@ package schema
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
-var (
-	_ fwschema.NestedAttributeObject = NestedAttributeObject{}
-)
+var _ fwxschema.NestedAttributeObjectWithValidators = NestedAttributeObject{}
 
 // NestedAttributeObject is the object containing the underlying attributes
 // for a ListNestedAttribute, MapNestedAttribute, SetNestedAttribute, or
@@ -33,6 +33,18 @@ type NestedAttributeObject struct {
 	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
 	// associated with this custom type must be used in place of types.Object.
 	CustomType basetypes.ObjectTypable
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Object
 }
 
 // ApplyTerraform5AttributePathStep performs an AttributeName step on the
@@ -53,6 +65,11 @@ func (o NestedAttributeObject) Equal(other fwschema.NestedAttributeObject) bool 
 // GetAttributes returns the Attributes field value.
 func (o NestedAttributeObject) GetAttributes() fwschema.UnderlyingAttributes {
 	return schemaAttributes(o.Attributes)
+}
+
+// ObjectValidators returns the Validators field value.
+func (o NestedAttributeObject) ObjectValidators() []validator.Object {
+	return o.Validators
 }
 
 // Type returns the framework type of the NestedAttributeObject.

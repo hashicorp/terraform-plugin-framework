@@ -13,11 +13,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-var _ SchemaType = UnlinkedSchema{}
+var _ SchemaType = LifecycleSchema{}
 
-// UnlinkedSchema defines the structure and value types of an unlinked action. An unlinked action
-// cannot cause changes to resource state.
-type UnlinkedSchema struct {
+// LifecycleSchema defines the structure and value types of a lifecycle action. A lifecycle action
+// can cause changes to exactly resource state, defined as a linked resource.
+//
+// TODO:Actions: docs
+type LifecycleSchema struct {
+	ExecutionOrder ExecutionOrder
+
+	LinkedResource LinkedResourceType
+
 	// Attributes is the mapping of underlying attribute names to attribute
 	// definitions.
 	//
@@ -58,75 +64,76 @@ type UnlinkedSchema struct {
 	DeprecationMessage string
 }
 
-// LinkedResourceTypes always returns an empty slice because unlinked actions cannot support linked resources.
-func (s UnlinkedSchema) LinkedResourceTypes() []LinkedResourceType {
-	return []LinkedResourceType{}
+func (s LifecycleSchema) LinkedResourceTypes() []LinkedResourceType {
+	return []LinkedResourceType{
+		s.LinkedResource,
+	}
 }
 
-func (s UnlinkedSchema) isActionSchemaType() {}
+func (s LifecycleSchema) isActionSchemaType() {}
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // schema.
-func (s UnlinkedSchema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {
+func (s LifecycleSchema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {
 	return fwschema.SchemaApplyTerraform5AttributePathStep(s, step)
 }
 
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s UnlinkedSchema) AttributeAtPath(ctx context.Context, p path.Path) (fwschema.Attribute, diag.Diagnostics) {
+func (s LifecycleSchema) AttributeAtPath(ctx context.Context, p path.Path) (fwschema.Attribute, diag.Diagnostics) {
 	return fwschema.SchemaAttributeAtPath(ctx, s, p)
 }
 
 // AttributeAtPath returns the Attribute at the passed path. If the path points
 // to an element or attribute of a complex type, rather than to an Attribute,
 // it will return an ErrPathInsideAtomicAttribute error.
-func (s UnlinkedSchema) AttributeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (fwschema.Attribute, error) {
+func (s LifecycleSchema) AttributeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (fwschema.Attribute, error) {
 	return fwschema.SchemaAttributeAtTerraformPath(ctx, s, p)
 }
 
 // GetAttributes returns the Attributes field value.
-func (s UnlinkedSchema) GetAttributes() map[string]fwschema.Attribute {
+func (s LifecycleSchema) GetAttributes() map[string]fwschema.Attribute {
 	return schemaAttributes(s.Attributes)
 }
 
 // GetBlocks returns the Blocks field value.
-func (s UnlinkedSchema) GetBlocks() map[string]fwschema.Block {
+func (s LifecycleSchema) GetBlocks() map[string]fwschema.Block {
 	return schemaBlocks(s.Blocks)
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.
-func (s UnlinkedSchema) GetDeprecationMessage() string {
+func (s LifecycleSchema) GetDeprecationMessage() string {
 	return s.DeprecationMessage
 }
 
 // GetDescription returns the Description field value.
-func (s UnlinkedSchema) GetDescription() string {
+func (s LifecycleSchema) GetDescription() string {
 	return s.Description
 }
 
 // GetMarkdownDescription returns the MarkdownDescription field value.
-func (s UnlinkedSchema) GetMarkdownDescription() string {
+func (s LifecycleSchema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
 // GetVersion always returns 0 as action schemas cannot be versioned.
-func (s UnlinkedSchema) GetVersion() int64 {
+func (s LifecycleSchema) GetVersion() int64 {
 	return 0
 }
 
 // Type returns the framework type of the schema.
-func (s UnlinkedSchema) Type() attr.Type {
+func (s LifecycleSchema) Type() attr.Type {
 	return fwschema.SchemaType(s)
 }
 
 // TypeAtPath returns the framework type at the given schema path.
-func (s UnlinkedSchema) TypeAtPath(ctx context.Context, p path.Path) (attr.Type, diag.Diagnostics) {
+func (s LifecycleSchema) TypeAtPath(ctx context.Context, p path.Path) (attr.Type, diag.Diagnostics) {
 	return fwschema.SchemaTypeAtPath(ctx, s, p)
 }
 
 // TypeAtTerraformPath returns the framework type at the given tftypes path.
-func (s UnlinkedSchema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (attr.Type, error) {
+func (s LifecycleSchema) TypeAtTerraformPath(ctx context.Context, p *tftypes.AttributePath) (attr.Type, error) {
 	return fwschema.SchemaTypeAtTerraformPath(ctx, s, p)
 }
 
@@ -134,8 +141,10 @@ func (s UnlinkedSchema) TypeAtTerraformPath(ctx context.Context, p *tftypes.Attr
 // implementation of the schema and underlying attributes and blocks to prevent
 // unexpected errors or panics. This logic runs during the GetProviderSchema RPC,
 // or via provider-defined unit testing, and should never include false positives.
-func (s UnlinkedSchema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
+func (s LifecycleSchema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	// TODO:Actions: Implement validation to ensure valid lifecycle "execute" enum and linked resource definitions
 
 	for attributeName, attribute := range s.GetAttributes() {
 		req := fwschema.ValidateImplementationRequest{

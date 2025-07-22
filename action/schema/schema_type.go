@@ -38,4 +38,7 @@ type SchemaType interface {
 	// Action schema types are statically defined in the protocol, so this
 	// interface is not meant to be implemented outside of this package
 	isActionSchemaType()
+
+	// TODO:Actions: docs
+	LinkedResourceTypes() []LinkedResourceType
 }

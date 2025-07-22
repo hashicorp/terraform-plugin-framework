@@ -30,11 +30,19 @@ type ModifyPlanRequest struct {
 	// from knowing the value at request time.
 	Config tfsdk.Config
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	LinkedResources []ModifyPlanRequestLinkedResource
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// PlanAction RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities ModifyPlanClientCapabilities
+}
+
+// TODO:Actions: docs, change name of this struct :?
+type ModifyPlanRequestLinkedResource struct {
+	Config   tfsdk.Config
+	State    tfsdk.State
+	Identity *tfsdk.ResourceIdentity
+	Plan     tfsdk.Plan
 }
 
 // ModifyPlanResponse represents a response to a
@@ -48,7 +56,7 @@ type ModifyPlanResponse struct {
 	// generated.
 	Diagnostics diag.Diagnostics
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	LinkedResources []ModifyPlanResponseLinkedResource
 
 	// Deferred indicates that Terraform should defer planning this
 	// action until a follow-up apply operation.
@@ -59,4 +67,10 @@ type ModifyPlanResponse struct {
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
 	Deferred *Deferred
+}
+
+// TODO:Actions: docs, change name of this struct :?
+type ModifyPlanResponseLinkedResource struct {
+	Plan     tfsdk.Plan
+	Identity *tfsdk.ResourceIdentity
 }

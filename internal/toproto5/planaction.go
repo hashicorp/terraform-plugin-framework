@@ -22,7 +22,22 @@ func PlanActionResponse(ctx context.Context, fw *fwserver.PlanActionResponse) *t
 		Deferred:    ActionDeferred(fw.Deferred),
 	}
 
-	// TODO:Actions: Here we need to set linked resource data
+	// TODO:Actions: Should we validate somewhere that no new linked resources are added to the response? I.E. the length
+	// matches the linked resource length in the action schema?
+	proto5.LinkedResources = make([]*tfprotov5.PlannedLinkedResource, len(fw.LinkedResources))
+
+	for i, linkedResource := range fw.LinkedResources {
+		plannedState, diags := State(ctx, linkedResource.PlannedState)
+		proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+
+		plannedIdentity, diags := ResourceIdentity(ctx, linkedResource.PlannedIdentity)
+		proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+
+		proto5.LinkedResources[i] = &tfprotov5.PlannedLinkedResource{
+			PlannedState:    plannedState,
+			PlannedIdentity: plannedIdentity,
+		}
+	}
 
 	return proto5
 }

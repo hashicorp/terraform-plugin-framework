@@ -130,7 +130,7 @@ func TestPlanActionRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto5.PlanActionRequest(context.Background(), testCase.input, testCase.actionImpl, testCase.actionSchema)
+			got, diags := fromproto5.PlanActionRequest(context.Background(), testCase.input, testCase.actionImpl, testCase.actionSchema, []fwschema.Schema{}, []fwschema.Schema{}) // TODO:Actions: Temporary
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

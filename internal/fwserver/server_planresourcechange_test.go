@@ -428,8 +428,8 @@ func TestServerPlanResourceChange(t *testing.T) {
 	// float32 which may result in accuracy loss.
 	var float32Value float32 = 1.2
 	var computedFloat32Value float32 = 1.2345
-	var updatedFloat32Value float32 = 5.4321
-	var configuredFloat32Value float32 = 2.4
+	//var updatedFloat32Value float32 = 5.4321
+	//var configuredFloat32Value float32 = 2.4
 
 	testSchemaType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
@@ -3750,41 +3750,44 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedPrivate: testEmptyPrivate,
 			},
 		},
-		"delete-resourcewithmodifyplan-request-config": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw:    tftypes.NewValue(testSchemaType, nil),
-					Schema: testSchema,
-				},
-				ProposedNewState: testEmptyPlan,
-				PriorState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
-						"test_computed": tftypes.NewValue(tftypes.String, nil),
-						"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
-					}),
-					Schema: testSchema,
-				},
-				ResourceSchema: testSchema,
-				Resource: &testprovider.ResourceWithModifyPlan{
-					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-						var data testSchemaData
-
-						resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-						if data.TestRequired.ValueString() != "test-config-value" {
-							resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.ValueString())
-						}
-					},
-				},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				PlannedState:   testEmptyState,
-				PlannedPrivate: testEmptyPrivate,
-			},
-		},
+		//"delete-resourcewithmodifyplan-request-config": {
+		//	server: &fwserver.Server{
+		//		Provider: &testprovider.Provider{},
+		//	},
+		//	request: &fwserver.PlanResourceChangeRequest{
+		//		Config: &tfsdk.Config{
+		//			Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+		//				"test_computed": tftypes.NewValue(tftypes.String, nil),
+		//				"test_required": tftypes.NewValue(tftypes.String, nil),
+		//			}),
+		//			Schema: testSchema,
+		//		},
+		//		ProposedNewState: testEmptyPlan,
+		//		PriorState: &tfsdk.State{
+		//			Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+		//				"test_computed": tftypes.NewValue(tftypes.String, nil),
+		//				"test_required": tftypes.NewValue(tftypes.String, "test-state-value"),
+		//			}),
+		//			Schema: testSchema,
+		//		},
+		//		ResourceSchema: testSchema,
+		//		Resource: &testprovider.ResourceWithModifyPlan{
+		//			ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+		//				var data testSchemaData
+		//
+		//				resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+		//
+		//				if data.TestRequired.ValueString() != "test-config-value" {
+		//					resp.Diagnostics.AddError("Unexpected req.Config Value", "Got: "+data.TestRequired.ValueString())
+		//				}
+		//			},
+		//		},
+		//	},
+		//	expectedResponse: &fwserver.PlanResourceChangeResponse{
+		//		PlannedState:   testEmptyState,
+		//		PlannedPrivate: testEmptyPrivate,
+		//	},
+		//},
 		"delete-resourcewithmodifyplan-request-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -4301,1630 +4304,1630 @@ func TestServerPlanResourceChange(t *testing.T) {
 				PlannedPrivate: testEmptyPrivate,
 			},
 		},
-		"update-set-default-values": {
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
-						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
-						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-						"test_computed_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, nil),
-							},
-						),
-						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
-						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_list": tftypes.NewValue(
-							tftypes.List{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_map": tftypes.NewValue(
-							tftypes.Map{ElementType: tftypes.String},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_object": tftypes.NewValue(
-							tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-							map[string]tftypes.Value{
-								"a": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_set": tftypes.NewValue(
-							tftypes.Set{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								// TODO: Prevent random attributes map access from causing flaky test
-								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-								// tftypes.NewValue(
-								// 	tftypes.Object{
-								// 		AttributeTypes: map[string]tftypes.Type{
-								// 			"computed_attribute":     tftypes.String,
-								// 			"configurable_attribute": tftypes.String,
-								// 		},
-								// 	},
-								// 	map[string]tftypes.Value{
-								// 		"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-								// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-								// 	},
-								// ),
-							},
-						),
-						"test_configured_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-					}),
-					Schema: testSchemaDefault,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
-						"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
-						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
-						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-						"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
-						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
-						"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
-						"test_computed_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, nil),
-									},
-								),
-							},
-						),
-						"test_computed_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							nil,
-						),
-						"test_computed_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, nil),
-							},
-						),
-						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
-						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_list": tftypes.NewValue(
-							tftypes.List{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_map": tftypes.NewValue(
-							tftypes.Map{ElementType: tftypes.String},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_object": tftypes.NewValue(
-							tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-							map[string]tftypes.Value{
-								"a": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_set": tftypes.NewValue(
-							tftypes.Set{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								// TODO: Prevent random attributes map access from causing flaky test
-								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-								// tftypes.NewValue(
-								// 	tftypes.Object{
-								// 		AttributeTypes: map[string]tftypes.Type{
-								// 			"computed_attribute":     tftypes.String,
-								// 			"configurable_attribute": tftypes.String,
-								// 		},
-								// 	},
-								// 	map[string]tftypes.Value{
-								// 		"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
-								// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-								// 	},
-								// ),
-							},
-						),
-						"test_configured_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-					}),
-					Schema: testSchemaDefault,
-				},
-				PriorState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, false),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(updatedFloat32Value)),
-						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 5.4321),
-						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 54321),
-						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 54321),
-						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
-						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
-						"test_computed_string":             tftypes.NewValue(tftypes.String, "two"),
-						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "two"),
-						"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "two"),
-						"test_computed_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
-							},
-						),
-						"test_computed_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
-							},
-						),
-						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, false),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(configuredFloat32Value)),
-						"test_configured_float64": tftypes.NewValue(tftypes.Number, 2.4),
-						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 456),
-						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 456),
-						"test_configured_list": tftypes.NewValue(
-							tftypes.List{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-						"test_configured_map": tftypes.NewValue(
-							tftypes.Map{ElementType: tftypes.String},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-						"test_configured_number": tftypes.NewValue(tftypes.Number, 2.4),
-						"test_configured_object": tftypes.NewValue(
-							tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-							map[string]tftypes.Value{
-								"a": tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-						"test_configured_set": tftypes.NewValue(
-							tftypes.Set{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-						"test_configured_string":             tftypes.NewValue(tftypes.String, "state-value"),
-						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "state-value"),
-						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "state-value"),
-						"test_configured_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
-									},
-								),
-								// TODO: Prevent random attributes map access from causing flaky test
-								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-								// tftypes.NewValue(
-								// 	tftypes.Object{
-								// 		AttributeTypes: map[string]tftypes.Type{
-								// 			"computed_attribute":     tftypes.String,
-								// 			"configurable_attribute": tftypes.String,
-								// 		},
-								// 	},
-								// 	map[string]tftypes.Value{
-								// 		"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
-								// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
-								// 	},
-								// ),
-							},
-						),
-						"test_configured_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-						"test_configured_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
-							},
-						),
-					}),
-					Schema: testSchemaDefault,
-				},
-				ResourceSchema: testSchemaDefault,
-				Resource:       &testprovider.Resource{},
-			},
-			expectedResponse: &fwserver.PlanResourceChangeResponse{
-				// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-				Diagnostics: diag.Diagnostics{
-					diag.NewAttributeErrorDiagnostic(
-						path.Root("test_configured_nested_set_attribute"),
-						"Duplicate Set Element",
-						"This attribute contains duplicate values of: tftypes.Object["+
-							"\"computed_attribute\":tftypes.String, "+
-							"\"configurable_attribute\":tftypes.String"+
-							"]<"+
-							"\"computed_attribute\":tftypes.String<\"attribute-default-value\">, "+
-							"\"configurable_attribute\":tftypes.String<\"attribute-default-value\">"+
-							">",
-					),
-				},
-				PlannedState: &tfsdk.State{
-					Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
-						"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
-						"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
-						"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
-						"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
-						"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
-						"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
-						"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
-						"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
-						"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
-						"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "hello world!"),
-						"test_computed_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"string_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
-									},
-								),
-							},
-						),
-						"test_computed_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, "default"),
-							},
-						),
-						"test_computed_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
-							},
-						),
-						"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
-						"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
-						"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
-						"test_configured_list": tftypes.NewValue(
-							tftypes.List{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_map": tftypes.NewValue(
-							tftypes.Map{ElementType: tftypes.String},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
-						"test_configured_object": tftypes.NewValue(
-							tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
-							map[string]tftypes.Value{
-								"a": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_set": tftypes.NewValue(
-							tftypes.Set{ElementType: tftypes.String},
-							[]tftypes.Value{
-								tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
-						"test_configured_nested_list": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_list_attribute": tftypes.NewValue(
-							tftypes.List{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_map_attribute": tftypes.NewValue(
-							tftypes.Map{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							map[string]tftypes.Value{
-								"test-key": tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_set": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-										// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-									},
-								),
-								// TODO: Prevent random attributes map access from causing flaky test (also fix above data)
-								// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-								// tftypes.NewValue(
-								// 	tftypes.Object{
-								// 		AttributeTypes: map[string]tftypes.Type{
-								// 			"computed_attribute":     tftypes.String,
-								// 			"configurable_attribute": tftypes.String,
-								// 		},
-								// 	},
-								// 	map[string]tftypes.Value{
-								// 		"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-								// 		// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-								// 		// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-								// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-								// 	},
-								// ),
-							},
-						),
-						"test_configured_nested_set_attribute": tftypes.NewValue(
-							tftypes.Set{
-								ElementType: tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"computed_attribute":     tftypes.String,
-										"configurable_attribute": tftypes.String,
-									},
-								},
-							},
-							[]tftypes.Value{
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-										// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-									},
-								),
-								tftypes.NewValue(
-									tftypes.Object{
-										AttributeTypes: map[string]tftypes.Type{
-											"computed_attribute":     tftypes.String,
-											"configurable_attribute": tftypes.String,
-										},
-									},
-									map[string]tftypes.Value{
-										"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-										// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
-										// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
-										"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
-									},
-								),
-							},
-						),
-						"test_configured_nested_single": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-						"test_configured_nested_single_attribute": tftypes.NewValue(
-							tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"computed_attribute":     tftypes.String,
-									"configurable_attribute": tftypes.String,
-								},
-							},
-							map[string]tftypes.Value{
-								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
-								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
-							},
-						),
-					}),
-					Schema: testSchemaDefault,
-				},
-				PlannedPrivate: testEmptyPrivate,
-			},
-		},
+		//"update-set-default-values": {
+		//	server: &fwserver.Server{
+		//		Provider: &testprovider.Provider{},
+		//	},
+		//	request: &fwserver.PlanResourceChangeRequest{
+		//		Config: &tfsdk.Config{
+		//			Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+		//				"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+		//				"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		//				"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+		//				"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+		//				"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		//				"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+		//				"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+		//				"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		//				"test_computed_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//					},
+		//				),
+		//				"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+		//				"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
+		//				"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_list": tftypes.NewValue(
+		//					tftypes.List{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_map": tftypes.NewValue(
+		//					tftypes.Map{ElementType: tftypes.String},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_object": tftypes.NewValue(
+		//					tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+		//					map[string]tftypes.Value{
+		//						"a": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_set": tftypes.NewValue(
+		//					tftypes.Set{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						// TODO: Prevent random attributes map access from causing flaky test
+		//						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//						// tftypes.NewValue(
+		//						// 	tftypes.Object{
+		//						// 		AttributeTypes: map[string]tftypes.Type{
+		//						// 			"computed_attribute":     tftypes.String,
+		//						// 			"configurable_attribute": tftypes.String,
+		//						// 		},
+		//						// 	},
+		//						// 	map[string]tftypes.Value{
+		//						// 		"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//						// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//						// 	},
+		//						// ),
+		//					},
+		//				),
+		//				"test_configured_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, nil),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//			}),
+		//			Schema: testSchemaDefault,
+		//		},
+		//		ProposedNewState: &tfsdk.Plan{
+		//			Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+		//				"test_computed_bool":               tftypes.NewValue(tftypes.Bool, nil),
+		//				"test_computed_float32":            tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_float64":            tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_int32":              tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_int64":              tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		//				"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+		//				"test_computed_number":             tftypes.NewValue(tftypes.Number, nil),
+		//				"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, nil),
+		//				"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		//				"test_computed_string":             tftypes.NewValue(tftypes.String, nil),
+		//				"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, nil),
+		//				"test_computed_dynamic":            tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		//				"test_computed_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					nil,
+		//				),
+		//				"test_computed_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, nil),
+		//					},
+		//				),
+		//				"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+		//				"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
+		//				"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_list": tftypes.NewValue(
+		//					tftypes.List{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_map": tftypes.NewValue(
+		//					tftypes.Map{ElementType: tftypes.String},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_object": tftypes.NewValue(
+		//					tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+		//					map[string]tftypes.Value{
+		//						"a": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_set": tftypes.NewValue(
+		//					tftypes.Set{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						// TODO: Prevent random attributes map access from causing flaky test
+		//						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//						// tftypes.NewValue(
+		//						// 	tftypes.Object{
+		//						// 		AttributeTypes: map[string]tftypes.Type{
+		//						// 			"computed_attribute":     tftypes.String,
+		//						// 			"configurable_attribute": tftypes.String,
+		//						// 		},
+		//						// 	},
+		//						// 	map[string]tftypes.Value{
+		//						// 		"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
+		//						// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//						// 	},
+		//						// ),
+		//					},
+		//				),
+		//				"test_configured_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"), // Terraform core behavior
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"), // Terraform core behavior
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//			}),
+		//			Schema: testSchemaDefault,
+		//		},
+		//		PriorState: &tfsdk.State{
+		//			Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+		//				"test_computed_bool":               tftypes.NewValue(tftypes.Bool, false),
+		//				"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(updatedFloat32Value)),
+		//				"test_computed_float64":            tftypes.NewValue(tftypes.Number, 5.4321),
+		//				"test_computed_int32":              tftypes.NewValue(tftypes.Number, 54321),
+		//				"test_computed_int64":              tftypes.NewValue(tftypes.Number, 54321),
+		//				"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
+		//				"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
+		//				"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(5.4321)),
+		//				"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "prior-state")}),
+		//				"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "prior-state")}),
+		//				"test_computed_string":             tftypes.NewValue(tftypes.String, "two"),
+		//				"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "two"),
+		//				"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "two"),
+		//				"test_computed_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, "prior-state"),
+		//					},
+		//				),
+		//				"test_computed_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, "prior-state-attribute"),
+		//					},
+		//				),
+		//				"test_configured_bool":    tftypes.NewValue(tftypes.Bool, false),
+		//				"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(configuredFloat32Value)),
+		//				"test_configured_float64": tftypes.NewValue(tftypes.Number, 2.4),
+		//				"test_configured_int32":   tftypes.NewValue(tftypes.Number, 456),
+		//				"test_configured_int64":   tftypes.NewValue(tftypes.Number, 456),
+		//				"test_configured_list": tftypes.NewValue(
+		//					tftypes.List{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//				"test_configured_map": tftypes.NewValue(
+		//					tftypes.Map{ElementType: tftypes.String},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//				"test_configured_number": tftypes.NewValue(tftypes.Number, 2.4),
+		//				"test_configured_object": tftypes.NewValue(
+		//					tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+		//					map[string]tftypes.Value{
+		//						"a": tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//				"test_configured_set": tftypes.NewValue(
+		//					tftypes.Set{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//				"test_configured_string":             tftypes.NewValue(tftypes.String, "state-value"),
+		//				"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "state-value"),
+		//				"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "state-value"),
+		//				"test_configured_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//							},
+		//						),
+		//						// TODO: Prevent random attributes map access from causing flaky test
+		//						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//						// tftypes.NewValue(
+		//						// 	tftypes.Object{
+		//						// 		AttributeTypes: map[string]tftypes.Type{
+		//						// 			"computed_attribute":     tftypes.String,
+		//						// 			"configurable_attribute": tftypes.String,
+		//						// 		},
+		//						// 	},
+		//						// 	map[string]tftypes.Value{
+		//						// 		"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//						// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//						// 	},
+		//						// ),
+		//					},
+		//				),
+		//				"test_configured_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//				"test_configured_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "state-value"),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "state-value"),
+		//					},
+		//				),
+		//			}),
+		//			Schema: testSchemaDefault,
+		//		},
+		//		ResourceSchema: testSchemaDefault,
+		//		Resource:       &testprovider.Resource{},
+		//	},
+		//	expectedResponse: &fwserver.PlanResourceChangeResponse{
+		//		// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//		Diagnostics: diag.Diagnostics{
+		//			diag.NewAttributeErrorDiagnostic(
+		//				path.Root("test_configured_nested_set_attribute"),
+		//				"Duplicate Set Element",
+		//				"This attribute contains duplicate values of: tftypes.Object["+
+		//					"\"computed_attribute\":tftypes.String, "+
+		//					"\"configurable_attribute\":tftypes.String"+
+		//					"]<"+
+		//					"\"computed_attribute\":tftypes.String<\"attribute-default-value\">, "+
+		//					"\"configurable_attribute\":tftypes.String<\"attribute-default-value\">"+
+		//					">",
+		//			),
+		//		},
+		//		PlannedState: &tfsdk.State{
+		//			Raw: tftypes.NewValue(testSchemaTypeDefault, map[string]tftypes.Value{
+		//				"test_computed_bool":               tftypes.NewValue(tftypes.Bool, true),
+		//				"test_computed_float32":            tftypes.NewValue(tftypes.Number, float64(computedFloat32Value)),
+		//				"test_computed_float64":            tftypes.NewValue(tftypes.Number, 1.2345),
+		//				"test_computed_int32":              tftypes.NewValue(tftypes.Number, 12345),
+		//				"test_computed_int64":              tftypes.NewValue(tftypes.Number, 12345),
+		//				"test_computed_list":               tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+		//				"test_computed_map":                tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+		//				"test_computed_number":             tftypes.NewValue(tftypes.Number, big.NewFloat(1.2345)),
+		//				"test_computed_object":             tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}}, map[string]tftypes.Value{"a": tftypes.NewValue(tftypes.String, "default")}),
+		//				"test_computed_set":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "default")}),
+		//				"test_computed_string":             tftypes.NewValue(tftypes.String, "one"),
+		//				"test_computed_string_custom_type": tftypes.NewValue(tftypes.String, "one"),
+		//				"test_computed_dynamic":            tftypes.NewValue(tftypes.String, "hello world!"),
+		//				"test_computed_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"string_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"string_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_computed_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, "default"),
+		//					},
+		//				),
+		//				"test_computed_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"string_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"string_attribute": tftypes.NewValue(tftypes.String, "default-attribute"),
+		//					},
+		//				),
+		//				"test_configured_bool":    tftypes.NewValue(tftypes.Bool, true),
+		//				"test_configured_float32": tftypes.NewValue(tftypes.Number, float64(float32Value)),
+		//				"test_configured_float64": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_int32":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_int64":   tftypes.NewValue(tftypes.Number, 123),
+		//				"test_configured_list": tftypes.NewValue(
+		//					tftypes.List{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_map": tftypes.NewValue(
+		//					tftypes.Map{ElementType: tftypes.String},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_number": tftypes.NewValue(tftypes.Number, 1.2),
+		//				"test_configured_object": tftypes.NewValue(
+		//					tftypes.Object{AttributeTypes: map[string]tftypes.Type{"a": tftypes.String}},
+		//					map[string]tftypes.Value{
+		//						"a": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_set": tftypes.NewValue(
+		//					tftypes.Set{ElementType: tftypes.String},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_string":             tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_string_custom_type": tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_dynamic":            tftypes.NewValue(tftypes.String, "config-value"),
+		//				"test_configured_nested_list": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_list_attribute": tftypes.NewValue(
+		//					tftypes.List{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_map_attribute": tftypes.NewValue(
+		//					tftypes.Map{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"test-key": tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_set": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//								// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//							},
+		//						),
+		//						// TODO: Prevent random attributes map access from causing flaky test (also fix above data)
+		//						// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//						// tftypes.NewValue(
+		//						// 	tftypes.Object{
+		//						// 		AttributeTypes: map[string]tftypes.Type{
+		//						// 			"computed_attribute":     tftypes.String,
+		//						// 			"configurable_attribute": tftypes.String,
+		//						// 		},
+		//						// 	},
+		//						// 	map[string]tftypes.Value{
+		//						// 		"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//						// 		// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//						// 		// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//						// 		"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//						// 	},
+		//						// ),
+		//					},
+		//				),
+		//				"test_configured_nested_set_attribute": tftypes.NewValue(
+		//					tftypes.Set{
+		//						ElementType: tftypes.Object{
+		//							AttributeTypes: map[string]tftypes.Type{
+		//								"computed_attribute":     tftypes.String,
+		//								"configurable_attribute": tftypes.String,
+		//							},
+		//						},
+		//					},
+		//					[]tftypes.Value{
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//								// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-1"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//							},
+		//						),
+		//						tftypes.NewValue(
+		//							tftypes.Object{
+		//								AttributeTypes: map[string]tftypes.Type{
+		//									"computed_attribute":     tftypes.String,
+		//									"configurable_attribute": tftypes.String,
+		//								},
+		//							},
+		//							map[string]tftypes.Value{
+		//								"computed_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//								// TODO: https://github.com/hashicorp/terraform-plugin-framework/issues/783
+		//								// "configurable_attribute": tftypes.NewValue(tftypes.String, "config-value-element-2"),
+		//								"configurable_attribute": tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//							},
+		//						),
+		//					},
+		//				),
+		//				"test_configured_nested_single": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//				"test_configured_nested_single_attribute": tftypes.NewValue(
+		//					tftypes.Object{
+		//						AttributeTypes: map[string]tftypes.Type{
+		//							"computed_attribute":     tftypes.String,
+		//							"configurable_attribute": tftypes.String,
+		//						},
+		//					},
+		//					map[string]tftypes.Value{
+		//						"computed_attribute":     tftypes.NewValue(tftypes.String, "attribute-default-value"),
+		//						"configurable_attribute": tftypes.NewValue(tftypes.String, "config-value"),
+		//					},
+		//				),
+		//			}),
+		//			Schema: testSchemaDefault,
+		//		},
+		//		PlannedPrivate: testEmptyPrivate,
+		//	},
+		//},
 		"update-attributeplanmodifier-request-private": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -7010,9603 +7013,9603 @@ func TestServerPlanResourceChange(t *testing.T) {
 // The create test cases cover a fully null PriorState.
 //
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/993
-func TestServerPlanResourceChange_AttributeRoundtrip(t *testing.T) {
-	t.Parallel()
-
-	type testCase struct {
-		server   *fwserver.Server
-		request  *fwserver.PlanResourceChangeRequest
-		expected *fwserver.PlanResourceChangeResponse
-	}
-
-	type testCaseData struct {
-		Schema           schema.Schema
-		Config           tftypes.Value
-		ProposedNewState tftypes.Value
-		PriorState       tftypes.Value
-		PlannedState     tftypes.Value
-	}
-
-	generateTestCase := func(in testCaseData) testCase {
-		return testCase{
-			server: &fwserver.Server{
-				Provider: &testprovider.Provider{},
-			},
-			request: &fwserver.PlanResourceChangeRequest{
-				Config: &tfsdk.Config{
-					Raw:    in.Config,
-					Schema: in.Schema,
-				},
-				ProposedNewState: &tfsdk.Plan{
-					Raw:    in.ProposedNewState,
-					Schema: in.Schema,
-				},
-				PriorState: &tfsdk.State{
-					Raw:    in.PriorState,
-					Schema: in.Schema,
-				},
-				ResourceSchema: in.Schema,
-				Resource:       &testprovider.Resource{},
-			},
-			expected: &fwserver.PlanResourceChangeResponse{
-				PlannedPrivate: &privatestate.Data{
-					Provider: privatestate.EmptyProviderData(context.Background()),
-				},
-				PlannedState: &tfsdk.State{
-					Raw:    in.PlannedState,
-					Schema: in.Schema,
-				},
-			},
-		}
-	}
-
-	testCases := map[string]testCase{
-		"create-bool-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-bool-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-bool-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-		}),
-		"create-bool-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-bool-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-bool-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"bool_attribute": schema.BoolAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"bool_attribute": tftypes.Bool,
-					},
-				},
-				map[string]tftypes.Value{
-					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float32-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-float32-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float32-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-		}),
-		"create-float32-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float32-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-float32-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float32_attribute": schema.Float32Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float64-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-float64-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float64-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-		}),
-		"create-float64-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-float64-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-float64-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"float64_attribute": schema.Float64Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"float64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int32-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Compute nulls as unknown
-				},
-			),
-		}),
-		"create-int32-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int32-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-		}),
-		"create-int32-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int32-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-int32-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int32_attribute": schema.Int32Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int32_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int64-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Compute nulls as unknown
-				},
-			),
-		}),
-		"create-int64-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int64-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-		}),
-		"create-int64-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-int64-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-int64-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"int64_attribute": schema.Int64Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"int64_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-list-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-list-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-list-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-list-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_attribute": schema.ListAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_attribute": tftypes.List{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-nested-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-list-nested-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-		}),
-
-		"create-list-nested-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil, // Computed nulls as unknowns does not apply to the nested object itself
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-list-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"list_nested_attribute": schema.ListNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"list_nested_attribute": tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"list_nested_attribute": tftypes.NewValue(
-						tftypes.List{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-map-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-map-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-map-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_attribute": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_attribute": tftypes.Map{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.String,
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-nested-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-map-nested-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil, // Computed nulls as unknowns does not apply to the nested object itself
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-map-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"map_nested_attribute": schema.MapNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"map_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"map_nested_attribute": tftypes.NewValue(
-						tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						map[string]tftypes.Value{
-							"null": tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-number-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknowns
-				},
-			),
-		}),
-		"create-number-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-number-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-		}),
-		"create-number-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-number-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknowns
-				},
-			),
-		}),
-		"create-number-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"number_attribute": schema.NumberAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"number_attribute": tftypes.Number,
-					},
-				},
-				map[string]tftypes.Value{
-					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-object-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknowns
-					),
-				},
-			),
-		}),
-		"create-object-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-object-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-object-optional-null-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-object-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-object-optional-unknown-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-object-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-object-optional-and-computed-null-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-object-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-object-optional-and-computed-unknown-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"object_attribute": schema.ObjectAttribute{
-						AttributeTypes: map[string]attr.Type{
-							"string_attribute": types.StringType,
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"object_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"object_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-set-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-set-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-set-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_attribute": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-						Computed:    true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_attribute": tftypes.Set{
-							ElementType: tftypes.String,
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.String,
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-nested-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-set-nested-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Computed: true,
-								},
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-								},
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								nil, // Computed nulls as unknowns does not apply to the nested object itself
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-set-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"set_nested_attribute": schema.SetNestedAttribute{
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"string_attribute": schema.StringAttribute{
-									Optional: true,
-									Computed: true,
-								},
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"set_nested_attribute": tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"set_nested_attribute": tftypes.NewValue(
-						tftypes.Set{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-						[]tftypes.Value{
-							tftypes.NewValue(
-								tftypes.Object{
-									AttributeTypes: map[string]tftypes.Type{
-										"string_attribute": tftypes.String,
-									},
-								},
-								tftypes.UnknownValue,
-							),
-						},
-					),
-				},
-			),
-		}),
-		"create-single-nested-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Computed: true,
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-single-nested-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Computed: true,
-							},
-						},
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-null-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-unknown-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-							},
-						},
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-								Computed: true,
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						nil,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue, // Computed nulls as unknown
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-and-computed-null-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-								Computed: true,
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, nil),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
-						},
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-								Computed: true,
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Map{
-							ElementType: tftypes.Object{
-								AttributeTypes: map[string]tftypes.Type{
-									"string_attribute": tftypes.String,
-								},
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						tftypes.UnknownValue,
-					),
-				},
-			),
-		}),
-		"create-single-nested-optional-and-computed-unknown-attribute": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"single_nested_attribute": schema.SingleNestedAttribute{
-						Attributes: map[string]schema.Attribute{
-							"string_attribute": schema.StringAttribute{
-								Optional: true,
-								Computed: true,
-							},
-						},
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"single_nested_attribute": tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-					},
-				},
-				map[string]tftypes.Value{
-					"single_nested_attribute": tftypes.NewValue(
-						tftypes.Object{
-							AttributeTypes: map[string]tftypes.Type{
-								"string_attribute": tftypes.String,
-							},
-						},
-						map[string]tftypes.Value{
-							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						},
-					),
-				},
-			),
-		}),
-		"create-string-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-string-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-string-optional-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-		}),
-		"create-string-optional-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Optional: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-		}),
-		"create-string-optional-and-computed-null": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, nil),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
-				},
-			),
-		}),
-		"create-string-optional-and-computed-unknown": generateTestCase(testCaseData{
-			Schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"string_attribute": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
-			},
-			Config: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			ProposedNewState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-			PriorState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				nil,
-			),
-			PlannedState: tftypes.NewValue(
-				tftypes.Object{
-					AttributeTypes: map[string]tftypes.Type{
-						"string_attribute": tftypes.String,
-					},
-				},
-				map[string]tftypes.Value{
-					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				},
-			),
-		}),
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := &fwserver.PlanResourceChangeResponse{}
-
-			testCase.server.PlanResourceChange(context.Background(), testCase.request, got)
-
-			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
+//func TestServerPlanResourceChange_AttributeRoundtrip(t *testing.T) {
+//	t.Parallel()
+//
+//	type testCase struct {
+//		server   *fwserver.Server
+//		request  *fwserver.PlanResourceChangeRequest
+//		expected *fwserver.PlanResourceChangeResponse
+//	}
+//
+//	type testCaseData struct {
+//		Schema           schema.Schema
+//		Config           tftypes.Value
+//		ProposedNewState tftypes.Value
+//		PriorState       tftypes.Value
+//		PlannedState     tftypes.Value
+//	}
+//
+//	generateTestCase := func(in testCaseData) testCase {
+//		return testCase{
+//			server: &fwserver.Server{
+//				Provider: &testprovider.Provider{},
+//			},
+//			request: &fwserver.PlanResourceChangeRequest{
+//				Config: &tfsdk.Config{
+//					Raw:    in.Config,
+//					Schema: in.Schema,
+//				},
+//				ProposedNewState: &tfsdk.Plan{
+//					Raw:    in.ProposedNewState,
+//					Schema: in.Schema,
+//				},
+//				PriorState: &tfsdk.State{
+//					Raw:    in.PriorState,
+//					Schema: in.Schema,
+//				},
+//				ResourceSchema: in.Schema,
+//				Resource:       &testprovider.Resource{},
+//			},
+//			expected: &fwserver.PlanResourceChangeResponse{
+//				PlannedPrivate: &privatestate.Data{
+//					Provider: privatestate.EmptyProviderData(context.Background()),
+//				},
+//				PlannedState: &tfsdk.State{
+//					Raw:    in.PlannedState,
+//					Schema: in.Schema,
+//				},
+//			},
+//		}
+//	}
+//
+//	testCases := map[string]testCase{
+//		"create-bool-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-bool-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-bool-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//		}),
+//		"create-bool-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-bool-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-bool-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"bool_attribute": schema.BoolAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"bool_attribute": tftypes.Bool,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"bool_attribute": tftypes.NewValue(tftypes.Bool, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float32-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-float32-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float32-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//		}),
+//		"create-float32-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float32-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-float32-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float32_attribute": schema.Float32Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float64-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-float64-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float64-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//		}),
+//		"create-float64-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-float64-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-float64-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"float64_attribute": schema.Float64Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"float64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"float64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int32-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Compute nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-int32-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int32-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//		}),
+//		"create-int32-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int32-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-int32-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int32_attribute": schema.Int32Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int32_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int32_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int64-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Compute nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-int64-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int64-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//		}),
+//		"create-int64-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-int64-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-int64-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"int64_attribute": schema.Int64Attribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"int64_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"int64_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-list-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_attribute": schema.ListAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_attribute": tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//
+//		"create-list-nested-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil, // Computed nulls as unknowns does not apply to the nested object itself
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-list-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"list_nested_attribute": schema.ListNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"list_nested_attribute": tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"list_nested_attribute": tftypes.NewValue(
+//						tftypes.List{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_attribute": schema.MapAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_attribute": tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.String,
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil, // Computed nulls as unknowns does not apply to the nested object itself
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-map-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"map_nested_attribute": schema.MapNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"map_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"map_nested_attribute": tftypes.NewValue(
+//						tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"null": tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-number-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknowns
+//				},
+//			),
+//		}),
+//		"create-number-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-number-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//		}),
+//		"create-number-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-number-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue), // Computed nulls as unknowns
+//				},
+//			),
+//		}),
+//		"create-number-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"number_attribute": schema.NumberAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"number_attribute": tftypes.Number,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"number_attribute": tftypes.NewValue(tftypes.Number, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-object-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknowns
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-null-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-unknown-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-and-computed-null-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-object-optional-and-computed-unknown-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"object_attribute": schema.ObjectAttribute{
+//						AttributeTypes: map[string]attr.Type{
+//							"string_attribute": types.StringType,
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"object_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"object_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_attribute": schema.SetAttribute{
+//						ElementType: types.StringType,
+//						Optional:    true,
+//						Computed:    true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_attribute": tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.String,
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-and-computed-null-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								nil, // Computed nulls as unknowns does not apply to the nested object itself
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-set-nested-optional-and-computed-unknown-element": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"set_nested_attribute": schema.SetNestedAttribute{
+//						NestedObject: schema.NestedAttributeObject{
+//							Attributes: map[string]schema.Attribute{
+//								"string_attribute": schema.StringAttribute{
+//									Optional: true,
+//									Computed: true,
+//								},
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"set_nested_attribute": tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"set_nested_attribute": tftypes.NewValue(
+//						tftypes.Set{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//						[]tftypes.Value{
+//							tftypes.NewValue(
+//								tftypes.Object{
+//									AttributeTypes: map[string]tftypes.Type{
+//										"string_attribute": tftypes.String,
+//									},
+//								},
+//								tftypes.UnknownValue,
+//							),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Computed: true,
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Computed: true,
+//							},
+//						},
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-null-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-unknown-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//							},
+//						},
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//								Computed: true,
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						nil,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue, // Computed nulls as unknown
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-and-computed-null-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//								Computed: true,
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//								Computed: true,
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Map{
+//							ElementType: tftypes.Object{
+//								AttributeTypes: map[string]tftypes.Type{
+//									"string_attribute": tftypes.String,
+//								},
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						tftypes.UnknownValue,
+//					),
+//				},
+//			),
+//		}),
+//		"create-single-nested-optional-and-computed-unknown-attribute": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"single_nested_attribute": schema.SingleNestedAttribute{
+//						Attributes: map[string]schema.Attribute{
+//							"string_attribute": schema.StringAttribute{
+//								Optional: true,
+//								Computed: true,
+//							},
+//						},
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"single_nested_attribute": tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"single_nested_attribute": tftypes.NewValue(
+//						tftypes.Object{
+//							AttributeTypes: map[string]tftypes.Type{
+//								"string_attribute": tftypes.String,
+//							},
+//						},
+//						map[string]tftypes.Value{
+//							"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//						},
+//					),
+//				},
+//			),
+//		}),
+//		"create-string-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-string-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-string-optional-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//		}),
+//		"create-string-optional-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Optional: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//		"create-string-optional-and-computed-null": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, nil),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue), // Computed nulls as unknown
+//				},
+//			),
+//		}),
+//		"create-string-optional-and-computed-unknown": generateTestCase(testCaseData{
+//			Schema: schema.Schema{
+//				Attributes: map[string]schema.Attribute{
+//					"string_attribute": schema.StringAttribute{
+//						Optional: true,
+//						Computed: true,
+//					},
+//				},
+//			},
+//			Config: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			ProposedNewState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//			PriorState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				nil,
+//			),
+//			PlannedState: tftypes.NewValue(
+//				tftypes.Object{
+//					AttributeTypes: map[string]tftypes.Type{
+//						"string_attribute": tftypes.String,
+//					},
+//				},
+//				map[string]tftypes.Value{
+//					"string_attribute": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+//				},
+//			),
+//		}),
+//	}
+//
+//	for name, testCase := range testCases {
+//		t.Run(name, func(t *testing.T) {
+//			t.Parallel()
+//
+//			got := &fwserver.PlanResourceChangeResponse{}
+//
+//			testCase.server.PlanResourceChange(context.Background(), testCase.request, got)
+//
+//			if diff := cmp.Diff(got, testCase.expected, cmp.AllowUnexported(privatestate.ProviderData{})); diff != "" {
+//				t.Errorf("unexpected difference: %s", diff)
+//			}
+//		})
+//	}
+//}

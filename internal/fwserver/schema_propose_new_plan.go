@@ -24,13 +24,6 @@ type ProposeNewStateResponse struct {
 }
 
 func SchemaProposeNewState(ctx context.Context, s fwschema.Schema, req ProposeNewStateRequest, resp *ProposeNewStateResponse) {
-	// TODO: This is in core's logic, but I'm not sure what how this scenario would be triggered
-	// Need to verify if it's relevant...
-	if req.Config.Raw.IsNull() && req.PriorState.Raw.IsNull() {
-		resp.ProposedNewState = stateToPlan(req.PriorState)
-		return
-	}
-
 	if req.PriorState.Raw.IsNull() {
 		// Populate prior state with a top-level round of nulls from the schema
 		req.PriorState = tfsdk.State{
@@ -72,7 +65,11 @@ func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.Attribute
 		newAttrs[name] = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
 	}
 
-	// TODO: validate before doing this? To avoid panic
+	err := tftypes.ValidateValue(s.Type().TerraformType(ctx), newAttrs)
+	if err != nil {
+		// TODO: throw diag
+		return tftypes.Value{}
+	}
 	return tftypes.NewValue(s.Type().TerraformType(ctx), newAttrs)
 }
 
@@ -85,11 +82,23 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 		switch {
 		case priorObj.IsNull():
 			priorObjType := priorObj.Type().(tftypes.Object) //nolint
-			// TODO: validate before doing this? To avoid panic
+
+			err := tftypes.ValidateValue(priorObjType.AttributeTypes[name], nil)
+			if err != nil {
+				// TODO: handle error
+				return nil
+			}
+
 			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], nil)
 		case !priorObj.IsKnown():
 			priorObjType := priorObj.Type().(tftypes.Object) //nolint
-			// TODO: validate before doing this? To avoid panic
+
+			err := tftypes.ValidateValue(priorObjType.AttributeTypes[name], tftypes.UnknownValue)
+			if err != nil {
+				// TODO: handle error
+				return nil
+			}
+
 			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], tftypes.UnknownValue)
 		default:
 			// TODO: handle error
@@ -105,11 +114,23 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 		switch {
 		case configObj.IsNull():
 			configObjType := configObj.Type().(tftypes.Object) //nolint
-			// TODO: validate before doing this? To avoid panic
+
+			err := tftypes.ValidateValue(configObjType.AttributeTypes[name], nil)
+			if err != nil {
+				// TODO: handle error
+				return nil
+			}
+
 			configVal = tftypes.NewValue(configObjType.AttributeTypes[name], nil)
 		case !configObj.IsKnown():
 			configObjType := configObj.Type().(tftypes.Object) //nolint
-			// TODO: validate before doing this? To avoid panic
+
+			err := tftypes.ValidateValue(configObjType.AttributeTypes[name], tftypes.UnknownValue)
+			if err != nil {
+				// TODO: handle error
+				return nil
+			}
+
 			configVal = tftypes.NewValue(configObjType.AttributeTypes[name], tftypes.UnknownValue)
 		default:
 			// TODO: handle error
@@ -176,7 +197,13 @@ func proposeNewNestedBlockObject(ctx context.Context, s fwschema.Schema, nestedB
 		var priorVal tftypes.Value
 		if prior.IsNull() {
 			priorObjType := prior.Type().(tftypes.Object) //nolint
-			// TODO: validate before doing this? To avoid panic
+
+			err := tftypes.ValidateValue(priorObjType.AttributeTypes[name], nil)
+			if err != nil {
+				// TODO: handle error
+				return tftypes.Value{}
+			}
+
 			priorVal = tftypes.NewValue(priorObjType.AttributeTypes[name], nil)
 		} else {
 			// TODO: handle error
@@ -192,7 +219,12 @@ func proposeNewNestedBlockObject(ctx context.Context, s fwschema.Schema, nestedB
 		valuesMap[name] = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
 	}
 
-	// TODO: validate before doing this? To avoid panic
+	err := tftypes.ValidateValue(nestedBlock.Type().TerraformType(ctx), valuesMap)
+	if err != nil {
+		// TODO: handle error
+		return tftypes.Value{}
+	}
+
 	return tftypes.NewValue(
 		nestedBlock.Type().TerraformType(ctx),
 		valuesMap,
@@ -259,8 +291,20 @@ func proposedNewMapNested(ctx context.Context, s fwschema.Schema, attr fwschema.
 				// if the prior value was unknown the map won't have any
 				// keys, so generate an unknown value.
 				if !prior.IsKnown() {
+					err := tftypes.ValidateValue(configEV.Type(), tftypes.UnknownValue)
+					if err != nil {
+						// TODO: handle error
+						return tftypes.Value{}
+					}
+
 					priorEV = tftypes.NewValue(configEV.Type(), tftypes.UnknownValue)
 				} else {
+					err := tftypes.ValidateValue(configEV.Type(), nil)
+					if err != nil {
+						// TODO: handle error
+						return tftypes.Value{}
+					}
+
 					priorEV = tftypes.NewValue(configEV.Type(), nil)
 
 				}
@@ -268,6 +312,13 @@ func proposedNewMapNested(ctx context.Context, s fwschema.Schema, attr fwschema.
 
 			newVals[name] = proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyString(name), priorEV, configEV)
 		}
+
+		err := tftypes.ValidateValue(config.Type(), newVals)
+		if err != nil {
+			// TODO: handle error
+			return tftypes.Value{}
+		}
+
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -309,6 +360,12 @@ func proposedNewBlockListNested(ctx context.Context, s fwschema.Schema, block fw
 
 			priorEV := priorVals[idx]
 			newVals = append(newVals, proposedNewBlockObjectAttributes(ctx, s, block, path.WithElementKeyInt(idx), priorEV, configEV))
+		}
+
+		err := tftypes.ValidateValue(config.Type(), newVals)
+		if err != nil {
+			// TODO: handle error
+			return tftypes.Value{}
 		}
 
 		newVal = tftypes.NewValue(config.Type(), newVals)
@@ -368,9 +425,21 @@ func proposedNewBlockSetNested(ctx context.Context, s fwschema.Schema, block fws
 			}
 
 			if priorEV.IsNull() {
+				err := tftypes.ValidateValue(block.GetNestedObject().Type().TerraformType(ctx), nil)
+				if err != nil {
+					// TODO: handle error
+					return tftypes.Value{}
+				}
+
 				priorEV = tftypes.NewValue(block.GetNestedObject().Type().TerraformType(ctx), nil)
 			}
 			newVals = append(newVals, proposeNewNestedBlockObject(ctx, s, block.GetNestedObject(), path.WithElementKeyValue(priorEV), priorEV, configEV))
+		}
+
+		err := tftypes.ValidateValue(config.Type(), newVals)
+		if err != nil {
+			// TODO: handle error
+			return tftypes.Value{}
 		}
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
@@ -414,6 +483,13 @@ func proposedNewListNested(ctx context.Context, s fwschema.Schema, attr fwschema
 			priorEV := priorVals[idx]
 			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyInt(idx), priorEV, configEV))
 		}
+
+		err := tftypes.ValidateValue(config.Type(), newVals)
+		if err != nil {
+			// TODO: handle error
+			return tftypes.Value{}
+		}
+
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -471,10 +547,22 @@ func proposedNewSetNested(ctx context.Context, s fwschema.Schema, attr fwschema.
 			}
 
 			if priorEV.IsNull() {
+				err := tftypes.ValidateValue(attr.GetNestedObject().Type().TerraformType(ctx), nil)
+				if err != nil {
+					// TODO: handle error
+					return tftypes.Value{}
+				}
+
 				priorEV = tftypes.NewValue(attr.GetNestedObject().Type().TerraformType(ctx), nil)
 			}
 			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyValue(priorEV), priorEV, configEV))
 		}
+		err := tftypes.ValidateValue(config.Type(), newVals)
+		if err != nil {
+			// TODO: handle error
+			return tftypes.Value{}
+		}
+
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -486,10 +574,21 @@ func proposedNewObjectAttributes(ctx context.Context, s fwschema.Schema, attr fw
 		return config
 	}
 
-	// TODO: validate before doing this? To avoid panic
+	objType := attr.GetNestedObject().Type().TerraformType(ctx)
+	newAttrs := proposedNewAttributes(ctx, s, attr.GetNestedObject().GetAttributes(), path, prior, config)
+
+	err := tftypes.ValidateValue(
+		objType,
+		newAttrs,
+	)
+	if err != nil {
+		// TODO: handle error
+		return tftypes.Value{}
+	}
+
 	return tftypes.NewValue(
-		attr.GetNestedObject().Type().TerraformType(ctx),
-		proposedNewAttributes(ctx, s, attr.GetNestedObject().GetAttributes(), path, prior, config),
+		objType,
+		newAttrs,
 	)
 }
 
@@ -500,7 +599,6 @@ func proposedNewBlockObjectAttributes(ctx context.Context, s fwschema.Schema, bl
 	valuesMap := proposedNewAttributes(ctx, s, block.GetNestedObject().GetAttributes(), path, prior, config)
 
 	for name, blockType := range block.GetNestedObject().GetBlocks() {
-		//maps.Copy(valuesMap, proposedNewAttributes(ctx, s, blockType.GetNestedObject().GetAttributes(), tftypes.NewAttributePath().WithAttributeName(name).WithElementKeyInt(0), prior, config))
 		attrVal, err := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
 		//TODO handle panic
 		if err != nil {
@@ -513,9 +611,19 @@ func proposedNewBlockObjectAttributes(ctx context.Context, s fwschema.Schema, bl
 		valuesMap[name] = proposeNewNestedBlock(ctx, s, blockType, tftypes.NewAttributePath().WithAttributeName(name).WithElementKeyInt(0), priorVal, configVal)
 	}
 
-	// TODO: validate before doing this? To avoid panic
+	objType := block.GetNestedObject().Type().TerraformType(ctx)
+
+	err := tftypes.ValidateValue(
+		objType,
+		valuesMap,
+	)
+	if err != nil {
+		// TODO: handle error
+		return tftypes.Value{}
+	}
+
 	return tftypes.NewValue(
-		block.GetNestedObject().Type().TerraformType(ctx),
+		objType,
 		valuesMap,
 	)
 }

@@ -1,0 +1,5 @@
+kind: NOTES
+body: The ListResource and ValidateListResourceConfig RPCs are considered experimental and may change up until general availability
+time: 2025-07-18T10:21:54.641584-04:00
+custom:
+    Issue: "1178"

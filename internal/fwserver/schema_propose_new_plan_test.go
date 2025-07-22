@@ -917,104 +917,103 @@ func TestSchemaProposeNewState(t *testing.T) {
 				),
 			},
 		},
-		// TODO: uncomment after implementing map logic
-		//"prior nested map": {
-		//	schema: schema.Schema{
-		//		Attributes: map[string]schema.Attribute{
-		//			"map_nested_attribute": schema.MapNestedAttribute{
-		//				Optional: true,
-		//				NestedObject: schema.NestedAttributeObject{
-		//					Attributes: map[string]schema.Attribute{
-		//						"required_nested_attribute": schema.StringAttribute{
-		//							Required: true,
-		//						},
-		//					},
-		//				},
-		//			},
-		//		},
-		//	},
-		//	priorVal: map[string]tftypes.Value{
-		//		"map_nested_attribute": tftypes.NewValue(
-		//			tftypes.Map{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			map[string]tftypes.Value{
-		//				"a": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
-		//				}),
-		//				"b": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//	configVal: map[string]tftypes.Value{
-		//		"map_nested_attribute": tftypes.NewValue(
-		//			tftypes.Map{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			map[string]tftypes.Value{
-		//				"a": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
-		//				}),
-		//				"c": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//	expectedVal: map[string]tftypes.Value{
-		//		"map_nested_attribute": tftypes.NewValue(
-		//			tftypes.Map{
-		//				ElementType: tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				},
-		//			},
-		//			map[string]tftypes.Value{
-		//				"a": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
-		//				}),
-		//				"c": tftypes.NewValue(tftypes.Object{
-		//					AttributeTypes: map[string]tftypes.Type{
-		//						"required_nested_attribute": tftypes.String,
-		//					},
-		//				}, map[string]tftypes.Value{
-		//					"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
-		//				}),
-		//			},
-		//		),
-		//	},
-		//},
+		"prior nested map": {
+			schema: schema.Schema{
+				Attributes: map[string]schema.Attribute{
+					"map_nested_attribute": schema.MapNestedAttribute{
+						Optional: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"required_nested_attribute": schema.StringAttribute{
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+			priorVal: map[string]tftypes.Value{
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"a": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
+						}),
+						"b": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
+						}),
+					},
+				),
+			},
+			configVal: map[string]tftypes.Value{
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"a": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
+						}),
+						"c": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
+						}),
+					},
+				),
+			},
+			expectedVal: map[string]tftypes.Value{
+				"map_nested_attribute": tftypes.NewValue(
+					tftypes.Map{
+						ElementType: tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"a": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "glub"),
+						}),
+						"c": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"required_nested_attribute": tftypes.String,
+							},
+						}, map[string]tftypes.Value{
+							"required_nested_attribute": tftypes.NewValue(tftypes.String, "blub"),
+						}),
+					},
+				),
+			},
+		},
 		"prior optional computed nested map elem to null": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{

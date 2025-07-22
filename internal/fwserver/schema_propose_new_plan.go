@@ -48,13 +48,6 @@ func SchemaProposeNewState(ctx context.Context, s fwschema.Schema, req ProposeNe
 }
 
 func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
-	// TODO: This is in core's logic, but I'm not sure what how this scenario would be triggered
-	// Need to verify if it's relevant...
-	//if config.IsNull() || !config.IsKnown() {
-	//	return prior
-	//}
-
-	// TODO: double check this logic
 	if config.IsNull() {
 		return config
 	}
@@ -70,7 +63,6 @@ func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.Attribute
 
 	newAttrs := proposedNewAttributes(ctx, s, s.GetAttributes(), path, prior, config)
 
-	// TODO: add block logic
 	for name, blockType := range s.GetBlocks() {
 		attrVal, _ := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
 		priorVal := attrVal.(tftypes.Value)
@@ -224,12 +216,59 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 	case fwschema.NestingModeList:
 		newVal = proposedNewListNested(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeMap:
-
+		newVal = proposedNewMapNested(ctx, s, attr, path, prior, config)
 	case fwschema.NestingModeSet:
 		newVal = proposedNewSetNested(ctx, s, attr, path, prior, config)
 	default:
 		// TODO: Shouldn't happen, return diag
 		panic(fmt.Sprintf("unsupported attribute nesting mode %d", attr.GetNestingMode()))
+	}
+
+	return newVal
+}
+
+func proposedNewMapNested(ctx context.Context, s fwschema.Schema, attr fwschema.NestedAttribute, path *tftypes.AttributePath, prior, config tftypes.Value) tftypes.Value {
+	newVal := config
+
+	configMap := make(map[string]tftypes.Value)
+	priorMap := make(map[string]tftypes.Value)
+
+	configValLen := 0
+	if !config.IsNull() {
+		err := config.As(&priorMap)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+		configValLen = len(configMap)
+	}
+
+	if !prior.IsNull() {
+		err := prior.As(&priorMap)
+		// TODO: handle err
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if configValLen > 0 {
+		newVals := make(map[string]tftypes.Value, configValLen)
+		for name, configEV := range configMap {
+			priorEV, inPrior := priorMap[name]
+			if !inPrior {
+				// if the prior value was unknown the map won't have any
+				// keys, so generate an unknown value.
+				if !prior.IsKnown() {
+					priorEV = tftypes.NewValue(configEV.Type(), tftypes.UnknownValue)
+				} else {
+					priorEV = tftypes.NewValue(configEV.Type(), nil)
+
+				}
+			}
+
+			newVals[name] = proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyString(name), priorEV, configEV)
+		}
+		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
 	return newVal
@@ -272,7 +311,6 @@ func proposedNewBlockListNested(ctx context.Context, s fwschema.Schema, block fw
 			newVals = append(newVals, proposedNewBlockObjectAttributes(ctx, s, block, path.WithElementKeyInt(idx), priorEV, configEV))
 		}
 
-		// TODO: should work for tuples + lists
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -330,15 +368,10 @@ func proposedNewBlockSetNested(ctx context.Context, s fwschema.Schema, block fws
 			}
 
 			if priorEV.IsNull() {
-				// TODO might have to come back to figure out how to get elem type
 				priorEV = tftypes.NewValue(block.GetNestedObject().Type().TerraformType(ctx), nil)
 			}
-			//block.GetNestedObject().GetAttributes()
-			// TODO create proposed new nested block object
 			newVals = append(newVals, proposeNewNestedBlockObject(ctx, s, block.GetNestedObject(), path.WithElementKeyValue(priorEV), priorEV, configEV))
 		}
-
-		// TODO: should work for tuples + lists
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -381,8 +414,6 @@ func proposedNewListNested(ctx context.Context, s fwschema.Schema, attr fwschema
 			priorEV := priorVals[idx]
 			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyInt(idx), priorEV, configEV))
 		}
-
-		// TODO: should work for tuples + lists
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 
@@ -440,15 +471,10 @@ func proposedNewSetNested(ctx context.Context, s fwschema.Schema, attr fwschema.
 			}
 
 			if priorEV.IsNull() {
-				// TODO might have to come back to figure out how to get elem type
 				priorEV = tftypes.NewValue(attr.GetNestedObject().Type().TerraformType(ctx), nil)
 			}
-			//block.GetNestedObject().GetAttributes()
-			// TODO create proposed new nested block object
 			newVals = append(newVals, proposedNewObjectAttributes(ctx, s, attr, path.WithElementKeyValue(priorEV), priorEV, configEV))
 		}
-
-		// TODO: should work for tuples + lists
 		newVal = tftypes.NewValue(config.Type(), newVals)
 	}
 

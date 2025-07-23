@@ -6,11 +6,12 @@ package schema
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ SchemaType = UnlinkedSchema{}
@@ -59,6 +60,10 @@ type UnlinkedSchema struct {
 }
 
 func (s UnlinkedSchema) isActionSchemaType() {}
+
+func (s UnlinkedSchema) EmptyValue(ctx context.Context) tftypes.Value {
+	return fwschema.EmptySchemaValue(ctx, s)
+}
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // schema.

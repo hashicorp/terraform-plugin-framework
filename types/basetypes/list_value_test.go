@@ -841,6 +841,51 @@ func TestListValueType(t *testing.T) {
 	}
 }
 
+func TestListValueLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    ListValue
+		expected int
+	}{
+		"known-empty": {
+			input:    NewListValueMust(StringType{}, []attr.Value{}),
+			expected: 0,
+		},
+		"known-single": {
+			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: 1,
+		},
+		"known-multiple": {
+			input: NewListValueMust(StringType{}, []attr.Value{
+				NewStringValue("hello"),
+				NewStringValue("world"),
+			}),
+			expected: 2,
+		},
+		"null": {
+			input:    NewListNull(StringType{}),
+			expected: 0,
+		},
+		"unknown": {
+			input:    NewListUnknown(StringType{}),
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Length()
+
+			if got != testCase.expected {
+				t.Errorf("Expected %d, got %d", testCase.expected, got)
+			}
+		})
+	}
+}
+
 func TestListTypeValidate(t *testing.T) {
 	t.Parallel()
 

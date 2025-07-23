@@ -5754,6 +5754,7 @@ func TestSchemaProposeNewState(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			priorStateVal := tftypes.NewValue(tftypes.DynamicPseudoType, nil)
 			if test.priorVal != nil {
 				schemaType := test.schema.Type().TerraformType(context.Background())

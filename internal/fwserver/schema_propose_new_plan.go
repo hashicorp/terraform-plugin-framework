@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package fwserver
 
 import (
@@ -71,13 +74,40 @@ func proposedNew(ctx context.Context, s fwschema.Schema, path *tftypes.Attribute
 	}
 
 	for name, blockType := range s.GetBlocks() {
-		attrVal, _ := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
-		priorVal := attrVal.(tftypes.Value)
+		attrVal, err := prior.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		if err != nil {
+			fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, s)
+			diags.Append(fwPathDiags...)
 
-		attrVal, _ = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
-		configVal := attrVal.(tftypes.Value)
+			diags.Append(diag.NewAttributeErrorDiagnostic(fwPath,
+				"Invalid Prior State Attribute Path",
+				"An unexpected error occurred while trying to retrieve a value from prior state. "+
+					"This is an error in terraform-plugin-framework used by the provider. "+
+					"Please report the following to the provider developers.\n\n"+
+					fmt.Sprintf("Original Error: %s", err),
+			))
+			return tftypes.Value{}, diags
+		}
 
-		nestedBlockDiags := diag.Diagnostics{}
+		priorVal := attrVal.(tftypes.Value) //nolint
+
+		attrVal, err = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		if err != nil {
+			fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, s)
+			diags.Append(fwPathDiags...)
+
+			diags.Append(diag.NewAttributeErrorDiagnostic(fwPath,
+				"Invalid Config Attribute Path",
+				"An unexpected error occurred while trying to retrieve a value from config. "+
+					"This is an error in terraform-plugin-framework used by the provider. "+
+					"Please report the following to the provider developers.\n\n"+
+					fmt.Sprintf("Original Error: %s", err),
+			))
+			return tftypes.Value{}, diags
+		}
+		configVal := attrVal.(tftypes.Value) //nolint
+
+		nestedBlockDiags := diag.Diagnostics{} //nolint
 		newAttrs[name], nestedBlockDiags = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
 		diags.Append(nestedBlockDiags...)
 		if diags.HasError() {
@@ -242,7 +272,7 @@ func proposedNewAttributes(ctx context.Context, s fwschema.Schema, attrs map[str
 				newVal = configVal
 			}
 		} else if nestedAttr, isNested := attr.(fwschema.NestedAttribute); isNested {
-			nestedAttrDiags := diag.Diagnostics{}
+			nestedAttrDiags := diag.Diagnostics{} //nolint
 
 			newVal, nestedAttrDiags = proposeNewNestedAttribute(ctx, s, nestedAttr, attrPath, priorVal, configVal)
 			diags.Append(nestedAttrDiags...)
@@ -274,28 +304,28 @@ func proposeNewNestedAttribute(ctx context.Context, s fwschema.Schema, attr fwsc
 		if config.IsNull() {
 			break
 		}
-		nestedDiags := diag.Diagnostics{}
+		nestedDiags := diag.Diagnostics{} //nolint
 		newVal, nestedDiags = proposedNewNestedObjectAttributes(ctx, s, attr, path, prior, config)
 		diags.Append(nestedDiags...)
 		if nestedDiags.HasError() {
 			return tftypes.Value{}, diags
 		}
 	case fwschema.NestingModeList:
-		nestedDiags := diag.Diagnostics{}
+		nestedDiags := diag.Diagnostics{} //nolint
 		newVal, nestedDiags = proposedNewListNested(ctx, s, attr, path, prior, config)
 		diags.Append(nestedDiags...)
 		if nestedDiags.HasError() {
 			return tftypes.Value{}, diags
 		}
 	case fwschema.NestingModeMap:
-		nestedDiags := diag.Diagnostics{}
+		nestedDiags := diag.Diagnostics{} //nolint
 		newVal, nestedDiags = proposedNewMapNested(ctx, s, attr, path, prior, config)
 		diags.Append(nestedDiags...)
 		if nestedDiags.HasError() {
 			return tftypes.Value{}, diags
 		}
 	case fwschema.NestingModeSet:
-		nestedDiags := diag.Diagnostics{}
+		nestedDiags := diag.Diagnostics{} //nolint
 		newVal, nestedDiags = proposedNewSetNested(ctx, s, attr, path, prior, config)
 		diags.Append(nestedDiags...)
 		if nestedDiags.HasError() {
@@ -406,7 +436,7 @@ func proposedNewMapNested(ctx context.Context, s fwschema.Schema, attr fwschema.
 				}
 			}
 
-			nestedDiags := diag.Diagnostics{}
+			nestedDiags := diag.Diagnostics{} //nolint
 			newVals[name], nestedDiags = proposedNewNestedObjectAttributes(ctx, s, attr, path.WithElementKeyString(name), priorEV, configEV)
 			diags.Append(nestedDiags...)
 			if diags.HasError() {
@@ -685,21 +715,21 @@ func proposeNewNestedBlock(ctx context.Context, s fwschema.Schema, block fwschem
 		if config.IsNull() {
 			break
 		}
-		blockDiags := diag.Diagnostics{}
+		blockDiags := diag.Diagnostics{} //nolint
 		newVal, blockDiags = proposedNewNestedBlockObjectAttributes(ctx, s, block, path, prior, config)
 		diags.Append(blockDiags...)
 		if blockDiags.HasError() {
 			return tftypes.Value{}, diags
 		}
 	case fwschema.BlockNestingModeList:
-		blockDiags := diag.Diagnostics{}
+		blockDiags := diag.Diagnostics{} //nolint
 		newVal, blockDiags = proposedNewBlockListNested(ctx, s, block, path, prior, config)
 		diags.Append(blockDiags...)
 		if blockDiags.HasError() {
 			return tftypes.Value{}, diags
 		}
 	case fwschema.BlockNestingModeSet:
-		blockDiags := diag.Diagnostics{}
+		blockDiags := diag.Diagnostics{} //nolint
 		newVal, blockDiags = proposedNewBlockSetNested(ctx, s, block, path, prior, config)
 		diags.Append(blockDiags...)
 		if blockDiags.HasError() {
@@ -748,12 +778,25 @@ func proposedNewNestedBlockObjectAttributes(ctx context.Context, s fwschema.Sche
 			))
 			return tftypes.Value{}, diags
 		}
-		priorVal := attrVal.(tftypes.Value)
+		priorVal := attrVal.(tftypes.Value) //nolint
 
-		attrVal, _ = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
-		configVal := attrVal.(tftypes.Value)
+		attrVal, err = config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
+		if err != nil {
+			fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, s)
+			diags.Append(fwPathDiags...)
 
-		nestedBlockDiags := diag.Diagnostics{}
+			diags.Append(diag.NewAttributeErrorDiagnostic(fwPath,
+				"Invalid Config Attribute Path",
+				"An unexpected error occurred while trying to retrieve a value from config. "+
+					"This is an error in terraform-plugin-framework used by the provider. "+
+					"Please report the following to the provider developers.\n\n"+
+					fmt.Sprintf("Original Error: %s", err),
+			))
+			return tftypes.Value{}, diags
+		}
+		configVal := attrVal.(tftypes.Value) //nolint
+
+		nestedBlockDiags := diag.Diagnostics{} //nolint
 		valuesMap[name], nestedBlockDiags = proposeNewNestedBlock(ctx, s, blockType, tftypes.NewAttributePath().WithAttributeName(name).WithElementKeyInt(0), priorVal, configVal)
 		diags.Append(nestedBlockDiags...)
 		if diags.HasError() {
@@ -1037,9 +1080,9 @@ func proposeNewNestedBlockObject(ctx context.Context, s fwschema.Schema, nestedB
 		}
 
 		attrVal, _ := config.ApplyTerraform5AttributePathStep(tftypes.AttributeName(name))
-		configVal := attrVal.(tftypes.Value)
+		configVal := attrVal.(tftypes.Value) //nolint
 
-		nestedBlockDiags := diag.Diagnostics{}
+		nestedBlockDiags := diag.Diagnostics{} //nolint
 		valuesMap[name], nestedBlockDiags = proposeNewNestedBlock(ctx, s, blockType, path.WithAttributeName(name), priorVal, configVal)
 		diags.Append(nestedBlockDiags...)
 		if nestedBlockDiags.HasError() {
@@ -1167,7 +1210,7 @@ func validPriorFromConfig(ctx context.Context, s fwschema.Schema, absPath *tftyp
 			valid = false
 			return false, stop
 		}
-		configV := configIface.(tftypes.Value)
+		configV := configIface.(tftypes.Value) //nolint
 
 		// we don't need to know the schema if both are equal
 		if configV.Equal(priorV) {

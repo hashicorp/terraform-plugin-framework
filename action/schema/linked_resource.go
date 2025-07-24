@@ -4,9 +4,13 @@
 package schema
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	identityschema "github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -106,6 +110,18 @@ func (l RawV5LinkedResource) GetSchema() fwschema.Schema {
 			}
 			// TODO:Actions: All other types (collections/structural/dynamic)
 			// TODO:Actions: This should essentially be the inverse of toproto schema mapping logic
+		case attr.Type.Is(tftypes.Set{}):
+			setAttrType := attr.Type.(tftypes.Set) //nolint - asserted above
+			elementType, _ := tftypeToFrameworkType(setAttrType.ElementType)
+
+			attrs[attr.Name] = resourceschema.SetAttribute{
+				ElementType: elementType,
+				Required:    attr.Required,
+				Optional:    attr.Optional,
+				Computed:    attr.Computed,
+				Sensitive:   attr.Sensitive,
+				// TODO:Actions: Do we need to set more than these? Probs not.
+			}
 		}
 
 		// TODO:Actions: Block mapping
@@ -115,6 +131,91 @@ func (l RawV5LinkedResource) GetSchema() fwschema.Schema {
 		Blocks:     map[string]resourceschema.Block{},
 		// TODO:Actions: Do we need to set more than these? Probs not.
 	}
+}
+
+// TODO: This is from the basetypes package, can probably refactor this and share
+func tftypeToFrameworkType(in tftypes.Type) (attr.Type, error) {
+	// Primitive types
+	if in.Is(tftypes.Bool) {
+		return basetypes.BoolType{}, nil
+	}
+	if in.Is(tftypes.Number) {
+		return basetypes.NumberType{}, nil
+	}
+	if in.Is(tftypes.String) {
+		return basetypes.StringType{}, nil
+	}
+
+	if in.Is(tftypes.DynamicPseudoType) {
+		// Null and Unknown values that do not have a type determined will have a type of DynamicPseudoType
+		return basetypes.DynamicType{}, nil
+	}
+
+	// Collection types
+	if in.Is(tftypes.List{}) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
+		l := in.(tftypes.List)
+
+		elemType, err := tftypeToFrameworkType(l.ElementType)
+		if err != nil {
+			return nil, err
+		}
+		return basetypes.ListType{ElemType: elemType}, nil
+	}
+	if in.Is(tftypes.Map{}) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
+		m := in.(tftypes.Map)
+
+		elemType, err := tftypeToFrameworkType(m.ElementType)
+		if err != nil {
+			return nil, err
+		}
+
+		return basetypes.MapType{ElemType: elemType}, nil
+	}
+	if in.Is(tftypes.Set{}) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
+		s := in.(tftypes.Set)
+
+		elemType, err := tftypeToFrameworkType(s.ElementType)
+		if err != nil {
+			return nil, err
+		}
+
+		return basetypes.SetType{ElemType: elemType}, nil
+	}
+
+	// Structural types
+	if in.Is(tftypes.Object{}) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
+		o := in.(tftypes.Object)
+
+		attrTypes := make(map[string]attr.Type, len(o.AttributeTypes))
+		for name, tfType := range o.AttributeTypes {
+			t, err := tftypeToFrameworkType(tfType)
+			if err != nil {
+				return nil, err
+			}
+			attrTypes[name] = t
+		}
+		return basetypes.ObjectType{AttrTypes: attrTypes}, nil
+	}
+	if in.Is(tftypes.Tuple{}) {
+		//nolint:forcetypeassert // Type assertion is guaranteed by the above `(tftypes.Type).Is` function
+		tup := in.(tftypes.Tuple)
+
+		elemTypes := make([]attr.Type, len(tup.ElementTypes))
+		for i, tfType := range tup.ElementTypes {
+			t, err := tftypeToFrameworkType(tfType)
+			if err != nil {
+				return nil, err
+			}
+			elemTypes[i] = t
+		}
+		return basetypes.TupleType{ElemTypes: elemTypes}, nil
+	}
+
+	return nil, fmt.Errorf("unsupported tftypes.Type detected: %T", in)
 }
 
 func (l RawV5LinkedResource) GetIdentitySchema() fwschema.Schema {

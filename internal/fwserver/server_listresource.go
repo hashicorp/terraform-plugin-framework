@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"iter"
 
@@ -99,6 +100,29 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		}
 	}
 
+	resp := ListResult{}
+
+	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
+
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ListResourceConfigureData,
+		}
+
+		configureResp := resource.ConfigureResponse{}
+
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
+		listResourceWithConfigure.Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
+
+		resp.Diagnostics.Append(configureResp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+	}
+
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
@@ -117,6 +141,9 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	if stream.Results == nil {
 		stream.Results = list.NoListResults
 	}
+
+	// How should we handle the diags produced by Configure called on line 115? Appending them to an empty stream
+	// might be misleading, not to mention will error below because Identity will be nil
 
 	fwStream.Results = processListResults(req, stream.Results)
 }

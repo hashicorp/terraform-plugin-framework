@@ -34,40 +34,6 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfpr
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	config, diags := fromproto5.Config(ctx, proto5Req.Config, listResourceSchema)
-
-	fwResp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
-		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	}
-
-	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto5Req.TypeName)
-
-	fwResp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
-		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	}
-
-	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
-
-	fwResp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
-		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	}
-
-	req := &fwserver.ListRequest{
-		Config:                 config,
-		ListResource:           listResource,
-		ResourceSchema:         resourceSchema,
-		ResourceIdentitySchema: identitySchema,
-	}
-	stream := &fwserver.ListResultsStream{}
-
-	s.FrameworkServer.ListResource(ctx, req, stream)
-
 	fwReq, diags := fromproto5.ValidateListResourceConfigRequest(ctx, proto5Req, listResource, listResourceSchema)
 
 	fwResp.Diagnostics.Append(diags...)

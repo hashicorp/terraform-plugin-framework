@@ -580,6 +580,106 @@ func TestServerCreateResource(t *testing.T) {
 				Private: testEmptyPrivate,
 			},
 		},
+		"response-invalid-nil-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+							resp.Identity.Raw = tftypes.NewValue(testIdentitySchema.Type().TerraformType(ctx), nil)
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				Diagnostics: []diag.Diagnostic{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Create",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource create. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw:    tftypes.NewValue(testIdentityType, nil),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-invalid-null-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.CreateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						CreateMethod: func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, testIdentitySchemaData{})...)
+							// Prevent missing resource state error diagnostic
+							var data testSchemaData
+
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.CreateResourceResponse{
+				Diagnostics: []diag.Diagnostic{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Create",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource create. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"response-invalid-newidentity": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

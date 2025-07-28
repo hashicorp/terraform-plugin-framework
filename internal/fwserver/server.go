@@ -42,6 +42,11 @@ type Server struct {
 	// to [ephemeral.ConfigureRequest.ProviderData].
 	EphemeralResourceConfigureData any
 
+	// ListResourceConfigureData is the
+	// [provider.ConfigureResponse.ListResourceData] field value which is passed
+	// to [list.ConfigureRequest.ProviderData].
+	ListResourceConfigureData any
+
 	// ActionConfigureData is the
 	// [provider.ConfigureResponse.ActionData] field value which is passed
 	// to [action.ConfigureRequest.ProviderData].

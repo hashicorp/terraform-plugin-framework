@@ -21,10 +21,7 @@ type ConfigValidator interface {
 
 	// ValidateAction performs the validation.
 	//
-	// This method name is separate from the datasource.ConfigValidator
-	// interface ValidateDataSource method name, provider.ConfigValidator
-	// interface ValidateProvider method name, ephemeral.ConfigValidator
-	// interface ValidateEphemeralResource method name, and resource.ConfigValidator
-	// interface ValidateResource method name to allow generic validators.
+	// This method name is separate from ConfigValidators in resource and other packages in
+	// order to allow generic validators.
 	ValidateAction(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

@@ -1,3 +1,14 @@
+## 1.16.0-alpha.1 (July 22, 2025)
+
+NOTES:
+
+* This alpha pre-release contains the initial implementation for list resource that returns a list of resource identities for a single managed resource type. ([#1157](https://github.com/hashicorp/terraform-plugin-framework/issues/1157))
+* The ListResource and ValidateListResourceConfig RPCs are considered experimental and may change up until general availability ([#1178](https://github.com/hashicorp/terraform-plugin-framework/issues/1178))
+
+BUG FIXES:
+
+* all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
+
 ## 1.15.0 (May 16, 2025)
 
 NOTES:

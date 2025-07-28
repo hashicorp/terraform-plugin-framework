@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -15,7 +17,8 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var (
-	_ Block = SingleNestedBlock{}
+	_ Block                               = SingleNestedBlock{}
+	_ fwxschema.BlockWithObjectValidators = SingleNestedBlock{}
 )
 
 // SingleNestedBlock represents a block that is a single object where
@@ -107,6 +110,18 @@ type SingleNestedBlock struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.Object
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -161,12 +176,18 @@ func (b SingleNestedBlock) GetNestedObject() fwschema.NestedBlockObject {
 		Attributes: b.Attributes,
 		Blocks:     b.Blocks,
 		CustomType: b.CustomType,
+		Validators: b.Validators,
 	}
 }
 
 // GetNestingMode always returns BlockNestingModeSingle.
 func (b SingleNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSingle
+}
+
+// ObjectValidators returns the Validators field value.
+func (b SingleNestedBlock) ObjectValidators() []validator.Object {
+	return b.Validators
 }
 
 // Type returns ObjectType or CustomType.

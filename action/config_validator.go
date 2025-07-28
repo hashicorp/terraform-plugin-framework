@@ -1,27 +1,27 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package resource
+package action
 
 import "context"
 
-// ConfigValidator describes reusable Resource configuration validation functionality.
+// ConfigValidator describes reusable Action configuration validation functionality.
 type ConfigValidator interface {
 	// Description describes the validation in plain text formatting.
 	//
-	// This information may be automatically added to resource plain text
+	// This information may be automatically added to action plain text
 	// descriptions by external tooling.
 	Description(context.Context) string
 
 	// MarkdownDescription describes the validation in Markdown formatting.
 	//
-	// This information may be automatically added to resource Markdown
+	// This information may be automatically added to action Markdown
 	// descriptions by external tooling.
 	MarkdownDescription(context.Context) string
 
-	// ValidateResource performs the validation.
+	// ValidateAction performs the validation.
 	//
-	// This method name is separate from ConfigValidators in datasource and other packages in
+	// This method name is separate from ConfigValidators in resource and other packages in
 	// order to allow generic validators.
-	ValidateResource(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
+	ValidateAction(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

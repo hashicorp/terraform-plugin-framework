@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -566,6 +567,42 @@ func TestSingleNestedAttributeIsOptionalForImport(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSingleNestedAttributeObjectValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SingleNestedAttribute
+		expected  []validator.Object
+	}{
+		"no-validators": {
+			attribute: schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"testattr": schema.StringAttribute{},
+				},
+			},
+			expected: nil,
+		},
+		"validators": {
+			attribute: schema.SingleNestedAttribute{
+				Validators: []validator.Object{},
+			},
+			expected: []validator.Object{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.ObjectValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -427,6 +428,38 @@ func TestDynamicAttributeIsOptionalForImport(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestDynamicAttributeDynamicValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.DynamicAttribute
+		expected  []validator.Dynamic
+	}{
+		"no-validators": {
+			attribute: schema.DynamicAttribute{},
+			expected:  nil,
+		},
+		"validators": {
+			attribute: schema.DynamicAttribute{
+				Validators: []validator.Dynamic{},
+			},
+			expected: []validator.Dynamic{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.DynamicValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

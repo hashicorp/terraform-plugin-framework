@@ -100,7 +100,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		}
 	}
 
-	resp := ListResult{}
+	diagsStream := &list.ListResultsStream{}
 
 	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
@@ -115,12 +115,29 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		listResourceWithConfigure.Configure(ctx, configureReq, &configureResp)
 		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
 
-		resp.Diagnostics.Append(configureResp.Diagnostics...)
+		if len(configureResp.Diagnostics) > 0 {
+			diagsResp := list.ListResult{}
 
-		if resp.Diagnostics.HasError() {
-			return
+			diagsResp.Diagnostics.Append(configureResp.Diagnostics...)
+
+			// Captures any diags from the Configure call
+			diagsStream.Results = func(push func(list.ListResult) bool) {
+				if !push(diagsResp) {
+					return
+				}
+			}
+
+			if diagsResp.Diagnostics.HasError() {
+				fwStream.Results = func(push func(ListResult) bool) {
+					for result := range diagsStream.Results {
+						if !push(ListResult(result)) {
+							return
+						}
+					}
+				}
+				return
+			}
 		}
-
 	}
 
 	req := list.ListRequest{
@@ -142,17 +159,20 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		stream.Results = list.NoListResults
 	}
 
-	// How should we handle the diags produced by Configure called on line 115? Appending them to an empty stream
-	// might be misleading, not to mention will error below because Identity will be nil
+	if diagsStream.Results == nil {
+		diagsStream.Results = list.NoListResults
+	}
 
-	fwStream.Results = processListResults(req, stream.Results)
+	fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
 }
 
-func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {
+func processListResults(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {
 	return func(push func(ListResult) bool) {
-		for result := range stream {
-			if !push(processListResult(req, result)) {
-				return
+		for _, stream := range streams {
+			for result := range stream {
+				if !push(processListResult(req, result)) {
+					return
+				}
 			}
 		}
 	}
@@ -162,6 +182,11 @@ func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) 
 // ListResult
 func processListResult(req list.ListRequest, result list.ListResult) ListResult {
 	if result.Diagnostics.HasError() {
+		return ListResult(result)
+	}
+
+	// Allow any non-error diags to pass through
+	if len(result.Diagnostics) > 0 && result.DisplayName == "" && result.Identity == nil && result.Resource == nil {
 		return ListResult(result)
 	}
 

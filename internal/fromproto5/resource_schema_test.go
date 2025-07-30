@@ -99,9 +99,10 @@ func TestResourceSchema(t *testing.T) {
 				Block: &tfprotov5.SchemaBlock{
 					Attributes: []*tfprotov5.SchemaAttribute{
 						{
-							Name:     "list_of_bools",
-							Type:     tftypes.List{ElementType: tftypes.Bool},
-							Required: true,
+							Name:      "list_of_bools",
+							Type:      tftypes.List{ElementType: tftypes.Bool},
+							Required:  true,
+							WriteOnly: true,
 						},
 						{
 							Name:     "map_of_numbers",
@@ -136,6 +137,7 @@ func TestResourceSchema(t *testing.T) {
 					"list_of_bools": resourceschema.ListAttribute{
 						ElementType: basetypes.BoolType{},
 						Required:    true,
+						WriteOnly:   true,
 					},
 					"map_of_numbers": resourceschema.MapAttribute{
 						ElementType: basetypes.NumberType{},
@@ -197,10 +199,230 @@ func TestResourceSchema(t *testing.T) {
 				Blocks: make(map[string]resourceschema.Block, 0),
 			},
 		},
-		// TODO:Actions: tuple error test
-		// TODO:Actions: list nested block w/ attrs + blocks
-		// TODO:Actions: set nested block w/ attrs + blocks
-		// TODO:Actions: single nested block w/ attrs + blocks
+		"tuple-error": {
+			input: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					Attributes: []*tfprotov5.SchemaAttribute{
+						{
+							Name: "tuple",
+							Type: tftypes.Tuple{
+								ElementTypes: []tftypes.Type{
+									tftypes.Bool,
+									tftypes.Number,
+									tftypes.String,
+								},
+							},
+							Required: true,
+						},
+					},
+				},
+			},
+			expectedErr: "no supported attribute for tftypes.Type: tftypes.Tuple",
+		},
+		"list-block": {
+			input: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							TypeName: "list_block",
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "list_of_strings",
+										Type:     tftypes.List{ElementType: tftypes.String},
+										Computed: true,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "nested_list_block",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:     "bool",
+													Type:     tftypes.Bool,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &resourceschema.Schema{
+				Blocks: map[string]resourceschema.Block{
+					"list_block": resourceschema.ListNestedBlock{
+						NestedObject: resourceschema.NestedBlockObject{
+							Attributes: map[string]resourceschema.Attribute{
+								"list_of_strings": resourceschema.ListAttribute{
+									ElementType: basetypes.StringType{},
+									Computed:    true,
+								},
+							},
+							Blocks: map[string]resourceschema.Block{
+								"nested_list_block": resourceschema.ListNestedBlock{
+									NestedObject: resourceschema.NestedBlockObject{
+										Attributes: map[string]resourceschema.Attribute{
+											"bool": resourceschema.BoolAttribute{
+												Required: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Attributes: make(map[string]resourceschema.Attribute, 0),
+			},
+		},
+		"set-block": {
+			input: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							TypeName: "set_block",
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeSet,
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "set_of_strings",
+										Type:     tftypes.Set{ElementType: tftypes.String},
+										Computed: true,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "nested_set_block",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeSet,
+										Block: &tfprotov5.SchemaBlock{
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:     "bool",
+													Type:     tftypes.Bool,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &resourceschema.Schema{
+				Blocks: map[string]resourceschema.Block{
+					"set_block": resourceschema.SetNestedBlock{
+						NestedObject: resourceschema.NestedBlockObject{
+							Attributes: map[string]resourceschema.Attribute{
+								"set_of_strings": resourceschema.SetAttribute{
+									ElementType: basetypes.StringType{},
+									Computed:    true,
+								},
+							},
+							Blocks: map[string]resourceschema.Block{
+								"nested_set_block": resourceschema.SetNestedBlock{
+									NestedObject: resourceschema.NestedBlockObject{
+										Attributes: map[string]resourceschema.Attribute{
+											"bool": resourceschema.BoolAttribute{
+												Required: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Attributes: make(map[string]resourceschema.Attribute, 0),
+			},
+		},
+		"single-block": {
+			input: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							TypeName: "single_block",
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "map_of_strings",
+										Type:     tftypes.Map{ElementType: tftypes.String},
+										Computed: true,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "nested_single_block",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeSingle,
+										Block: &tfprotov5.SchemaBlock{
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:     "bool",
+													Type:     tftypes.Bool,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: &resourceschema.Schema{
+				Blocks: map[string]resourceschema.Block{
+					"single_block": resourceschema.SingleNestedBlock{
+						Attributes: map[string]resourceschema.Attribute{
+							"map_of_strings": resourceschema.MapAttribute{
+								ElementType: basetypes.StringType{},
+								Computed:    true,
+							},
+						},
+						Blocks: map[string]resourceschema.Block{
+							"nested_single_block": resourceschema.SingleNestedBlock{
+								Attributes: map[string]resourceschema.Attribute{
+									"bool": resourceschema.BoolAttribute{
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				Attributes: make(map[string]resourceschema.Attribute, 0),
+			},
+		},
+		"map-block": {
+			input: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					BlockTypes: []*tfprotov5.SchemaNestedBlock{
+						{
+							TypeName: "map_block",
+							Nesting:  tfprotov5.SchemaNestedBlockNestingModeMap,
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "bool",
+										Type:     tftypes.Bool,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedErr: `no supported block for nesting mode MAP in nested block "map_block"`,
+		},
 	}
 
 	for name, tc := range testCases {

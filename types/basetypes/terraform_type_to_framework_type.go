@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// TODO:Actions: Add dedicated tests for this function
-
 // TerraformTypeToFrameworkType is a helper function that returns the framework type equivalent for a given Terraform type.
 func TerraformTypeToFrameworkType(in tftypes.Type) (attr.Type, error) {
 	// Primitive types
@@ -23,7 +21,6 @@ func TerraformTypeToFrameworkType(in tftypes.Type) (attr.Type, error) {
 	}
 
 	if in.Is(tftypes.DynamicPseudoType) {
-		// Null and Unknown values that do not have a type determined will have a type of DynamicPseudoType
 		return DynamicType{}, nil
 	}
 

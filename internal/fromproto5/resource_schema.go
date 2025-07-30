@@ -33,7 +33,7 @@ func ResourceSchema(ctx context.Context, s *tfprotov5.Schema) (*resourceschema.S
 	}
 
 	return &resourceschema.Schema{
-		// MAINTAINER NOTE: There isn't a need to copy all of the data from the protocol schema
+		// MAINTAINER NOTE: At the moment, there isn't a need to copy all of the data from the protocol schema
 		// to the resource schema, just enough data to allow provider developers to read and set data.
 		Attributes: attrs,
 		Blocks:     blocks,
@@ -43,8 +43,8 @@ func ResourceSchema(ctx context.Context, s *tfprotov5.Schema) (*resourceschema.S
 func ResourceSchemaAttributes(ctx context.Context, protoAttrs []*tfprotov5.SchemaAttribute) (map[string]resourceschema.Attribute, error) {
 	attrs := make(map[string]resourceschema.Attribute, len(protoAttrs))
 	for _, protoAttr := range protoAttrs {
-		// MAINTAINER NOTE: There isn't a need to copy all of the data from the protocol schema attribute
-		// to the resource schema attribute, just enough data to allow provider developers to read and set data.
+		// MAINTAINER NOTE: At the moment, there isn't a need to copy all of the data from the protocol schema
+		// to the resource schema, just enough data to allow provider developers to read and set data.
 		switch {
 		case protoAttr.Type.Is(tftypes.Bool):
 			attrs[protoAttr.Name] = resourceschema.BoolAttribute{
@@ -92,6 +92,7 @@ func ResourceSchemaAttributes(ctx context.Context, protoAttrs []*tfprotov5.Schem
 				Required:    protoAttr.Required,
 				Optional:    protoAttr.Optional,
 				Computed:    protoAttr.Computed,
+				WriteOnly:   protoAttr.WriteOnly,
 				Sensitive:   protoAttr.Sensitive,
 			}
 		case protoAttr.Type.Is(tftypes.Map{}):
@@ -108,6 +109,7 @@ func ResourceSchemaAttributes(ctx context.Context, protoAttrs []*tfprotov5.Schem
 				Required:    protoAttr.Required,
 				Optional:    protoAttr.Optional,
 				Computed:    protoAttr.Computed,
+				WriteOnly:   protoAttr.WriteOnly,
 				Sensitive:   protoAttr.Sensitive,
 			}
 		case protoAttr.Type.Is(tftypes.Set{}):
@@ -144,6 +146,7 @@ func ResourceSchemaAttributes(ctx context.Context, protoAttrs []*tfprotov5.Schem
 				Required:       protoAttr.Required,
 				Optional:       protoAttr.Optional,
 				Computed:       protoAttr.Computed,
+				WriteOnly:      protoAttr.WriteOnly,
 				Sensitive:      protoAttr.Sensitive,
 			}
 		default:
@@ -195,7 +198,9 @@ func ResourceSchemaNestedBlocks(ctx context.Context, protoBlocks []*tfprotov5.Sc
 				Blocks:     blocks,
 			}
 		default:
-			return nil, fmt.Errorf("unrecognized nesting mode %v in nested block %q", protoBlock.Nesting, protoBlock.TypeName)
+			// MAINTAINER NOTE: Currently the only block type not supported by Framework is a map nested block, since there
+			// is no corresponding framework block implementation to represent it.
+			return nil, fmt.Errorf("no supported block for nesting mode %v in nested block %q", protoBlock.Nesting, protoBlock.TypeName)
 		}
 	}
 

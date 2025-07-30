@@ -42,11 +42,31 @@ func (s *Server) PlanAction(ctx context.Context, proto5Req *tfprotov5.PlanAction
 	lrIdentitySchemas := make([]fwschema.Schema, 0)
 	for _, lrType := range actionSchema.LinkedResourceTypes() {
 		switch lrType := lrType.(type) {
-		case schema.RawLinkedResource:
+		case schema.RawV5LinkedResource:
 			// schema.RawLinkedResource are not on the same provider server, so we retrieve the schemas from the
 			// definition directly.
-			lrSchemas = append(lrSchemas, lrType.GetSchema())
-			lrIdentitySchemas = append(lrIdentitySchemas, lrType.GetIdentitySchema())
+			lrSchema, err := fromproto5.ResourceSchema(ctx, lrType.Schema())
+			if err != nil {
+				// TODO:Actions: Add diagnostic and return
+			}
+			lrSchemas = append(lrSchemas, lrSchema)
+
+			// TODO:Actions: Implement the mapping logic for identity schemas
+			//
+			// lrIdentitySchema, err := fromproto5.ResourceIdentitySchema(ctx, lrType.IdentitySchema())
+			// if err != nil {
+			// 	// TODO:Actions: Add diagnostic and return
+			// }
+			// lrIdentitySchemas = append(lrIdentitySchemas, lrIdentitySchema)
+		case schema.RawV6LinkedResource:
+			// TODO:Actions: Would it be invalid to use a v6 linked resource in a v5 action? My initial thought is that
+			// this would never happen (since the provider must all be the same protocol version at the end of the day to Terraform,
+			// and providers can't build actions for other providers), but I can't think of a reason why we couldn't do this?
+			//
+			// The data is all the same under the hood, but perhaps there are some validations that might break down when attempting to prevent
+			// setting data in nested computed attributes? :shrug:
+			//
+			// We can very easily validate this in the proto5server/proto6server in our type switch, just need to determine if that restriction is reasonable.
 		default:
 			// Any other linked resource type should be on the same provider server as the action, so we can just retrieve it
 			lrSchema, diags := s.FrameworkServer.ResourceSchema(ctx, lrType.GetTypeName())

@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: 'all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans.'
-time: 2025-06-12T11:54:11.818923-04:00
-custom:
-    Issue: "1117"

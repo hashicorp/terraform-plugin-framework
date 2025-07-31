@@ -1,9 +1,33 @@
+## 1.16.0-beta.1 (July 31, 2025)
+
+FEATURES:
+
+* actions: Initial package implementation and new Actions RPC support ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+
+ENHANCEMENTS:
+
+* list: add `limit` field to `ListResult` ([#1182](https://github.com/hashicorp/terraform-plugin-framework/issues/1182))
+* list: add primitives, list and map types to schema ([#1177](https://github.com/hashicorp/terraform-plugin-framework/issues/1177))
+* actions: add schema interface and unlinked schema ([#1183](https://github.com/hashicorp/terraform-plugin-framework/issues/1183))
+* actions: add standard validation methods and interfaces for `ValidateActionConfig` RPCs ([#1188](https://github.com/hashicorp/terraform-plugin-framework/issues/1188))
+* actions: add attributes and nested blocks to schema package ([#1186](https://github.com/hashicorp/terraform-plugin-framework/issues/1186))
+
+BUG FIXES:
+
+* list: call `Configure` in `ListResource` RPC and remove the `ListResource` call in `ValidateListResourceConfig` ([#1192](https://github.com/hashicorp/terraform-plugin-framework/issues/1192))
+
 ## 1.16.0-alpha.1 (July 22, 2025)
 
 NOTES:
 
 * This alpha pre-release contains the initial implementation for list resource that returns a list of resource identities for a single managed resource type. ([#1157](https://github.com/hashicorp/terraform-plugin-framework/issues/1157))
 * The ListResource and ValidateListResourceConfig RPCs are considered experimental and may change up until general availability ([#1178](https://github.com/hashicorp/terraform-plugin-framework/issues/1178))
+
+BUG FIXES:
+
+* all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
+
+## 1.15.1 (July 31, 2025)
 
 BUG FIXES:
 

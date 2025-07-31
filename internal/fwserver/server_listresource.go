@@ -5,14 +5,15 @@ package fwserver
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ListRequest is the framework server request for the ListResource RPC.
@@ -99,6 +100,47 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		}
 	}
 
+	// TODO verdict is still out on how to handle diagnostics that pertain to the List call as a whole and not individual list results
+	diagsStream := &list.ListResultsStream{}
+
+	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
+
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ListResourceConfigureData,
+		}
+
+		configureResp := resource.ConfigureResponse{}
+
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
+		listResourceWithConfigure.Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
+
+		if len(configureResp.Diagnostics) > 0 {
+			diagsResp := list.ListResult{}
+
+			diagsResp.Diagnostics.Append(configureResp.Diagnostics...)
+
+			// Captures any diags from the Configure call
+			diagsStream.Results = func(push func(list.ListResult) bool) {
+				if !push(diagsResp) {
+					return
+				}
+			}
+
+			if diagsResp.Diagnostics.HasError() {
+				fwStream.Results = func(push func(ListResult) bool) {
+					for result := range diagsStream.Results {
+						if !push(ListResult(result)) {
+							return
+						}
+					}
+				}
+				return
+			}
+		}
+	}
+
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
@@ -118,14 +160,20 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		stream.Results = list.NoListResults
 	}
 
-	fwStream.Results = processListResults(req, stream.Results)
+	if diagsStream.Results == nil {
+		diagsStream.Results = list.NoListResults
+	}
+
+	fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
 }
 
-func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {
+func processListResults(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {
 	return func(push func(ListResult) bool) {
-		for result := range stream {
-			if !push(processListResult(req, result)) {
-				return
+		for _, stream := range streams {
+			for result := range stream {
+				if !push(processListResult(req, result)) {
+					return
+				}
 			}
 		}
 	}
@@ -135,6 +183,11 @@ func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) 
 // ListResult
 func processListResult(req list.ListRequest, result list.ListResult) ListResult {
 	if result.Diagnostics.HasError() {
+		return ListResult(result)
+	}
+
+	// Allow any non-error diags to pass through
+	if len(result.Diagnostics) > 0 && result.DisplayName == "" && result.Identity == nil && result.Resource == nil {
 		return ListResult(result)
 	}
 

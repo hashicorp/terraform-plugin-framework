@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'actions: add standard validation methods and interfaces for `ValidateActionConfig` RPCs'
+time: 2025-07-31T17:51:31.592748+02:00
+custom:
+    Issue: "1188"

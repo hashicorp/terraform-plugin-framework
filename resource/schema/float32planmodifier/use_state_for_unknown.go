@@ -36,8 +36,8 @@ func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) strin
 
 // PlanModifyFloat32 implements the plan modification logic.
 func (m useStateForUnknownModifier) PlanModifyFloat32(_ context.Context, req planmodifier.Float32Request, resp *planmodifier.Float32Response) {
-	// Do nothing if there is no state value.
-	if req.StateValue.IsNull() {
+	// Do nothing if there is no state (resource is being created).
+	if req.State.Raw.IsNull() {
 		return
 	}
 

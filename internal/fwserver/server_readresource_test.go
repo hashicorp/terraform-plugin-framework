@@ -164,6 +164,11 @@ func TestServerReadResource(t *testing.T) {
 		Schema: testIdentitySchema,
 	}
 
+	testEmptyIdentity := &tfsdk.ResourceIdentity{
+		Schema: testIdentitySchema,
+		Raw:    tftypes.NewValue(testIdentitySchema.Type().TerraformType(context.Background()), nil),
+	}
+
 	testNewStateRemoved := &tfsdk.State{
 		Raw:    tftypes.NewValue(testType, nil),
 		Schema: testSchema,
@@ -633,6 +638,35 @@ func TestServerReadResource(t *testing.T) {
 			expectedResponse: &fwserver.ReadResourceResponse{
 				NewState:    testCurrentState,
 				NewIdentity: testNewIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
+		"response-invalid-nil-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				CurrentIdentity: nil,
+				IdentitySchema:  testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							resp.Identity = req.Identity
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Read",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource read. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewState:    testCurrentState,
+				NewIdentity: testEmptyIdentity,
 				Private:     testEmptyPrivate,
 			},
 		},

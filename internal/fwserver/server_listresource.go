@@ -100,6 +100,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		}
 	}
 
+	// TODO verdict is still out on how to handle diagnostics that pertain to the List call as a whole and not individual list results
 	diagsStream := &list.ListResultsStream{}
 
 	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {

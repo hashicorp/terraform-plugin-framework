@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: 'list: call `Configure` in `ListResource` RPC and remove the `ListResource` call in `ValidateListResourceConfig`'
-time: 2025-07-31T17:52:23.657076+02:00
-custom:
-    Issue: "1192"

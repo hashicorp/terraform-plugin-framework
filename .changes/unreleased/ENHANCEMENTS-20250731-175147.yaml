@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'actions: add attributes and nested blocks to schema package'
-time: 2025-07-31T17:51:47.004868+02:00
-custom:
-    Issue: "1186"

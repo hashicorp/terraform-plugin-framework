@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'list: add `limit` field to `ListResult`'
-time: 2025-07-31T17:50:15.003364+02:00
-custom:
-    Issue: "1182"

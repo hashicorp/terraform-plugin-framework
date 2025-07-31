@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'actions: Initial package implementation and new Actions RPC support'
-time: 2025-07-31T17:49:33.60589+02:00
-custom:
-    Issue: "1181"

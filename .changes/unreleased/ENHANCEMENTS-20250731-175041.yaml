@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'list: add primitives, list and map types to schema'
-time: 2025-07-31T17:50:41.465003+02:00
-custom:
-    Issue: "1177"

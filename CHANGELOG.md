@@ -1,3 +1,10 @@
+
+## 1.15.1 (July 31, 2025)
+
+BUG FIXES:
+
+* all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
+
 ## 1.16.0-alpha.1 (July 22, 2025)
 
 NOTES:

@@ -154,7 +154,7 @@ func ResourceSchemaAttributes(ctx context.Context, protoAttrs []*tfprotov5.Schem
 			// is no corresponding attribute to represent it.
 			//
 			// https://github.com/hashicorp/terraform-plugin-framework/issues/54
-			return nil, fmt.Errorf("no supported attribute for tftypes.Type: %T", protoAttr.Type)
+			return nil, fmt.Errorf("no supported attribute for %q, type: %T", protoAttr.Name, protoAttr.Type)
 		}
 	}
 

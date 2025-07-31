@@ -217,7 +217,7 @@ func TestResourceSchema(t *testing.T) {
 					},
 				},
 			},
-			expectedErr: "no supported attribute for tftypes.Type: tftypes.Tuple",
+			expectedErr: `no supported attribute for "tuple", type: tftypes.Tuple`,
 		},
 		"list-block": {
 			input: &tfprotov5.Schema{

@@ -70,7 +70,9 @@ func TestServerPlanAction(t *testing.T) {
 				ActionSchema: testUnlinkedSchema,
 				Action:       &testprovider.Action{},
 			},
-			expectedResponse: &fwserver.PlanActionResponse{},
+			expectedResponse: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+			},
 		},
 		"request-client-capabilities-deferral-allowed": {
 			server: &fwserver.Server{
@@ -95,7 +97,9 @@ func TestServerPlanAction(t *testing.T) {
 					},
 				},
 			},
-			expectedResponse: &fwserver.PlanActionResponse{},
+			expectedResponse: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+			},
 		},
 		"request-config": {
 			server: &fwserver.Server{
@@ -118,7 +122,9 @@ func TestServerPlanAction(t *testing.T) {
 					},
 				},
 			},
-			expectedResponse: &fwserver.PlanActionResponse{},
+			expectedResponse: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+			},
 		},
 		"action-configure-data": {
 			server: &fwserver.Server{
@@ -155,7 +161,9 @@ func TestServerPlanAction(t *testing.T) {
 					},
 				},
 			},
-			expectedResponse: &fwserver.PlanActionResponse{},
+			expectedResponse: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+			},
 		},
 		"response-deferral-automatic": {
 			server: &fwserver.Server{
@@ -182,7 +190,8 @@ func TestServerPlanAction(t *testing.T) {
 				ClientCapabilities: testDeferralAllowed,
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				Deferred: &action.Deferred{Reason: action.DeferredReasonProviderConfigUnknown},
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+				Deferred:        &action.Deferred{Reason: action.DeferredReasonProviderConfigUnknown},
 			},
 		},
 		"response-deferral-manual": {
@@ -210,7 +219,8 @@ func TestServerPlanAction(t *testing.T) {
 				ClientCapabilities: testDeferralAllowed,
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				Deferred: &action.Deferred{Reason: action.DeferredReasonAbsentPrereq},
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
+				Deferred:        &action.Deferred{Reason: action.DeferredReasonAbsentPrereq},
 			},
 		},
 		"response-diagnostics": {
@@ -228,6 +238,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanLinkedResourceResponse{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic(
 						"warning summary",

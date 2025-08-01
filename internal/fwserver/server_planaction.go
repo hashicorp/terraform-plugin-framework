@@ -56,6 +56,38 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		return
 	}
 
+	// By default, copy over planned state and identity for each linked resource
+	resp.LinkedResources = make([]*PlanLinkedResourceResponse, len(req.LinkedResources))
+	for i, lr := range req.LinkedResources {
+		if lr.PlannedState == nil {
+			// TODO:Actions: I'm not 100% sure if this is valid enough to be a concern, PlanResourceChange populates this with a null
+			// value of the resource schema type, but it'd be nice to not have to carry linked resource schemas this far
+			// if we don't need them.
+			//
+			// My current thought is that this isn't needed (a similar check would need to be done on identity). Specifically because
+			// actions should always be following a linked resource PlanResourceChange call. So this value should always be populated and
+			// this would more be protecting future logic from panicking if a bug existing in Terraform core or Framework/SDKv2.
+			resp.Diagnostics.AddError(
+				"Invalid PlannedState for Linked Resource",
+				"An unexpected error was encountered when planning an action with linked resources. "+
+					fmt.Sprintf("Linked resource planned state was nil when received in the protocol, index: %d.\n\n", i)+
+					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
+			)
+			return
+		}
+
+		resp.LinkedResources[i] = &PlanLinkedResourceResponse{
+			PlannedState: planToState(*lr.PlannedState),
+		}
+
+		if lr.PriorIdentity != nil {
+			resp.LinkedResources[i].PlannedIdentity = &tfsdk.ResourceIdentity{
+				Schema: lr.PriorIdentity.Schema,
+				Raw:    lr.PriorIdentity.Raw.Copy(),
+			}
+		}
+	}
+
 	if s.deferred != nil {
 		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
 			map[string]interface{}{
@@ -95,41 +127,8 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		}
 	}
 
-	// By default, copy over planned state and identity for each linked resource
-	resp.LinkedResources = make([]*PlanLinkedResourceResponse, len(req.LinkedResources))
-	for i, lr := range req.LinkedResources {
-		if lr.PlannedState == nil {
-			// TODO:Actions: I'm not 100% sure if this is valid enough to be a concern, PlanResourceChange populates this with a null
-			// value of the resource schema type, but it'd be nice to not have to carry linked resource schemas this far
-			// if we don't need them.
-			//
-			// My current thought is that this isn't needed (a similar check would need to be done on identity). Specifically because
-			// actions should always be following a linked resource PlanResourceChange call. So this value should always be populated and
-			// this would more be protecting future logic from panicking if a bug existing in Terraform core or Framework/SDKv2.
-			resp.Diagnostics.AddError(
-				"Invalid PlannedState for Linked Resource",
-				"An unexpected error was encountered when planning an action with linked resources. "+
-					fmt.Sprintf("Linked resource planned state was nil when received in the protocol, index: %d.\n\n", i)+
-					"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
-			)
-			return
-		}
-
-		resp.LinkedResources[i] = &PlanLinkedResourceResponse{
-			PlannedState: planToState(*lr.PlannedState),
-		}
-
-		if lr.PriorIdentity != nil {
-			resp.LinkedResources[i].PlannedIdentity = &tfsdk.ResourceIdentity{
-				Schema: lr.PriorIdentity.Schema,
-				Raw:    lr.PriorIdentity.Raw.Copy(),
-			}
-		}
-	}
-
 	// TODO:Actions: Should we add support for schema plan modifiers? Technically you could re-use any framework plan modifier
 	// implementations from the "resource/schema/planmodifier" package
-
 	if actionWithModifyPlan, ok := req.Action.(action.ActionWithModifyPlan); ok {
 		logging.FrameworkTrace(ctx, "Action implements ActionWithModifyPlan")
 
@@ -173,6 +172,7 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.Deferred = modifyPlanResp.Deferred
 
+		// TODO:Actions: improve the error message
 		if len(resp.LinkedResources) != len(modifyPlanResp.LinkedResources) {
 			resp.Diagnostics.AddError(
 				"Invalid Linked Resource Plan",

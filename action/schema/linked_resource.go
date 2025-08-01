@@ -57,6 +57,20 @@ func (l RawV5LinkedResource) GetDescription() string {
 	return l.Description
 }
 
+func (l RawV5LinkedResource) GetSchema() *tfprotov5.Schema {
+	if l.Schema == nil {
+		return nil
+	}
+	return l.Schema()
+}
+
+func (l RawV5LinkedResource) GetIdentitySchema() *tfprotov5.ResourceIdentitySchema {
+	if l.IdentitySchema == nil {
+		return nil
+	}
+	return l.IdentitySchema()
+}
+
 // TODO:Actions: docs
 type RawV6LinkedResource struct {
 	TypeName       string
@@ -73,4 +87,18 @@ func (l RawV6LinkedResource) GetTypeName() string {
 
 func (l RawV6LinkedResource) GetDescription() string {
 	return l.Description
+}
+
+func (l RawV6LinkedResource) GetSchema() *tfprotov6.Schema {
+	if l.Schema == nil {
+		return nil
+	}
+	return l.Schema()
+}
+
+func (l RawV6LinkedResource) GetIdentitySchema() *tfprotov6.ResourceIdentitySchema {
+	if l.IdentitySchema == nil {
+		return nil
+	}
+	return l.IdentitySchema()
 }

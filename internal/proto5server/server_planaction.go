@@ -5,6 +5,7 @@ package proto5server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
@@ -43,50 +44,67 @@ func (s *Server) PlanAction(ctx context.Context, proto5Req *tfprotov5.PlanAction
 	for _, lrType := range actionSchema.LinkedResourceTypes() {
 		switch lrType := lrType.(type) {
 		case schema.RawV5LinkedResource:
-			// schema.RawLinkedResource are not on the same provider server, so we retrieve the schemas from the
-			// definition directly.
-			lrSchema, err := fromproto5.ResourceSchema(ctx, lrType.Schema())
+			// Raw linked resources are not stored on this provider server, so we retrieve the schemas from the
+			// action definition directly and convert them to framework schemas.
+			lrSchema, err := fromproto5.ResourceSchema(ctx, lrType.GetSchema())
 			if err != nil {
-				// TODO:Actions: Add diagnostic and return
+				fwResp.Diagnostics.AddError(
+					"Invalid Linked Resource Schema",
+					fmt.Sprintf("An unexpected error was encountered when converting %q linked resource schema from the protocol type. "+
+						"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+						"Please report this to the provider developer:\n\n%s", lrType.GetTypeName(), err.Error()),
+				)
+
+				return toproto5.PlanActionResponse(ctx, fwResp), nil //nolint:nilerr // error is assigned to fwResp.Diagnostics
 			}
 			lrSchemas = append(lrSchemas, lrSchema)
 
-			// TODO:Actions: Implement the mapping logic for identity schemas
-			//
-			// lrIdentitySchema, err := fromproto5.ResourceIdentitySchema(ctx, lrType.IdentitySchema())
-			// if err != nil {
-			// 	// TODO:Actions: Add diagnostic and return
-			// }
-			// lrIdentitySchemas = append(lrIdentitySchemas, lrIdentitySchema)
-		case schema.RawV6LinkedResource:
-			// TODO:Actions: Would it be invalid to use a v6 linked resource in a v5 action? My initial thought is that
-			// this would never happen (since the provider must all be the same protocol version at the end of the day to Terraform,
-			// and providers can't build actions for other providers), but I can't think of a reason why we couldn't do this?
-			//
-			// The data is all the same under the hood, but perhaps there are some validations that might break down when attempting to prevent
-			// setting data in nested computed attributes? :shrug:
-			//
-			// We can very easily validate this in the proto5server/proto6server in our type switch, just need to determine if that restriction is reasonable.
-		default:
-			// Any other linked resource type should be on the same provider server as the action, so we can just retrieve it
-			lrSchema, diags := s.FrameworkServer.ResourceSchema(ctx, lrType.GetTypeName())
+			lrIdentitySchema, err := fromproto5.IdentitySchema(ctx, lrType.GetIdentitySchema())
+			if err != nil {
+				fwResp.Diagnostics.AddError(
+					"Invalid Linked Resource Schema",
+					fmt.Sprintf("An unexpected error was encountered when converting %q linked resource identity schema from the protocol type. "+
+						"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+						"Please report this to the provider developer:\n\n%s", lrType.GetTypeName(), err.Error()),
+				)
 
-			fwResp.Diagnostics.Append(diags...)
-			if fwResp.Diagnostics.HasError() {
-				// TODO:Actions: Better error message
+				return toproto5.PlanActionResponse(ctx, fwResp), nil //nolint:nilerr // error is assigned to fwResp.Diagnostics
+			}
+			lrIdentitySchemas = append(lrIdentitySchemas, lrIdentitySchema)
+		case schema.RawV6LinkedResource:
+			fwResp.Diagnostics.AddError(
+				"Invalid Linked Resource Schema",
+				fmt.Sprintf("An unexpected error was encountered when converting %[1]q linked resource schema from the protocol type. "+
+					"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+					"Please report this to the provider developer:\n\n"+
+					"The %[1]q linked resource is a protocol v6 resource but the provider is being served using protocol v5.", lrType.GetTypeName()),
+			)
+
+			return toproto5.PlanActionResponse(ctx, fwResp), nil //nolint:nilerr // error is assigned to fwResp.Diagnostics
+		default:
+			// Any other linked resource type should be stored on the same provider server as the action,
+			// so we can just retrieve it via the type name.
+			lrSchema, diags := s.FrameworkServer.ResourceSchema(ctx, lrType.GetTypeName())
+			if diags.HasError() {
+				fwResp.Diagnostics.AddError(
+					"Invalid Linked Resource Schema",
+					fmt.Sprintf("An unexpected error was encountered when converting %[1]q linked resource data from the protocol type. "+
+						"This is always an issue in the provider code and should be reported to the provider developers.\n\n"+
+						"Please report this to the provider developer:\n\n"+
+						"The %[1]q linked resource was not found on the provider server.", lrType.GetTypeName()),
+				)
+
 				return toproto5.PlanActionResponse(ctx, fwResp), nil
 			}
-
 			lrSchemas = append(lrSchemas, lrSchema)
 
 			lrIdentitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, lrType.GetTypeName())
-
 			fwResp.Diagnostics.Append(diags...)
 			if fwResp.Diagnostics.HasError() {
-				// TODO:Actions: Better error message
+				// If the resource is found, the identity schema will only return a diagnostic if the provider implementation
+				// returns an error from (resource.Resource).IdentitySchema method.
 				return toproto5.PlanActionResponse(ctx, fwResp), nil
 			}
-
 			lrIdentitySchemas = append(lrIdentitySchemas, lrIdentitySchema)
 		}
 	}

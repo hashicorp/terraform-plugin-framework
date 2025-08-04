@@ -223,7 +223,7 @@ func TestPlanActionRequest(t *testing.T) {
 					Raw:    testEmptyProto5Value,
 					Schema: testLifecycleSchemaLinked,
 				},
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw:    testLinkedResourceProto5Value,
@@ -279,7 +279,7 @@ func TestPlanActionRequest(t *testing.T) {
 					Raw:    testEmptyProto5Value,
 					Schema: testLifecycleSchemaLinked,
 				},
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw:    testLinkedResourceProto5Value,

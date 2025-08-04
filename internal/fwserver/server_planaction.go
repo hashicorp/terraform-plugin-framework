@@ -21,10 +21,10 @@ type PlanActionRequest struct {
 	ActionSchema       fwschema.Schema
 	Action             action.Action
 	Config             *tfsdk.Config
-	LinkedResources    []*PlanActionLinkedResourceRequest
+	LinkedResources    []*PlanActionRequestLinkedResource
 }
 
-type PlanActionLinkedResourceRequest struct {
+type PlanActionRequestLinkedResource struct {
 	Config        *tfsdk.Config
 	PlannedState  *tfsdk.Plan
 	PriorState    *tfsdk.State
@@ -35,10 +35,10 @@ type PlanActionLinkedResourceRequest struct {
 type PlanActionResponse struct {
 	Deferred        *action.Deferred
 	Diagnostics     diag.Diagnostics
-	LinkedResources []*PlanActionLinkedResourceResponse
+	LinkedResources []*PlanActionResponseLinkedResource
 }
 
-type PlanActionLinkedResourceResponse struct {
+type PlanActionResponseLinkedResource struct {
 	PlannedState    *tfsdk.State
 	PlannedIdentity *tfsdk.ResourceIdentity
 }
@@ -50,9 +50,9 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 	}
 
 	// Copy over planned state and identity to the response for each linked resource as a default plan
-	resp.LinkedResources = make([]*PlanActionLinkedResourceResponse, len(req.LinkedResources))
+	resp.LinkedResources = make([]*PlanActionResponseLinkedResource, len(req.LinkedResources))
 	for i, lr := range req.LinkedResources {
-		resp.LinkedResources[i] = &PlanActionLinkedResourceResponse{
+		resp.LinkedResources[i] = &PlanActionResponseLinkedResource{
 			PlannedState: planToState(*lr.PlannedState),
 		}
 

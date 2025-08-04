@@ -110,7 +110,7 @@ func TestServerPlanAction(t *testing.T) {
 				Action:       &testprovider.Action{},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 			},
 		},
 		"request-client-capabilities-deferral-allowed": {
@@ -137,7 +137,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 			},
 		},
 		"request-config": {
@@ -162,7 +162,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 			},
 		},
 		"request-linkedresources": {
@@ -171,7 +171,7 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			request: &fwserver.PlanActionRequest{
 				ActionSchema: testEmptyActionSchema,
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -271,7 +271,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
 					{
 						PlannedState: &tfsdk.State{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -326,7 +326,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 			},
 		},
 		"response-deferral-automatic": {
@@ -354,7 +354,7 @@ func TestServerPlanAction(t *testing.T) {
 				ClientCapabilities: testDeferralAllowed,
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 				Deferred:        &action.Deferred{Reason: action.DeferredReasonProviderConfigUnknown},
 			},
 		},
@@ -383,7 +383,7 @@ func TestServerPlanAction(t *testing.T) {
 				ClientCapabilities: testDeferralAllowed,
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 				Deferred:        &action.Deferred{Reason: action.DeferredReasonAbsentPrereq},
 			},
 		},
@@ -402,7 +402,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{},
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic(
 						"warning summary",
@@ -421,7 +421,7 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			request: &fwserver.PlanActionRequest{
 				ActionSchema: testEmptyActionSchema,
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -472,7 +472,7 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
 					{
 						PlannedState: &tfsdk.State{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -497,7 +497,7 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			request: &fwserver.PlanActionRequest{
 				ActionSchema: testEmptyActionSchema,
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -543,7 +543,7 @@ func TestServerPlanAction(t *testing.T) {
 							"This is always a problem with the provider and should be reported to the provider developer.",
 					),
 				},
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
 					{
 						PlannedState: &tfsdk.State{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -568,7 +568,7 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			request: &fwserver.PlanActionRequest{
 				ActionSchema: testEmptyActionSchema,
-				LinkedResources: []*fwserver.PlanActionLinkedResourceRequest{
+				LinkedResources: []*fwserver.PlanActionRequestLinkedResource{
 					{
 						Config: &tfsdk.Config{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{
@@ -643,7 +643,7 @@ func TestServerPlanAction(t *testing.T) {
 							"This is always a problem with the provider and should be reported to the provider developer.",
 					),
 				},
-				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
 					{
 						PlannedState: &tfsdk.State{
 							Raw: tftypes.NewValue(testLinkedResourceSchemaType, map[string]tftypes.Value{

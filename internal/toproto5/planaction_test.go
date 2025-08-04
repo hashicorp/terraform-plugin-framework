@@ -100,7 +100,7 @@ func TestPlanActionResponse(t *testing.T) {
 		},
 		"linkedresource": {
 			input: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
 					{
 						PlannedState: &tfsdk.State{
 							Raw:    testLinkedResourceProto5Value,
@@ -126,7 +126,7 @@ func TestPlanActionResponse(t *testing.T) {
 		},
 		"linkedresources": {
 			input: &fwserver.PlanActionResponse{
-				LinkedResources: []*fwserver.PlanLinkedResourceResponse{
+				LinkedResources: []*fwserver.PlanActionLinkedResourceResponse{
 					{
 						PlannedState: &tfsdk.State{
 							Raw:    testLinkedResourceProto5Value,

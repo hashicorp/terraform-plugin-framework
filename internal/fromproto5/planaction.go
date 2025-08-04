@@ -121,7 +121,7 @@ func PlanActionRequest(ctx context.Context, proto5 *tfprotov5.PlanActionRequest,
 			priorIdentity = identityVal
 		}
 
-		fw.LinkedResources = append(fw.LinkedResources, &fwserver.PlanLinkedResourceRequest{
+		fw.LinkedResources = append(fw.LinkedResources, &fwserver.PlanActionLinkedResourceRequest{
 			Config:        config,
 			PlannedState:  plannedState,
 			PriorState:    priorState,

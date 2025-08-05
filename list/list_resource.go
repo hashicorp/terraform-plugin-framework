@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ListResource represents an implementation of listing instances of a managed resource
@@ -30,7 +31,10 @@ type ListResource interface {
 	// The method signature is intended to be compatible with the Metadata
 	// method signature in the Resource interface. One implementation of
 	// Metadata can satisfy both interfaces.
-	Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+
+	// Since we're passing additional schema information around in here we should use the
+	// MetadataRequest and MetadataResponse for list
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 
 	// ListResourceConfigSchema should return the schema for list blocks.
 	ListResourceConfigSchema(context.Context, ListResourceSchemaRequest, *ListResourceSchemaResponse)
@@ -121,6 +125,17 @@ func (r ListRequest) NewListResult() ListResult {
 	}
 }
 
+func (r ListRequest) NewListResultProtoV5() tfprotov5.ListResourceResult {
+	diags := make([]*tfprotov5.Diagnostic, 0)
+
+	return tfprotov5.ListResourceResult{
+		DisplayName: "",
+		Resource:    nil,
+		Identity:    nil,
+		Diagnostics: diags,
+	}
+}
+
 // ListResultsStream represents a streaming response to a [ListRequest].  An
 // instance of this struct is supplied as an argument to the provider's
 // [ListResource.List] function. The provider should set a Results iterator
@@ -135,10 +150,17 @@ type ListResultsStream struct {
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
 	Results iter.Seq[ListResult]
+
+	// We could support this as a generic type instead, but it requires threading the generic type through
+	// all manner of things.. on the other hand this requires duplication of existing functionality
+	Proto5Results iter.Seq[tfprotov5.ListResourceResult]
 }
 
 // NoListResults is an iterator that pushes zero results.
 var NoListResults = func(push func(ListResult) bool) {}
+
+// One of the duplication examples
+var NoListResultsProtov5 = func(push func(tfprotov5.ListResourceResult) bool) {}
 
 // ListResultsStreamDiagnostics returns a function that yields a single
 // [ListResult] with the given Diagnostics

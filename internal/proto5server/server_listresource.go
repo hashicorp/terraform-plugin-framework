@@ -5,6 +5,7 @@ package proto5server
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
@@ -45,6 +46,38 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 	allDiags.Append(diags...)
 	if diags.HasError() {
 		return ListRequestErrorDiagnostics(ctx, allDiags...)
+	}
+
+	// This breaks consistency with other RPCs but this allows us to switch the logic without an interceptor in mux
+	metadataResp := list.MetadataResponse{}
+	listResource.Metadata(ctx, list.MetadataRequest{}, &metadataResp)
+
+	// There's validation in xxx that ensures both are set if either is provided so perhaps it's sufficient to only nil check Identity
+	if metadataResp.ProtoV5IdentitySchema != nil {
+		identitySchema, _ := fromproto5.IdentitySchema(ctx, metadataResp.ProtoV5IdentitySchema())
+		resourceSchema, _ := fromproto5.ResourceSchema(ctx, metadataResp.ProtoV5Schema())
+
+		req := &fwserver.ListRequest{
+			Config:                 config,
+			ListResource:           listResource,
+			IncludeResource:        protoReq.IncludeResource,
+			ResourceIdentitySchema: identitySchema,
+			ResourceSchema:         resourceSchema,
+		}
+
+		stream := &fwserver.ListResultsStream{}
+		s.FrameworkServer.ListResource(ctx, req, stream)
+
+		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
+			for result := range stream.ResultsProtoV5 {
+				// We pass the result along as-is since it's already in ProtoV5 format
+				if !push(result) {
+					return
+				}
+			}
+		}
+
+		return protoStream, nil
 	}
 
 	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)

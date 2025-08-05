@@ -14,7 +14,15 @@ type InvokeRequest struct {
 	// Config is the configuration the user supplied for the action.
 	Config tfsdk.Config
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	LinkedResources []InvokeRequestLinkedResource
+}
+
+// TODO:Actions: docs, change name of this struct :?
+type InvokeRequestLinkedResource struct {
+	Config   tfsdk.Config
+	State    tfsdk.State
+	Identity *tfsdk.ResourceIdentity
+	Plan     tfsdk.Plan
 }
 
 // InvokeResponse represents a response to an InvokeRequest. An
@@ -28,13 +36,20 @@ type InvokeResponse struct {
 	// generated.
 	Diagnostics diag.Diagnostics
 
+	LinkedResources []InvokeResponseLinkedResource
+
 	// SendProgress will immediately send a progress update to Terraform core during action invocation.
 	// This function is provided by the framework and can be called multiple times while action logic is running.
 	//
 	// TODO:Actions: More documentation about when you should use this / when you shouldn't
 	SendProgress func(event InvokeProgressEvent)
+}
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+// TODO:Actions: docs, change name of this struct :?
+type InvokeResponseLinkedResource struct {
+	State           tfsdk.State
+	Identity        *tfsdk.ResourceIdentity
+	RequiresReplace bool // TODO:Actions: Document that this can only be present when diagnostics exist
 }
 
 // InvokeProgressEvent is the event returned to Terraform while an action is being invoked.

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// TODO:Actions: Implement lifecycle and linked schemas
+// TODO:Actions: Implement linked schemas
 //
 // SchemaType is the interface that an action schema type must implement. Action
 // schema types are statically definined in the protocol, so all implementations

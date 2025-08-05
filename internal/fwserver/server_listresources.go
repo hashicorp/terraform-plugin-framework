@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (s *Server) ListResourceType(ctx context.Context, typeName string) (list.ListResource, diag.Diagnostics) {
@@ -57,10 +56,10 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 	for _, listResourceFunc := range listResourceFuncSlice {
 		listResource := listResourceFunc()
 
-		metadataReq := resource.MetadataRequest{
+		metadataReq := list.MetadataRequest{
 			ProviderTypeName: providerTypeName,
 		}
-		metadataResp := resource.MetadataResponse{}
+		metadataResp := list.MetadataResponse{}
 		listResource.Metadata(ctx, metadataReq, &metadataResp)
 
 		typeName := metadataResp.TypeName
@@ -87,12 +86,17 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 
 		resourceFuncs, _ := s.ResourceFuncs(ctx)
 		if _, ok := resourceFuncs[typeName]; !ok {
-			s.listResourceFuncsDiags.AddError(
-				"ListResource Type Defined without a Matching Managed Resource Type",
-				fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
-					"This is always an issue with the provider and should be reported to the provider developers.",
-			)
-			continue
+
+			// With the ProtoV5 info in Metadata we can keep this validation
+			// TODO update error message
+			if metadataResp.ProtoV5Schema == nil || metadataResp.ProtoV5IdentitySchema == nil {
+				s.listResourceFuncsDiags.AddError(
+					"ListResource Type Defined without a Matching Managed Resource Type",
+					fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
+						"This is always an issue with the provider and should be reported to the provider developers.",
+				)
+				continue
+			}
 		}
 
 		s.listResourceFuncs[typeName] = listResourceFunc

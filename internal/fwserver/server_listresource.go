@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -49,12 +50,26 @@ type ListResultsStream struct {
 	// Results is a function that emits [ListResult] values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
+
+	ResultsProtoV5 iter.Seq[tfprotov5.ListResourceResult]
 }
 
 func ListResultError(summary string, detail string) ListResult {
 	return ListResult{
 		Diagnostics: diag.Diagnostics{
 			diag.NewErrorDiagnostic(summary, detail),
+		},
+	}
+}
+
+func ListResultErrorProto5(summary string, detail string) tfprotov5.ListResourceResult {
+	return tfprotov5.ListResourceResult{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: 1,
+				Summary:  summary,
+				Detail:   detail,
+			},
 		},
 	}
 }
@@ -106,8 +121,10 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
 
+		// ListResourceConfigureData isn't populated in the ConfigureProvider RPC
+		// We can use ResourceConfigureData here for now or populate ListResourceConfigureData
 		configureReq := resource.ConfigureRequest{
-			ProviderData: s.ListResourceConfigureData,
+			ProviderData: s.ResourceConfigureData,
 		}
 
 		configureResp := resource.ConfigureResponse{}
@@ -156,15 +173,24 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	logging.FrameworkTrace(ctx, "Called provider defined ListResource")
 
 	// If the provider returned a nil results stream, we return an empty stream.
-	if stream.Results == nil {
-		stream.Results = list.NoListResults
-	}
-
 	if diagsStream.Results == nil {
 		diagsStream.Results = list.NoListResults
 	}
 
-	fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
+	if stream.Results == nil || stream.Proto5Results == nil {
+		fwStream.Results = processListResults(req, list.NoListResults, diagsStream.Results)
+	}
+
+	if stream.Results != nil {
+		fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
+	}
+
+	if stream.Proto5Results != nil {
+		// TODO merge with diagsStream if needed
+		fwStream.ResultsProtoV5 = processListResultsProto5(req, stream.Proto5Results)
+	}
+
+	return
 }
 
 func processListResults(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {
@@ -212,4 +238,47 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 	}
 
 	return ListResult(result)
+}
+
+// Duplicated functions to handle proto5 result type
+func processListResultsProto5(req list.ListRequest, stream iter.Seq[tfprotov5.ListResourceResult]) iter.Seq[tfprotov5.ListResourceResult] {
+	return func(push func(tfprotov5.ListResourceResult) bool) {
+		for result := range stream {
+			if !push(processListResultProto5(req, result)) {
+				return
+			}
+		}
+	}
+}
+
+func processListResultProto5(req list.ListRequest, result tfprotov5.ListResourceResult) tfprotov5.ListResourceResult {
+	if len(result.Diagnostics) > 0 {
+		return result
+	}
+
+	if result.Identity == nil {
+		return ListResultErrorProto5(
+			"Incomplete List Result",
+			"When listing resources, an implementation issue was found. "+
+				"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
+				"The \"Identity\" field is nil.\n\n",
+		)
+	}
+
+	if req.IncludeResource {
+		// We could do an IsNull check here on the DynamicValue as well
+		if result.Resource == nil {
+			result.Diagnostics = []*tfprotov5.Diagnostic{
+				{
+					Severity: 0,
+					Summary:  "Incomplete List Result",
+					Detail: "When listing resources, an implementation issue was found. " +
+						"This is always a problem with the provider. Please report this to the provider developers.\n\n" +
+						"The \"IncludeResource\" field in the ListRequest is true, but the \"Resource\" field in the ListResult is nil.\n\n",
+				},
+			}
+		}
+	}
+
+	return result
 }

@@ -18,11 +18,28 @@ func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokePro
 	}
 }
 
-func CompletedInvokeActionEventType(ctx context.Context, event *fwserver.InvokeActionResponse) tfprotov6.InvokeActionEvent {
+func CompletedInvokeActionEventType(ctx context.Context, fw *fwserver.InvokeActionResponse) tfprotov6.InvokeActionEvent {
+	completedEvent := tfprotov6.CompletedInvokeActionEventType{
+		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
+	}
+
+	completedEvent.LinkedResources = make([]*tfprotov6.NewLinkedResource, len(fw.LinkedResources))
+
+	for i, linkedResource := range fw.LinkedResources {
+		newState, diags := State(ctx, linkedResource.NewState)
+		completedEvent.Diagnostics = append(completedEvent.Diagnostics, Diagnostics(ctx, diags)...)
+
+		newIdentity, diags := ResourceIdentity(ctx, linkedResource.NewIdentity)
+		completedEvent.Diagnostics = append(completedEvent.Diagnostics, Diagnostics(ctx, diags)...)
+
+		completedEvent.LinkedResources[i] = &tfprotov6.NewLinkedResource{
+			NewState:        newState,
+			NewIdentity:     newIdentity,
+			RequiresReplace: linkedResource.RequiresReplace,
+		}
+	}
+
 	return tfprotov6.InvokeActionEvent{
-		Type: tfprotov6.CompletedInvokeActionEventType{
-			// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
-			Diagnostics: Diagnostics(ctx, event.Diagnostics),
-		},
+		Type: completedEvent,
 	}
 }

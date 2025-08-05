@@ -31,7 +31,10 @@ type ListResource interface {
 	// The method signature is intended to be compatible with the Metadata
 	// method signature in the Resource interface. One implementation of
 	// Metadata can satisfy both interfaces.
-	Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+
+	// Since we're passing additional schema information around in here we should use the
+	// MetadataRequest and MetadataResponse for list
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 
 	// ListResourceConfigSchema should return the schema for list blocks.
 	ListResourceConfigSchema(context.Context, ListResourceSchemaRequest, *ListResourceSchemaResponse)

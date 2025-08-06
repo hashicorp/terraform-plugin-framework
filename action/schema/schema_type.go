@@ -39,6 +39,10 @@ type SchemaType interface {
 	// interface is not meant to be implemented outside of this package
 	isActionSchemaType()
 
-	// TODO:Actions: docs
+	// LinkedResourceTypes returns all linked resource definitions for an action schema.
+	//
+	//   - [UnlinkedSchema] will always return zero linked resource types.
+	//   - [LifecycleSchema] will always return one linked resource type.
+	//   - [LinkedSchema] will return one or more linked resource types.
 	LinkedResourceTypes() []LinkedResourceType
 }

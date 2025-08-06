@@ -16,12 +16,21 @@ import (
 var _ SchemaType = LifecycleSchema{}
 
 // LifecycleSchema defines the structure and value types of a lifecycle action. A lifecycle action
-// can cause changes to exactly resource state, defined as a linked resource.
-//
-// TODO:Actions: docs
+// can cause changes to exactly one resource state, defined as a linked resource.
 type LifecycleSchema struct {
+	// ExecutionOrder defines when the lifecycle action must be executed in relation to the linked resource,
+	// either before or after the linked resource's plan/apply.
 	ExecutionOrder ExecutionOrder
 
+	// LinkedResource represents the managed resource type that this action can make state changes to. The linked
+	// resource must be defined in the same provider as the action is defined.
+	//
+	//  - If the managed resource is built with terraform-plugin-framework, use [LinkedResource].
+	//  - If the managed resource is built with terraform-plugin-sdk/v2 or the terraform-plugin-go tfprotov5 package, use [RawV5LinkedResource].
+	//  - If the managed resource is built with the terraform-plugin-go tfprotov6 package, use [RawV6LinkedResource].
+	//
+	// As a lifecycle action can only have a single linked resource, this linked resource data will always be at index 0
+	// in the ModifyPlan and Invoke LinkedResources slice.
 	LinkedResource LinkedResourceType
 
 	// Attributes is the mapping of underlying attribute names to attribute

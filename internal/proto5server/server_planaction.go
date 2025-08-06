@@ -36,7 +36,15 @@ func (s *Server) PlanAction(ctx context.Context, proto5Req *tfprotov5.PlanAction
 		return toproto5.PlanActionResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.PlanActionRequest(ctx, proto5Req, action, actionSchema)
+	lrSchemas, lrIdentitySchemas, diags := s.LinkedResourceSchemas(ctx, actionSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto5.PlanActionResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto5.PlanActionRequest(ctx, proto5Req, action, actionSchema, lrSchemas, lrIdentitySchemas)
 
 	fwResp.Diagnostics.Append(diags...)
 

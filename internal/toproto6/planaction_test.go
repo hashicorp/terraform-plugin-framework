@@ -9,11 +9,15 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 func TestPlanActionResponse(t *testing.T) {
@@ -27,6 +31,59 @@ func TestPlanActionResponse(t *testing.T) {
 		Reason: tfprotov6.DeferredReasonAbsentPrereq,
 	}
 
+	testLinkedResourceProto6Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_attribute_one": tftypes.String,
+			"test_attribute_two": tftypes.Bool,
+		},
+	}
+
+	testLinkedResourceProto6Value := tftypes.NewValue(testLinkedResourceProto6Type, map[string]tftypes.Value{
+		"test_attribute_one": tftypes.NewValue(tftypes.String, "test-value-1"),
+		"test_attribute_two": tftypes.NewValue(tftypes.Bool, true),
+	})
+
+	testLinkedResourceProto6DynamicValue, err := tfprotov6.NewDynamicValue(testLinkedResourceProto6Type, testLinkedResourceProto6Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
+	}
+
+	testLinkedResourceSchema := resourceschema.Schema{
+		Attributes: map[string]resourceschema.Attribute{
+			"test_attribute_one": resourceschema.StringAttribute{
+				Required: true,
+			},
+			"test_attribute_two": resourceschema.BoolAttribute{
+				Required: true,
+			},
+		},
+	}
+
+	testLinkedResourceIdentityProto6Type := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_id": tftypes.String,
+		},
+	}
+
+	testLinkedResourceIdentityProto6Value := tftypes.NewValue(testLinkedResourceIdentityProto6Type, map[string]tftypes.Value{
+		"test_id": tftypes.NewValue(tftypes.String, "id-123"),
+	})
+
+	testLinkedResourceIdentityProto6DynamicValue, err := tfprotov6.NewDynamicValue(testLinkedResourceIdentityProto6Type, testLinkedResourceIdentityProto6Value)
+
+	if err != nil {
+		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
+	}
+
+	testLinkedResourceIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
+
 	testCases := map[string]struct {
 		input    *fwserver.PlanActionResponse
 		expected *tfprotov6.PlanActionResponse
@@ -36,8 +93,71 @@ func TestPlanActionResponse(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &fwserver.PlanActionResponse{},
-			expected: &tfprotov6.PlanActionResponse{},
+			input: &fwserver.PlanActionResponse{},
+			expected: &tfprotov6.PlanActionResponse{
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{},
+			},
+		},
+		"linkedresource": {
+			input: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
+					{
+						PlannedState: &tfsdk.State{
+							Raw:    testLinkedResourceProto6Value,
+							Schema: testLinkedResourceSchema,
+						},
+						PlannedIdentity: &tfsdk.ResourceIdentity{
+							Raw:    testLinkedResourceIdentityProto6Value,
+							Schema: testLinkedResourceIdentitySchema,
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.PlanActionResponse{
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{
+					{
+						PlannedState: &testLinkedResourceProto6DynamicValue,
+						PlannedIdentity: &tfprotov6.ResourceIdentityData{
+							IdentityData: &testLinkedResourceIdentityProto6DynamicValue,
+						},
+					},
+				},
+			},
+		},
+		"linkedresources": {
+			input: &fwserver.PlanActionResponse{
+				LinkedResources: []*fwserver.PlanActionResponseLinkedResource{
+					{
+						PlannedState: &tfsdk.State{
+							Raw:    testLinkedResourceProto6Value,
+							Schema: testLinkedResourceSchema,
+						},
+						PlannedIdentity: &tfsdk.ResourceIdentity{
+							Raw:    testLinkedResourceIdentityProto6Value,
+							Schema: testLinkedResourceIdentitySchema,
+						},
+					},
+					{
+						PlannedState: &tfsdk.State{
+							Raw:    testLinkedResourceProto6Value,
+							Schema: testLinkedResourceSchema,
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.PlanActionResponse{
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{
+					{
+						PlannedState: &testLinkedResourceProto6DynamicValue,
+						PlannedIdentity: &tfprotov6.ResourceIdentityData{
+							IdentityData: &testLinkedResourceIdentityProto6DynamicValue,
+						},
+					},
+					{
+						PlannedState: &testLinkedResourceProto6DynamicValue,
+					},
+				},
+			},
 		},
 		"diagnostics": {
 			input: &fwserver.PlanActionResponse{
@@ -47,6 +167,7 @@ func TestPlanActionResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov6.PlanActionResponse{
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{},
 				Diagnostics: []*tfprotov6.Diagnostic{
 					{
 						Severity: tfprotov6.DiagnosticSeverityWarning,
@@ -66,7 +187,8 @@ func TestPlanActionResponse(t *testing.T) {
 				Deferred: testDeferral,
 			},
 			expected: &tfprotov6.PlanActionResponse{
-				Deferred: testProto6Deferred,
+				Deferred:        testProto6Deferred,
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{},
 			},
 		},
 	}

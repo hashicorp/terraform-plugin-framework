@@ -26,10 +26,18 @@ func ActionSchema(ctx context.Context, s actionschema.SchemaType) (*tfprotov6.Ac
 		Schema: configSchema,
 	}
 
-	// TODO:Actions: Implement linked and lifecycle action schema types
-	switch s.(type) {
+	// TODO:Actions: Implement linked action schema type
+	switch schema := s.(type) {
 	case actionschema.UnlinkedSchema:
 		result.Type = tfprotov6.UnlinkedActionSchemaType{}
+	case actionschema.LifecycleSchema:
+		result.Type = tfprotov6.LifecycleActionSchemaType{
+			Executes: tfprotov6.LifecycleExecutionOrder(schema.ExecutionOrder),
+			LinkedResource: &tfprotov6.LinkedResourceSchema{
+				TypeName:    schema.LinkedResource.GetTypeName(),
+				Description: schema.LinkedResource.GetDescription(),
+			},
+		}
 	default:
 		// It is not currently possible to create [actionschema.SchemaType]
 		// implementations outside the "action/schema" package. If this error was reached,

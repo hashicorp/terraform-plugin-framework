@@ -52,7 +52,15 @@ func (s *Server) InvokeAction(ctx context.Context, proto5Req *tfprotov5.InvokeAc
 		return invokeActionErrorDiagnostics(ctx, fwResp.Diagnostics)
 	}
 
-	fwReq, diags := fromproto5.InvokeActionRequest(ctx, proto5Req, action, actionSchema)
+	lrSchemas, lrIdentitySchemas, diags := s.LinkedResourceSchemas(ctx, actionSchema)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return invokeActionErrorDiagnostics(ctx, fwResp.Diagnostics)
+	}
+
+	fwReq, diags := fromproto5.InvokeActionRequest(ctx, proto5Req, action, actionSchema, lrSchemas, lrIdentitySchemas)
 
 	fwResp.Diagnostics.Append(diags...)
 

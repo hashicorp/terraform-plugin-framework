@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// TODO:Actions: Implement lifecycle and linked schemas
+// TODO:Actions: Implement linked schemas
 //
 // SchemaType is the interface that an action schema type must implement. Action
 // schema types are statically definined in the protocol, so all implementations
@@ -38,4 +38,11 @@ type SchemaType interface {
 	// Action schema types are statically defined in the protocol, so this
 	// interface is not meant to be implemented outside of this package
 	isActionSchemaType()
+
+	// LinkedResourceTypes returns all linked resource definitions for an action schema.
+	//
+	//   - [UnlinkedSchema] will always return zero linked resource types.
+	//   - [LifecycleSchema] will always return one linked resource type.
+	//   - [LinkedSchema] will return one or more linked resource types.
+	LinkedResourceTypes() []LinkedResourceType
 }

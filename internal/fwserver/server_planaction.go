@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -20,12 +21,26 @@ type PlanActionRequest struct {
 	ActionSchema       fwschema.Schema
 	Action             action.Action
 	Config             *tfsdk.Config
+	LinkedResources    []*PlanActionRequestLinkedResource
+}
+
+type PlanActionRequestLinkedResource struct {
+	Config        *tfsdk.Config
+	PlannedState  *tfsdk.Plan
+	PriorState    *tfsdk.State
+	PriorIdentity *tfsdk.ResourceIdentity
 }
 
 // PlanActionResponse is the framework server response for the PlanAction RPC.
 type PlanActionResponse struct {
-	Deferred    *action.Deferred
-	Diagnostics diag.Diagnostics
+	Deferred        *action.Deferred
+	Diagnostics     diag.Diagnostics
+	LinkedResources []*PlanActionResponseLinkedResource
+}
+
+type PlanActionResponseLinkedResource struct {
+	PlannedState    *tfsdk.State
+	PlannedIdentity *tfsdk.ResourceIdentity
 }
 
 // PlanAction implements the framework server PlanAction RPC.
@@ -34,8 +49,20 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		return
 	}
 
-	// TODO:Actions: When linked resources are introduced, pass-through proposed -> planned state similar to
-	// how normal resource planning works.
+	// Copy over planned state and identity to the response for each linked resource as a default plan
+	resp.LinkedResources = make([]*PlanActionResponseLinkedResource, len(req.LinkedResources))
+	for i, lr := range req.LinkedResources {
+		resp.LinkedResources[i] = &PlanActionResponseLinkedResource{
+			PlannedState: planToState(*lr.PlannedState),
+		}
+
+		if lr.PriorIdentity != nil {
+			resp.LinkedResources[i].PlannedIdentity = &tfsdk.ResourceIdentity{
+				Schema: lr.PriorIdentity.Schema,
+				Raw:    lr.PriorIdentity.Raw.Copy(),
+			}
+		}
+	}
 
 	if s.deferred != nil {
 		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
@@ -82,10 +109,34 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		modifyPlanReq := action.ModifyPlanRequest{
 			ClientCapabilities: req.ClientCapabilities,
 			Config:             *req.Config,
+			LinkedResources:    make([]action.ModifyPlanRequestLinkedResource, len(req.LinkedResources)),
 		}
 
 		modifyPlanResp := action.ModifyPlanResponse{
-			Diagnostics: resp.Diagnostics,
+			Diagnostics:     resp.Diagnostics,
+			LinkedResources: make([]action.ModifyPlanResponseLinkedResource, len(req.LinkedResources)),
+		}
+
+		for i, linkedResource := range req.LinkedResources {
+			modifyPlanReq.LinkedResources[i] = action.ModifyPlanRequestLinkedResource{
+				Config: *linkedResource.Config,
+				Plan:   stateToPlan(*resp.LinkedResources[i].PlannedState),
+				State:  *linkedResource.PriorState,
+			}
+			modifyPlanResp.LinkedResources[i] = action.ModifyPlanResponseLinkedResource{
+				Plan: modifyPlanReq.LinkedResources[i].Plan,
+			}
+
+			if resp.LinkedResources[i].PlannedIdentity != nil {
+				modifyPlanReq.LinkedResources[i].Identity = &tfsdk.ResourceIdentity{
+					Schema: resp.LinkedResources[i].PlannedIdentity.Schema,
+					Raw:    resp.LinkedResources[i].PlannedIdentity.Raw.Copy(),
+				}
+				modifyPlanResp.LinkedResources[i].Identity = &tfsdk.ResourceIdentity{
+					Schema: resp.LinkedResources[i].PlannedIdentity.Schema,
+					Raw:    resp.LinkedResources[i].PlannedIdentity.Raw.Copy(),
+				}
+			}
 		}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined Action ModifyPlan")
@@ -94,5 +145,24 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.Deferred = modifyPlanResp.Deferred
+
+		if len(resp.LinkedResources) != len(modifyPlanResp.LinkedResources) {
+			resp.Diagnostics.AddError(
+				"Invalid Linked Resource Plan",
+				"An unexpected error was encountered when planning an action with linked resources. "+
+					fmt.Sprintf(
+						"The number of linked resources produced by the action plan cannot change: %d linked resource(s) were produced in the plan, expected %d\n\n",
+						len(modifyPlanResp.LinkedResources),
+						len(resp.LinkedResources),
+					)+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
+			return
+		}
+
+		for i, newLinkedResource := range modifyPlanResp.LinkedResources {
+			resp.LinkedResources[i].PlannedState = planToState(newLinkedResource.Plan)
+			resp.LinkedResources[i].PlannedIdentity = newLinkedResource.Identity
+		}
 	}
 }

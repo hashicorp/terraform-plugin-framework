@@ -92,6 +92,81 @@ func TestActionSchema(t *testing.T) {
 				},
 			},
 		},
+		"lifecycle": {
+			input: actionschema.LifecycleSchema{
+				ExecutionOrder: actionschema.ExecutionOrderAfter,
+				LinkedResource: actionschema.LinkedResource{
+					TypeName:    "test_linked_resource",
+					Description: "A linked resource for this action",
+				},
+				Attributes: map[string]actionschema.Attribute{
+					"bool": actionschema.BoolAttribute{
+						Optional: true,
+					},
+					"string": actionschema.StringAttribute{
+						Required: true,
+					},
+				},
+				Blocks: map[string]actionschema.Block{
+					"single_block": actionschema.SingleNestedBlock{
+						Attributes: map[string]actionschema.Attribute{
+							"bool": actionschema.BoolAttribute{
+								Required: true,
+							},
+							"string": actionschema.StringAttribute{
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.ActionSchema{
+				Type: tfprotov6.LifecycleActionSchemaType{
+					Executes: tfprotov6.LifecycleExecutionOrderAfter,
+					LinkedResource: &tfprotov6.LinkedResourceSchema{
+						TypeName:    "test_linked_resource",
+						Description: "A linked resource for this action",
+					},
+				},
+				Schema: &tfprotov6.Schema{
+					Version: 0,
+					Block: &tfprotov6.SchemaBlock{
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name:     "bool",
+								Type:     tftypes.Bool,
+								Optional: true,
+							},
+							{
+								Name:     "string",
+								Type:     tftypes.String,
+								Required: true,
+							},
+						},
+						BlockTypes: []*tfprotov6.SchemaNestedBlock{
+							{
+								TypeName: "single_block",
+								Block: &tfprotov6.SchemaBlock{
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:     "bool",
+											Type:     tftypes.Bool,
+											Required: true,
+										},
+										{
+											Name:     "string",
+											Type:     tftypes.String,
+											Optional: true,
+										},
+									},
+								},
+								Nesting: tfprotov6.SchemaNestedBlockNestingModeSingle,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {

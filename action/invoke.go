@@ -29,9 +29,7 @@ type InvokeResponse struct {
 	Diagnostics diag.Diagnostics
 
 	// SendProgress will immediately send a progress update to Terraform core during action invocation.
-	// This function is provided by the framework and can be called multiple times while action logic is running.
-	//
-	// TODO:Actions: More documentation about when you should use this / when you shouldn't
+	// This function is pre-populated by the framework and can be called multiple times while action logic is running.
 	SendProgress func(event InvokeProgressEvent)
 
 	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented

@@ -14,7 +14,7 @@ import (
 )
 
 // IdentitySchema converts a *tfprotov5.ResourceIdentitySchema into a resource/identityschema Schema, used for
-// converting raw linked resource identity schemas (from another provider server, such as SDKv2 or terraform-plugin-go)
+// converting protocol identity schemas (from another provider server, such as SDKv2 or terraform-plugin-go)
 // into Framework identity schemas.
 func IdentitySchema(ctx context.Context, s *tfprotov5.ResourceIdentitySchema) (*identityschema.Schema, error) {
 	if s == nil {

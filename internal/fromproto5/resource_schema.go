@@ -15,7 +15,7 @@ import (
 )
 
 // ResourceSchema converts a *tfprotov5.Schema into a resource/schema Schema, used for
-// converting raw linked resource schemas (from another provider server, such as SDKv2 or terraform-plugin-go)
+// converting protocol schemas (from another provider server, such as SDKv2 or terraform-plugin-go)
 // into Framework schemas.
 func ResourceSchema(ctx context.Context, s *tfprotov5.Schema) (*resourceschema.Schema, error) {
 	if s == nil || s.Block == nil {

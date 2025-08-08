@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -553,6 +554,44 @@ func TestSetNestedAttributeIsWriteOnly(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsWriteOnly()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestSetNestedAttributeSetValidators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.SetNestedAttribute
+		expected  []validator.Set
+	}{
+		"no-validators": {
+			attribute: schema.SetNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"testattr": schema.StringAttribute{},
+					},
+				},
+			},
+			expected: nil,
+		},
+		"validators": {
+			attribute: schema.SetNestedAttribute{
+				Validators: []validator.Set{},
+			},
+			expected: []validator.Set{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.SetValidators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

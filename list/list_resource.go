@@ -66,7 +66,7 @@ type ListResourceWithConfigure interface {
 type ListResourceWithConfigValidators interface {
 	ListResource
 
-	// ListResourceConfigValidators returns a list of functions which will all be performed during validation.
+	// ConfigValidators returns a list of functions which will all be performed during validation.
 	ListResourceConfigValidators(context.Context) []ConfigValidator
 }
 

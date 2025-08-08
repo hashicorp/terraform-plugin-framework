@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -19,6 +21,7 @@ import (
 var (
 	_ Attribute                                    = ListAttribute{}
 	_ fwschema.AttributeWithValidateImplementation = ListAttribute{}
+	_ fwxschema.AttributeWithListValidators        = ListAttribute{}
 )
 
 // ListAttribute represents a schema attribute that is a list with a single
@@ -108,6 +111,18 @@ type ListAttribute struct {
 	//  - https://github.com/hashicorp/terraform/issues/7569
 	//
 	DeprecationMessage string
+
+	// Validators define value validation functionality for the attribute. All
+	// elements of the slice of AttributeValidator are run, regardless of any
+	// previous error diagnostics.
+	//
+	// Many common use case validators can be found in the
+	// github.com/hashicorp/terraform-plugin-framework-validators Go module.
+	//
+	// If the Type field points to a custom type that implements the
+	// xattr.TypeWithValidate interface, the validators defined in this field
+	// are run in addition to the validation defined by the type.
+	Validators []validator.List
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into a list
@@ -187,6 +202,11 @@ func (a ListAttribute) IsRequiredForImport() bool {
 // for managed resource identity schema attributes.
 func (a ListAttribute) IsOptionalForImport() bool {
 	return false
+}
+
+// ListValidators returns the Validators field value.
+func (a ListAttribute) ListValidators() []validator.List {
+	return a.Validators
 }
 
 // ValidateImplementation contains logic for validating the

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -428,6 +429,38 @@ func TestFloat32AttributeIsOptionalForImport(t *testing.T) {
 			t.Parallel()
 
 			got := testCase.attribute.IsOptionalForImport()
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFloat32AttributeFloat32Validators(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		attribute schema.Float32Attribute
+		expected  []validator.Float32
+	}{
+		"no-validators": {
+			attribute: schema.Float32Attribute{},
+			expected:  nil,
+		},
+		"validators": {
+			attribute: schema.Float32Attribute{
+				Validators: []validator.Float32{},
+			},
+			expected: []validator.Float32{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.attribute.Float32Validators()
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

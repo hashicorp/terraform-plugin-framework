@@ -125,7 +125,7 @@ func TestIdentitySchema(t *testing.T) {
 				// got expected error
 				return
 			}
-			if err == nil && tc.expectedErr != "" {
+			if tc.expectedErr != "" {
 				t.Errorf("Expected error to be %q, got nil", tc.expectedErr)
 				return
 			}

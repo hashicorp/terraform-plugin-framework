@@ -4,6 +4,8 @@
 package schema
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -16,30 +18,41 @@ import (
 
 // Ensure the implementation satisfies the desired interfaces.
 var (
-	_ Attribute                              = Int32Attribute{}
-	_ fwxschema.AttributeWithInt32Validators = Int32Attribute{}
+	_ NestedAttribute                         = SingleNestedAttribute{}
+	_ fwxschema.AttributeWithObjectValidators = SingleNestedAttribute{}
 )
 
-// Int32Attribute represents a schema attribute that is a 32-bit integer.
-// When retrieving the value for this attribute, use types.Int32 as the value
-// type unless the CustomType field is set.
+// SingleNestedAttribute represents an attribute that is a single object where
+// the object attributes can be fully defined, including further nested
+// attributes. When retrieving the value for this attribute, use types.Object
+// as the value type unless the CustomType field is set. The Attributes field
+// must be set. Nested attributes are only compatible with protocol version 6.
 //
-// Use Float32Attribute for 32-bit floating point number attributes or
-// NumberAttribute for 512-bit generic number attributes.
+// Use ObjectAttribute if the underlying attributes do not require definition
+// beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a number or directly via an integer value.
+// return an object or directly via curly brace syntax.
 //
-//	example_attribute = 123
+//	# single object
+//	example_attribute = {
+//		nested_attribute = #...
+//	}
 //
-// Terraform configurations reference this attribute using the attribute name.
+// Terraform configurations reference this attribute using expressions that
+// accept an object or an attribute name directly via period syntax:
 //
-//	.example_attribute
-type Int32Attribute struct {
+//	# object nested_attribute value
+//	.example_attribute.nested_attribute
+type SingleNestedAttribute struct {
+	// Attributes is the mapping of underlying attribute names to attribute
+	// definitions. This field must be set.
+	Attributes map[string]Attribute
+
 	// CustomType enables the use of a custom attribute type in place of the
-	// default basetypes.Int32Type. When retrieving data, the basetypes.Int32Valuable
-	// associated with this custom type must be used in place of types.Int32.
-	CustomType basetypes.Int32Typable
+	// default basetypes.ObjectType. When retrieving data, the basetypes.ObjectValuable
+	// associated with this custom type must be used in place of types.Object.
+	CustomType basetypes.ObjectTypable
 
 	// Required indicates whether the practitioner must enter a value for
 	// this attribute or not. Required and Optional cannot both be true.
@@ -107,87 +120,129 @@ type Int32Attribute struct {
 	// If the Type field points to a custom type that implements the
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
-	Validators []validator.Int32
+	Validators []validator.Object
 }
 
-// ApplyTerraform5AttributePathStep always returns an error as it is not
-// possible to step further into a Int32Attribute.
-func (a Int32Attribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
-	return a.GetType().ApplyTerraform5AttributePathStep(step)
+// ApplyTerraform5AttributePathStep returns the Attributes field value if step
+// is AttributeName, otherwise returns an error.
+func (a SingleNestedAttribute) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (interface{}, error) {
+	name, ok := step.(tftypes.AttributeName)
+
+	if !ok {
+		return nil, fmt.Errorf("cannot apply step %T to SingleNestedAttribute", step)
+	}
+
+	attribute, ok := a.Attributes[string(name)]
+
+	if !ok {
+		return nil, fmt.Errorf("no attribute %q on SingleNestedAttribute", name)
+	}
+
+	return attribute, nil
 }
 
-// Equal returns true if the given Attribute is a Int32Attribute
+// Equal returns true if the given Attribute is a SingleNestedAttribute
 // and all fields are equal.
-func (a Int32Attribute) Equal(o fwschema.Attribute) bool {
-	if _, ok := o.(Int32Attribute); !ok {
+func (a SingleNestedAttribute) Equal(o fwschema.Attribute) bool {
+	other, ok := o.(SingleNestedAttribute)
+
+	if !ok {
 		return false
 	}
 
-	return fwschema.AttributesEqual(a, o)
+	return fwschema.NestedAttributesEqual(a, other)
+}
+
+// GetAttributes returns the Attributes field value.
+func (a SingleNestedAttribute) GetAttributes() fwschema.UnderlyingAttributes {
+	return schemaAttributes(a.Attributes)
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.
-func (a Int32Attribute) GetDeprecationMessage() string {
+func (a SingleNestedAttribute) GetDeprecationMessage() string {
 	return a.DeprecationMessage
 }
 
 // GetDescription returns the Description field value.
-func (a Int32Attribute) GetDescription() string {
+func (a SingleNestedAttribute) GetDescription() string {
 	return a.Description
 }
 
 // GetMarkdownDescription returns the MarkdownDescription field value.
-func (a Int32Attribute) GetMarkdownDescription() string {
+func (a SingleNestedAttribute) GetMarkdownDescription() string {
 	return a.MarkdownDescription
 }
 
-// GetType returns types.Int32Type or the CustomType field value if defined.
-func (a Int32Attribute) GetType() attr.Type {
+// GetNestedObject returns a generated NestedAttributeObject from the
+// Attributes, CustomType, and Validators field values.
+func (a SingleNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
+	return NestedAttributeObject{
+		Attributes: a.Attributes,
+		CustomType: a.CustomType,
+		Validators: a.Validators,
+	}
+}
+
+// GetNestingMode always returns NestingModeSingle.
+func (a SingleNestedAttribute) GetNestingMode() fwschema.NestingMode {
+	return fwschema.NestingModeSingle
+}
+
+// GetType returns ListType of ObjectType or CustomType.
+func (a SingleNestedAttribute) GetType() attr.Type {
 	if a.CustomType != nil {
 		return a.CustomType
 	}
 
-	return types.Int32Type
-}
+	attrTypes := make(map[string]attr.Type, len(a.Attributes))
 
-// Int32Validators returns the Validators field value.
-func (a Int32Attribute) Int32Validators() []validator.Int32 {
-	return a.Validators
+	for name, attribute := range a.Attributes {
+		attrTypes[name] = attribute.GetType()
+	}
+
+	return types.ObjectType{
+		AttrTypes: attrTypes,
+	}
 }
 
 // IsComputed returns false because it does not apply to ListResource schemas.
-func (a Int32Attribute) IsComputed() bool {
+func (a SingleNestedAttribute) IsComputed() bool {
 	return false
 }
 
 // IsOptional returns the Optional field value.
-func (a Int32Attribute) IsOptional() bool {
+func (a SingleNestedAttribute) IsOptional() bool {
 	return a.Optional
 }
 
 // IsRequired returns the Required field value.
-func (a Int32Attribute) IsRequired() bool {
+func (a SingleNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
 // IsSensitive returns false because it does not apply to ListResource schemas.
-func (a Int32Attribute) IsSensitive() bool {
+func (a SingleNestedAttribute) IsSensitive() bool {
 	return false
 }
 
 // IsWriteOnly returns false because it does not apply to ListResource schemas.
-func (a Int32Attribute) IsWriteOnly() bool {
+func (a SingleNestedAttribute) IsWriteOnly() bool {
 	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a Int32Attribute) IsRequiredForImport() bool {
+func (a SingleNestedAttribute) IsRequiredForImport() bool {
 	return false
 }
 
 // IsOptionalForImport returns false as this behavior is only relevant
 // for managed resource identity schema attributes.
-func (a Int32Attribute) IsOptionalForImport() bool {
+func (a SingleNestedAttribute) IsOptionalForImport() bool {
 	return false
+}
+
+// ObjectValidators returns the Validators field value.
+func (a SingleNestedAttribute) ObjectValidators() []validator.Object {
+	return a.Validators
 }

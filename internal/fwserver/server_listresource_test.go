@@ -5,6 +5,7 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -181,6 +183,44 @@ func TestServerListResource(t *testing.T) {
 			},
 			expectedStreamEvents: []fwserver.ListResult{},
 			expectedError:        "config cannot be nil",
+		},
+		"listresource-configure-data": {
+			server: &fwserver.Server{
+				ListResourceConfigureData: "test-provider-configure-value",
+				Provider:                  &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: &tfsdk.Config{},
+				ListResource: &testprovider.ListResourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						providerData, ok := req.ProviderData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected string, got: %T", req.ProviderData),
+							)
+							return
+						}
+
+						if providerData != "test-provider-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.ProviderData",
+								fmt.Sprintf("Expected test-provider-configure-value, got: %q", providerData),
+							)
+						}
+					},
+					ListResource: &testprovider.ListResource{
+						ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+							// In practice, the Configure method would save the
+							// provider data to the ListResource implementation and
+							// use it here. The fact that Configure is able to
+							// read the data proves this can work.
+						},
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{},
 		},
 	}
 

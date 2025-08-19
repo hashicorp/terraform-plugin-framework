@@ -36,7 +36,7 @@ BUG FIXES:
 ## 1.15.0 (May 16, 2025)
 
 ATTENTION:
-Please make sure to also update `terraform-plugin-(go|mux|sdk|testing)` when upgrading to this version. Otherwise there will be panics at runtime when using Terraform v1.12+ as this version of Plugin Framework supports the new resource identity feature and requires the supporting libraries to do so to.
+Please make sure to also update `terraform-plugin-(go|mux|sdk|testing)` when upgrading to this version. Otherwise there will be errors at runtime when using Terraform v1.12+ as this version of Plugin Framework supports the new resource identity feature and requires the supporting libraries to do so to.
 
 Find [#1148](https://github.com/hashicorp/terraform-plugin-framework/issues/1148) for more information.
 

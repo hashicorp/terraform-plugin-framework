@@ -25,3 +25,6 @@ func (*NoOpResource) Update(_ context.Context, _ resource.UpdateRequest, _ *reso
 
 func (*NoOpResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
 }
+
+func (*NoOpResource) Metadata(_ context.Context, _ resource.MetadataRequest, _ *resource.MetadataResponse) {
+}

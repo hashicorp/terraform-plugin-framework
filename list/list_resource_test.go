@@ -26,7 +26,7 @@ type ComputeInstanceWithListResourceConfigValidators struct {
 func (c *ComputeInstanceResource) Configure(_ context.Context, _ resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 }
 
-func (c *ComputeInstanceResource) Metadata(_ context.Context, _ resource.MetadataRequest, _ *resource.MetadataResponse) {
+func (c *ComputeInstanceResource) Metadata(_ context.Context, _ list.MetadataRequest, _ *list.MetadataResponse) {
 }
 
 func (c *ComputeInstanceWithValidateListResourceConfig) ValidateListResourceConfig(_ context.Context, _ list.ValidateConfigRequest, _ *list.ValidateConfigResponse) {

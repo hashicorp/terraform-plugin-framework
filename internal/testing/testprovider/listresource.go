@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var _ list.ListResource = &ListResource{}
@@ -15,13 +14,13 @@ var _ list.ListResource = &ListResource{}
 // Declarative list.ListResource for unit testing.
 type ListResource struct {
 	// ListResource interface methods
-	MetadataMethod                 func(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
+	MetadataMethod                 func(context.Context, list.MetadataRequest, *list.MetadataResponse)
 	ListResourceConfigSchemaMethod func(context.Context, list.ListResourceSchemaRequest, *list.ListResourceSchemaResponse)
 	ListMethod                     func(context.Context, list.ListRequest, *list.ListResultsStream)
 }
 
 // Metadata satisfies the list.ListResource interface.
-func (r *ListResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *ListResource) Metadata(ctx context.Context, req list.MetadataRequest, resp *list.MetadataResponse) {
 	if r.MetadataMethod == nil {
 		return
 	}

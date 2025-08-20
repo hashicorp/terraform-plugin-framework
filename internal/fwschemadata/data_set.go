@@ -6,11 +6,11 @@ package fwschemadata
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/reflect"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Set replaces the entire value. The value can be a tftypes.Value or a struct whose fields

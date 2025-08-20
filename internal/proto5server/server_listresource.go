@@ -58,7 +58,7 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		Limit:           protoReq.Limit,
 	}
 
-	// There's validation in xxx that ensures both are set if either is provided so perhaps it's sufficient to only nil check Identity
+	// There's validation in ListResources that ensures both are set if either is provided so it should be sufficient to only nil check Identity
 	if metadataResp.ProtoV5IdentitySchema != nil {
 		req.ResourceSchema, _ = fromproto5.ResourceSchema(ctx, metadataResp.ProtoV5Schema())
 		req.ResourceIdentitySchema, _ = fromproto5.IdentitySchema(ctx, metadataResp.ProtoV5IdentitySchema())

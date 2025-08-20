@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -50,26 +49,12 @@ type ListResultsStream struct {
 	// Results is a function that emits [ListResult] values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
-
-	ResultsProtoV5 iter.Seq[tfprotov5.ListResourceResult]
 }
 
 func ListResultError(summary string, detail string) ListResult {
 	return ListResult{
 		Diagnostics: diag.Diagnostics{
 			diag.NewErrorDiagnostic(summary, detail),
-		},
-	}
-}
-
-func ListResultErrorProto5(summary string, detail string) tfprotov5.ListResourceResult {
-	return tfprotov5.ListResourceResult{
-		Diagnostics: []*tfprotov5.Diagnostic{
-			{
-				Severity: 1,
-				Summary:  summary,
-				Detail:   detail,
-			},
 		},
 	}
 }
@@ -121,8 +106,6 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
 
-		// ListResourceConfigureData isn't populated in the ConfigureProvider RPC
-		// We can use ResourceConfigureData here for now or populate ListResourceConfigureData
 		configureReq := resource.ConfigureRequest{
 			ProviderData: s.ListResourceConfigureData,
 		}

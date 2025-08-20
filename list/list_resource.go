@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -39,6 +40,16 @@ type ListResource interface {
 	// List is called when the provider must list instances of a managed
 	// resource type that satisfy a user-provided request.
 	List(context.Context, ListRequest, *ListResultsStream)
+}
+
+// ListResourceWithProtoSchemas is an interface type that extends ListResource to include a method
+// which allows provider developers to supply the ProtoV5 representations of resource and resource identity
+// schemas. This is necessary if list functionality is being used with a legacy resource.
+type ListResourceWithProtoSchemas interface {
+	ListResource
+
+	// Schemas is called to provide the ProtoV5 representations of the resource and resource identity schemas.
+	Schemas(context.Context, *SchemaResponse)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method
@@ -180,6 +191,20 @@ type ListResult struct {
 	// resource instance. An empty slice indicates a successful operation with
 	// no warnings or errors generated.
 	Diagnostics diag.Diagnostics
+}
+
+// SchemaResponse represents a response that is populated by the Schemas method
+// and is used to pass along the ProtoV5 representations of the resource and resource identity schemas.
+type SchemaResponse struct {
+	// ProtoV5IdentitySchema is the ProtoV5 representation of the resource identity
+	// schema. This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
+	ProtoV5IdentitySchema func() *tfprotov5.ResourceIdentitySchema
+
+	// ProtoV5Schema is the ProtoV5 representation of the resource schema
+	// This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
+	ProtoV5Schema func() *tfprotov5.Schema
 }
 
 // ValidateConfigRequest represents a request to validate the configuration of

@@ -139,6 +139,39 @@ func TestDataSet(t *testing.T) {
 				),
 			}),
 		},
+		"write-tftypes-values": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"name": tftypes.String,
+					},
+				}, map[string]tftypes.Value{
+					"name": tftypes.NewValue(tftypes.String, "oldvalue"),
+				}),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+		},
 		"overwrite": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},

@@ -124,7 +124,7 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		// ListResourceConfigureData isn't populated in the ConfigureProvider RPC
 		// We can use ResourceConfigureData here for now or populate ListResourceConfigureData
 		configureReq := resource.ConfigureRequest{
-			ProviderData: s.ResourceConfigureData,
+			ProviderData: s.ListResourceConfigureData,
 		}
 
 		configureResp := resource.ConfigureResponse{}
@@ -184,8 +184,6 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	if stream.Results != nil {
 		fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
 	}
-
-	return
 }
 
 func processListResults(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {

@@ -28,8 +28,15 @@ type MetadataResponse struct {
 	// interacting with this resource.
 	ResourceBehavior ResourceBehavior
 
-	ProtoV5Schema         func() *tfprotov5.Schema
+	// ProtoV5IdentitySchema is the ProtoV5 representation of the resource identity
+	// schema. This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
 	ProtoV5IdentitySchema func() *tfprotov5.ResourceIdentitySchema
+
+	// ProtoV5Schema is the ProtoV5 representation of the resource schema
+	// This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
+	ProtoV5Schema func() *tfprotov5.Schema
 }
 
 // ResourceBehavior controls framework-specific logic when interacting

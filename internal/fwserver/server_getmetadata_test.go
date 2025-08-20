@@ -839,6 +839,7 @@ func TestServerGetMetadata(t *testing.T) {
 					diag.NewErrorDiagnostic(
 						"ListResource Type Defined without a Matching Managed Resource Type",
 						"The test_resource_1 ListResource type name was returned, but no matching managed Resource type was defined. "+
+							"If the matching managed Resource type is a legacy resource, ProtoV5Schema and ProtoV5IdentitySchema must be specified in the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),
 				},

@@ -381,7 +381,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 												},
 											}
 										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
 											resp.TypeName = "test_list_resource1"
 										},
 									}
@@ -397,7 +397,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 												},
 											}
 										},
-										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
 											resp.TypeName = "test_list_resource2"
 										},
 									}

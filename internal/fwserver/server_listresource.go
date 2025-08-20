@@ -177,17 +177,12 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 		diagsStream.Results = list.NoListResults
 	}
 
-	if stream.Results == nil || stream.Proto5Results == nil {
+	if stream.Results == nil {
 		fwStream.Results = processListResults(req, list.NoListResults, diagsStream.Results)
 	}
 
 	if stream.Results != nil {
 		fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
-	}
-
-	if stream.Proto5Results != nil {
-		// TODO merge with diagsStream if needed
-		fwStream.ResultsProtoV5 = processListResultsProto5(req, stream.Proto5Results)
 	}
 
 	return
@@ -238,47 +233,4 @@ func processListResult(req list.ListRequest, result list.ListResult) ListResult 
 	}
 
 	return ListResult(result)
-}
-
-// Duplicated functions to handle proto5 result type
-func processListResultsProto5(req list.ListRequest, stream iter.Seq[tfprotov5.ListResourceResult]) iter.Seq[tfprotov5.ListResourceResult] {
-	return func(push func(tfprotov5.ListResourceResult) bool) {
-		for result := range stream {
-			if !push(processListResultProto5(req, result)) {
-				return
-			}
-		}
-	}
-}
-
-func processListResultProto5(req list.ListRequest, result tfprotov5.ListResourceResult) tfprotov5.ListResourceResult {
-	if len(result.Diagnostics) > 0 {
-		return result
-	}
-
-	if result.Identity == nil {
-		return ListResultErrorProto5(
-			"Incomplete List Result",
-			"When listing resources, an implementation issue was found. "+
-				"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
-				"The \"Identity\" field is nil.\n\n",
-		)
-	}
-
-	if req.IncludeResource {
-		// We could do an IsNull check here on the DynamicValue as well
-		if result.Resource == nil {
-			result.Diagnostics = []*tfprotov5.Diagnostic{
-				{
-					Severity: 0,
-					Summary:  "Incomplete List Result",
-					Detail: "When listing resources, an implementation issue was found. " +
-						"This is always a problem with the provider. Please report this to the provider developers.\n\n" +
-						"The \"IncludeResource\" field in the ListRequest is true, but the \"Resource\" field in the ListResult is nil.\n\n",
-				},
-			}
-		}
-	}
-
-	return result
 }

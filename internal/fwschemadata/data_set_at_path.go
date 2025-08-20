@@ -28,8 +28,36 @@ import (
 // Lists can only have the next element added according to the current length.
 func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
 	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+
+	if v, ok := val.(tftypes.Value); ok {
+		atPath, err := d.Schema.AttributeAtPath(ctx, path)
+		if err != nil {
+			diags.AddAttributeError(
+				path,
+				d.Description.Title()+" Write Error",
+				"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					fmt.Sprintf("Error: %s does not exist at path", path.String()),
+			)
+			return diags
+		}
+
+		attrType := atPath.GetType().TerraformType(ctx)
+
+		if !attrType.Equal(v.Type()) {
+			diags.AddAttributeError(
+				path,
+				d.Description.Title()+" Write Error",
+				"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					fmt.Sprintf("Error: Type of provided value does not match type of %s", path.String()),
+			)
+			return diags
+		}
+
+		d.TerraformValue = v
+
+		return diags
+	}
 
 	tftypesPath, tftypesPathDiags := totftypes.AttributePath(ctx, path)
 

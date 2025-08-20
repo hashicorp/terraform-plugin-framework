@@ -52,54 +52,31 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 	metadataResp := list.MetadataResponse{}
 	listResource.Metadata(ctx, list.MetadataRequest{}, &metadataResp)
 
+	req := &fwserver.ListRequest{
+		Config:          config,
+		ListResource:    listResource,
+		IncludeResource: protoReq.IncludeResource,
+		Limit:           protoReq.Limit,
+	}
+
 	// There's validation in xxx that ensures both are set if either is provided so perhaps it's sufficient to only nil check Identity
 	if metadataResp.ProtoV5IdentitySchema != nil {
-		identitySchema, _ := fromproto5.IdentitySchema(ctx, metadataResp.ProtoV5IdentitySchema())
-		resourceSchema, _ := fromproto5.ResourceSchema(ctx, metadataResp.ProtoV5Schema())
-
-		req := &fwserver.ListRequest{
-			Config:                 config,
-			ListResource:           listResource,
-			IncludeResource:        protoReq.IncludeResource,
-			ResourceIdentitySchema: identitySchema,
-			ResourceSchema:         resourceSchema,
+		req.ResourceSchema, _ = fromproto5.ResourceSchema(ctx, metadataResp.ProtoV5Schema())
+		req.ResourceIdentitySchema, _ = fromproto5.IdentitySchema(ctx, metadataResp.ProtoV5IdentitySchema())
+	} else {
+		req.ResourceSchema, diags = s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
 		}
 
-		stream := &fwserver.ListResultsStream{}
-		s.FrameworkServer.ListResource(ctx, req, stream)
-
-		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
-			for result := range stream.ResultsProtoV5 {
-				// We pass the result along as-is since it's already in ProtoV5 format
-				if !push(result) {
-					return
-				}
-			}
+		req.ResourceIdentitySchema, diags = s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
 		}
-
-		return protoStream, nil
 	}
-
-	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
-
-	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
-
-	req := &fwserver.ListRequest{
-		Config:                 config,
-		ListResource:           listResource,
-		ResourceSchema:         resourceSchema,
-		ResourceIdentitySchema: identitySchema,
-		IncludeResource:        protoReq.IncludeResource,
-		Limit:                  protoReq.Limit,
-	}
+	
 	stream := &fwserver.ListResultsStream{}
 
 	s.FrameworkServer.ListResource(ctx, req, stream)

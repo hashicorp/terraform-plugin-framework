@@ -35,6 +35,20 @@ BUG FIXES:
 
 ## 1.15.0 (May 16, 2025)
 
+ATTENTION:
+Please make sure to also update `terraform-plugin-(go|mux|sdk|testing)` when upgrading to this version. Otherwise there will be errors at runtime when using Terraform v1.12+ as this version of Plugin Framework supports the new resource identity feature and requires the supporting libraries to do so to.
+
+Find [#1148](https://github.com/hashicorp/terraform-plugin-framework/issues/1148) for more information.
+
+TL;DR – make sure to update to these versions (or higher)
+```
+github.com/hashicorp/terraform-plugin-go@v0.28.0
+github.com/hashicorp/terraform-plugin-mux@v0.20.0
+github.com/hashicorp/terraform-plugin-framework@v1.15.0
+github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0
+github.com/hashicorp/terraform-plugin-testing@v1.13.1
+```
+
 NOTES:
 
 * all: This Go module has been updated to Go 1.23 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.23 release notes](https://go.dev/doc/go1.23) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#1114](https://github.com/hashicorp/terraform-plugin-framework/issues/1114))

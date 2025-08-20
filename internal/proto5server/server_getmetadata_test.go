@@ -225,14 +225,14 @@ func TestServerGetMetadata(t *testing.T) {
 							return []func() list.ListResource{
 								func() list.ListResource {
 									return &testprovider.ListResource{
-										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_list_resource1"
 										},
 									}
 								},
 								func() list.ListResource {
 									return &testprovider.ListResource{
-										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_list_resource2"
 										},
 									}

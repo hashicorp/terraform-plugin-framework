@@ -118,7 +118,7 @@ func TestServerListResource(t *testing.T) {
 				}
 				resp.Results = slices.Values(results)
 			},
-			MetadataMethod: func(ctx context.Context, req list.MetadataRequest, resp *list.MetadataResponse) {
+			MetadataMethod: func(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 				resp.TypeName = "test_resource"
 			},
 		}

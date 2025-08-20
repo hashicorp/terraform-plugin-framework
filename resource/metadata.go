@@ -3,6 +3,8 @@
 
 package resource
 
+import "github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 // MetadataRequest represents a request for the Resource to return metadata,
 // such as its type name. An instance of this request struct is supplied as
 // an argument to the Resource type Metadata method.
@@ -25,6 +27,9 @@ type MetadataResponse struct {
 	// ResourceBehavior is used to control framework-specific logic when
 	// interacting with this resource.
 	ResourceBehavior ResourceBehavior
+
+	ProtoV5Schema         func() *tfprotov5.Schema
+	ProtoV5IdentitySchema func() *tfprotov5.ResourceIdentitySchema
 }
 
 // ResourceBehavior controls framework-specific logic when interacting

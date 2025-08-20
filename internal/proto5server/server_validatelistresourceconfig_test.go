@@ -58,7 +58,7 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 							return []func() list.ListResource{
 								func() list.ListResource {
 									return &testprovider.ListResource{
-										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
 										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {},
@@ -96,7 +96,7 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 										ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
 											resp.Schema = testSchema
 										},
-										MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+										MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 											resp.TypeName = "test_resource"
 										},
 									}
@@ -135,7 +135,7 @@ func TestServerValidateListResourceConfig(t *testing.T) {
 											ListResourceConfigSchemaMethod: func(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
 												resp.Schema = testSchema
 											},
-											MetadataMethod: func(_ context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+											MetadataMethod: func(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 												resp.TypeName = "test_resource"
 											},
 										},

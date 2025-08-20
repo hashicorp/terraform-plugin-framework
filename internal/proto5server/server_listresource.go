@@ -5,12 +5,12 @@ package proto5server
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/list"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
@@ -48,9 +48,8 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		return ListRequestErrorDiagnostics(ctx, allDiags...)
 	}
 
-	// This breaks consistency with other RPCs but this allows us to switch the logic without an interceptor in mux
-	metadataResp := list.MetadataResponse{}
-	listResource.Metadata(ctx, list.MetadataRequest{}, &metadataResp)
+	metadataResp := resource.MetadataResponse{}
+	listResource.Metadata(ctx, resource.MetadataRequest{}, &metadataResp)
 
 	req := &fwserver.ListRequest{
 		Config:          config,
@@ -76,7 +75,7 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 			return ListRequestErrorDiagnostics(ctx, allDiags...)
 		}
 	}
-	
+
 	stream := &fwserver.ListResultsStream{}
 
 	s.FrameworkServer.ListResource(ctx, req, stream)

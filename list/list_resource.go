@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ListResource represents an implementation of listing instances of a managed resource
@@ -109,9 +110,15 @@ type ListRequest struct {
 
 // NewListResult creates a new [ListResult] with convenient defaults
 // for each field.
-func (r ListRequest) NewListResult() ListResult {
-	identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
-	resource := &tfsdk.Resource{Schema: r.ResourceSchema}
+func (r ListRequest) NewListResult(ctx context.Context) ListResult {
+	identity := &tfsdk.ResourceIdentity{
+		Raw:    tftypes.NewValue(r.ResourceIdentitySchema.Type().TerraformType(ctx), nil),
+		Schema: r.ResourceIdentitySchema,
+	}
+	resource := &tfsdk.Resource{
+		Raw:    tftypes.NewValue(r.ResourceSchema.Type().TerraformType(ctx), nil),
+		Schema: r.ResourceSchema,
+	}
 
 	return ListResult{
 		DisplayName: "",

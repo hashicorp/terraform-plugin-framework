@@ -2924,6 +2924,39 @@ func TestDataSetAtPath(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 			}),
 		},
+		"write-tftypes-value": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.NewValue(tftypes.Object{
+					AttributeTypes: map[string]tftypes.Type{
+						"test":  tftypes.String,
+						"other": tftypes.String,
+					},
+				}, nil),
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path: path.Root("test"),
+			val:  tftypes.NewValue(tftypes.String, "newvalue"),
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"test":  tftypes.String,
+					"other": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"test":  tftypes.NewValue(tftypes.String, "newvalue"),
+				"other": tftypes.NewValue(tftypes.String, nil),
+			}),
+		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{

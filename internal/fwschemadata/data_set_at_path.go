@@ -31,14 +31,11 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 	ctx = logging.FrameworkWithAttributePath(ctx, path.String())
 
 	if v, ok := val.(tftypes.Value); ok {
-		atPath, err := d.Schema.AttributeAtPath(ctx, path)
-		if err != nil {
-			diags.AddAttributeError(
-				path,
-				d.Description.Title()+" Write Error",
-				"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Error: %s does not exist at path", path.String()),
-			)
+		atPath, atPathDiags := d.Schema.AttributeAtPath(ctx, path)
+
+		diags.Append(atPathDiags...)
+
+		if diags.HasError() {
 			return diags
 		}
 
@@ -54,7 +51,25 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 			return diags
 		}
 
-		d.TerraformValue = v
+		transformFunc, transformFuncDiags := d.SetAtPathTransformFunc(ctx, path, v, nil)
+		diags.Append(transformFuncDiags...)
+
+		if diags.HasError() {
+			return diags
+		}
+
+		tfVal, err := tftypes.Transform(d.TerraformValue, transformFunc)
+		if err != nil {
+			diags.AddAttributeError(
+				path,
+				d.Description.Title()+" Write Error",
+				"An unexpected error was encountered trying to write an attribute to the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					"Error: Cannot transform data: "+err.Error(),
+			)
+			return diags
+		}
+
+		d.TerraformValue = tfVal
 
 		return diags
 	}

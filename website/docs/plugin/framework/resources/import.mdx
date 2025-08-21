@@ -86,6 +86,32 @@ func (r *ThingResource) ImportState(ctx context.Context, req resource.ImportStat
 }
 ```
 
+### Resource Deferral
+-> Note: This functionality is related to deferred action support, which is currently experimental and is subject to change or break without warning. It is not protected by version compatibility guarantees.
+
+The `ImportState` method can indicate a deferral which will defer the resource and all of its dependencies.
+
+To indicate a deferral,
+first check the [`resource.ImportStateRequest.ClientCapabilities.DeferralAllowed` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateClientCapabilities.DeferralAllowed)
+to verify that the calling Terraform client supports deferred action functionality.
+Then indicate a resource deferral
+by setting the [`resource.ImportStateResponse.Deferral` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ImportStateResponse.Deferred):
+
+```go
+func (r *ThingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Check that the Terraform client supports deferred actions
+	if req.ClientCapabilities.DeferralAllowed {
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReasonResourceConfigUnknown,
+		}
+		// Return early for deferral
+		return
+	}
+
+    resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+```
+
 ## Not Implemented
 
 If the resource does not support `terraform import`, skip the `ImportState` method implementation.

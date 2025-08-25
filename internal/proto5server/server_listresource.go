@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
@@ -47,26 +48,36 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		return ListRequestErrorDiagnostics(ctx, allDiags...)
 	}
 
-	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
-
-	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
-	allDiags.Append(diags...)
-	if diags.HasError() {
-		return ListRequestErrorDiagnostics(ctx, allDiags...)
-	}
-
 	req := &fwserver.ListRequest{
-		Config:                 config,
-		ListResource:           listResource,
-		ResourceSchema:         resourceSchema,
-		ResourceIdentitySchema: identitySchema,
-		IncludeResource:        protoReq.IncludeResource,
-		Limit:                  protoReq.Limit,
+		Config:          config,
+		ListResource:    listResource,
+		IncludeResource: protoReq.IncludeResource,
+		Limit:           protoReq.Limit,
 	}
+
+	schemaResp := list.SchemaResponse{}
+	if listResourceWithProtoSchemas, ok := listResource.(list.ListResourceWithProtoSchemas); ok {
+		listResourceWithProtoSchemas.Schemas(ctx, &schemaResp)
+	}
+
+	// There's validation in ListResources that ensures both are set if either is provided so it should be sufficient to only nil check Identity
+	if schemaResp.ProtoV5IdentitySchema != nil {
+		req.ResourceSchema, _ = fromproto5.ResourceSchema(ctx, schemaResp.ProtoV5Schema())
+		req.ResourceIdentitySchema, _ = fromproto5.IdentitySchema(ctx, schemaResp.ProtoV5IdentitySchema())
+	} else {
+		req.ResourceSchema, diags = s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
+
+		req.ResourceIdentitySchema, diags = s.FrameworkServer.ResourceIdentitySchema(ctx, protoReq.TypeName)
+		allDiags.Append(diags...)
+		if diags.HasError() {
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
+	}
+
 	stream := &fwserver.ListResultsStream{}
 
 	s.FrameworkServer.ListResource(ctx, req, stream)

@@ -25,7 +25,7 @@ func (d *Data) Set(ctx context.Context, val any) diag.Diagnostics {
 			diags.AddError(
 				d.Description.Title()+" Write Error",
 				"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Error: Type mismatch between provided value and type of %s", d.Description.String()),
+					fmt.Sprintf("Error: Type mismatch between provided value and type of %s, expected %+v, got %+v", d.Description.String(), objType.String(), v.Type().String()),
 			)
 			return diags
 

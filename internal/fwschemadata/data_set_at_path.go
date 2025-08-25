@@ -46,7 +46,7 @@ func (d *Data) SetAtPath(ctx context.Context, path path.Path, val interface{}) d
 				path,
 				d.Description.Title()+" Write Error",
 				"An unexpected error was encountered trying to write the "+d.Description.String()+". This is always an error in the provider. Please report the following to the provider developer:\n\n"+
-					fmt.Sprintf("Error: Type of provided value does not match type of %s", path.String()),
+					fmt.Sprintf("Error: Type of provided value does not match type of %q, expected %s, got %s", path.String(), attrType.String(), v.Type().String()),
 			)
 			return diags
 		}

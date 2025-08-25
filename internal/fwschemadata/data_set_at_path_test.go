@@ -2957,6 +2957,30 @@ func TestDataSetAtPath(t *testing.T) {
 				"other": tftypes.NewValue(tftypes.String, nil),
 			}),
 		},
+		"write-tftypes-value-MismatchedTypeError": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.Value{},
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"test": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+						"other": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			path:     path.Root("test"),
+			val:      tftypes.NewValue(tftypes.Bool, false),
+			expected: tftypes.Value{},
+			expectedDiags: diag.Diagnostics{
+				diag.NewAttributeErrorDiagnostic(path.Root("test"), "Data Write Error", "An unexpected error was encountered trying to write the data. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					"Error: Type of provided value does not match type of \"test\", expected tftypes.String, got tftypes.Bool"),
+			},
+		},
 		"AttrTypeWithValidateError": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.NewValue(tftypes.Object{

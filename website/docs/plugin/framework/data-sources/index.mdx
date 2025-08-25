@@ -114,6 +114,40 @@ Implement the `Read` method by:
 
 If the logic needs to return [warning or error diagnostics](/terraform/plugin/framework/diagnostics), they can added into the [`datasource.ReadResponse.Diagnostics` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.Diagnostics).
 
+#### Data Source Deferral
+-> Note: This functionality is related to deferred action support, which is currently experimental and is subject to change or break without warning. It is not protected by version compatibility guarantees.
+
+The `Read` method can indicate a deferral which will defer the data source and all of its dependencies.
+
+To indicate a deferral,
+first check the [`datasource.ReadRequest.ClientCapabilities.DeferralAllowed` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadClientCapabilities.DeferralAllowed)
+to verify that the calling Terraform client supports deferred action functionality.
+Then indicate a data source deferral
+by setting the [`datasource.ReadResponse.Deferral` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource#ReadResponse.Deferred).
+
+In the following example, the data source will defer if the `example_attribute` value is unknown:
+
+```go
+func (d *ThingDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data ThingDataSourceModel
+
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	// Check that the Terraform client supports deferred actions and if so,
+	// defer the data source if example_attribute is unknown
+	if req.ClientCapabilities.DeferralAllowed && data.ExampleAttribute.IsUnknown() {
+		resp.Deferred = &datasource.Deferred{
+			Reason: datasource.DeferredReasonDataSourceConfigUnknown,
+      }
+	  // Return early for deferral
+	  return
+   }
+
+   // Set the Terraform state as appropriate
+}
+```
+
 ## Add Data Source to Provider
 
 Data sources become available to practitioners when they are included in the [provider](/terraform/plugin/framework/providers) implementation via the [`provider.ProviderWithDataSources` interface `DataSources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ProviderWithDataSources.DataSources).

@@ -232,6 +232,54 @@ to use it. If resources and data sources can't provide any functionality
 without knowing that value, it's often better to [return an
 error](/terraform/plugin/framework/diagnostics), which will halt the apply.
 
+#### Provider Deferral
+-> Note: This functionality is related to deferred action support, which is currently experimental and is subject to change or break without warning. It is not protected by version compatibility guarantees.
+
+A provider can indicate an automatic deferral in the `Configure` method,
+which will automatically defer all resources and data sources for the provider.
+
+To indicate a deferral,
+first check the [`provider.ConfigureRequest.ClientCapabilities.DeferralAllowed` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureProviderClientCapabilities.DeferralAllowed)
+to verify that the calling Terraform client supports deferred action functionality.
+Then indicate a provider deferral
+by setting the [`provider.ConfigureResponse.Deferral` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#ConfigureResponse.Deferred).
+
+In the following example, the provider will automatically defer if the API token value is unknown:
+
+```go
+func (p *ExampleCloudProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var data ExampleCloudProviderModel
+
+	// Read configuration data into model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	// Check that the Terraform client supports deferred actions
+	 if req.ClientCapabilities.DeferralAllowed && config.ApiToken.isUnknown() {
+      resp.Deferred = &provider.Deferred{
+         Reason: provider.DeferredReasonProviderConfigUnknown,
+      }
+	  // Return early for deferral since config is not completely known
+	  return
+   }
+
+	// Create data/clients and persist to resp.DataSourceData and
+	// resp.ResourceData as appropriate.
+}
+```
+
+##### Opt-in for Plan Modification
+By default,
+automatically deferred resources will skip plan modification logic defined in a resource's `ModifyPlan` method,
+but a resource can opt in for this logic to be called
+by setting the [`ResourceBehavior.ProviderDeferred.EnablePlanModification` field](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/resource#ProviderDeferredBehavior.EnablePlanModification) in each resource’s `Metadata` method:
+
+```go
+func (r *ThingResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+    resp.TypeName = req.ProviderTypeName + "_thing"
+    resp.ResourceBehavior.ProviderDeferred.EnablePlanModification = true
+}
+```
+
 ### Resources
 
 The [`provider.Provider` interface `Resources` method](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/provider#Provider.Resources) returns a slice of [resources](/terraform/plugin/framework/resources). Each element in the slice is a function to create a new `resource.Resource` so data is not inadvertently shared across multiple, disjointed resource instance operations unless explicitly coded. Information such as the resource type name is managed by the `resource.Resource` implementation.

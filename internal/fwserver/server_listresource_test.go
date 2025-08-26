@@ -184,6 +184,34 @@ func TestServerListResource(t *testing.T) {
 			expectedStreamEvents: []fwserver.ListResult{},
 			expectedError:        "config cannot be nil",
 		},
+		"zero-results-with-warning-diagnostic": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: &tfsdk.Config{},
+				ListResource: &testprovider.ListResourceWithConfigure{
+					ConfigureMethod: func(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+						resp.Diagnostics.AddWarning("Test Warning", "This is a test warning diagnostic")
+					},
+					ListResource: &testprovider.ListResource{
+						ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+							resp.Results = list.NoListResults
+						},
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{
+				{
+					Identity:    nil,
+					Resource:    nil,
+					DisplayName: "",
+					Diagnostics: diag.Diagnostics{
+						diag.NewWarningDiagnostic("Test Warning", "This is a test warning diagnostic"),
+					},
+				},
+			},
+		},
 		"listresource-configure-data": {
 			server: &fwserver.Server{
 				ListResourceConfigureData: "test-provider-configure-value",

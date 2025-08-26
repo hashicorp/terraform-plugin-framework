@@ -161,12 +161,10 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	}
 
 	if stream.Results == nil {
-		fwStream.Results = processListResults(req, list.NoListResults, diagsStream.Results)
+		stream.Results = list.NoListResults
 	}
 
-	if stream.Results != nil {
-		fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
-	}
+	fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)
 }
 
 func processListResults(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {

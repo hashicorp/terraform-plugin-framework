@@ -56,14 +56,28 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 	}
 
 	schemaResp := list.SchemaResponse{}
-	if listResourceWithProtoSchemas, ok := listResource.(list.ListResourceWithProtoSchemas); ok {
-		listResourceWithProtoSchemas.Schemas(ctx, &schemaResp)
+	if listResourceWithProtoSchemas, ok := listResource.(list.ListResourceWithRawV5Schemas); ok {
+		listResourceWithProtoSchemas.RawV5Schemas(ctx, list.SchemaRequest{}, &schemaResp)
 	}
 
 	// There's validation in ListResources that ensures both are set if either is provided so it should be sufficient to only nil check Identity
 	if schemaResp.ProtoV5IdentitySchema != nil {
-		req.ResourceSchema, _ = fromproto5.ResourceSchema(ctx, schemaResp.ProtoV5Schema())
-		req.ResourceIdentitySchema, _ = fromproto5.IdentitySchema(ctx, schemaResp.ProtoV5IdentitySchema())
+		var err error
+
+		req.ResourceSchema, err = fromproto5.ResourceSchema(ctx, schemaResp.ProtoV5Schema)
+		if err != nil {
+			diags.AddError("Converting Resource Schema", err.Error())
+			allDiags.Append(diags...)
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
+
+		req.ResourceIdentitySchema, err = fromproto5.IdentitySchema(ctx, schemaResp.ProtoV5IdentitySchema)
+		if err != nil {
+			diags.AddError("Converting Resource Identity Schema", err.Error())
+			allDiags.Append(diags...)
+			return ListRequestErrorDiagnostics(ctx, allDiags...)
+		}
+
 	} else {
 		req.ResourceSchema, diags = s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
 		allDiags.Append(diags...)

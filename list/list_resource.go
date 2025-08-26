@@ -42,14 +42,14 @@ type ListResource interface {
 	List(context.Context, ListRequest, *ListResultsStream)
 }
 
-// ListResourceWithProtoSchemas is an interface type that extends ListResource to include a method
+// ListResourceWithRawV5Schemas is an interface type that extends ListResource to include a method
 // which allows provider developers to supply the ProtoV5 representations of resource and resource identity
 // schemas. This is necessary if list functionality is being used with a legacy resource.
-type ListResourceWithProtoSchemas interface {
+type ListResourceWithRawV5Schemas interface {
 	ListResource
 
-	// Schemas is called to provide the ProtoV5 representations of the resource and resource identity schemas.
-	Schemas(context.Context, *SchemaResponse)
+	// RawV5Schemas is called to provide the ProtoV5 representations of the resource and resource identity schemas.
+	RawV5Schemas(context.Context, SchemaRequest, *SchemaResponse)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method
@@ -193,18 +193,23 @@ type ListResult struct {
 	Diagnostics diag.Diagnostics
 }
 
+// SchemaRequest represents a request for the ListResource to return the
+// ProtoV5 schemas. An instance of this request struct is supplied as an argument
+// to the ListResource type RawV5Schemas method.
+type SchemaRequest struct{}
+
 // SchemaResponse represents a response that is populated by the Schemas method
 // and is used to pass along the ProtoV5 representations of the resource and resource identity schemas.
 type SchemaResponse struct {
 	// ProtoV5IdentitySchema is the ProtoV5 representation of the resource identity
 	// schema. This should only be supplied if framework functionality is being used
 	// with a legacy resource. Currently, this only applies to list.
-	ProtoV5IdentitySchema func() *tfprotov5.ResourceIdentitySchema
+	ProtoV5IdentitySchema *tfprotov5.ResourceIdentitySchema
 
 	// ProtoV5Schema is the ProtoV5 representation of the resource schema
 	// This should only be supplied if framework functionality is being used
 	// with a legacy resource. Currently, this only applies to list.
-	ProtoV5Schema func() *tfprotov5.Schema
+	ProtoV5Schema *tfprotov5.Schema
 }
 
 // ValidateConfigRequest represents a request to validate the configuration of

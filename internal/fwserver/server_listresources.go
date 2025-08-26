@@ -86,8 +86,8 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 		}
 
 		schemasResp := list.SchemaResponse{}
-		if listResourceWithSchemas, ok := listResource.(list.ListResourceWithProtoSchemas); ok {
-			listResourceWithSchemas.Schemas(ctx, &schemasResp)
+		if listResourceWithSchemas, ok := listResource.(list.ListResourceWithRawV5Schemas); ok {
+			listResourceWithSchemas.RawV5Schemas(ctx, list.SchemaRequest{}, &schemasResp)
 		}
 
 		resourceFuncs, _ := s.ResourceFuncs(ctx)
@@ -96,7 +96,7 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 				s.listResourceFuncsDiags.AddError(
 					"ListResource Type Defined without a Matching Managed Resource Type",
 					fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
-						"If the matching managed Resource type is a legacy resource, ProtoV5Schema and ProtoV5IdentitySchema must be specified in the Metadata method. "+
+						"If the matching managed Resource type is a legacy resource, ProtoV5Schema and ProtoV5IdentitySchema must be specified in the RawV5Schemas method. "+
 						"This is always an issue with the provider and should be reported to the provider developers.",
 				)
 				continue

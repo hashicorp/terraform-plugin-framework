@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -49,7 +50,17 @@ type ListResourceWithRawV5Schemas interface {
 	ListResource
 
 	// RawV5Schemas is called to provide the ProtoV5 representations of the resource and resource identity schemas.
-	RawV5Schemas(context.Context, SchemaRequest, *SchemaResponse)
+	RawV5Schemas(context.Context, RawV5SchemaRequest, *RawV5SchemaResponse)
+}
+
+// ListResourceWithRawV6Schemas is an interface type that extends ListResource to include a method
+// which allows provider developers to supply the ProtoV5 representations of resource and resource identity
+// schemas. This is necessary if list functionality is being used with a legacy resource.
+type ListResourceWithRawV6Schemas interface {
+	ListResource
+
+	// RawV6Schemas is called to provide the ProtoV5 representations of the resource and resource identity schemas.
+	RawV6Schemas(context.Context, RawV6SchemaRequest, *RawV6SchemaResponse)
 }
 
 // ListResourceWithConfigure is an interface type that extends ListResource to include a method
@@ -193,14 +204,14 @@ type ListResult struct {
 	Diagnostics diag.Diagnostics
 }
 
-// SchemaRequest represents a request for the ListResource to return the
+// RawV5SchemaRequest represents a request for the ListResource to return the
 // ProtoV5 schemas. An instance of this request struct is supplied as an argument
 // to the ListResource type RawV5Schemas method.
-type SchemaRequest struct{}
+type RawV5SchemaRequest struct{}
 
-// SchemaResponse represents a response that is populated by the Schemas method
+// RawV5SchemaResponse represents a response that is populated by the Schemas method
 // and is used to pass along the ProtoV5 representations of the resource and resource identity schemas.
-type SchemaResponse struct {
+type RawV5SchemaResponse struct {
 	// ProtoV5IdentitySchema is the ProtoV5 representation of the resource identity
 	// schema. This should only be supplied if framework functionality is being used
 	// with a legacy resource. Currently, this only applies to list.
@@ -210,6 +221,25 @@ type SchemaResponse struct {
 	// This should only be supplied if framework functionality is being used
 	// with a legacy resource. Currently, this only applies to list.
 	ProtoV5Schema *tfprotov5.Schema
+}
+
+// RawV6SchemaRequest represents a request for the ListResource to return the
+// ProtoV5 schemas. An instance of this request struct is supplied as an argument
+// to the ListResource type RawV5Schemas method.
+type RawV6SchemaRequest struct{}
+
+// RawV6SchemaResponse represents a response that is populated by the Schemas method
+// and is used to pass along the ProtoV5 representations of the resource and resource identity schemas.
+type RawV6SchemaResponse struct {
+	// ProtoV5IdentitySchema is the ProtoV5 representation of the resource identity
+	// schema. This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
+	ProtoV6IdentitySchema *tfprotov6.ResourceIdentitySchema
+
+	// ProtoV5Schema is the ProtoV5 representation of the resource schema
+	// This should only be supplied if framework functionality is being used
+	// with a legacy resource. Currently, this only applies to list.
+	ProtoV6Schema *tfprotov6.Schema
 }
 
 // ValidateConfigRequest represents a request to validate the configuration of

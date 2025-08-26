@@ -55,9 +55,9 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		Limit:           protoReq.Limit,
 	}
 
-	schemaResp := list.SchemaResponse{}
+	schemaResp := list.RawV5SchemaResponse{}
 	if listResourceWithProtoSchemas, ok := listResource.(list.ListResourceWithRawV5Schemas); ok {
-		listResourceWithProtoSchemas.RawV5Schemas(ctx, list.SchemaRequest{}, &schemaResp)
+		listResourceWithProtoSchemas.RawV5Schemas(ctx, list.RawV5SchemaRequest{}, &schemaResp)
 	}
 
 	// There's validation in ListResources that ensures both are set if either is provided so it should be sufficient to only nil check Identity
@@ -77,7 +77,6 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 			allDiags.Append(diags...)
 			return ListRequestErrorDiagnostics(ctx, allDiags...)
 		}
-
 	} else {
 		req.ResourceSchema, diags = s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
 		allDiags.Append(diags...)

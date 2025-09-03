@@ -27,5 +27,7 @@ func ValidateActionConfigRequest(ctx context.Context, proto5 *tfprotov5.Validate
 	fw.Config = config
 	fw.Action = reqAction
 
+	// TODO:Actions: Add linked resource configs when new action schema types are introduced
+
 	return fw, diags
 }

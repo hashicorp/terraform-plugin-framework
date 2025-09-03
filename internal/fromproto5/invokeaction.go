@@ -47,7 +47,7 @@ func InvokeActionRequest(ctx context.Context, proto5 *tfprotov5.InvokeActionRequ
 
 	fw.Config = config
 
-	// TODO:Actions: Here we need to retrieve linked resource data
+	// TODO:Actions: Add linked resources when new action schema types are introduced
 
 	return fw, diags
 }

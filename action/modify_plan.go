@@ -30,7 +30,7 @@ type ModifyPlanRequest struct {
 	// from knowing the value at request time.
 	Config tfsdk.Config
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	// TODO:Actions: Add linked resources when new action schema types are introduced
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// PlanAction RPC, such as forward-compatible Terraform behavior changes.
@@ -48,7 +48,7 @@ type ModifyPlanResponse struct {
 	// generated.
 	Diagnostics diag.Diagnostics
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	// TODO:Actions: Add linked resources when new action schema types are introduced
 
 	// Deferred indicates that Terraform should defer planning this
 	// action until a follow-up apply operation.

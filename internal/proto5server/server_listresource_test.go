@@ -105,7 +105,7 @@ func TestServerListResource(t *testing.T) {
 						continue
 					}
 
-					result := req.NewListResult()
+					result := req.NewListResult(ctx)
 					result.DisplayName = name
 
 					diags = result.Identity.Set(ctx, resources[name].ThingResourceIdentity)

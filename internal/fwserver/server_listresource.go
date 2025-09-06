@@ -156,12 +156,12 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	logging.FrameworkTrace(ctx, "Called provider defined ListResource")
 
 	// If the provider returned a nil results stream, we return an empty stream.
-	if stream.Results == nil {
-		stream.Results = list.NoListResults
-	}
-
 	if diagsStream.Results == nil {
 		diagsStream.Results = list.NoListResults
+	}
+
+	if stream.Results == nil {
+		stream.Results = list.NoListResults
 	}
 
 	fwStream.Results = processListResults(req, stream.Results, diagsStream.Results)

@@ -7,8 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -211,14 +212,6 @@ func TestServerUpgradeResourceIdentity(t *testing.T) {
 											"id": RawState["id"],
 										}),
 										Schema: testIdentitySchema,
-									}
-
-									if err != nil {
-										resp.Diagnostics.AddError(
-											"Unable to Convert Upgraded Identity",
-											err.Error(),
-										)
-										return
 									}
 
 									resp.Identity = ResourceIdentity

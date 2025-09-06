@@ -17,7 +17,15 @@ import (
 //   - ListAttribute
 //   - MapAttribute
 //   - NumberAttribute
+//   - ObjectAttribute
 //   - StringAttribute
+//
+// Additionally, the NestedAttribute interface extends Attribute with nested
+// attributes. Only supported in protocol version 6. Implementations in this
+// package include:
+//   - ListNestedAttribute
+//   - MapNestedAttribute
+//   - SingleNestedAttribute
 //
 // In practitioner configurations, an equals sign (=) is required to set
 // the value. [Configuration Reference]

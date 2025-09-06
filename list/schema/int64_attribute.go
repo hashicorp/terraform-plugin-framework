@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Ensure the implementation satisifies the desired interfaces.
+// Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                              = Int64Attribute{}
 	_ fwxschema.AttributeWithInt64Validators = Int64Attribute{}
@@ -170,7 +170,7 @@ func (a Int64Attribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive returns false because it does not apply to ephemeral resource schemas.
+// IsSensitive returns false because it does not apply to ListResource schemas.
 func (a Int64Attribute) IsSensitive() bool {
 	return false
 }

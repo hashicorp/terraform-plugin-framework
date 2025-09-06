@@ -138,7 +138,7 @@ type ProviderWithListResources interface {
 // ProviderWithActions is an interface type that extends Provider to
 // include actions for usage in practitioner configurations.
 //
-// TODO:Actions: State which Terraform version will support actions
+// Actions are supported in Terraform version 1.14 and later.
 type ProviderWithActions interface {
 	Provider
 

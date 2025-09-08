@@ -42,9 +42,6 @@ type ActionWithModifyPlan interface {
 	// during the apply phase with any unknown values from configuration
 	// filled in with their final values.
 	//
-	// Actions do not have computed attributes that can be modified during the plan,
-	// but linked and lifecycle actions can modify the plan of linked resources.
-	//
 	// All action schema types can use the plan as an opportunity to raise early
 	// diagnostics to practitioners, such as validation errors.
 	ModifyPlan(context.Context, ModifyPlanRequest, *ModifyPlanResponse)

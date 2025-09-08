@@ -26,7 +26,7 @@ func ActionSchema(ctx context.Context, s actionschema.SchemaType) (*tfprotov6.Ac
 		Schema: configSchema,
 	}
 
-	// TODO:Actions: Implement linked and lifecycle action schema types
+	// TODO:Actions: Implement action schema types that can modify state
 	switch s.(type) {
 	case actionschema.UnlinkedSchema:
 		result.Type = tfprotov6.UnlinkedActionSchemaType{}

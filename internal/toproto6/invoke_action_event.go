@@ -21,7 +21,7 @@ func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokePro
 func CompletedInvokeActionEventType(ctx context.Context, event *fwserver.InvokeActionResponse) tfprotov6.InvokeActionEvent {
 	return tfprotov6.InvokeActionEvent{
 		Type: tfprotov6.CompletedInvokeActionEventType{
-			// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+			// TODO:Actions: Add linked resources when new action schema types are introduced
 			Diagnostics: Diagnostics(ctx, event.Diagnostics),
 		},
 	}

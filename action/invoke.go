@@ -14,7 +14,7 @@ type InvokeRequest struct {
 	// Config is the configuration the user supplied for the action.
 	Config tfsdk.Config
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	// TODO:Actions: Add linked resources when new action schema types are introduced
 }
 
 // InvokeResponse represents a response to an InvokeRequest. An
@@ -32,7 +32,7 @@ type InvokeResponse struct {
 	// This function is pre-populated by the framework and can be called multiple times while action logic is running.
 	SendProgress func(event InvokeProgressEvent)
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
+	// TODO:Actions: Add linked resources when new action schema types are introduced
 }
 
 // InvokeProgressEvent is the event returned to Terraform while an action is being invoked.

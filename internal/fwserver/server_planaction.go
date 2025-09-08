@@ -34,7 +34,7 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 		return
 	}
 
-	// TODO:Actions: When linked resources are introduced, pass-through proposed -> planned state similar to
+	// TODO:Actions: When action schemas that use linked resources are introduced, pass-through proposed -> planned state similar to
 	// how normal resource planning works.
 
 	if s.deferred != nil {

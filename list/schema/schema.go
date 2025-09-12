@@ -60,6 +60,10 @@ type Schema struct {
 	DeprecationMessage string
 }
 
+func (s Schema) EmptyValue(ctx context.Context) tftypes.Value {
+	return fwschema.EmptySchemaValue(ctx, s)
+}
+
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
 // schema.
 func (s Schema) ApplyTerraform5AttributePathStep(step tftypes.AttributePathStep) (any, error) {

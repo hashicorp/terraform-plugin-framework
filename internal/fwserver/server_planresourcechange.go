@@ -150,7 +150,30 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
-	resp.PlannedState = planToState(*req.ProposedNewState)
+	// Propose new plan from prior state and config
+	proposeNewPlanReq := ProposeNewStateRequest{
+		PriorState: *req.PriorState,
+		Config:     *req.Config,
+	}
+
+	proposeNewPlanResp := ProposeNewStateResponse{}
+
+	SchemaProposeNewState(ctx, req.ResourceSchema, proposeNewPlanReq, &proposeNewPlanResp)
+
+	resp.Diagnostics.Append(proposeNewPlanResp.Diagnostics...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// New proposed plan
+	resp.PlannedState = planToState(proposeNewPlanResp.ProposedNewState)
+
+	if !resp.PlannedState.Raw.Equal(req.ProposedNewState.Raw) {
+		panic("WHOA! There is a diff between Terraform core's proposed new state and the framework proposed new state :D")
+	}
+
+	// Old proposed plan
+	// resp.PlannedState = planToState(*req.ProposedNewState)
 
 	// Set Defaults.
 	//

@@ -34,7 +34,7 @@ func TestServerValidateActionConfig(t *testing.T) {
 		"test": tftypes.NewValue(tftypes.String, "test-value"),
 	})
 
-	testSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test": schema.StringAttribute{
 				Required: true,
@@ -47,7 +47,7 @@ func TestServerValidateActionConfig(t *testing.T) {
 		Schema: testSchema,
 	}
 
-	testSchemaAttributeValidator := schema.UnlinkedSchema{
+	testSchemaAttributeValidator := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test": schema.StringAttribute{
 				Required: true,
@@ -69,7 +69,7 @@ func TestServerValidateActionConfig(t *testing.T) {
 		Schema: testSchemaAttributeValidator,
 	}
 
-	testSchemaAttributeValidatorError := schema.UnlinkedSchema{
+	testSchemaAttributeValidatorError := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test": schema.StringAttribute{
 				Required: true,

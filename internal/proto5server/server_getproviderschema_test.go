@@ -9,6 +9,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tfsdklogtest"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -26,9 +30,6 @@ import (
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/hashicorp/terraform-plugin-log/tfsdklogtest"
 )
 
 func TestServerGetProviderSchema(t *testing.T) {
@@ -49,7 +50,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() action.Action {
 									return &testprovider.Action{
 										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-											resp.Schema = actionschema.UnlinkedSchema{
+											resp.Schema = actionschema.Schema{
 												Attributes: map[string]actionschema.Attribute{
 													"test1": actionschema.StringAttribute{
 														Required: true,
@@ -65,7 +66,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 								func() action.Action {
 									return &testprovider.Action{
 										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-											resp.Schema = actionschema.UnlinkedSchema{
+											resp.Schema = actionschema.Schema{
 												Attributes: map[string]actionschema.Attribute{
 													"test2": actionschema.StringAttribute{
 														Required: true,
@@ -87,7 +88,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 			expectedResponse: &tfprotov5.GetProviderSchemaResponse{
 				ActionSchemas: map[string]*tfprotov5.ActionSchema{
 					"test_action1": {
-						Type: tfprotov5.UnlinkedActionSchemaType{},
 						Schema: &tfprotov5.Schema{
 							Block: &tfprotov5.SchemaBlock{
 								Attributes: []*tfprotov5.SchemaAttribute{
@@ -101,7 +101,6 @@ func TestServerGetProviderSchema(t *testing.T) {
 						},
 					},
 					"test_action2": {
-						Type: tfprotov5.UnlinkedActionSchemaType{},
 						Schema: &tfprotov5.Schema{
 							Block: &tfprotov5.SchemaBlock{
 								Attributes: []*tfprotov5.SchemaAttribute{

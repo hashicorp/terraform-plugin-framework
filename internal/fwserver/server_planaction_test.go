@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerPlanAction(t *testing.T) {
@@ -33,7 +34,7 @@ func TestServerPlanAction(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
 
-	testUnlinkedSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_required": schema.StringAttribute{
 				Required: true,
@@ -41,9 +42,9 @@ func TestServerPlanAction(t *testing.T) {
 		},
 	}
 
-	testUnlinkedConfig := &tfsdk.Config{
+	testConfig := &tfsdk.Config{
 		Raw:    testConfigValue,
-		Schema: testUnlinkedSchema,
+		Schema: testSchema,
 	}
 
 	testDeferralAllowed := action.ModifyPlanClientCapabilities{
@@ -62,12 +63,12 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			expectedResponse: &fwserver.PlanActionResponse{},
 		},
-		"unlinked-nil-config-no-modifyplan": {
+		"nil-config-no-modifyplan": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.PlanActionRequest{
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 				Action:       &testprovider.Action{},
 			},
 			expectedResponse: &fwserver.PlanActionResponse{},
@@ -78,8 +79,8 @@ func TestServerPlanAction(t *testing.T) {
 			},
 			request: &fwserver.PlanActionRequest{
 				ClientCapabilities: testDeferralAllowed,
-				Config:             testUnlinkedConfig,
-				ActionSchema:       testUnlinkedSchema,
+				Config:             testConfig,
+				ActionSchema:       testSchema,
 				Action: &testprovider.ActionWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req action.ModifyPlanRequest, resp *action.ModifyPlanResponse) {
 						if req.ClientCapabilities.DeferralAllowed != true {
@@ -102,8 +103,8 @@ func TestServerPlanAction(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.PlanActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req action.ModifyPlanRequest, resp *action.ModifyPlanResponse) {
 						var config struct {
@@ -126,8 +127,8 @@ func TestServerPlanAction(t *testing.T) {
 				Provider:            &testprovider.Provider{},
 			},
 			request: &fwserver.PlanActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithConfigureAndModifyPlan{
 					ConfigureMethod: func(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
 						providerData, ok := req.ProviderData.(string)
@@ -172,8 +173,8 @@ func TestServerPlanAction(t *testing.T) {
 				},
 			},
 			request: &fwserver.PlanActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req action.ModifyPlanRequest, resp *action.ModifyPlanResponse) {
 						resp.Diagnostics.AddError("Test assertion failed: ", "ModifyPlan shouldn't be called")
@@ -190,8 +191,8 @@ func TestServerPlanAction(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.PlanActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req action.ModifyPlanRequest, resp *action.ModifyPlanResponse) {
 						var config struct {
@@ -218,8 +219,8 @@ func TestServerPlanAction(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.PlanActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithModifyPlan{
 					ModifyPlanMethod: func(ctx context.Context, req action.ModifyPlanRequest, resp *action.ModifyPlanResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")

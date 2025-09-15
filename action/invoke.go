@@ -26,8 +26,6 @@ type InvokeResponse struct {
 
 	// SendProgress will immediately send a progress update to Terraform core during action invocation.
 	// This function is provided by the framework and can be called multiple times while action logic is running.
-	//
-	// TODO:Actions: More documentation about when you should use this / when you shouldn't
 	SendProgress func(event InvokeProgressEvent)
 }
 

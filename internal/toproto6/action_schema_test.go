@@ -28,7 +28,7 @@ func TestActionSchema(t *testing.T) {
 		"empty": {
 			input: actionschema.Schema{},
 			expected: &tfprotov6.ActionSchema{
-				&tfprotov6.Schema{Block: &tfprotov6.SchemaBlock{}},
+				Schema: &tfprotov6.Schema{Block: &tfprotov6.SchemaBlock{}},
 			},
 		},
 		"valid": {

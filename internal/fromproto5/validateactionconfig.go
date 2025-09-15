@@ -6,11 +6,12 @@ package fromproto5
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ValidateActionConfigRequest returns the *fwserver.ValidateActionConfigRequest
@@ -26,8 +27,6 @@ func ValidateActionConfigRequest(ctx context.Context, proto5 *tfprotov5.Validate
 
 	fw.Config = config
 	fw.Action = reqAction
-
-	// TODO:Actions: Add linked resource configs when new action schema types are introduced
 
 	return fw, diags
 }

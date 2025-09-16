@@ -6,8 +6,9 @@ package toproto6
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokeProgressEvent) tfprotov6.InvokeActionEvent {
@@ -21,7 +22,6 @@ func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokePro
 func CompletedInvokeActionEventType(ctx context.Context, event *fwserver.InvokeActionResponse) tfprotov6.InvokeActionEvent {
 	return tfprotov6.InvokeActionEvent{
 		Type: tfprotov6.CompletedInvokeActionEventType{
-			// TODO:Actions: Add linked resources when new action schema types are introduced
 			Diagnostics: Diagnostics(ctx, event.Diagnostics),
 		},
 	}

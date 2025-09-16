@@ -12,9 +12,8 @@ type Action interface {
 	// Metadata should return the full name of the action, such as examplecloud_do_thing.
 	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 
-	// Invoke is called to run the logic of the action and update linked resources if applicable.
-	// Config, linked resource planned state, and linked resource prior state values should
-	// be read from the InvokeRequest and new linked resource state values set on the InvokeResponse.
+	// Invoke is called to run the logic of the action. Config values should be read from the InvokeRequest
+	// and potential diagnostics set in InvokeResponse.
 	//
 	// The [InvokeResponse.SendProgress] function can be called in the Invoke method to immediately
 	// report progress events related to the invocation of the action to Terraform.

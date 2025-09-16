@@ -22,7 +22,5 @@ func PlanActionResponse(ctx context.Context, fw *fwserver.PlanActionResponse) *t
 		Deferred:    ActionDeferred(fw.Deferred),
 	}
 
-	// TODO:Actions: Add linked resources when new action schema types are introduced
-
 	return proto6
 }

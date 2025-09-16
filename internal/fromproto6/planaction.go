@@ -48,7 +48,5 @@ func PlanActionRequest(ctx context.Context, proto6 *tfprotov6.PlanActionRequest,
 
 	fw.Config = config
 
-	// TODO:Actions: Add linked resources when new action schema types are introduced
-
 	return fw, diags
 }

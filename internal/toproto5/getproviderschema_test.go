@@ -42,14 +42,14 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"action-multiple-actions": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ActionSchemas: map[string]actionschema.Schema{
-					"test_action_1": actionschema.Schema{
+					"test_action_1": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
-					"test_action_2": actionschema.Schema{
+					"test_action_2": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.StringAttribute{
 								Optional:           true,

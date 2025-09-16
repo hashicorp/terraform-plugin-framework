@@ -101,7 +101,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		"action-type-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
 				ActionSchemas: map[string]actionschema.Schema{
-					"test_action": actionschema.Schema{
+					"test_action": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.SingleNestedAttribute{
 								Attributes: map[string]actionschema.Attribute{

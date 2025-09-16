@@ -100,14 +100,14 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				ActionSchemas: map[string]actionschema.Schema{
-					"test_action1": actionschema.Schema{
+					"test_action1": {
 						Attributes: map[string]actionschema.Attribute{
 							"test1": actionschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
-					"test_action2": actionschema.Schema{
+					"test_action2": {
 						Attributes: map[string]actionschema.Attribute{
 							"test2": actionschema.StringAttribute{
 								Required: true,
@@ -333,7 +333,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
 				ActionSchemas: map[string]actionschema.Schema{
-					"testprovidertype_action": actionschema.Schema{
+					"testprovidertype_action": {
 						Attributes: map[string]actionschema.Attribute{
 							"test": actionschema.StringAttribute{
 								Required: true,

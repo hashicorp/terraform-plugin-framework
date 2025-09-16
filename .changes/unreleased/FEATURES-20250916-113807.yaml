@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'types: Exported a previously internal function, `TerraformTypeToFrameworkType`, which converts `tftypes.Type` to a known framework type.'
+time: 2025-09-16T11:38:07.879695-04:00
+custom:
+    Issue: "1200"

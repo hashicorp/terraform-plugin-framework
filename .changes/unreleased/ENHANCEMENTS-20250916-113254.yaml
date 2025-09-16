@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'provider: Added `ActionData` to `ConfigureResponse`, to pass provider-defined data to `action.Action` implementations.'
+time: 2025-09-16T11:32:54.371817-04:00
+custom:
+    Issue: "1185"

@@ -1,5 +1,5 @@
 kind: NOTES
-body: 'list: This release contains a new interface (`list.ListResource`) and packages for implementing action types, available in Terraform 1.14+.
+body: 'list: This release contains a new interface (`list.ListResource`) and packages for implementing list resource types, available in Terraform 1.14+.
        A list resource in Terraform can be defined by providers to list remote resources within a given scope.'
 time: 2025-09-17T08:43:51.18091+02:00
 custom:

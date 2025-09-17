@@ -1,7 +1,0 @@
-kind: NOTES
-body: 'action: This release contains a new interface (`action.Action`) and packages for implementing action types, available in Terraform 1.14+.
-    An action in Terraform can be defined by providers to model side-effects that practitioners can reference in their configurations via the
-    `lifecycle.action_trigger` block.'
-time: 2025-09-16T11:42:32.468477-04:00
-custom:
-    Issue: "1181"

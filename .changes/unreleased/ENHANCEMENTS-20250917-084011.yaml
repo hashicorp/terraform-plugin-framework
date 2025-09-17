@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'tfsdk: Allow `SetAttribute` to be called with a `tftypes.Value`.'
-time: 2025-09-17T08:40:11.45624+02:00
-custom:
-    Issue: "1205"

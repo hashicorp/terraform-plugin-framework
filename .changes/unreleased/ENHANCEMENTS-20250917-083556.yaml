@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'provider: Added `ListResourceData` to `ConfigureResponse`, to pass provider-defined data to `list.ListResource` implementations.'
-time: 2025-09-17T08:35:56.380892+02:00
-custom:
-    Issue: "1202"

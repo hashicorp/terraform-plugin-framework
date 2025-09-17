@@ -1,5 +1,0 @@
-kind: NOTES
-body: 'List support is in technical preview and offered without compatibility promises until Terraform 1.14 is generally available.'
-time: 2025-09-17T08:42:58.823855+02:00
-custom:
-    Issue: "1150"

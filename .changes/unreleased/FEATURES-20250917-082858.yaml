@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'list: New package for implementing list resources.'
+time: 2025-09-17T08:28:58.096284+02:00
+custom:
+    Issue: "1150"

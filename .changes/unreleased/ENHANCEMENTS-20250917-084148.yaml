@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'list: Add the `ListResourceWithRawV5Schemas` and `ListResourceWithRawV6Schemas` interfaces to support list implementation on non-framework resources.'
+time: 2025-09-17T08:41:48.576344+02:00
+custom:
+    Issue: "1198"

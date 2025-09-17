@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'tfsdk: Allow `SetAtPath` to be called with a `tftypes.Value`.'
+time: 2025-09-17T08:39:44.693064+02:00
+custom:
+    Issue: "1198"

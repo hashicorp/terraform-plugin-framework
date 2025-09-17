@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'all: Update Framework to handle new ListResource RPCs.'
+time: 2025-09-17T08:32:17.270233+02:00
+custom:
+    Issue: "1157"

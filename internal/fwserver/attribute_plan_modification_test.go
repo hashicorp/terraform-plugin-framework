@@ -10,6 +10,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/dynamicplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/numberplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -4419,6 +4426,97 @@ func TestAttributePlanModifyBool(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithBoolPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.BoolNull(),
+				AttributePlan:   types.BoolNull(),
+				AttributeState:  types.BoolNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.BoolNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.BoolNull(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithBoolPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.BoolValue(true),
+				AttributePlan:   types.BoolNull(),
+				AttributeState:  types.BoolNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.BoolNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.BoolNull(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -5050,6 +5148,97 @@ func TestAttributePlanModifyFloat32(t *testing.T) {
 				AttributePlan: types.Float32Value(1.2),
 				RequiresReplace: path.Paths{
 					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Float32{
+					float32planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Float32Null(),
+				AttributePlan:   types.Float32Null(),
+				AttributeState:  types.Float32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithFloat32PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Float32{
+					float32planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Float32Value(1.3),
+				AttributePlan:   types.Float32Null(),
+				AttributeState:  types.Float32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float32Null(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
@@ -5687,6 +5876,97 @@ func TestAttributePlanModifyFloat64(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithFloat64PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Float64{
+					float64planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Float64Null(),
+				AttributePlan:   types.Float64Null(),
+				AttributeState:  types.Float64Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float64Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float64Null(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithFloat64PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Float64{
+					float64planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Float64Value(1.3),
+				AttributePlan:   types.Float64Null(),
+				AttributeState:  types.Float64Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float64Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Float64Null(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -6321,6 +6601,97 @@ func TestAttributePlanModifyInt32(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Int32Null(),
+				AttributePlan:   types.Int32Null(),
+				AttributeState:  types.Int32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithInt32PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Int32Value(2),
+				AttributePlan:   types.Int32Null(),
+				AttributeState:  types.Int32Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int32Null(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -6952,6 +7323,97 @@ func TestAttributePlanModifyInt64(t *testing.T) {
 				AttributePlan: types.Int64Value(1),
 				RequiresReplace: path.Paths{
 					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithInt64PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Int64Null(),
+				AttributePlan:   types.Int64Null(),
+				AttributeState:  types.Int64Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int64Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int64Null(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithInt64PlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.Int64Value(2),
+				AttributePlan:   types.Int64Null(),
+				AttributeState:  types.Int64Null(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int64Null(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.Int64Null(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
@@ -7604,6 +8066,97 @@ func TestAttributePlanModifyList(t *testing.T) {
 				AttributePlan: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("testvalue")}),
 				RequiresReplace: path.Paths{
 					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithListPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.ListNull(types.StringType),
+				AttributePlan:   types.ListNull(types.StringType),
+				AttributeState:  types.ListNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithListPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("value from config")}),
+				AttributePlan:   types.ListNull(types.StringType),
+				AttributeState:  types.ListNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ListNull(types.StringType),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
@@ -8586,6 +9139,97 @@ func TestAttributePlanModifyMap(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithMapPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.MapNull(types.StringType),
+				AttributePlan:   types.MapNull(types.StringType),
+				AttributeState:  types.MapNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.MapNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.MapNull(types.StringType),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithMapPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.MapValueMust(types.StringType, map[string]attr.Value{"testattr": types.StringValue("value from config")}),
+				AttributePlan:   types.MapNull(types.StringType),
+				AttributeState:  types.MapNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.MapNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.MapNull(types.StringType),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -9217,6 +9861,97 @@ func TestAttributePlanModifyNumber(t *testing.T) {
 				AttributePlan: types.NumberValue(big.NewFloat(1)),
 				RequiresReplace: path.Paths{
 					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithNumberPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Number{
+					numberplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.NumberNull(),
+				AttributePlan:   types.NumberNull(),
+				AttributeState:  types.NumberNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.NumberNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.NumberNull(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithNumberPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Number{
+					numberplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.NumberValue(big.NewFloat(4.2)),
+				AttributePlan:   types.NumberNull(),
+				AttributeState:  types.NumberNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.NumberNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.NumberNull(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},
@@ -10417,6 +11152,97 @@ func TestAttributePlanModifyObject(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithObjectPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				AttributePlan:   types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				AttributeState:  types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithObjectPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("value from config")}),
+				AttributePlan:   types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				AttributeState:  types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -11069,6 +11895,53 @@ func TestAttributePlanModifySet(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithSetPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("value from config")}),
+				AttributePlan:   types.SetNull(types.StringType),
+				AttributeState:  types.SetNull(types.StringType),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.SetNull(types.StringType),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -11703,6 +12576,97 @@ func TestAttributePlanModifyString(t *testing.T) {
 				},
 			},
 		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithStringPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.StringNull(),
+				AttributePlan:   types.StringNull(),
+				AttributeState:  types.StringNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.StringNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.StringNull(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithStringPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.StringValue("value from config"),
+				AttributePlan:   types.StringNull(),
+				AttributeState:  types.StringNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.StringNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.StringNull(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -12334,6 +13298,97 @@ func TestAttributePlanModifyDynamic(t *testing.T) {
 				AttributePlan: types.DynamicValue(types.StringValue("testvalue")),
 				RequiresReplace: path.Paths{
 					path.Root("test"), // Remains deduplicated
+				},
+			},
+		},
+		"response-requiresreplace-write-only-with-no-config": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Dynamic{
+					dynamicplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.DynamicNull(),
+				AttributePlan:   types.DynamicNull(),
+				AttributeState:  types.DynamicNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+		},
+		"response-requiresreplace-write-only-with-config": {
+			attribute: testschema.AttributeWithDynamicPlanModifiers{
+				WriteOnly: true,
+				PlanModifiers: []planmodifier.Dynamic{
+					dynamicplanmodifier.RequiresReplace(),
+				},
+			},
+			request: ModifyAttributePlanRequest{
+				AttributePath: path.Root("test"),
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(
+						tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"test2": tftypes.Number,
+							},
+						},
+						map[string]tftypes.Value{
+							"test2": tftypes.NewValue(tftypes.Number, 1.2),
+						},
+					),
+				},
+				AttributeConfig: types.DynamicValue(types.StringValue("value from config")),
+				AttributePlan:   types.DynamicNull(),
+				AttributeState:  types.DynamicNull(),
+			},
+			response: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+			},
+			expected: &ModifyAttributePlanResponse{
+				AttributePlan: types.DynamicNull(),
+				RequiresReplace: path.Paths{
+					path.Root("test"),
 				},
 			},
 		},

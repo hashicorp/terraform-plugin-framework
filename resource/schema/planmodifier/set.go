@@ -49,6 +49,8 @@ type SetRequest struct {
 	// StateValue contains the value of the attribute for modification from the prior state.
 	StateValue types.Set
 
+	// Set attributes cannot be configured as write-only so the plan modifiers does not affect these.
+
 	// Private is provider-defined resource private state data which was previously
 	// stored with the resource state. This data is opaque to Terraform and does
 	// not affect plan output. Any existing data is copied to

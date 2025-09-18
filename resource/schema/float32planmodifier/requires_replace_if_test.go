@@ -159,6 +159,40 @@ func TestRequiresReplaceIfModifierPlanModifyFloat32(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.Float32Request{
+				Plan:        testPlan(types.Float32Value(1.2)),
+				PlanValue:   types.Float32Null(),
+				State:       testState(types.Float32Value(1.2)),
+				StateValue:  types.Float32Null(),
+				ConfigValue: types.Float32Null(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Float32Request, resp *float32planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.Float32Response{
+				PlanValue:       types.Float32Null(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.Float32Request{
+				Plan:        testPlan(types.Float32Value(1.2)),
+				PlanValue:   types.Float32Null(),
+				State:       testState(types.Float32Value(1.2)),
+				StateValue:  types.Float32Null(),
+				ConfigValue: types.Float32Value(1.1),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Float32Request, resp *float32planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.Float32Response{
+				PlanValue:       types.Float32Null(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

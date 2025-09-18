@@ -162,6 +162,40 @@ func TestRequiresReplaceIfModifierPlanModifyObject(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.ObjectRequest{
+				Plan:        testPlan(types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("test")})),
+				PlanValue:   types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				State:       testState(types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("test")})),
+				StateValue:  types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				ConfigValue: types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.ObjectRequest, resp *objectplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.ObjectResponse{
+				PlanValue:       types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.ObjectRequest{
+				Plan:        testPlan(types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("test")})),
+				PlanValue:   types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				State:       testState(types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("test")})),
+				StateValue:  types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				ConfigValue: types.ObjectValueMust(map[string]attr.Type{"testattr": types.StringType}, map[string]attr.Value{"testattr": types.StringValue("test value in config")}),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.ObjectRequest, resp *objectplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.ObjectResponse{
+				PlanValue:       types.ObjectNull(map[string]attr.Type{"testattr": types.StringType}),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -159,6 +159,40 @@ func TestRequiresReplaceIfModifierPlanModifyBool(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.BoolRequest{
+				Plan:        testPlan(types.BoolValue(true)),
+				PlanValue:   types.BoolNull(),
+				State:       testState(types.BoolValue(true)),
+				StateValue:  types.BoolNull(),
+				ConfigValue: types.BoolNull(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.BoolRequest, resp *boolplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.BoolResponse{
+				PlanValue:       types.BoolNull(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.BoolRequest{
+				Plan:        testPlan(types.BoolValue(true)),
+				PlanValue:   types.BoolNull(),
+				State:       testState(types.BoolValue(true)),
+				StateValue:  types.BoolNull(),
+				ConfigValue: types.BoolValue(true),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.BoolRequest, resp *boolplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.BoolResponse{
+				PlanValue:       types.BoolNull(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

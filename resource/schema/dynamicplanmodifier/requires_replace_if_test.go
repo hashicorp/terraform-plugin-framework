@@ -159,6 +159,40 @@ func TestRequiresReplaceIfModifierPlanModifyDynamic(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.DynamicRequest{
+				Plan:        testPlan(types.DynamicValue(types.StringValue("test"))),
+				PlanValue:   types.DynamicNull(),
+				State:       testState(types.DynamicValue(types.StringValue("test"))),
+				StateValue:  types.DynamicNull(),
+				ConfigValue: types.DynamicNull(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.DynamicRequest, resp *dynamicplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.DynamicResponse{
+				PlanValue:       types.DynamicNull(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.DynamicRequest{
+				Plan:        testPlan(types.DynamicValue(types.StringValue("test"))),
+				PlanValue:   types.DynamicNull(),
+				State:       testState(types.DynamicValue(types.StringValue("test"))),
+				StateValue:  types.DynamicNull(),
+				ConfigValue: types.DynamicValue(types.StringValue("test value from config")),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.DynamicRequest, resp *dynamicplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.DynamicResponse{
+				PlanValue:       types.DynamicNull(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

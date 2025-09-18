@@ -59,8 +59,12 @@ func (m requiresReplaceIfModifier) PlanModifyInt32(ctx context.Context, req plan
 		return
 	}
 
-	// Do not replace if the plan and state values are equal.
-	if req.PlanValue.Equal(req.StateValue) {
+	// Do not replace if the plan and state values are equal when the attribute is not write-only.
+	if !req.WriteOnly && req.PlanValue.Equal(req.StateValue) {
+		return
+	}
+	// Even if it's write-only, do not run the modifier if the config value is not specified.
+	if req.WriteOnly && req.ConfigValue.IsNull() {
 		return
 	}
 

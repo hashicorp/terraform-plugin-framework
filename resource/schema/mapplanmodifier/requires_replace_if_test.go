@@ -162,6 +162,40 @@ func TestRequiresReplaceIfModifierPlanModifyMap(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.MapRequest{
+				Plan:        testPlan(types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")})),
+				PlanValue:   types.MapNull(types.StringType),
+				State:       testState(types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")})),
+				StateValue:  types.MapNull(types.StringType),
+				ConfigValue: types.MapNull(types.StringType),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.MapRequest, resp *mapplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.MapResponse{
+				PlanValue:       types.MapNull(types.StringType),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.MapRequest{
+				Plan:        testPlan(types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")})),
+				PlanValue:   types.MapNull(types.StringType),
+				State:       testState(types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test")})),
+				StateValue:  types.MapNull(types.StringType),
+				ConfigValue: types.MapValueMust(types.StringType, map[string]attr.Value{"testkey": types.StringValue("test value in config")}),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.MapRequest, resp *mapplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.MapResponse{
+				PlanValue:       types.MapNull(types.StringType),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

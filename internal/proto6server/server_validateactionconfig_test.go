@@ -35,7 +35,7 @@ func TestServerValidateActionConfig(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test": schema.StringAttribute{
 				Required: true,

@@ -206,6 +206,20 @@ func TestServerConfigureProvider(t *testing.T) {
 				ActionData: "test-provider-configure-value",
 			},
 		},
+		"response-listresourcedata": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.ListResourceData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				ListResourceData: "test-provider-configure-value",
+			},
+		},
 		"response-invalid-deferral-diagnostic": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{

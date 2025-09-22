@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Ensure the implementation satisifies the desired interfaces.
+// Ensure the implementation satisfies the desired interfaces.
 var (
 	_ Attribute                                    = MapAttribute{}
 	_ fwschema.AttributeWithValidateImplementation = MapAttribute{}

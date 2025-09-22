@@ -60,6 +60,40 @@ func (r *Resource) Set(ctx context.Context, val interface{}) diag.Diagnostics {
 	return diags
 }
 
+// SetAttribute sets the attribute at `path` using the supplied Go value.
+//
+// The attribute path and value must be valid with the current schema. If the
+// attribute path already has a value, it will be overwritten. If the attribute
+// path does not have a value, it will be added.
+//
+// The value must not be an untyped nil. Use a typed nil or types package null
+// value function instead. For example with a types.StringType attribute,
+// use (*string)(nil) or types.StringNull().
+//
+// Lists can only have the next element added according to the current length.
+func (r *Resource) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
+	// If r is nil, then calling r.data triggers a nil pointer error so we return the error diag here
+	if r == nil {
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Missing Resource Definition",
+				"An unexpected error was encountered when attempting to set a resource attribute. The resource does not indicate support via a resource schema.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer."),
+		}
+	}
+
+	data := r.data()
+	diags := data.SetAtPath(ctx, path, val)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	r.Raw = data.TerraformValue
+
+	return diags
+}
+
 func (r Resource) data() fwschemadata.Data {
 	return fwschemadata.Data{
 		Description:    fwschemadata.DataDescriptionResource,

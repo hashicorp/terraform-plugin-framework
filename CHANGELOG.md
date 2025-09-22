@@ -1,3 +1,48 @@
+## 1.16.0 (September 17, 2025)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.24 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.24 release notes](https://go.dev/doc/go1.24) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#1217](https://github.com/hashicorp/terraform-plugin-framework/issues/1217))
+* Support for the new `action{}` block is in technical preview and offered without compatibility promises until Terraform 1.14 is generally available. ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+* action: This release contains a new interface (`action.Action`) and packages for implementing action types, available in Terraform 1.14+. An action in Terraform can be defined by providers to model side-effects that practitioners can reference in their configurations via the `lifecycle.action_trigger` block. ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+* List support is in technical preview and offered without compatibility promises until Terraform 1.14 is generally available. ([#1150](https://github.com/hashicorp/terraform-plugin-framework/issues/1150))
+* list: This release contains a new interface (`list.ListResource`) and packages for implementing list resource types, available in Terraform 1.14+. A list resource in Terraform can be defined by providers to list remote resources within a given scope. ([#1150](https://github.com/hashicorp/terraform-plugin-framework/issues/1150))
+
+FEATURES:
+
+* action: New package for implementing actions. ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+* action/schema: New package for implementing action schemas. ([#1183](https://github.com/hashicorp/terraform-plugin-framework/issues/1183))
+* types: Exported a previously internal function, `TerraformTypeToFrameworkType`, which converts `tftypes.Type` to a known framework type. ([#1200](https://github.com/hashicorp/terraform-plugin-framework/issues/1200))
+* list: New package for implementing list resources. ([#1150](https://github.com/hashicorp/terraform-plugin-framework/issues/1150))
+* all: Update Framework to handle new ListResource RPCs. ([#1157](https://github.com/hashicorp/terraform-plugin-framework/issues/1157))
+
+ENHANCEMENTS:
+
+* provider: Added `ProviderWithActions` interface for implementing actions. ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+* provider: Added `ActionData` to `ConfigureResponse`, to pass provider-defined data to `action.Action` implementations. ([#1185](https://github.com/hashicorp/terraform-plugin-framework/issues/1185))
+* provider: Added `ListResourceData` to `ConfigureResponse`, to pass provider-defined data to `list.ListResource` implementations. ([#1202](https://github.com/hashicorp/terraform-plugin-framework/issues/1202))
+* tfsdk: Allow `SetAtPath` to be called with a `tftypes.Value`. ([#1198](https://github.com/hashicorp/terraform-plugin-framework/issues/1198))
+* tfsdk: Allow `SetAttribute` to be called with a `tftypes.Value`. ([#1205](https://github.com/hashicorp/terraform-plugin-framework/issues/1205))
+* list: Add the `ListResourceWithRawV5Schemas` and `ListResourceWithRawV6Schemas` interfaces to support list implementation on non-framework resources. ([#1198](https://github.com/hashicorp/terraform-plugin-framework/issues/1198))
+
+## 1.16.0-beta.1 (July 31, 2025)
+
+FEATURES:
+
+* actions: Initial package implementation and new Actions RPC support ([#1181](https://github.com/hashicorp/terraform-plugin-framework/issues/1181))
+
+ENHANCEMENTS:
+
+* list: add `limit` field to `ListResult` ([#1182](https://github.com/hashicorp/terraform-plugin-framework/issues/1182))
+* list: add primitives, list and map types to schema ([#1177](https://github.com/hashicorp/terraform-plugin-framework/issues/1177))
+* actions: add schema interface and unlinked schema ([#1183](https://github.com/hashicorp/terraform-plugin-framework/issues/1183))
+* actions: add standard validation methods and interfaces for `ValidateActionConfig` RPCs ([#1188](https://github.com/hashicorp/terraform-plugin-framework/issues/1188))
+* actions: add attributes and nested blocks to schema package ([#1186](https://github.com/hashicorp/terraform-plugin-framework/issues/1186))
+
+BUG FIXES:
+
+* list: call `Configure` in `ListResource` RPC and remove the `ListResource` call in `ValidateListResourceConfig` ([#1192](https://github.com/hashicorp/terraform-plugin-framework/issues/1192))
+
 ## 1.16.0-alpha.1 (July 22, 2025)
 
 NOTES:
@@ -9,7 +54,27 @@ BUG FIXES:
 
 * all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
 
+## 1.15.1 (July 31, 2025)
+
+BUG FIXES:
+
+* all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
+
 ## 1.15.0 (May 16, 2025)
+
+ATTENTION:
+Please make sure to also update `terraform-plugin-(go|mux|sdk|testing)` when upgrading to this version. Otherwise there will be errors at runtime when using Terraform v1.12+ as this version of Plugin Framework supports the new resource identity feature and requires the supporting libraries to do so to.
+
+Find [#1148](https://github.com/hashicorp/terraform-plugin-framework/issues/1148) for more information.
+
+TL;DR – make sure to update to these versions (or higher)
+```
+github.com/hashicorp/terraform-plugin-go@v0.28.0
+github.com/hashicorp/terraform-plugin-mux@v0.20.0
+github.com/hashicorp/terraform-plugin-framework@v1.15.0
+github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0
+github.com/hashicorp/terraform-plugin-testing@v1.13.1
+```
 
 NOTES:
 

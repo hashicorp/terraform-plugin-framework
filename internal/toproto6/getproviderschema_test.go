@@ -41,15 +41,15 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"action-multiple-actions": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{
-					"test_action_1": actionschema.UnlinkedSchema{
+				ActionSchemas: map[string]actionschema.Schema{
+					"test_action_1": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
-					"test_action_2": actionschema.UnlinkedSchema{
+					"test_action_2": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.StringAttribute{
 								Optional:           true,
@@ -62,7 +62,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				ActionSchemas: map[string]*tfprotov6.ActionSchema{
 					"test_action_1": {
-						Type: tfprotov6.UnlinkedActionSchemaType{},
 						Schema: &tfprotov6.Schema{
 							Version: 0,
 							Block: &tfprotov6.SchemaBlock{
@@ -77,7 +76,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 					"test_action_2": {
-						Type: tfprotov6.UnlinkedActionSchemaType{},
 						Schema: &tfprotov6.Schema{
 							Version: 0,
 							Block: &tfprotov6.SchemaBlock{
@@ -102,8 +100,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"action-type-nested-attributes": {
 			input: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{
-					"test_action": actionschema.UnlinkedSchema{
+				ActionSchemas: map[string]actionschema.Schema{
+					"test_action": {
 						Attributes: map[string]actionschema.Attribute{
 							"test_attribute": actionschema.SingleNestedAttribute{
 								Attributes: map[string]actionschema.Attribute{
@@ -120,7 +118,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			expected: &tfprotov6.GetProviderSchemaResponse{
 				ActionSchemas: map[string]*tfprotov6.ActionSchema{
 					"test_action": {
-						Type: tfprotov6.UnlinkedActionSchemaType{},
 						Schema: &tfprotov6.Schema{
 							Version: 0,
 							Block: &tfprotov6.SchemaBlock{

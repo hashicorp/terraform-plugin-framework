@@ -139,6 +139,58 @@ func TestDataSet(t *testing.T) {
 				),
 			}),
 		},
+		"write-tftypes-values": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.Value{},
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+			expected: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+		},
+		"write-tftypes-values-MismatchedTypeError": {
+			data: fwschemadata.Data{
+				TerraformValue: tftypes.Value{},
+				Schema: testschema.Schema{
+					Attributes: map[string]fwschema.Attribute{
+						"name": testschema.Attribute{
+							Type:     types.StringType,
+							Required: true,
+						},
+					},
+				},
+			},
+			val: tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"not_name": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"not_name": tftypes.NewValue(tftypes.String, "newvalue"),
+			}),
+			expected: tftypes.Value{},
+			expectedDiags: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Data Write Error", "An unexpected error was encountered trying to write the data. This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+					"Error: Type mismatch between provided value and type of data, expected tftypes.Object[\"name\":tftypes.String], got tftypes.Object[\"not_name\":tftypes.String]"),
+			},
+		},
 		"overwrite": {
 			data: fwschemadata.Data{
 				TerraformValue: tftypes.Value{},
@@ -163,6 +215,7 @@ func TestDataSet(t *testing.T) {
 			}, map[string]tftypes.Value{
 				"name": tftypes.NewValue(tftypes.String, "newvalue"),
 			}),
+			expectedDiags: diag.Diagnostics{},
 		},
 		"overwrite-dynamic": {
 			data: fwschemadata.Data{

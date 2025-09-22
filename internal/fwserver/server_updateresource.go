@@ -186,7 +186,7 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		}
 
 		// If we already have an identity stored, validate that the new identity hasn't changing
-		if !req.ResourceBehavior.MutableIdentity && !req.PlannedIdentity.Raw.IsNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+		if !req.ResourceBehavior.MutableIdentity && !req.PlannedIdentity.Raw.IsFullyNull() && !req.PlannedIdentity.Raw.Equal(resp.NewIdentity.Raw) {
 			resp.Diagnostics.AddError(
 				"Unexpected Identity Change",
 				"During the update operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+

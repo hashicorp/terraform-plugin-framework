@@ -159,6 +159,40 @@ func TestRequiresReplaceIfModifierPlanModifyInt64(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.Int64Request{
+				Plan:        testPlan(types.Int64Value(1)),
+				PlanValue:   types.Int64Null(),
+				State:       testState(types.Int64Value(1)),
+				StateValue:  types.Int64Null(),
+				ConfigValue: types.Int64Null(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Int64Request, resp *int64planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.Int64Response{
+				PlanValue:       types.Int64Null(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.Int64Request{
+				Plan:        testPlan(types.Int64Value(1)),
+				PlanValue:   types.Int64Null(),
+				State:       testState(types.Int64Value(1)),
+				StateValue:  types.Int64Null(),
+				ConfigValue: types.Int64Value(2),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Int64Request, resp *int64planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.Int64Response{
+				PlanValue:       types.Int64Null(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

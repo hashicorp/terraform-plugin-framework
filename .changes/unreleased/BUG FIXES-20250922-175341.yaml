@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'all: Added an additional validation check to ensure the resource identity object is not null.'
+time: 2025-09-22T17:53:41.039656-04:00
+custom:
+    Issue: "1193"

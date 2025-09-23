@@ -198,6 +198,17 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		}
 	}
 
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Read",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource read. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
+			return
+		}
+	}
+
 	semanticEqualityReq := SchemaSemanticEqualityRequest{
 		PriorData: fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionState,

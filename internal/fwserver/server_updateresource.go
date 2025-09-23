@@ -199,6 +199,17 @@ func (s *Server) UpdateResource(ctx context.Context, req *UpdateResourceRequest,
 		}
 	}
 
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Update",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource update. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
+			return
+		}
+	}
+
 	semanticEqualityReq := SchemaSemanticEqualityRequest{
 		PriorData: fwschemadata.Data{
 			Description:    fwschemadata.DataDescriptionPlan,

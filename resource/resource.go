@@ -26,9 +26,7 @@ import (
 // Although not required, it is conventional for resources to implement the
 // ResourceWithImportState interface.
 type Resource interface {
-	// Metadata should return the full name of the resource, such as
-	// examplecloud_thing.
-	Metadata(context.Context, MetadataRequest, *MetadataResponse)
+	ResourceMetadata
 
 	// Schema should return the schema for this resource.
 	Schema(context.Context, SchemaRequest, *SchemaResponse)
@@ -55,6 +53,12 @@ type Resource interface {
 	// call DeleteResponse.State.RemoveResource(), so it can be omitted
 	// from provider logic.
 	Delete(context.Context, DeleteRequest, *DeleteResponse)
+}
+
+type ResourceMetadata interface {
+	// Metadata should return the full name of the resource, such as
+	// examplecloud_thing.
+	Metadata(context.Context, MetadataRequest, *MetadataResponse)
 }
 
 // ResourceWithConfigure is an interface type that extends Resource to

@@ -159,6 +159,40 @@ func TestRequiresReplaceIfModifierPlanModifyFloat64(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.Float64Request{
+				Plan:        testPlan(types.Float64Value(1.2)),
+				PlanValue:   types.Float64Null(),
+				State:       testState(types.Float64Value(1.2)),
+				StateValue:  types.Float64Null(),
+				ConfigValue: types.Float64Null(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Float64Request, resp *float64planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.Float64Response{
+				PlanValue:       types.Float64Null(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.Float64Request{
+				Plan:        testPlan(types.Float64Value(1.2)),
+				PlanValue:   types.Float64Null(),
+				State:       testState(types.Float64Value(1.2)),
+				StateValue:  types.Float64Null(),
+				ConfigValue: types.Float64Value(1.1),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Float64Request, resp *float64planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.Float64Response{
+				PlanValue:       types.Float64Null(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

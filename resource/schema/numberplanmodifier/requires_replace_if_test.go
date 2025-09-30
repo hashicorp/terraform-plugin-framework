@@ -160,6 +160,40 @@ func TestRequiresReplaceIfModifierPlanModifyNumber(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.NumberRequest{
+				Plan:        testPlan(types.NumberValue(big.NewFloat(1.1))),
+				PlanValue:   types.NumberNull(),
+				State:       testState(types.NumberValue(big.NewFloat(1.1))),
+				StateValue:  types.NumberNull(),
+				ConfigValue: types.NumberNull(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.NumberRequest, resp *numberplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.NumberResponse{
+				PlanValue:       types.NumberNull(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.NumberRequest{
+				Plan:        testPlan(types.NumberValue(big.NewFloat(1.1))),
+				PlanValue:   types.NumberNull(),
+				State:       testState(types.NumberValue(big.NewFloat(1.1))),
+				StateValue:  types.NumberNull(),
+				ConfigValue: types.NumberValue(big.NewFloat(1.2)),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.NumberRequest, resp *numberplanmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.NumberResponse{
+				PlanValue:       types.NumberNull(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

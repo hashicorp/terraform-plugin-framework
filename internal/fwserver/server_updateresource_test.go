@@ -927,6 +927,116 @@ func TestServerUpdateResource(t *testing.T) {
 				Private: testEmptyPrivate,
 			},
 		},
+		"response-new-identity-nil": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw:    tftypes.NewValue(testIdentityType, nil),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							var data testSchemaData
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+							resp.Identity.Raw = tftypes.NewValue(testIdentityType, nil)
+
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				Diagnostics: []diag.Diagnostic{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Update",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource update. This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw:    tftypes.NewValue(testIdentityType, nil),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"response-new-identity-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.UpdateResourceRequest{
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testIdentitySchema,
+				},
+				IdentitySchema: testIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							var data testSchemaData
+							resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+							resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+							var identityData testIdentitySchemaData
+							resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.UpdateResourceResponse{
+				Diagnostics: []diag.Diagnostic{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Update",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource update. This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+						"test_id": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
 		"response-newstate-semantic-equality": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},

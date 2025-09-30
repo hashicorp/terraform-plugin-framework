@@ -90,6 +90,19 @@ func TestServerReadResource(t *testing.T) {
 		},
 	}
 
+	testMultiAttrIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_attr_a": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+			"test_attr_b": identityschema.Int64Attribute{
+				OptionalForImport: true,
+			},
+		},
+	}
+
+	testMultiAttrIdentityType := testMultiAttrIdentitySchema.Type().TerraformType(context.Background())
+
 	testSchemaWriteOnly := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_write_only": schema.StringAttribute{
@@ -162,6 +175,11 @@ func TestServerReadResource(t *testing.T) {
 	testNewIdentity := &tfsdk.ResourceIdentity{
 		Raw:    testNewIdentityValue,
 		Schema: testIdentitySchema,
+	}
+
+	testEmptyIdentity := &tfsdk.ResourceIdentity{
+		Schema: testIdentitySchema,
+		Raw:    tftypes.NewValue(testIdentitySchema.Type().TerraformType(context.Background()), nil),
 	}
 
 	testNewStateRemoved := &tfsdk.State{
@@ -636,6 +654,35 @@ func TestServerReadResource(t *testing.T) {
 				Private:     testEmptyPrivate,
 			},
 		},
+		"response-invalid-nil-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState:    testCurrentState,
+				CurrentIdentity: nil,
+				IdentitySchema:  testIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							resp.Identity = req.Identity
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Missing Resource Identity After Read",
+						"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource read. "+
+							"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+					),
+				},
+				NewState:    testCurrentState,
+				NewIdentity: testEmptyIdentity,
+				Private:     testEmptyPrivate,
+			},
+		},
 		"response-identity-valid-update-null-currentidentity": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -661,6 +708,48 @@ func TestServerReadResource(t *testing.T) {
 				NewState:    testCurrentState,
 				NewIdentity: testNewIdentity,
 				Private:     testEmptyPrivate,
+			},
+		},
+		"response-identity-valid-update-empty-currentidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadResourceRequest{
+				CurrentState: testCurrentState,
+				CurrentIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, nil),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, nil),
+					}),
+					Schema: testMultiAttrIdentitySchema,
+				},
+				IdentitySchema: testMultiAttrIdentitySchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						ReadMethod: func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+							identityData := struct {
+								TestAttrA types.String `tfsdk:"test_attr_a"`
+								TestAttrB types.Int64  `tfsdk:"test_attr_b"`
+							}{
+								TestAttrA: types.StringValue("new value"),
+								TestAttrB: types.Int64Value(20),
+							}
+
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ReadResourceResponse{
+				NewState: testCurrentState,
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, "new value"),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, 20),
+					}),
+					Schema: testMultiAttrIdentitySchema,
+				},
+				Private: testEmptyPrivate,
 			},
 		},
 		"response-identity-valid-update-after-import": {

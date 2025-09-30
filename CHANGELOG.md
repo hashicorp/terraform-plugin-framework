@@ -1,3 +1,10 @@
+## 1.16.1 (September 29, 2025)
+
+BUG FIXES:
+
+* all: Prevent identity change validation from raising an error when prior identity is empty (all attributes are null) ([#1229](https://github.com/hashicorp/terraform-plugin-framework/issues/1229))
+* all: Added an additional validation check to ensure the resource identity object is not null. ([#1193](https://github.com/hashicorp/terraform-plugin-framework/issues/1193))
+
 ## 1.16.0 (September 17, 2025)
 
 NOTES:

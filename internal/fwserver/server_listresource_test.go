@@ -250,6 +250,42 @@ func TestServerListResource(t *testing.T) {
 			},
 			expectedStreamEvents: []fwserver.ListResult{},
 		},
+		"null-identity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ListRequest{
+				Config: &tfsdk.Config{},
+				ListResource: &testprovider.ListResource{
+					ListMethod: func(ctx context.Context, req list.ListRequest, resp *list.ListResultsStream) {
+						resp.Results = slices.Values([]list.ListResult{
+							{
+								Identity: &tfsdk.ResourceIdentity{
+									Schema: testIdentitySchema,
+									Raw: tftypes.NewValue(testIdentityType, map[string]tftypes.Value{
+										"test_id": tftypes.NewValue(tftypes.String, nil),
+									}),
+								},
+								Resource: &tfsdk.Resource{
+									Schema: testSchema,
+									Raw:    testResourceValue1,
+								},
+								DisplayName: "Test Resource 1",
+								Diagnostics: diag.Diagnostics{},
+							},
+						})
+					},
+				},
+			},
+			expectedStreamEvents: []fwserver.ListResult{
+				{
+					DisplayName: "",
+					Diagnostics: diag.Diagnostics{
+						diag.NewErrorDiagnostic("Incomplete List Result", "When listing resources, an implementation issue was found. This is always a problem with the provider. Please report this to the provider developers.\n\nThe \"Identity\" field is nil or the values are nil.\n\n"),
+					},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

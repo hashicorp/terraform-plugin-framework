@@ -786,6 +786,7 @@ func AttributePlanModifyBool(ctx context.Context, attribute fwxschema.AttributeW
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.BoolPlanModifiers() {
@@ -946,6 +947,7 @@ func AttributePlanModifyFloat32(ctx context.Context, attribute fwxschema.Attribu
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.Float32PlanModifiers() {
@@ -1106,6 +1108,7 @@ func AttributePlanModifyFloat64(ctx context.Context, attribute fwxschema.Attribu
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.Float64PlanModifiers() {
@@ -1266,6 +1269,7 @@ func AttributePlanModifyInt32(ctx context.Context, attribute fwxschema.Attribute
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.Int32PlanModifiers() {
@@ -1426,6 +1430,7 @@ func AttributePlanModifyInt64(ctx context.Context, attribute fwxschema.Attribute
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.Int64PlanModifiers() {
@@ -1586,6 +1591,7 @@ func AttributePlanModifyList(ctx context.Context, attribute fwxschema.AttributeW
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.ListPlanModifiers() {
@@ -1746,6 +1752,7 @@ func AttributePlanModifyMap(ctx context.Context, attribute fwxschema.AttributeWi
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.MapPlanModifiers() {
@@ -1906,6 +1913,7 @@ func AttributePlanModifyNumber(ctx context.Context, attribute fwxschema.Attribut
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.NumberPlanModifiers() {
@@ -2066,6 +2074,7 @@ func AttributePlanModifyObject(ctx context.Context, attribute fwxschema.Attribut
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.ObjectPlanModifiers() {
@@ -2386,6 +2395,7 @@ func AttributePlanModifyString(ctx context.Context, attribute fwxschema.Attribut
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.StringPlanModifiers() {
@@ -2546,6 +2556,7 @@ func AttributePlanModifyDynamic(ctx context.Context, attribute fwxschema.Attribu
 		Private:        req.Private,
 		State:          req.State,
 		StateValue:     stateValue,
+		WriteOnly:      attribute.IsWriteOnly(),
 	}
 
 	for _, planModifier := range attribute.DynamicPlanModifiers() {

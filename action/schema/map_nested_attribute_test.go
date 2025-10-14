@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestMapNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -546,6 +547,12 @@ func TestMapNestedAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.MapNestedAttribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -657,6 +664,50 @@ func TestMapNestedAttributeValidateImplementation(t *testing.T) {
 							"\"test\" is an attribute that contains a collection type with a nested dynamic type.\n\n"+
 							"Dynamic types inside of collections are not currently supported in terraform-plugin-framework. "+
 							"If underlying dynamic values are required, replace the \"test\" attribute definition with DynamicAttribute instead.",
+					),
+				},
+			},
+		},
+		"writeOnly-with-child-writeOnly-no-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							WriteOnly: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{},
+		},
+		"writeOnly-without-child-writeOnly-error-diagnostic": {
+			attribute: schema.MapNestedAttribute{
+				WriteOnly: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"test_attr": schema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
+			request: fwschema.ValidateImplementationRequest{
+				Name: "test",
+				Path: path.Root("test"),
+			},
+			expected: &fwschema.ValidateImplementationResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Schema Implementation",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"test\" is a WriteOnly nested attribute that contains a non-WriteOnly child attribute.\n\n"+
+							"Every child attribute of a WriteOnly nested attribute must also have WriteOnly set to true.",
 					),
 				},
 			},

@@ -370,6 +370,12 @@ func TestStringAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.StringAttribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.StringAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {

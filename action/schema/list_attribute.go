@@ -123,6 +123,16 @@ type ListAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.List
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into a list
@@ -187,9 +197,9 @@ func (a ListAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns the WriteOnly field value.
 func (a ListAttribute) IsWriteOnly() bool {
-	return false
+	return a.WriteOnly
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant

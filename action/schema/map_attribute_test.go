@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestMapAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -376,6 +377,12 @@ func TestMapAttributeIsWriteOnly(t *testing.T) {
 		"not-writeOnly": {
 			attribute: schema.MapAttribute{},
 			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.MapAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
 		},
 	}
 

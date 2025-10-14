@@ -133,6 +133,19 @@ type ListNestedAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.List
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// If WriteOnly is true for a nested attribute, all of its child attributes
+	// must also set WriteOnly to true and no child attribute can be Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -215,9 +228,9 @@ func (a ListNestedAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns the WriteOnly field value.
 func (a ListNestedAttribute) IsWriteOnly() bool {
-	return false
+	return a.WriteOnly
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
@@ -244,5 +257,8 @@ func (a ListNestedAttribute) ListValidators() []validator.List {
 func (a ListNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
+	if a.IsWriteOnly() && !fwschema.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidWriteOnlyNestedAttributeDiag(req.Path))
 	}
 }

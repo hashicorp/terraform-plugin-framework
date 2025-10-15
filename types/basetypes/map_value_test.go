@@ -856,6 +856,51 @@ func TestMapValueType(t *testing.T) {
 	}
 }
 
+func TestMapValueLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    MapValue
+		expected int
+	}{
+		"known-empty": {
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{}),
+			expected: 0,
+		},
+		"known-single": {
+			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"key": NewStringValue("test")}),
+			expected: 1,
+		},
+		"known-multiple": {
+			input: NewMapValueMust(StringType{}, map[string]attr.Value{
+				"key1": NewStringValue("hello"),
+				"key2": NewStringValue("world"),
+			}),
+			expected: 2,
+		},
+		"null": {
+			input:    NewMapNull(StringType{}),
+			expected: 0,
+		},
+		"unknown": {
+			input:    NewMapUnknown(StringType{}),
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Length()
+
+			if got != testCase.expected {
+				t.Errorf("Expected %d, got %d", testCase.expected, got)
+			}
+		})
+	}
+}
+
 func TestMapTypeValidate(t *testing.T) {
 	t.Parallel()
 

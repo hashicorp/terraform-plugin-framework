@@ -126,14 +126,8 @@ type ObjectAttribute struct {
 	// are run in addition to the validation defined by the type.
 	Validators []validator.Object
 
-	// WriteOnly indicates that Terraform will not store this attribute value
-	// in the plan or state artifacts.
-	// If WriteOnly is true, either Optional or Required must also be true.
-	// WriteOnly cannot be set with Computed.
-	//
-	// This functionality is only supported in Terraform 1.11 and later.
-	// Practitioners that choose a value for this attribute with older
-	// versions of Terraform will receive an error.
+	// WriteOnly indicates whether this attribute can accept ephemeral values
+	// or not. If WriteOnly is true, either Optional or Required must also be true..
 	WriteOnly bool
 }
 

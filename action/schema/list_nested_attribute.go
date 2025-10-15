@@ -134,17 +134,11 @@ type ListNestedAttribute struct {
 	// are run in addition to the validation defined by the type.
 	Validators []validator.List
 
-	// WriteOnly indicates that Terraform will not store this attribute value
-	// in the plan or state artifacts.
-	// If WriteOnly is true, either Optional or Required must also be true.
-	// WriteOnly cannot be set with Computed.
+	// WriteOnly indicates whether this attribute can accept ephemeral values
+	// or not. If WriteOnly is true, either Optional or Required must also be true.
 	//
 	// If WriteOnly is true for a nested attribute, all of its child attributes
-	// must also set WriteOnly to true and no child attribute can be Computed.
-	//
-	// This functionality is only supported in Terraform 1.11 and later.
-	// Practitioners that choose a value for this attribute with older
-	// versions of Terraform will receive an error.
+	// must also set WriteOnly to true.
 	WriteOnly bool
 }
 

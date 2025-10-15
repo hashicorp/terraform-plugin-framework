@@ -370,6 +370,12 @@ func TestBoolAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.BoolAttribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.BoolAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {

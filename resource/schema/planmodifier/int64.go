@@ -49,6 +49,9 @@ type Int64Request struct {
 	// StateValue contains the value of the attribute for modification from the prior state.
 	StateValue types.Int64
 
+	// WriteOnly indicates if the attribute for which the plan modifier is executed is write-only or not.
+	WriteOnly bool
+
 	// Private is provider-defined resource private state data which was previously
 	// stored with the resource state. This data is opaque to Terraform and does
 	// not affect plan output. Any existing data is copied to

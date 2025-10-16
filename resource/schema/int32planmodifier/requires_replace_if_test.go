@@ -160,6 +160,40 @@ func TestRequiresReplaceIfModifierPlanModifyInt32(t *testing.T) {
 				RequiresReplace: false,
 			},
 		},
+		"write-only-with-null-config-value": {
+			request: planmodifier.Int32Request{
+				Plan:        testPlan(types.Int32Value(1)),
+				PlanValue:   types.Int32Null(),
+				State:       testState(types.Int32Value(1)),
+				StateValue:  types.Int32Null(),
+				ConfigValue: types.Int32Null(),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Int32Request, resp *int32planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true // should never reach here
+			},
+			expected: &planmodifier.Int32Response{
+				PlanValue:       types.Int32Null(),
+				RequiresReplace: false,
+			},
+		},
+		"write-only-with-actual-config-value": {
+			request: planmodifier.Int32Request{
+				Plan:        testPlan(types.Int32Value(1)),
+				PlanValue:   types.Int32Null(),
+				State:       testState(types.Int32Value(1)),
+				StateValue:  types.Int32Null(),
+				ConfigValue: types.Int32Value(1),
+				WriteOnly:   true,
+			},
+			ifFunc: func(ctx context.Context, req planmodifier.Int32Request, resp *int32planmodifier.RequiresReplaceIfFuncResponse) {
+				resp.RequiresReplace = true
+			},
+			expected: &planmodifier.Int32Response{
+				PlanValue:       types.Int32Null(),
+				RequiresReplace: true,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

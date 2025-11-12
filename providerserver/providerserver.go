@@ -17,6 +17,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 )
 
+func IsFrameworkServer(server tfprotov5.ProviderServer) bool {
+	if _, ok := server.(*proto5server.Server); ok {
+		return true
+	}
+
+	return false
+}
+
 // NewProtocol5 returns a protocol version 5 ProviderServer implementation
 // based on the given Provider and suitable for usage with the
 // github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server.Serve()

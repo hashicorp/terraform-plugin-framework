@@ -57,6 +57,12 @@ type Resource interface {
 	Delete(context.Context, DeleteRequest, *DeleteResponse)
 }
 
+type ResourceWithConfigModifiers interface {
+	Resource
+
+	ConfigModifiers
+}
+
 // ResourceWithConfigure is an interface type that extends Resource to
 // include a method which the framework will automatically call so provider
 // developers have the opportunity to setup any necessary provider-level data

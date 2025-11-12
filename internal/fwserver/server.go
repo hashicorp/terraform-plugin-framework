@@ -149,6 +149,12 @@ type Server struct {
 	// access from race conditions.
 	functionFuncsMutex sync.Mutex
 
+	generateResourceConfigFuncs map[string]func() resource.ConfigModifiers
+
+	generateResourceConfigFuncsDiags diag.Diagnostics
+
+	generateResourceConfigFuncsMutex sync.Mutex
+
 	// listResourceFuncs is a map of known ListResource factory functions.
 	listResourceFuncs map[string]func() list.ListResource
 
@@ -860,4 +866,18 @@ func (s *Server) ResourceIdentitySchemas(ctx context.Context) (map[string]fwsche
 	}
 
 	return resourceIdentitySchemas, diags
+}
+
+func (s *Server) ConfigModifiers(ctx context.Context) (map[string]resource.ConfigModifiers, diag.Diagnostics) {
+	configModifiers := make(map[string]resource.ConfigModifiers)
+
+	configModifierFuncs, diags := s.GenerateResourceConfigFuncs(ctx)
+
+	for typeName, configModifierFunc := range configModifierFuncs {
+		configModifiers[typeName] = configModifierFunc()
+	}
+
+	s.generateResourceConfigFuncs = configModifierFuncs
+
+	return configModifiers, diags
 }

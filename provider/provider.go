@@ -164,3 +164,9 @@ type ProviderWithValidateConfig interface {
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
+
+type ProviderWithGenerateResourceConfig interface {
+	Provider
+
+	GenerateResourceConfigs(context.Context) []func() resource.ConfigModifiers
+}

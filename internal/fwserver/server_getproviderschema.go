@@ -93,4 +93,11 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 		return
 	}
 	resp.ActionSchemas = actionSchemas
+
+	// This call populates the config modifiers registered on the server
+	_, diags = s.ConfigModifiers(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

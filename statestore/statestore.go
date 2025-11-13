@@ -3,7 +3,9 @@
 
 package statestore
 
-import "context"
+import (
+	"context"
+)
 
 type StateStore interface {
 	// Metadata should return the full name of the state store, such
@@ -17,10 +19,10 @@ type StateStore interface {
 	// provider-defined StateStore type. Configure can also be used to
 	// perform "online" validation, such as verifying permissions for storing
 	// state.
-	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+	Configure(context.Context, ConfigureStateStoreRequest, *ConfigureStateStoreResponse)
 
 	// Read returns the entire state from the state store.
-	Read(context.Context, ReadRequest, *ReadResponse)
+	Read(context.Context, ReadStateBytesRequest, *ReadStateBytesStream)
 
 	// Write writes the entire state to the state store. When a new state is
 	// created, Terraform will call Write with an empty state blob.
@@ -31,13 +33,13 @@ type StateStore interface {
 	Lock(context.Context, LockRequest, *LockResponse)
 
 	// Unlock releases a lock for the given state ID in a state store.
-	Unlock(context.Context, UnlockRequest, *UnlockResponse)
+	Unlock(context.Context, UnlockStateRequest, *UnlockStateResponse)
 
 	// GetStates returns all state IDs for a state store.
 	GetStates(context.Context, GetStatesRequest, *GetStatesResponse)
 
 	// DeleteState deletes a given state ID from a state store.
-	DeleteState(context.Context, DeleteStatesRequest, *DeleteStatesResponse)
+	DeleteState(context.Context, DeleteStateRequest, *DeleteStateResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to
@@ -49,7 +51,7 @@ type StateStoreWithConfigure interface {
 
 	// Configure enables provider-level data or clients to be set in the
 	// provider-defined StateStore type.
-	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
+	Configure(context.Context, ConfigureStateStoreRequest, *ConfigureStateStoreResponse)
 }
 
 // StateStoreWithConfigValidators is an interface type that extends StateStore to include declarative validations.

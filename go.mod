@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/google/go-cmp v0.7.0
-	github.com/hashicorp/terraform-plugin-go v0.29.1-0.20251028091959-b0e5c5f97a7c
+	github.com/hashicorp/terraform-plugin-go v0.29.1-0.20251107103451-b1dbec9688da
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 )
 

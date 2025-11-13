@@ -3,28 +3,36 @@
 
 package statestore
 
-import "github.com/hashicorp/terraform-plugin-framework/diag"
+import (
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+)
 
-// ConfigureRequest represents a request for the provider to configure an
+type StateStoreClientCapabilities struct {
+}
+
+// ConfigureStateStoreRequest represents a request for the provider to configure an
 // state store, i.e., set provider-level data or clients. An instance of this
 // request struct is supplied as an argument to the StateStore type Configure
 // method.
-type ConfigureRequest struct {
+type ConfigureStateStoreRequest struct {
 	// ProviderData is the data set in the
-	// [provider.ConfigureResponse.StateStoreData] field. This data is
+	// [provider.ConfigureStateStoreResponse.StateStoreData] field. This data is
 	// provider-specific and therefore can contain any necessary remote system
 	// clients, custom provider data, or anything else pertinent to the
 	// functionality of the StateStore.
 	//
 	// This data is only set after the ConfigureProvider RPC has been called
 	// by Terraform.
-	ProviderData any
+	TypeName     string
+	Config       tfsdk.Config
+	Capabilities StateStoreClientCapabilities
 }
 
-// ConfigureResponse represents a response to a ConfigureRequest. An
+// ConfigureStateStoreResponse represents a response to a ConfigureStateStoreRequest. An
 // instance of this response struct is supplied as an argument to the
 // StateStore type Configure method.
-type ConfigureResponse struct {
+type ConfigureStateStoreResponse struct {
 	// Diagnostics report errors or warnings related to configuring of the
 	// Datasource. An empty slice indicates a successful operation with no
 	// warnings or errors generated.

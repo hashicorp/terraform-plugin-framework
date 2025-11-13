@@ -26,6 +26,20 @@ func ConfigureProviderClientCapabilities(in *tfprotov6.ConfigureProviderClientCa
 	}
 }
 
+// TODO: Add to plugin-go tfprotov6 and implement properly when capabilities are defined.
+func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) provider.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return provider.ConfigureStateStoreClientCapabilities{
+			DeferralAllowed: false,
+		}
+	}
+
+	return provider.ConfigureStateStoreClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
 func ReadDataSourceClientCapabilities(in *tfprotov6.ReadDataSourceClientCapabilities) datasource.ReadClientCapabilities {
 	if in == nil {
 		// Client did not indicate any supported capabilities

@@ -359,7 +359,7 @@ func TestFloat64AttributeIsSensitive(t *testing.T) {
 	}
 }
 
-func TestFloat54AttributeIsWriteOnly(t *testing.T) {
+func TestFloat64AttributeIsWriteOnly(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -369,6 +369,12 @@ func TestFloat54AttributeIsWriteOnly(t *testing.T) {
 		"not-writeOnly": {
 			attribute: schema.Float64Attribute{},
 			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.Float64Attribute{
+				WriteOnly: true,
+			},
+			expected: true,
 		},
 	}
 

@@ -589,6 +589,24 @@ func TestServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
+	type testMultiIdentitySchemaData struct {
+		TestAttrA types.String `tfsdk:"test_attr_a"`
+		TestAttrB types.Int64  `tfsdk:"test_attr_b"`
+	}
+
+	testMultiAttrIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_attr_a": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+			"test_attr_b": identityschema.Int64Attribute{
+				OptionalForImport: true,
+			},
+		},
+	}
+
+	testMultiAttrIdentityType := testMultiAttrIdentitySchema.Type().TerraformType(context.Background())
+
 	testSchemaWriteOnly := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_computed": schema.StringAttribute{
@@ -6711,6 +6729,77 @@ func TestServerPlanResourceChange(t *testing.T) {
 						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
 					}),
 					Schema: testIdentitySchema,
+				},
+				PlannedState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedPrivate: testEmptyPrivate,
+			},
+		},
+		"update-resourcewithmodifyplan-empty-prioridentity-plannedidentity-changed": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.PlanResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				ProposedNewState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, nil),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, nil),
+					}),
+					Schema: testMultiAttrIdentitySchema,
+				},
+				IdentitySchema: testMultiAttrIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentityAndModifyPlan{
+					ModifyPlanMethod: func(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+						var data testSchemaData
+						resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+						data.TestComputed = types.StringValue("test-plannedstate-value")
+						resp.Diagnostics.Append(resp.Plan.Set(ctx, &data)...)
+
+						var identityData testMultiIdentitySchemaData
+						resp.Diagnostics.Append(req.Identity.Get(ctx, &identityData)...)
+						identityData.TestAttrA = types.StringValue("new value")
+						identityData.TestAttrB = types.Int64Value(20)
+						resp.Diagnostics.Append(resp.Identity.Set(ctx, &identityData)...)
+					},
+					IdentitySchemaMethod: func(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+						resp.IdentitySchema = testMultiAttrIdentitySchema
+					},
+				},
+			},
+			expectedResponse: &fwserver.PlanResourceChangeResponse{
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, "new value"),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, 20),
+					}),
+					Schema: testMultiAttrIdentitySchema,
 				},
 				PlannedState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{

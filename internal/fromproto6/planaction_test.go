@@ -39,7 +39,7 @@ func TestPlanActionRequest(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov6.NewDynamicValue(): %s", err)
 	}
 
-	testUnlinkedSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_attribute": schema.StringAttribute{
 				Required: true,
@@ -91,13 +91,13 @@ func TestPlanActionRequest(t *testing.T) {
 			input: &tfprotov6.PlanActionRequest{
 				Config: &testProto6DynamicValue,
 			},
-			actionSchema: testUnlinkedSchema,
+			actionSchema: testSchema,
 			expected: &fwserver.PlanActionRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
-					Schema: testUnlinkedSchema,
+					Schema: testSchema,
 				},
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 			},
 		},
 		"client-capabilities": {
@@ -106,9 +106,9 @@ func TestPlanActionRequest(t *testing.T) {
 					DeferralAllowed: true,
 				},
 			},
-			actionSchema: testUnlinkedSchema,
+			actionSchema: testSchema,
 			expected: &fwserver.PlanActionRequest{
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 				ClientCapabilities: action.ModifyPlanClientCapabilities{
 					DeferralAllowed: true,
 				},
@@ -116,9 +116,9 @@ func TestPlanActionRequest(t *testing.T) {
 		},
 		"client-capabilities-unset": {
 			input:        &tfprotov6.PlanActionRequest{},
-			actionSchema: testUnlinkedSchema,
+			actionSchema: testSchema,
 			expected: &fwserver.PlanActionRequest{
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 				ClientCapabilities: action.ModifyPlanClientCapabilities{
 					DeferralAllowed: false,
 				},

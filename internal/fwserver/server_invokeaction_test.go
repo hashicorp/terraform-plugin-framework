@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerInvokeAction(t *testing.T) {
@@ -33,7 +34,7 @@ func TestServerInvokeAction(t *testing.T) {
 		"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
 	})
 
-	testUnlinkedSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_required": schema.StringAttribute{
 				Required: true,
@@ -41,9 +42,9 @@ func TestServerInvokeAction(t *testing.T) {
 		},
 	}
 
-	testUnlinkedConfig := &tfsdk.Config{
+	testConfig := &tfsdk.Config{
 		Raw:    testConfigValue,
-		Schema: testUnlinkedSchema,
+		Schema: testSchema,
 	}
 
 	testCases := map[string]struct {
@@ -58,12 +59,12 @@ func TestServerInvokeAction(t *testing.T) {
 			},
 			expectedResponse: &fwserver.InvokeActionResponse{},
 		},
-		"unlinked-nil-config": {
+		"nil-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.InvokeActionRequest{
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 				Action: &testprovider.Action{
 					InvokeMethod: func(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 						if !req.Config.Raw.IsNull() {
@@ -79,8 +80,8 @@ func TestServerInvokeAction(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.InvokeActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.Action{
 					InvokeMethod: func(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 						var config struct {
@@ -103,8 +104,8 @@ func TestServerInvokeAction(t *testing.T) {
 				Provider:            &testprovider.Provider{},
 			},
 			request: &fwserver.InvokeActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.ActionWithConfigure{
 					ConfigureMethod: func(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
 						providerData, ok := req.ProviderData.(string)
@@ -141,8 +142,8 @@ func TestServerInvokeAction(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			request: &fwserver.InvokeActionRequest{
-				Config:       testUnlinkedConfig,
-				ActionSchema: testUnlinkedSchema,
+				Config:       testConfig,
+				ActionSchema: testSchema,
 				Action: &testprovider.Action{
 					InvokeMethod: func(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 						resp.Diagnostics.AddWarning("warning summary", "warning detail")

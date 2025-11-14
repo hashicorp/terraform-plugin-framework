@@ -378,6 +378,12 @@ func TestListAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.ListAttribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.ListAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -392,7 +398,6 @@ func TestListAttributeIsWriteOnly(t *testing.T) {
 		})
 	}
 }
-
 func TestListAttributeListValidators(t *testing.T) {
 	t.Parallel()
 

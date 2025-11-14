@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'action/schema: Added `WriteOnly` schema field for action schemas.'
+time: 2025-10-14T17:37:39.087475-04:00
+custom:
+    Issue: "1233"

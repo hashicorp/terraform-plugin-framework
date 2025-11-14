@@ -24,13 +24,13 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        schema.UnlinkedSchema
+		schema        schema.Schema
 		step          tftypes.AttributePathStep
 		expected      any
 		expectedError error
 	}{
 		"AttributeName-attribute": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -40,7 +40,7 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			expectedError: nil,
 		},
 		"AttributeName-block": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"testblock": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -58,7 +58,7 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			expectedError: nil,
 		},
 		"AttributeName-missing": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -68,7 +68,7 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			expectedError: fmt.Errorf("could not find attribute or block \"other\" in schema"),
 		},
 		"ElementKeyInt": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -78,7 +78,7 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyInt to schema"),
 		},
 		"ElementKeyString": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -88,7 +88,7 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			expectedError: fmt.Errorf("cannot apply AttributePathStep tftypes.ElementKeyString to schema"),
 		},
 		"ElementKeyValue": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -130,13 +130,13 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        schema.UnlinkedSchema
+		schema        schema.Schema
 		path          path.Path
 		expected      fwschema.Attribute
 		expectedDiags diag.Diagnostics
 	}{
 		"empty-root": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			path:     path.Empty(),
 			expected: nil,
 			expectedDiags: diag.Diagnostics{
@@ -146,12 +146,12 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: \n"+
-						"Original Error: got unexpected type schema.UnlinkedSchema",
+						"Original Error: got unexpected type schema.Schema",
 				),
 			},
 		},
 		"root": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -165,12 +165,12 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
 						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
 						"Path: \n"+
-						"Original Error: got unexpected type schema.UnlinkedSchema",
+						"Original Error: got unexpected type schema.Schema",
 				),
 			},
 		},
 		"WithAttributeName-attribute": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"other": schema.BoolAttribute{},
 					"test":  schema.StringAttribute{},
@@ -180,7 +180,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			expected: schema.StringAttribute{},
 		},
 		"WithAttributeName-block": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"other": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -208,7 +208,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			},
 		},
 		"WithElementKeyInt": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -227,7 +227,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			},
 		},
 		"WithElementKeyString": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -246,7 +246,7 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			},
 		},
 		"WithElementKeyValue": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -288,45 +288,45 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema      schema.UnlinkedSchema
+		schema      schema.Schema
 		path        *tftypes.AttributePath
 		expected    fwschema.Attribute
 		expectedErr string
 	}{
 		"empty-root": {
-			schema:      schema.UnlinkedSchema{},
+			schema:      schema.Schema{},
 			path:        tftypes.NewAttributePath(),
 			expected:    nil,
-			expectedErr: "got unexpected type schema.UnlinkedSchema",
+			expectedErr: "got unexpected type schema.Schema",
 		},
 		"empty-nil": {
-			schema:      schema.UnlinkedSchema{},
+			schema:      schema.Schema{},
 			path:        nil,
 			expected:    nil,
-			expectedErr: "got unexpected type schema.UnlinkedSchema",
+			expectedErr: "got unexpected type schema.Schema",
 		},
 		"root": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
 			},
 			path:        tftypes.NewAttributePath(),
 			expected:    nil,
-			expectedErr: "got unexpected type schema.UnlinkedSchema",
+			expectedErr: "got unexpected type schema.Schema",
 		},
 		"nil": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
 			},
 			path:        nil,
 			expected:    nil,
-			expectedErr: "got unexpected type schema.UnlinkedSchema",
+			expectedErr: "got unexpected type schema.Schema",
 		},
 		"WithAttributeName-attribute": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"other": schema.BoolAttribute{},
 					"test":  schema.StringAttribute{},
@@ -336,7 +336,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			expected: schema.StringAttribute{},
 		},
 		"WithAttributeName-block": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"other": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -355,7 +355,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			expectedErr: fwschema.ErrPathIsBlock.Error(),
 		},
 		"WithElementKeyInt": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -365,7 +365,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			expectedErr: "ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema",
 		},
 		"WithElementKeyString": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -375,7 +375,7 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			expectedErr: "ElementKeyString(\"test\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema",
 		},
 		"WithElementKeyValue": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.StringAttribute{},
 				},
@@ -422,15 +422,15 @@ func TestSchemaGetAttributes(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected map[string]fwschema.Attribute
 	}{
 		"no-attributes": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			expected: map[string]fwschema.Attribute{},
 		},
 		"attributes": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr1": schema.StringAttribute{},
 					"testattr2": schema.StringAttribute{},
@@ -460,15 +460,15 @@ func TestSchemaGetBlocks(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected map[string]fwschema.Block
 	}{
 		"no-blocks": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			expected: map[string]fwschema.Block{},
 		},
 		"blocks": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"testblock1": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -514,11 +514,11 @@ func TestSchemaGetDeprecationMessage(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected string
 	}{
 		"no-deprecation-message": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -526,7 +526,7 @@ func TestSchemaGetDeprecationMessage(t *testing.T) {
 			expected: "",
 		},
 		"deprecation-message": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				DeprecationMessage: "test deprecation message",
 			},
 			expected: "test deprecation message",
@@ -550,11 +550,11 @@ func TestSchemaGetDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected string
 	}{
 		"no-description": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -562,7 +562,7 @@ func TestSchemaGetDescription(t *testing.T) {
 			expected: "",
 		},
 		"description": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Description: "test description",
 			},
 			expected: "test description",
@@ -586,11 +586,11 @@ func TestSchemaGetMarkdownDescription(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected string
 	}{
 		"no-markdown-description": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -598,7 +598,7 @@ func TestSchemaGetMarkdownDescription(t *testing.T) {
 			expected: "",
 		},
 		"markdown-description": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				MarkdownDescription: "test description",
 			},
 			expected: "test description",
@@ -622,11 +622,11 @@ func TestSchemaGetVersion(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected int64
 	}{
 		"no-version": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -652,11 +652,11 @@ func TestSchemaType(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema   schema.UnlinkedSchema
+		schema   schema.Schema
 		expected attr.Type
 	}{
 		"base": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
@@ -698,18 +698,18 @@ func TestSchemaTypeAtPath(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        schema.UnlinkedSchema
+		schema        schema.Schema
 		path          path.Path
 		expected      attr.Type
 		expectedDiags diag.Diagnostics
 	}{
 		"empty-schema-empty-path": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			path:     path.Empty(),
 			expected: types.ObjectType{},
 		},
 		"empty-path": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool":   schema.BoolAttribute{},
 					"string": schema.StringAttribute{},
@@ -724,7 +724,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 		},
 		"AttributeName-Attribute": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool":   schema.BoolAttribute{},
 					"string": schema.StringAttribute{},
@@ -734,7 +734,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			expected: types.StringType,
 		},
 		"AttributeName-Block": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -751,7 +751,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 		},
 		"AttributeName-non-existent": {
-			schema: schema.UnlinkedSchema{},
+			schema: schema.Schema{},
 			path:   path.Root("non-existent"),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -764,7 +764,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 		},
 		"ElementKeyInt": {
-			schema: schema.UnlinkedSchema{},
+			schema: schema.Schema{},
 			path:   path.Empty().AtListIndex(0),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -777,7 +777,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 		},
 		"ElementKeyString": {
-			schema: schema.UnlinkedSchema{},
+			schema: schema.Schema{},
 			path:   path.Empty().AtMapKey("invalid"),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -790,7 +790,7 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 		},
 		"ElementKeyValue": {
-			schema: schema.UnlinkedSchema{},
+			schema: schema.Schema{},
 			path:   path.Empty().AtSetValue(types.StringNull()),
 			expectedDiags: diag.Diagnostics{
 				diag.NewAttributeErrorDiagnostic(
@@ -825,23 +825,23 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        schema.UnlinkedSchema
+		schema        schema.Schema
 		path          *tftypes.AttributePath
 		expected      attr.Type
 		expectedError error
 	}{
 		"empty-schema-nil-path": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			path:     nil,
 			expected: types.ObjectType{},
 		},
 		"empty-schema-empty-path": {
-			schema:   schema.UnlinkedSchema{},
+			schema:   schema.Schema{},
 			path:     tftypes.NewAttributePath(),
 			expected: types.ObjectType{},
 		},
 		"nil-path": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool":   schema.BoolAttribute{},
 					"string": schema.StringAttribute{},
@@ -856,7 +856,7 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 			},
 		},
 		"empty-path": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool":   schema.BoolAttribute{},
 					"string": schema.StringAttribute{},
@@ -871,7 +871,7 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 			},
 		},
 		"AttributeName-Attribute": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"bool":   schema.BoolAttribute{},
 					"string": schema.StringAttribute{},
@@ -881,7 +881,7 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 			expected: types.StringType,
 		},
 		"AttributeName-Block": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -898,22 +898,22 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 			},
 		},
 		"AttributeName-non-existent": {
-			schema:        schema.UnlinkedSchema{},
+			schema:        schema.Schema{},
 			path:          tftypes.NewAttributePath().WithAttributeName("non-existent"),
 			expectedError: fmt.Errorf("AttributeName(\"non-existent\") still remains in the path: could not find attribute or block \"non-existent\" in schema"),
 		},
 		"ElementKeyInt": {
-			schema:        schema.UnlinkedSchema{},
+			schema:        schema.Schema{},
 			path:          tftypes.NewAttributePath().WithElementKeyInt(0),
 			expectedError: fmt.Errorf("ElementKeyInt(0) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyInt to schema"),
 		},
 		"ElementKeyString": {
-			schema:        schema.UnlinkedSchema{},
+			schema:        schema.Schema{},
 			path:          tftypes.NewAttributePath().WithElementKeyString("invalid"),
 			expectedError: fmt.Errorf("ElementKeyString(\"invalid\") still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyString to schema"),
 		},
 		"ElementKeyValue": {
-			schema:        schema.UnlinkedSchema{},
+			schema:        schema.Schema{},
 			path:          tftypes.NewAttributePath().WithElementKeyValue(tftypes.NewValue(tftypes.String, nil)),
 			expectedError: fmt.Errorf("ElementKeyValue(tftypes.String<null>) still remains in the path: cannot apply AttributePathStep tftypes.ElementKeyValue to schema"),
 		},
@@ -950,14 +950,14 @@ func TestSchemaValidateImplementation(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		schema        schema.UnlinkedSchema
+		schema        schema.Schema
 		expectedDiags diag.Diagnostics
 	}{
 		"empty-schema": {
-			schema: schema.UnlinkedSchema{},
+			schema: schema.Schema{},
 		},
 		"attribute-using-reserved-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"depends_on": schema.StringAttribute{},
 				},
@@ -973,7 +973,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"block-using-reserved-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"connection": schema.SingleNestedBlock{},
 				},
@@ -989,7 +989,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-attribute-using-nested-reserved-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -1000,7 +1000,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-block-using-nested-reserved-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_nested_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -1011,7 +1011,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"attribute-and-blocks-using-reserved-field-names": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"depends_on": schema.StringAttribute{},
 				},
@@ -1037,7 +1037,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"attribute-using-invalid-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"^": schema.StringAttribute{},
 				},
@@ -1053,7 +1053,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"block-using-invalid-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"^": schema.SingleNestedBlock{},
 				},
@@ -1069,7 +1069,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-attribute-using-nested-invalid-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -1089,7 +1089,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-block-using-nested-invalid-field-name": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_nested_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -1109,7 +1109,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-block-with-nested-block-using-invalid-field-names": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"$": schema.SingleNestedBlock{
 						Blocks: map[string]schema.Block{
@@ -1147,7 +1147,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"attribute-with-validate-attribute-implementation-error": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"test": schema.ListAttribute{
 						Required: true,
@@ -1165,7 +1165,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-attribute-with-validate-attribute-implementation-error": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"single_nested_attribute": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -1187,7 +1187,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-block-attribute-with-validate-attribute-implementation-error": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_nested_block": schema.SingleNestedBlock{
 						Attributes: map[string]schema.Attribute{
@@ -1209,7 +1209,7 @@ func TestSchemaValidateImplementation(t *testing.T) {
 			},
 		},
 		"nested-nested-block-attribute-with-validate-attribute-implementation-error": {
-			schema: schema.UnlinkedSchema{
+			schema: schema.Schema{
 				Blocks: map[string]schema.Block{
 					"single_nested_block": schema.SingleNestedBlock{
 						Blocks: map[string]schema.Block{

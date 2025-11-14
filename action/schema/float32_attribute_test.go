@@ -370,6 +370,12 @@ func TestFloat32AttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.Float32Attribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.Float32Attribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {

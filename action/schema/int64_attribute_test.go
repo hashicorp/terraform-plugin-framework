@@ -370,6 +370,12 @@ func TestInt64AttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.Int64Attribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.Int64Attribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {

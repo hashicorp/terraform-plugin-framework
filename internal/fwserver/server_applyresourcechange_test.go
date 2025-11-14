@@ -59,6 +59,24 @@ func TestServerApplyResourceChange(t *testing.T) {
 		},
 	}
 
+	type testMultiIdentitySchemaData struct {
+		TestAttrA types.String `tfsdk:"test_attr_a"`
+		TestAttrB types.Int64  `tfsdk:"test_attr_b"`
+	}
+
+	testMultiAttrIdentitySchema := identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"test_attr_a": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+			"test_attr_b": identityschema.Int64Attribute{
+				OptionalForImport: true,
+			},
+		},
+	}
+
+	testMultiAttrIdentityType := testMultiAttrIdentitySchema.Type().TerraformType(context.Background())
+
 	testEmptyPlan := &tfsdk.Plan{
 		Raw:    tftypes.NewValue(testSchemaType, nil),
 		Schema: testSchema,
@@ -1708,6 +1726,76 @@ func TestServerApplyResourceChange(t *testing.T) {
 						"test_id": tftypes.NewValue(tftypes.String, "new-id-123"),
 					}),
 					Schema: testIdentitySchema,
+				},
+				NewState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				Private: testEmptyPrivate,
+			},
+		},
+		"update-response-newidentity-empty-plannedidentity": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ApplyResourceChangeRequest{
+				Config: &tfsdk.Config{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedState: &tfsdk.Plan{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, "test-plannedstate-value"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-new-value"),
+					}),
+					Schema: testSchema,
+				},
+				PriorState: &tfsdk.State{
+					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_required": tftypes.NewValue(tftypes.String, "test-old-value"),
+					}),
+					Schema: testSchema,
+				},
+				PlannedIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, nil),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, nil),
+					}),
+					Schema: testMultiAttrIdentitySchema,
+				},
+				IdentitySchema: testMultiAttrIdentitySchema,
+				ResourceSchema: testSchema,
+				Resource: &testprovider.ResourceWithIdentity{
+					Resource: &testprovider.Resource{
+						CreateMethod: func(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Create")
+						},
+						DeleteMethod: func(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
+							resp.Diagnostics.AddError("Unexpected Method Call", "Expected: Update, Got: Delete")
+						},
+						UpdateMethod: func(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+							resp.Diagnostics.Append(resp.Identity.Set(ctx, testMultiIdentitySchemaData{
+								TestAttrA: types.StringValue("new value"),
+								TestAttrB: types.Int64Value(20),
+							})...)
+						},
+					},
+				},
+			},
+			expectedResponse: &fwserver.ApplyResourceChangeResponse{
+				NewIdentity: &tfsdk.ResourceIdentity{
+					Raw: tftypes.NewValue(testMultiAttrIdentityType, map[string]tftypes.Value{
+						"test_attr_a": tftypes.NewValue(tftypes.String, "new value"),
+						"test_attr_b": tftypes.NewValue(tftypes.Number, 20),
+					}),
+					Schema: testMultiAttrIdentitySchema,
 				},
 				NewState: &tfsdk.State{
 					Raw: tftypes.NewValue(testSchemaType, map[string]tftypes.Value{

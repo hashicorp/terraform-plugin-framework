@@ -8,28 +8,31 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 )
 
 func TestActionSchema(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		input       actionschema.SchemaType
+		input       actionschema.Schema
 		expected    *tfprotov5.ActionSchema
 		expectedErr string
 	}
 
 	tests := map[string]testCase{
-		"nil": {
-			input:    nil,
-			expected: nil,
+		"empty": {
+			input: actionschema.Schema{},
+			expected: &tfprotov5.ActionSchema{
+				Schema: &tfprotov5.Schema{Block: &tfprotov5.SchemaBlock{}},
+			},
 		},
-		"unlinked": {
-			input: actionschema.UnlinkedSchema{
+		"valid": {
+			input: actionschema.Schema{
 				Attributes: map[string]actionschema.Attribute{
 					"bool": actionschema.BoolAttribute{
 						Optional: true,
@@ -52,7 +55,6 @@ func TestActionSchema(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.ActionSchema{
-				Type: tfprotov5.UnlinkedActionSchemaType{},
 				Schema: &tfprotov5.Schema{
 					Version: 0,
 					Block: &tfprotov5.SchemaBlock{

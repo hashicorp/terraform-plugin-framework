@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testtypes"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestDynamicAttributeApplyTerraform5AttributePathStep(t *testing.T) {
@@ -368,6 +369,12 @@ func TestDynamicAttributeIsWriteOnly(t *testing.T) {
 		"not-writeOnly": {
 			attribute: schema.DynamicAttribute{},
 			expected:  false,
+		},
+		"writeOnly": {
+			attribute: schema.DynamicAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
 		},
 	}
 

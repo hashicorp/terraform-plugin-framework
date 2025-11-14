@@ -8,13 +8,14 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestServerPlanAction(t *testing.T) {
@@ -32,7 +33,7 @@ func TestServerPlanAction(t *testing.T) {
 
 	testEmptyDynamicValue := testNewDynamicValue(t, tftypes.Object{}, nil)
 
-	testUnlinkedSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_required": schema.StringAttribute{
 				Required: true,
@@ -55,7 +56,7 @@ func TestServerPlanAction(t *testing.T) {
 								func() action.Action {
 									return &testprovider.Action{
 										SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-											resp.Schema = schema.UnlinkedSchema{}
+											resp.Schema = schema.Schema{}
 										},
 										MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
 											resp.TypeName = "test_action"
@@ -83,7 +84,7 @@ func TestServerPlanAction(t *testing.T) {
 									return &testprovider.ActionWithModifyPlan{
 										Action: &testprovider.Action{
 											SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-												resp.Schema = testUnlinkedSchema
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
 												resp.TypeName = "test_action"
@@ -123,7 +124,7 @@ func TestServerPlanAction(t *testing.T) {
 									return &testprovider.ActionWithModifyPlan{
 										Action: &testprovider.Action{
 											SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-												resp.Schema = testUnlinkedSchema
+												resp.Schema = testSchema
 											},
 											MetadataMethod: func(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
 												resp.TypeName = "test_action"

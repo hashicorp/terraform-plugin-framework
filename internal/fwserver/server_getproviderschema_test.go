@@ -42,7 +42,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -64,7 +64,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test1": actionschema.StringAttribute{
 													Required: true,
@@ -80,7 +80,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test2": actionschema.StringAttribute{
 													Required: true,
@@ -99,15 +99,15 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{
-					"test_action1": actionschema.UnlinkedSchema{
+				ActionSchemas: map[string]actionschema.Schema{
+					"test_action1": {
 						Attributes: map[string]actionschema.Attribute{
 							"test1": actionschema.StringAttribute{
 								Required: true,
 							},
 						},
 					},
-					"test_action2": actionschema.UnlinkedSchema{
+					"test_action2": {
 						Attributes: map[string]actionschema.Attribute{
 							"test2": actionschema.StringAttribute{
 								Required: true,
@@ -138,7 +138,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"$": actionschema.StringAttribute{
 													Required: true,
@@ -154,7 +154,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test2": actionschema.StringAttribute{
 													Required: true,
@@ -204,7 +204,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test1": actionschema.StringAttribute{
 													Required: true,
@@ -220,7 +220,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test2": actionschema.StringAttribute{
 													Required: true,
@@ -313,7 +313,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 							func() action.Action {
 								return &testprovider.Action{
 									SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
-										resp.Schema = actionschema.UnlinkedSchema{
+										resp.Schema = actionschema.Schema{
 											Attributes: map[string]actionschema.Attribute{
 												"test": actionschema.StringAttribute{
 													Required: true,
@@ -332,8 +332,8 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{
-					"testprovidertype_action": actionschema.UnlinkedSchema{
+				ActionSchemas: map[string]actionschema.Schema{
+					"testprovidertype_action": {
 						Attributes: map[string]actionschema.Attribute{
 							"test": actionschema.StringAttribute{
 								Required: true,
@@ -397,7 +397,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{},
+				ActionSchemas: map[string]actionschema.Schema{},
 				DataSourceSchemas: map[string]fwschema.Schema{
 					"test_data_source1": datasourceschema.Schema{
 						Attributes: map[string]datasourceschema.Attribute{
@@ -613,7 +613,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas: map[string]actionschema.SchemaType{},
+				ActionSchemas: map[string]actionschema.Schema{},
 				DataSourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_data_source": datasourceschema.Schema{
 						Attributes: map[string]datasourceschema.Attribute{
@@ -678,7 +678,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:     map[string]actionschema.SchemaType{},
+				ActionSchemas:     map[string]actionschema.Schema{},
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{
 					"test_ephemeral_resource1": ephemeralschema.Schema{
@@ -900,7 +900,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:     map[string]actionschema.SchemaType{},
+				ActionSchemas:     map[string]actionschema.Schema{},
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{
 					"testprovidertype_ephemeral_resource": ephemeralschema.Schema{
@@ -957,7 +957,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions: map[string]function.Definition{
@@ -1169,7 +1169,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1291,7 +1291,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1360,7 +1360,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1458,7 +1458,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},
@@ -1673,7 +1673,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 			},
 			request: &fwserver.GetProviderSchemaRequest{},
 			expectedResponse: &fwserver.GetProviderSchemaResponse{
-				ActionSchemas:            map[string]actionschema.SchemaType{},
+				ActionSchemas:            map[string]actionschema.Schema{},
 				DataSourceSchemas:        map[string]fwschema.Schema{},
 				EphemeralResourceSchemas: map[string]fwschema.Schema{},
 				FunctionDefinitions:      map[string]function.Definition{},

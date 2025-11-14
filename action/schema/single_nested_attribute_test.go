@@ -508,6 +508,12 @@ func TestSingleNestedAttributeIsWriteOnly(t *testing.T) {
 			attribute: schema.SingleNestedAttribute{},
 			expected:  false,
 		},
+		"writeOnly": {
+			attribute: schema.SingleNestedAttribute{
+				WriteOnly: true,
+			},
+			expected: true,
+		},
 	}
 
 	for name, testCase := range testCases {

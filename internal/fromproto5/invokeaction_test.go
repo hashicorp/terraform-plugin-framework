@@ -39,7 +39,7 @@ func TestInvokeActionRequest(t *testing.T) {
 		t.Fatalf("unexpected error calling tfprotov5.NewDynamicValue(): %s", err)
 	}
 
-	testUnlinkedSchema := schema.UnlinkedSchema{
+	testSchema := schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"test_attribute": schema.StringAttribute{
 				Required: true,
@@ -91,13 +91,13 @@ func TestInvokeActionRequest(t *testing.T) {
 			input: &tfprotov5.InvokeActionRequest{
 				Config: &testProto5DynamicValue,
 			},
-			actionSchema: testUnlinkedSchema,
+			actionSchema: testSchema,
 			expected: &fwserver.InvokeActionRequest{
 				Config: &tfsdk.Config{
 					Raw:    testProto5Value,
-					Schema: testUnlinkedSchema,
+					Schema: testSchema,
 				},
-				ActionSchema: testUnlinkedSchema,
+				ActionSchema: testSchema,
 			},
 		},
 	}

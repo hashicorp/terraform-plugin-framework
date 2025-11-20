@@ -22,7 +22,7 @@ type StateStore interface {
 	Configure(context.Context, ConfigureStateStoreRequest, *ConfigureStateStoreResponse)
 
 	// Read returns the entire state from the state store.
-	Read(context.Context, ReadStateBytesRequest, *ReadStateBytesStream)
+	Read(context.Context, ReadStateBytesRequest, *ReadStateResponse)
 
 	// Write writes the entire state to the state store. When a new state is
 	// created, Terraform will call Write with an empty state blob.
@@ -39,7 +39,7 @@ type StateStore interface {
 	GetStates(context.Context, GetStatesRequest, *GetStatesResponse)
 
 	// DeleteState deletes a given state ID from a state store.
-	DeleteState(context.Context, DeleteStateRequest, *DeleteStateResponse)
+	DeleteState(context.Context, DeleteStatesRequest, *DeleteStatesResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

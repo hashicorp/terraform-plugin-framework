@@ -43,6 +43,9 @@ const (
 	// The type of list resource being operated on, such as "random_pet"
 	KeyListResourceType = "tf_list_resource_type"
 
+	// The type of action being operated on, such as "examplecloud_do_thing"
+	KeyStateStoreType = "tf_state_store_type"
+
 	// The type of value being operated on, such as "JSONStringValue".
 	KeyValueType = "tf_value_type"
 )

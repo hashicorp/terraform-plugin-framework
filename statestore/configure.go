@@ -9,6 +9,7 @@ import (
 )
 
 type StateStoreClientCapabilities struct {
+	DeferralAllowed bool
 }
 
 // ConfigureStateStoreRequest represents a request for the provider to configure an
@@ -24,7 +25,6 @@ type ConfigureStateStoreRequest struct {
 	//
 	// This data is only set after the ConfigureProvider RPC has been called
 	// by Terraform.
-	TypeName     string
 	Config       tfsdk.Config
 	Capabilities StateStoreClientCapabilities
 }

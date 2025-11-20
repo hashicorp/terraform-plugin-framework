@@ -20,5 +20,5 @@ type UnlockStateRequest struct {
 // instance of this response struct is supplied as an argument to the
 // StateStore type Unlock method.
 type UnlockStateResponse struct {
-	Diagnostics []*diag.Diagnostic
+	Diagnostics diag.Diagnostic
 }

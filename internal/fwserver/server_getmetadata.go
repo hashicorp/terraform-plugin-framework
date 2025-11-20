@@ -23,6 +23,7 @@ type GetMetadataResponse struct {
 	Functions          []FunctionMetadata
 	ListResources      []ListResourceMetadata
 	Resources          []ResourceMetadata
+	StateStore         []StateStoreMetadata
 	ServerCapabilities *ServerCapabilities
 }
 
@@ -68,6 +69,13 @@ type ActionMetadata struct {
 	TypeName string
 }
 
+// StateStoreMetadata is the framework server equivalent of the
+// tfprotov5.StateStoreMetadata and tfprotov6.StateStoreMetadata types.
+type StateStoreMetadata struct {
+	// TypeName is the name of the action.
+	TypeName string
+}
+
 // GetMetadata implements the framework server GetMetadata RPC.
 func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp *GetMetadataResponse) {
 	resp.Actions = []ActionMetadata{}
@@ -75,6 +83,7 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
 	resp.ListResources = []ListResourceMetadata{}
+	resp.StateStore = []StateStoreMetadata{}
 	resp.Resources = []ResourceMetadata{}
 
 	resp.ServerCapabilities = s.ServerCapabilities()
@@ -94,6 +103,9 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resourceMetadatas, diags := s.ResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 
+	statestoreMetadatas, diags := s.StateStoreMetadatas(ctx)
+	resp.Diagnostics.Append(diags...)
+
 	// Metadata for list resources must be retrieved after metadata for managed
 	// resources. Server.ListResourceFuncs checks that each list resource type
 	// name matches a known managed resource type name.
@@ -110,4 +122,5 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.Functions = functionMetadatas
 	resp.ListResources = listResourceMetadatas
 	resp.Resources = resourceMetadatas
+	resp.StateStore = statestoreMetadatas
 }

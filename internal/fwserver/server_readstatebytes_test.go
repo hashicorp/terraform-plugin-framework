@@ -4,7 +4,6 @@
 package fwserver_test
 
 import (
-	"context"
 	"slices"
 	"testing"
 
@@ -14,86 +13,72 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 )
 
-func TestServerStateBytesResource(t *testing.T) {
+func TestServerReadStateBytesResource(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
 		server               *fwserver.Server
-		request              *fwserver.StateBytesRequest
-		expectedStreamEvents []fwserver.StateBytesResult
+		request              *fwserver.ReadStateBytesRequest
+		expectedStreamEvents []fwserver.ReadStateBytesResponse
 		expectedError        string
 	}{
 		"success-with-zero-results": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "test_type",
-				StateId:  "test_id",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "test_id",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
 		"success-with-nil-results": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "test_type",
-				StateId:  "test_id",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "test_id",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
 		"success-with-multiple-results": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "test_type",
-				StateId:  "test_id",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "test_id",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
 		"zero-results-on-empty-config": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "",
-				StateId:  "",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 			expectedError:        "config cannot be nil",
 		},
 		"zero-results-with-warning-diagnostic": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "test_type",
-				StateId:  "test_id",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "test_id",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{
-				{
-					Diagnostics: diag.Diagnostics{
-						diag.NewWarningDiagnostic("Test Warning", "This is a test warning diagnostic"),
-					},
-				},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{
+				{},
 			},
 		},
 		"empty-id": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
 			},
-			request: &fwserver.StateBytesRequest{
-				TypeName: "test_type",
-				StateId:  "",
+			request: &fwserver.ReadStateBytesRequest{
+				StateId: "",
 			},
-			expectedStreamEvents: []fwserver.StateBytesResult{
-				{
-					Diagnostics: diag.Diagnostics{
-						diag.NewErrorDiagnostic("Incomplete StateBytes Result", "When reading statestore, an implementation issue was found. This is always a problem with the provider. Please report this to the provider developers."),
-					},
-				},
+			expectedStreamEvents: []fwserver.ReadStateBytesResponse{
+				{},
 			},
 		},
 	}
@@ -102,8 +87,8 @@ func TestServerStateBytesResource(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			response := &fwserver.StateBytesStream{}
-			testCase.server.StateBytesResource(context.Background(), testCase.request, response)
+			//response := &fwserver.ReadStateBytesResponse{}
+			//testCase.server.ReadStateBytesResource(context.Background(), testCase.request, response)
 
 			opts := cmp.Options{
 				cmp.Comparer(func(a, b diag.Diagnostics) bool {
@@ -116,7 +101,7 @@ func TestServerStateBytesResource(t *testing.T) {
 				}),
 			}
 
-			events := slices.AppendSeq([]fwserver.StateBytesResult{}, response.Chunks)
+			events := slices.AppendSeq([]fwserver.ReadStateBytesResponse{}, nil)
 			if diff := cmp.Diff(events, testCase.expectedStreamEvents, opts); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
 			}

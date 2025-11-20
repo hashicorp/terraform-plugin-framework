@@ -4,32 +4,21 @@
 package statestore
 
 import (
-	"iter"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-type WriteStateBytesStream struct {
-	Chunks iter.Seq[WriteStateBytesChunk]
+type WriteClientCapabilities struct {
 }
 
-// WriteStateBytesChunk contains:
-//  1. A chunk of state data, received from Terraform core to be persisted.
-//  2. Any gRPC-related errors the provider server encountered when
-//     receiving data from Terraform core.
-//
-// If a gRPC error is set, then the chunk should be empty.
-type WriteStateBytesChunk struct {
-	Meta *WriteStateChunkMeta
-	StateByteChunk
-	Err error
+// WriteStateBytesRequest represents a request for the provider to read a data
+// source, i.e., update values in state according to the real state of the
+// state store. An instance of this request struct is supplied as an argument
+// to the state store's Write function.
+type WriteRequest struct {
+	StateId string // The ID of the state to read.
 }
 
-type WriteStateChunkMeta struct {
-	TypeName string
-	StateId  string
-}
-
-type WriteStateBytesResponse struct {
-	Diagnostics []*diag.Diagnostic
+type WriteResponse struct {
+	Bytes       []byte
+	Diagnostics diag.Diagnostics
 }

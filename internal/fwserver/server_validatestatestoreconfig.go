@@ -35,9 +35,7 @@ func (s *Server) ValidateStateStore(ctx context.Context, req *ValidateStateStore
 	if statestoreResourceWithConfigure, ok := req.StateStore.(statestore.StateStoreWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "StateStore implements StateStoreWithConfigure")
 
-		configureReq := statestore.ConfigureStateStoreRequest{
-			// TODO: ProviderData: s.StateStoreData,
-		}
+		configureReq := statestore.ConfigureStateStoreRequest{}
 		configureResp := statestore.ConfigureStateStoreResponse{}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined StateStore Configure")

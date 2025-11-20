@@ -21,7 +21,7 @@ func readStateBytesErrorDiagnostics(ctx context.Context, diags diag.Diagnostics)
 	return &tfprotov6.ReadStateBytesStream{
 		Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
 			push(tfprotov6.ReadStateByteChunk{
-				Diagnostics: toproto6.Diagnostics(ctx, diags),
+				Diagnostics: toproto6.Diagnostics(ctx, diags), // TODO : Think about how we handle diags
 			})
 		},
 	}, nil
@@ -57,16 +57,22 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 		return readStateBytesErrorDiagnostics(ctx, fwResp.Diagnostics)
 	}
 
+	//var defaultChunkSize int64
+	//defaultChunkSize = 8 << 20 // 8 MB
+
 	protoStream := &tfprotov6.ReadStateBytesStream{
 		Chunks: func(push func(tfprotov6.ReadStateByteChunk) bool) {
-			go func() {
-				s.FrameworkServer.ReadStateBytes(ctx, fwReq, fwResp)
-			}()
-
-			for {
-				push(toproto6.ReadStateByteChunkType(ctx, fwResp))
-				return
-			}
+			// TODO: Decide on chunk size, get from configure client capabilities?
+			// Is the provider dev allowed to negotiate and is the chunk size supposed to be global to the provider? (Per 1 state store?) Can we store it on the server?
+			// Default is 8MB
+			//for _, chunk := range fwResp.Bytes {
+			// record where we are
+			// do math
+			// look up examples of chunking in go
+			//}
+			s.FrameworkServer.ReadStateBytes(ctx, fwReq, fwResp)
+			push(toproto6.ReadStateByteChunkType(ctx, fwResp))
+			return
 		},
 	}
 

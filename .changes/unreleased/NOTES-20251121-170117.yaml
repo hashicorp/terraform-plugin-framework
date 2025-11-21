@@ -1,0 +1,9 @@
+kind: NOTES
+body: 'In `terraform-plugin-framework@v1.15.1`, the `UseStateForUnknown` plan modifier was updated to preserve null values from prior state
+    for unconfigured attributes. This updated version can cause plan inconsistency errors when used on child attributes of a nested attribute
+    that expect `UseStateForUnknown` to keep the child attributes on new nested objects as `<unknown>` (known after apply).
+
+    The new `UseNonNullStateForUnknown` plan modifier can now be used where child attributes are expecting this pre-1.15.1 behavior.'
+time: 2025-11-21T17:01:17.961155-05:00
+custom:
+    Issue: "1197"

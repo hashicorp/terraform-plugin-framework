@@ -1,6 +1,0 @@
-kind: FEATURES
-body: 'all: Added a new plan modifier for all types, `UseNonNullStateForUnknown` that preserves known, non-null, values for unconfigured attributes.
-    This can be used when it is known that an unconfigured value will remain the same after the attribute is updated to a non-null value.'
-time: 2025-11-21T16:59:55.611735-05:00
-custom:
-    Issue: "1242"

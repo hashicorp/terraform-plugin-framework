@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: 'fwserver: update validation list result validation to check if an identity''s values are all null'
-time: 2025-10-01T15:23:00.976476+02:00
-custom:
-    Issue: "1230"

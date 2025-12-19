@@ -56,12 +56,14 @@ func ModifyPlanClientCapabilities(in *tfprotov6.PlanResourceChangeClientCapabili
 	if in == nil {
 		// Client did not indicate any supported capabilities
 		return resource.ModifyPlanClientCapabilities{
-			DeferralAllowed: false,
+			DeferralAllowed:     false,
+			StorePlannedPrivate: false,
 		}
 	}
 
 	return resource.ModifyPlanClientCapabilities{
-		DeferralAllowed: in.DeferralAllowed,
+		DeferralAllowed:     in.DeferralAllowed,
+		StorePlannedPrivate: in.StorePlannedPrivate,
 	}
 }
 

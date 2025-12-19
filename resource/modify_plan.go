@@ -20,6 +20,12 @@ type ModifyPlanClientCapabilities struct {
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
 	DeferralAllowed bool
+
+	// StorePlannedPrivate indicates that Terraform will store private data returned from PlanResourceChange,
+	// and return it with the final PlanResourceChange call.
+	//
+	// This allows providers to persist data between initial plan and final plan.
+	StorePlannedPrivate bool
 }
 
 // ModifyPlanRequest represents a request for the provider to modify the
@@ -59,6 +65,18 @@ type ModifyPlanRequest struct {
 	// ClientCapabilities defines optionally supported protocol features for the
 	// PlanResourceChange RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities ModifyPlanClientCapabilities
+
+	// PlannedPrivate is provider-defined resource private state data which was previously
+	// returned by an initial call to PlanResourceChange. This field allows providers to
+	// persist data between an initial plan and a final plan (which are both part of the same
+	// plan CLI operation).
+	//
+	// This field is only set when ModifyPlanClientCapabilities.StorePlannedPrivate is set to true, otherwise it will be nil.
+	//
+	// Use the GetKey method to read data.
+	//
+	// TODO: This doc comment could probably be cleaned up / clarified a bit.
+	PlannedPrivate *privatestate.ProviderData
 }
 
 // ModifyPlanResponse represents a response to a

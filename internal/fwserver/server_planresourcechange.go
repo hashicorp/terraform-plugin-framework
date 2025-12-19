@@ -37,6 +37,7 @@ type PlanResourceChangeRequest struct {
 	IdentitySchema     fwschema.Schema
 	Resource           resource.Resource
 	ResourceBehavior   resource.ResourceBehavior
+	PlannedPrivate     *privatestate.Data
 }
 
 // PlanResourceChangeResponse is the framework server response for the
@@ -148,6 +149,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		if resp.PlannedPrivate.Provider == nil {
 			resp.PlannedPrivate.Provider = privatestate.EmptyProviderData(ctx)
 		}
+	}
+
+	// If the client can store planned private data, ensure it's never nil.
+	if req.ClientCapabilities.StorePlannedPrivate && req.PlannedPrivate == nil {
+		req.PlannedPrivate = privatestate.EmptyData(ctx)
 	}
 
 	resp.PlannedState = planToState(*req.ProposedNewState)
@@ -319,6 +325,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			Plan:               stateToPlan(*resp.PlannedState),
 			State:              *req.PriorState,
 			Private:            resp.PlannedPrivate.Provider,
+		}
+
+		// If the client can persist private data between plans, pass the data along.
+		if req.ClientCapabilities.StorePlannedPrivate {
+			modifyPlanReq.PlannedPrivate = req.PlannedPrivate.Provider
 		}
 
 		if req.ProviderMeta != nil {

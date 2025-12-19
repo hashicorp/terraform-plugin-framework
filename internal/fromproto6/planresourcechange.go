@@ -82,5 +82,11 @@ func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResour
 
 	fw.PriorPrivate = privateData
 
+	plannedPrivateData, plannedPrivateDataDiags := privatestate.NewData(ctx, proto6.PlannedPrivate)
+
+	diags.Append(plannedPrivateDataDiags...)
+
+	fw.PlannedPrivate = plannedPrivateData
+
 	return fw, diags
 }

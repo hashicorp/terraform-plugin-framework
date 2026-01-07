@@ -732,3 +732,48 @@ func TestTupleValueToTerraformValue(t *testing.T) {
 		})
 	}
 }
+
+func TestTupleValueLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    TupleValue
+		expected int
+	}{
+		"known-empty": {
+			input:    NewTupleValueMust([]attr.Type{}, []attr.Value{}),
+			expected: 0,
+		},
+		"known-single": {
+			input:    NewTupleValueMust([]attr.Type{StringType{}}, []attr.Value{NewStringValue("test")}),
+			expected: 1,
+		},
+		"known-multiple": {
+			input: NewTupleValueMust(
+				[]attr.Type{StringType{}, BoolType{}},
+				[]attr.Value{NewStringValue("hello"), NewBoolValue(true)},
+			),
+			expected: 2,
+		},
+		"null": {
+			input:    NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
+			expected: 0,
+		},
+		"unknown": {
+			input:    NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Length()
+
+			if got != testCase.expected {
+				t.Errorf("Expected %d, got %d", testCase.expected, got)
+			}
+		})
+	}
+}

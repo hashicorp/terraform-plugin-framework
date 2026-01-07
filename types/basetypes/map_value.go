@@ -178,6 +178,11 @@ func (m MapValue) Elements() map[string]attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the Map.
+func (m MapValue) Length() int {
+	return len(m.elements)
+}
+
 // ElementsAs populates `target` with the elements of the MapValue, throwing an
 // error if the elements cannot be stored in `target`.
 func (m MapValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {

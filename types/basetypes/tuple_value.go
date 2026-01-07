@@ -131,6 +131,11 @@ func (v TupleValue) Elements() []attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the Tuple.
+func (v TupleValue) Length() int {
+	return len(v.elements)
+}
+
 // ElementTypes returns the ordered list of element types for the Tuple.
 func (v TupleValue) ElementTypes(ctx context.Context) []attr.Type {
 	return v.elementTypes

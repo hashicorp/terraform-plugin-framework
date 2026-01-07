@@ -173,6 +173,11 @@ func (l ListValue) Elements() []attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the List.
+func (l ListValue) Length() int {
+	return len(l.elements)
+}
+
 // ElementsAs populates `target` with the elements of the ListValue, throwing an
 // error if the elements cannot be stored in `target`.
 func (l ListValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {

@@ -1,3 +1,19 @@
+## 1.17.0 (December 02, 2025)
+
+NOTES:
+
+* In `terraform-plugin-framework@v1.15.1`, the `UseStateForUnknown` plan modifier was updated to preserve null values from prior state for unconfigured attributes. This updated version can cause plan inconsistency errors when used on child attributes of a nested attribute that expect `UseStateForUnknown` to keep the child attributes on new nested objects as `<unknown>` (known after apply).
+The new `UseNonNullStateForUnknown` plan modifier can now be used where child attributes are expecting this pre-1.15.1 behavior. ([#1197](https://github.com/hashicorp/terraform-plugin-framework/issues/1197))
+
+FEATURES:
+
+* action/schema: Added `WriteOnly` schema field for action schemas. ([#1233](https://github.com/hashicorp/terraform-plugin-framework/issues/1233))
+* all: Added a new plan modifier for all types, `UseNonNullStateForUnknown` that preserves known, non-null, values for unconfigured attributes. This can be used when it is known that an unconfigured value will remain the same after the attribute is updated to a non-null value. ([#1242](https://github.com/hashicorp/terraform-plugin-framework/issues/1242))
+
+BUG FIXES:
+
+* fwserver: update validation list result validation to check if an identity's values are all null ([#1230](https://github.com/hashicorp/terraform-plugin-framework/issues/1230))
+
 ## 1.16.1 (September 29, 2025)
 
 BUG FIXES:
@@ -62,6 +78,10 @@ BUG FIXES:
 * all: Fixed bug with `UseStateForUnknown` where known null state values were not preserved during update plans. ([#1117](https://github.com/hashicorp/terraform-plugin-framework/issues/1117))
 
 ## 1.15.1 (July 31, 2025)
+
+NOTES:
+
+* This release contains a change in behavior for the `UseStateForUnknown` plan modifier, which will now preserve null values from prior state for unconfigured attributes. This updated version can cause plan inconsistency errors when used on child attributes of a nested attribute that expect `UseStateForUnknown` to keep the child attributes on new nested objects as `<unknown>` (known after apply). See [#1197](https://github.com/hashicorp/terraform-plugin-framework/issues/1197) for more details.
 
 BUG FIXES:
 

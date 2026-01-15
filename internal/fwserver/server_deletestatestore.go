@@ -24,6 +24,8 @@ type DeleteStatesResponse struct {
 
 // DeleteStates implements the framework server DeleteStates RPC.
 func (s *Server) DeleteStates(ctx context.Context, req *DeleteStatesRequest, resp *DeleteStatesResponse) {
+	resp.ServerCapabilities = s.ServerCapabilities()
+
 	stateStores, diags := s.StateStore(ctx, s.providerTypeName)
 	resp.Diagnostics.Append(diags...)
 

@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 )
@@ -27,6 +28,12 @@ func TestServerGetStates(t *testing.T) {
 				Provider: &testprovider.Provider{},
 			},
 			expectedResponse: &fwserver.GetStatesResponse{
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"StateStore Type Not Found",
+						`No statestore type named "" was found in the provider.`,
+					),
+				},
 				ServerCapabilities: &fwserver.ServerCapabilities{
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,

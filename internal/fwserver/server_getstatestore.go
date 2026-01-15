@@ -24,6 +24,8 @@ type GetStatesResponse struct {
 
 // GetStates implements the framework server GetStates RPC.
 func (s *Server) GetStates(ctx context.Context, req *GetStatesRequest, resp *GetStatesResponse) {
+	resp.ServerCapabilities = s.ServerCapabilities()
+
 	stateStores, diags := s.StateStore(ctx, s.providerTypeName)
 	resp.Diagnostics.Append(diags...)
 

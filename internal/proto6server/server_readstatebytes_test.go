@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	"github.com/hashicorp/terraform-plugin-framework/statestore/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -48,6 +47,9 @@ func TestServerReadStateBytes(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 											resp.TypeName = "test_statestore"
 										},
+										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateResponse) {
+											resp.Bytes = []byte("test-config-value")
+										},
 									}
 								},
 							}
@@ -56,11 +58,19 @@ func TestServerReadStateBytes(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.ReadStateBytesRequest{
-				StateId: "test_statestore",
+				TypeName: "test_statestore",
+				StateId:  "test_statestore",
 			},
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
-					StateByteChunk: tfprotov6.StateByteChunk{Bytes: []byte("test-config-value")},
+					StateByteChunk: tfprotov6.StateByteChunk{
+						Bytes:       []byte("test-config-value"),
+						TotalLength: 17,
+						Range: tfprotov6.StateByteRange{
+							Start: 0,
+							End:   17,
+						},
+					},
 				},
 			},
 		},
@@ -79,15 +89,7 @@ func TestServerReadStateBytes(t *testing.T) {
 											resp.TypeName = "test_statestore"
 										},
 										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateResponse) {
-											var config struct {
-												TestRequired types.String `tfsdk:"test_required"`
-											}
-
-											// resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
-											if config.TestRequired.ValueString() != "test-config-value" {
-												resp.Diagnostics.AddError("unexpected req.Config value: %s", config.TestRequired.ValueString())
-											}
+											resp.Bytes = []byte("test-config-value")
 										},
 									}
 								},
@@ -97,11 +99,19 @@ func TestServerReadStateBytes(t *testing.T) {
 				},
 			},
 			request: &tfprotov6.ReadStateBytesRequest{
-				StateId: "test_statestore",
+				TypeName: "test_statestore",
+				StateId:  "test_statestore",
 			},
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
-					StateByteChunk: tfprotov6.StateByteChunk{Bytes: []byte("test-config-value")},
+					StateByteChunk: tfprotov6.StateByteChunk{
+						Bytes:       []byte("test-config-value"),
+						TotalLength: 17,
+						Range: tfprotov6.StateByteRange{
+							Start: 0,
+							End:   17,
+						},
+					},
 				},
 			},
 		},

@@ -4,6 +4,7 @@
 package proto6server
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -57,22 +58,60 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 		return readStateBytesErrorDiagnostics(ctx, fwResp.Diagnostics)
 	}
 
-	//var defaultChunkSize int64
-	//defaultChunkSize = 8 << 20 // 8 MB
-
 	protoStream := &tfprotov6.ReadStateBytesStream{
 		Chunks: func(push func(tfprotov6.ReadStateByteChunk) bool) {
-			// TODO: Decide on chunk size, get from configure client capabilities?
-			// Is the provider dev allowed to negotiate and is the chunk size supposed to be global to the provider? (Per 1 state store?) Can we store it on the server?
-			// Default is 8MB
-			//for _, chunk := range fwResp.Bytes {
-			// record where we are
-			// do math
-			// look up examples of chunking in go
-			//}
 			s.FrameworkServer.ReadStateBytes(ctx, fwReq, fwResp)
-			push(toproto6.ReadStateByteChunkType(ctx, fwResp))
-			return
+
+			if fwResp.Diagnostics.HasError() {
+				push(tfprotov6.ReadStateByteChunk{
+					Diagnostics: toproto6.Diagnostics(ctx, fwResp.Diagnostics),
+				})
+				return
+			}
+
+			// TODO: Get chunk size from statestore.ConfiguredChunkSize() when available
+			// For now, use 8MB default
+			chunkSize := 8 << 20 // 8 MB
+
+			reader := bytes.NewReader(fwResp.Bytes)
+			totalLength := reader.Size()
+			rangeStart := 0
+
+			for {
+				readBytes := make([]byte, chunkSize)
+				byteCount, err := reader.Read(readBytes)
+
+				if byteCount == 0 {
+					break
+				}
+
+				chunk := tfprotov6.ReadStateByteChunk{
+					StateByteChunk: tfprotov6.StateByteChunk{
+						Bytes:       readBytes[:byteCount],
+						TotalLength: int64(totalLength),
+						Range: tfprotov6.StateByteRange{
+							Start: int64(rangeStart),
+							End:   int64(rangeStart + byteCount),
+						},
+					},
+				}
+
+				// Include diagnostics only on first chunk
+				if rangeStart == 0 {
+					chunk.Diagnostics = toproto6.Diagnostics(ctx, fwResp.Diagnostics)
+				}
+
+				if !push(chunk) {
+					return
+				}
+
+				rangeStart += byteCount
+
+				// Handle read errors
+				if err != nil {
+					break
+				}
+			}
 		},
 	}
 

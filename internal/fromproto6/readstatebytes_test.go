@@ -10,7 +10,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
@@ -21,6 +23,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 	testCases := map[string]struct {
 		input               *tfprotov6.ReadStateBytesRequest
 		stateStore          statestore.StateStore
+		statestoreSchema    fwschema.Schema
 		expected            *fwserver.ReadStateBytesRequest
 		expectedDiagnostics diag.Diagnostics
 	}{
@@ -29,8 +32,9 @@ func TestReadStateBytesRequest(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &tfprotov6.ReadStateBytesRequest{},
-			expected: nil,
+			input:            &tfprotov6.ReadStateBytesRequest{},
+			statestoreSchema: nil,
+			expected:         nil,
 			expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Missing StateBytes Schema",
@@ -45,7 +49,8 @@ func TestReadStateBytesRequest(t *testing.T) {
 			input: &tfprotov6.ReadStateBytesRequest{
 				StateId: "",
 			},
-			expected: nil,
+			statestoreSchema: testschema.Schema{},
+			expected:         nil,
 			expectedDiagnostics: diag.Diagnostics{
 				diag.NewErrorDiagnostic(
 					"Missing State ID",
@@ -60,6 +65,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 			input: &tfprotov6.ReadStateBytesRequest{
 				StateId: "test-value",
 			},
+			statestoreSchema: testschema.Schema{},
 			expected: &fwserver.ReadStateBytesRequest{
 				StateId: "test-value",
 			},
@@ -70,7 +76,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.ReadStateBytesRequest(context.Background(), testCase.input, testCase.stateStore)
+			got, diags := fromproto6.ReadStateBytesRequest(context.Background(), testCase.input, testCase.stateStore, testCase.statestoreSchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

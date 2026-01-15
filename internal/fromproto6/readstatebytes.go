@@ -26,7 +26,7 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 	// This should not happen, but just in case.
 	if statestoreSchema == nil {
 		diags.AddError(
-			"Missing State Store Schema",
+			"Missing StateBytes Schema",
 			"An unexpected error was encountered when handling the request. "+
 				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+
@@ -36,12 +36,22 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 		return nil, diags
 	}
 
+	if proto6.StateId == "" {
+		diags.AddError(
+			"Missing State ID",
+			"An unexpected error was encountered when handling the request. "+
+				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+				"Please report this to the provider developer:\n\n"+
+				"Missing State ID.",
+		)
+
+		return nil, diags
+	}
+
 	fw := &fwserver.ReadStateBytesRequest{
 		StateStore: stateStore,
 		StateId:    proto6.StateId,
 	}
-
-	fw.StateId = proto6.StateId
 
 	return fw, diags
 }

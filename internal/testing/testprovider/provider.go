@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 var _ provider.Provider = &Provider{}
@@ -23,6 +24,7 @@ type Provider struct {
 	ConfigureMethod          func(context.Context, provider.ConfigureRequest, *provider.ConfigureResponse)
 	SchemaMethod             func(context.Context, provider.SchemaRequest, *provider.SchemaResponse)
 	ActionsMethod            func(context.Context) []func() action.Action
+	StateStoresMethod        func(context.Context) []func() statestore.StateStore
 	DataSourcesMethod        func(context.Context) []func() datasource.DataSource
 	EphemeralResourcesMethod func(context.Context) []func() ephemeral.EphemeralResource
 	ListResourcesMethod      func(context.Context) []func() list.ListResource
@@ -45,6 +47,15 @@ func (p *Provider) Actions(ctx context.Context) []func() action.Action {
 	}
 
 	return p.ActionsMethod(ctx)
+}
+
+// StateStores satisfies the provider.Provider interface.
+func (p *Provider) StateStores(ctx context.Context) []func() statestore.StateStore {
+	if p == nil || p.StateStoresMethod == nil {
+		return nil
+	}
+
+	return p.StateStoresMethod(ctx)
 }
 
 // DataSources satisfies the provider.Provider interface.

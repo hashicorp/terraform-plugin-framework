@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
+	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 )
 
 // Server implements the framework provider server. Protocol specific
@@ -51,6 +53,11 @@ type Server struct {
 	// [provider.ConfigureResponse.ActionData] field value which is passed
 	// to [action.ConfigureRequest.ProviderData].
 	ActionConfigureData any
+
+	// ActionConfigureData is the
+	// [provider.ConfigureResponse.ActionData] field value which is passed
+	// to [action.ConfigureRequest.ProviderData].
+	StateStoreConfigureData any
 
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
@@ -250,6 +257,29 @@ type Server struct {
 	// resourceBehaviorsMutex is a mutex to protect concurrent resourceBehaviors
 	// access from race conditions.
 	resourceBehaviorsMutex sync.Mutex
+
+	// statestoreSchemas is the cached Action Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the Action.Schema() method.
+	statestoreSchemas map[string]statestoreschema.Schema
+
+	// statestoreSchemasMutex is a mutex to protect concurrent statestoreSchemas
+	// access from race conditions.
+	statestoreSchemasMutex sync.RWMutex
+
+	// statestoreFuncs is the cached Action functions for RPCs that need to
+	// access statestores. If not found, it will be fetched from the
+	// Provider.Actions() method.
+	statestoreFuncs map[string]func() statestore.StateStore
+
+	// statestoreFuncsDiags is the cached Diagnostics obtained while populating
+	// statestoreFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching statestoreFuncs.
+	statestoreFuncsDiags diag.Diagnostics
+
+	// statestoreFuncsMutex is a mutex to protect concurrent statestoreFuncs
+	// access from race conditions.
+	statestoreFuncsMutex sync.Mutex
 }
 
 // DataSource returns the DataSource for a given type name.

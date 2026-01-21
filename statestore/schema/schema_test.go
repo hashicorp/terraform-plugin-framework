@@ -12,11 +12,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -37,24 +37,6 @@ func TestSchemaApplyTerraform5AttributePathStep(t *testing.T) {
 			},
 			step:          tftypes.AttributeName("testattr"),
 			expected:      schema.StringAttribute{},
-			expectedError: nil,
-		},
-		"AttributeName-block": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"testblock": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			step: tftypes.AttributeName("testblock"),
-			expected: schema.SingleNestedBlock{
-				Attributes: map[string]schema.Attribute{
-					"testattr": schema.StringAttribute{},
-				},
-			},
 			expectedError: nil,
 		},
 		"AttributeName-missing": {
@@ -178,34 +160,6 @@ func TestSchemaAttributeAtPath(t *testing.T) {
 			},
 			path:     path.Root("test"),
 			expected: schema.StringAttribute{},
-		},
-		"WithAttributeName-block": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"other": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"otherattr": schema.StringAttribute{},
-						},
-					},
-					"test": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			path:     path.Root("test"),
-			expected: nil,
-			expectedDiags: diag.Diagnostics{
-				diag.NewAttributeErrorDiagnostic(
-					path.Root("test"),
-					"Invalid Schema Path",
-					"When attempting to get the framework attribute associated with a schema path, an unexpected error was returned. "+
-						"This is always an issue with the provider. Please report this to the provider developers.\n\n"+
-						"Path: test\n"+
-						"Original Error: "+fwschema.ErrPathIsBlock.Error(),
-				),
-			},
 		},
 		"WithElementKeyInt": {
 			schema: schema.Schema{
@@ -335,25 +289,6 @@ func TestSchemaAttributeAtTerraformPath(t *testing.T) {
 			path:     tftypes.NewAttributePath().WithAttributeName("test"),
 			expected: schema.StringAttribute{},
 		},
-		"WithAttributeName-block": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"other": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"otherattr": schema.StringAttribute{},
-						},
-					},
-					"test": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			path:        tftypes.NewAttributePath().WithAttributeName("test"),
-			expected:    nil,
-			expectedErr: fwschema.ErrPathIsBlock.Error(),
-		},
 		"WithElementKeyInt": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
@@ -466,34 +401,6 @@ func TestSchemaGetBlocks(t *testing.T) {
 		"no-blocks": {
 			schema:   schema.Schema{},
 			expected: map[string]fwschema.Block{},
-		},
-		"blocks": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"testblock1": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-					"testblock2": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			expected: map[string]fwschema.Block{
-				"testblock1": schema.SingleNestedBlock{
-					Attributes: map[string]schema.Attribute{
-						"testattr": schema.StringAttribute{},
-					},
-				},
-				"testblock2": schema.SingleNestedBlock{
-					Attributes: map[string]schema.Attribute{
-						"testattr": schema.StringAttribute{},
-					},
-				},
-			},
 		},
 	}
 
@@ -660,13 +567,6 @@ func TestSchemaType(t *testing.T) {
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},
 				},
-				Blocks: map[string]schema.Block{
-					"testblock": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"testattr": schema.StringAttribute{},
-						},
-					},
-				},
 			},
 			expected: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
@@ -732,23 +632,6 @@ func TestSchemaTypeAtPath(t *testing.T) {
 			},
 			path:     path.Root("string"),
 			expected: types.StringType,
-		},
-		"AttributeName-Block": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"single_block_nested": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			path: path.Root("single_block"),
-			expected: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"single_block_nested": types.StringType,
-				},
-			},
 		},
 		"AttributeName-non-existent": {
 			schema: schema.Schema{},
@@ -880,23 +763,6 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 			path:     tftypes.NewAttributePath().WithAttributeName("string"),
 			expected: types.StringType,
 		},
-		"AttributeName-Block": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"single_block_nested": schema.StringAttribute{},
-						},
-					},
-				},
-			},
-			path: tftypes.NewAttributePath().WithAttributeName("single_block"),
-			expected: types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"single_block_nested": types.StringType,
-				},
-			},
-		},
 		"AttributeName-non-existent": {
 			schema:        schema.Schema{},
 			path:          tftypes.NewAttributePath().WithAttributeName("non-existent"),
@@ -972,22 +838,6 @@ func TestSchemaValidateImplementation(t *testing.T) {
 				),
 			},
 		},
-		"block-using-reserved-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"connection": schema.SingleNestedBlock{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Reserved Root Attribute/Block Name",
-					"When validating the resource or data source schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"connection\" is a reserved root attribute/block name. "+
-						"This is to prevent practitioners from needing special Terraform configuration syntax.",
-				),
-			},
-		},
 		"nested-attribute-using-nested-reserved-field-name": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
@@ -999,63 +849,10 @@ func TestSchemaValidateImplementation(t *testing.T) {
 				},
 			},
 		},
-		"nested-block-using-nested-reserved-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"connection": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-		},
-		"attribute-and-blocks-using-reserved-field-names": {
-			schema: schema.Schema{
-				Attributes: map[string]schema.Attribute{
-					"depends_on": schema.StringAttribute{},
-				},
-				Blocks: map[string]schema.Block{
-					"connection": schema.SingleNestedBlock{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Reserved Root Attribute/Block Name",
-					"When validating the resource or data source schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"depends_on\" is a reserved root attribute/block name. "+
-						"This is to prevent practitioners from needing special Terraform configuration syntax.",
-				),
-				diag.NewErrorDiagnostic(
-					"Reserved Root Attribute/Block Name",
-					"When validating the resource or data source schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"connection\" is a reserved root attribute/block name. "+
-						"This is to prevent practitioners from needing special Terraform configuration syntax.",
-				),
-			},
-		},
 		"attribute-using-invalid-field-name": {
 			schema: schema.Schema{
 				Attributes: map[string]schema.Attribute{
 					"^": schema.StringAttribute{},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute/Block Name",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"^\" at schema path \"^\" is an invalid attribute/block name. "+
-						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
-				),
-			},
-		},
-		"block-using-invalid-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"^": schema.SingleNestedBlock{},
 				},
 			},
 			expectedDiags: diag.Diagnostics{
@@ -1084,64 +881,6 @@ func TestSchemaValidateImplementation(t *testing.T) {
 					"When validating the schema, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 						"\"^\" at schema path \"single_nested_attribute.^\" is an invalid attribute/block name. "+
-						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
-				),
-			},
-		},
-		"nested-block-using-nested-invalid-field-name": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"^": schema.BoolAttribute{},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute/Block Name",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"^\" at schema path \"single_nested_block.^\" is an invalid attribute/block name. "+
-						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
-				),
-			},
-		},
-		"nested-block-with-nested-block-using-invalid-field-names": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"$": schema.SingleNestedBlock{
-						Blocks: map[string]schema.Block{
-							"^": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"!": schema.BoolAttribute{},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute/Block Name",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
-						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute/Block Name",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"^\" at schema path \"$.^\" is an invalid attribute/block name. "+
-						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
-				),
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute/Block Name",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"!\" at schema path \"$.^.!\" is an invalid attribute/block name. "+
 						"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
 				),
 			},
@@ -1182,54 +921,6 @@ func TestSchemaValidateImplementation(t *testing.T) {
 					"When validating the schema, an implementation issue was found. "+
 						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
 						"\"single_nested_attribute.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
-						"One of these fields is required to prevent other unexpected errors or panics.",
-				),
-			},
-		},
-		"nested-block-attribute-with-validate-attribute-implementation-error": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Attributes: map[string]schema.Attribute{
-							"test": schema.ListAttribute{
-								Required: true,
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute Implementation",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"single_nested_block.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
-						"One of these fields is required to prevent other unexpected errors or panics.",
-				),
-			},
-		},
-		"nested-nested-block-attribute-with-validate-attribute-implementation-error": {
-			schema: schema.Schema{
-				Blocks: map[string]schema.Block{
-					"single_nested_block": schema.SingleNestedBlock{
-						Blocks: map[string]schema.Block{
-							"single_nested_nested_block": schema.SingleNestedBlock{
-								Attributes: map[string]schema.Attribute{
-									"test": schema.ListAttribute{
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			expectedDiags: diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Invalid Attribute Implementation",
-					"When validating the schema, an implementation issue was found. "+
-						"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
-						"\"single_nested_block.single_nested_nested_block.test\" is missing the CustomType or ElementType field on a collection Attribute. "+
 						"One of these fields is required to prevent other unexpected errors or panics.",
 				),
 			},

@@ -29,7 +29,7 @@ var (
 // the object attributes can be fully defined, including further nested
 // attributes. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The NestedObject field
-// must be set. Nested attributes are only compatible with protocol version 6.
+// must be set.
 //
 // Use MapAttribute if the underlying elements are of a single type and do
 // not require definition beyond type information.
@@ -100,26 +100,11 @@ type MapNestedAttribute struct {
 	//    the attribute will be removed in the next major version of the
 	//    provider."
 	//
-	// In Terraform 1.2.7 and later, this warning diagnostic is displayed any
-	// time a practitioner attempts to configure a value for this attribute and
-	// certain scenarios where this attribute is referenced.
-	//
-	// In Terraform 1.2.6 and earlier, this warning diagnostic is only
-	// displayed when the Attribute is Required or Optional, and if the
-	// practitioner configuration sets the value to a known or unknown value
-	// (which may eventually be null).
-	//
 	// Across any Terraform version, there are no warnings raised for
 	// practitioner configuration values set directly to null, as there is no
 	// way for the framework to differentiate between an unset and null
 	// configuration due to how Terraform sends configuration information
 	// across the protocol.
-	//
-	// Additional information about deprecation enhancements for read-only
-	// attributes can be found in:
-	//
-	//  - https://github.com/hashicorp/terraform/issues/7569
-	//
 	DeprecationMessage string
 
 	// Validators define value validation functionality for the attribute. All
@@ -133,13 +118,6 @@ type MapNestedAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.Map
-
-	// WriteOnly indicates whether this attribute can accept ephemeral values
-	// or not. If WriteOnly is true, either Optional or Required must also be true.
-	//
-	// If WriteOnly is true for a nested attribute, all of its child attributes
-	// must also set WriteOnly to true.
-	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -202,7 +180,7 @@ func (a MapNestedAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as state store schema attributes cannot be Computed.
 func (a MapNestedAttribute) IsComputed() bool {
 	return false
 }
@@ -217,14 +195,14 @@ func (a MapNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as state store schema attributes cannot be Sensitive.
 func (a MapNestedAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly returns the WriteOnly field value.
+// IsWriteOnly always returns false as state store schema attributes cannot be WriteOnly.
 func (a MapNestedAttribute) IsWriteOnly() bool {
-	return a.WriteOnly
+	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant
@@ -251,9 +229,5 @@ func (a MapNestedAttribute) MapValidators() []validator.Map {
 func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
-	}
-
-	if a.IsWriteOnly() && !fwschema.ContainsAllWriteOnlyChildAttributes(a) {
-		resp.Diagnostics.Append(fwschema.InvalidWriteOnlyNestedAttributeDiag(req.Path))
 	}
 }

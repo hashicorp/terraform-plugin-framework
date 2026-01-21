@@ -29,7 +29,7 @@ var (
 // the object attributes can be fully defined, including further nested
 // attributes. When retrieving the value for this attribute, use types.Set
 // as the value type unless the CustomType field is set. The NestedObject field
-// must be set. Nested attributes are only compatible with protocol version 6.
+// must be set.
 //
 // Use SetAttribute if the underlying elements are of a single type and do
 // not require definition beyond type information.
@@ -95,26 +95,11 @@ type SetNestedAttribute struct {
 	//    the attribute will be removed in the next major version of the
 	//    provider."
 	//
-	// In Terraform 1.2.7 and later, this warning diagnostic is displayed any
-	// time a practitioner attempts to configure a value for this attribute and
-	// certain scenarios where this attribute is referenced.
-	//
-	// In Terraform 1.2.6 and earlier, this warning diagnostic is only
-	// displayed when the Attribute is Required or Optional, and if the
-	// practitioner configuration sets the value to a known or unknown value
-	// (which may eventually be null).
-	//
 	// Across any Terraform version, there are no warnings raised for
 	// practitioner configuration values set directly to null, as there is no
 	// way for the framework to differentiate between an unset and null
 	// configuration due to how Terraform sends configuration information
 	// across the protocol.
-	//
-	// Additional information about deprecation enhancements for read-only
-	// attributes can be found in:
-	//
-	//  - https://github.com/hashicorp/terraform/issues/7569
-	//
 	DeprecationMessage string
 
 	// Validators define value validation functionality for the attribute. All
@@ -190,7 +175,7 @@ func (a SetNestedAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as state store schema attributes cannot be Computed.
 func (a SetNestedAttribute) IsComputed() bool {
 	return false
 }
@@ -205,12 +190,12 @@ func (a SetNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as state store schema attributes cannot be Sensitive.
 func (a SetNestedAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly returns false as write-only attributes are not supported for sets and set-based data.
+// IsWriteOnly always returns false as state store schema attributes cannot be WriteOnly.
 func (a SetNestedAttribute) IsWriteOnly() bool {
 	return false
 }

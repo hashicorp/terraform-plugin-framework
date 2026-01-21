@@ -93,26 +93,11 @@ type MapAttribute struct {
 	//    the attribute will be removed in the next major version of the
 	//    provider."
 	//
-	// In Terraform 1.2.7 and later, this warning diagnostic is displayed any
-	// time a practitioner attempts to configure a value for this attribute and
-	// certain scenarios where this attribute is referenced.
-	//
-	// In Terraform 1.2.6 and earlier, this warning diagnostic is only
-	// displayed when the Attribute is Required or Optional, and if the
-	// practitioner configuration sets the value to a known or unknown value
-	// (which may eventually be null).
-	//
 	// Across any Terraform version, there are no warnings raised for
 	// practitioner configuration values set directly to null, as there is no
 	// way for the framework to differentiate between an unset and null
 	// configuration due to how Terraform sends configuration information
 	// across the protocol.
-	//
-	// Additional information about deprecation enhancements for read-only
-	// attributes can be found in:
-	//
-	//  - https://github.com/hashicorp/terraform/issues/7569
-	//
 	DeprecationMessage string
 
 	// Validators define value validation functionality for the attribute. All
@@ -126,10 +111,6 @@ type MapAttribute struct {
 	// xattr.TypeWithValidate interface, the validators defined in this field
 	// are run in addition to the validation defined by the type.
 	Validators []validator.Map
-
-	// WriteOnly indicates whether this attribute can accept ephemeral values
-	// or not. If WriteOnly is true, either Optional or Required must also be true.
-	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into a map
@@ -174,7 +155,7 @@ func (a MapAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as state store schema attributes cannot be Computed.
 func (a MapAttribute) IsComputed() bool {
 	return false
 }
@@ -189,14 +170,14 @@ func (a MapAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as state store schema attributes cannot be Sensitive.
 func (a MapAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly returns the WriteOnly field value.
+// IsWriteOnly always returns false as state store schema attributes cannot be WriteOnly.
 func (a MapAttribute) IsWriteOnly() bool {
-	return a.WriteOnly
+	return false
 }
 
 // IsRequiredForImport returns false as this behavior is only relevant

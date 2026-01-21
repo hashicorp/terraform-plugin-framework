@@ -18,8 +18,7 @@ var _ fwxschema.NestedAttributeObjectWithValidators = NestedAttributeObject{}
 // for a ListNestedAttribute, MapNestedAttribute, SetNestedAttribute, or
 // SingleNestedAttribute (automatically generated). When retrieving the value
 // for this attribute, use types.Object as the value type unless the CustomType
-// field is set. The Attributes field must be set. Nested attributes are only
-// compatible with protocol version 6.
+// field is set. The Attributes field must be set.
 //
 // This object enables customizing and simplifying details within its parent
 // NestedAttribute, therefore it cannot have Terraform schema fields such as

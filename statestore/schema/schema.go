@@ -16,8 +16,7 @@ import (
 
 var _ fwschema.Schema = Schema{}
 
-// Schema defines the structure and value types of an action. An action currently
-// cannot cause changes to resource state.
+// Schema defines the structure and value types of a state store.
 type Schema struct {
 	// Attributes is the mapping of underlying attribute names to attribute
 	// definitions.
@@ -27,30 +26,38 @@ type Schema struct {
 	Attributes map[string]Attribute
 
 	// Description is used in various tooling, like the language server, to
-	// give practitioners more information about what this action is,
+	// give practitioners more information about what this state store is,
 	// what it's for, and how it should be used. It should be written as
 	// plain text, with no special formatting.
 	Description string
 
 	// MarkdownDescription is used in various tooling, like the
 	// documentation generator, to give practitioners more information
-	// about what this action is, what it's for, and how it should be
+	// about what this state store is, what it's for, and how it should be
 	// used. It should be formatted using Markdown.
 	MarkdownDescription string
 
 	// DeprecationMessage defines warning diagnostic details to display when
-	// practitioner configurations use this action. The warning diagnostic
-	// summary is automatically set to "Action Deprecated" along with
+	// practitioner configurations use this state store. The warning diagnostic
+	// summary is automatically set to "State Store Deprecated" along with
 	// configuration source file and line information.
 	//
 	// Set this field to a practitioner actionable message such as:
 	//
-	//  - "Use examplecloud_do_thing action instead. This action
+	//  - "Use examplecloud_store state store instead. This state store
 	//    will be removed in the next major version of the provider."
-	//  - "Remove this action as it no longer is valid and
+	//  - "Remove this state store as it no longer is valid and
 	//    will be removed in the next major version of the provider."
 	//
 	DeprecationMessage string
+
+	// Version indicates the current version of the state store schema.
+	// Versioning is only required if there is a breaking change involving
+	// existing state data, such as changing an attribute or block type in
+	// a manner that is incompatible with the Terraform type.
+	//
+	// Versions are conventionally only incremented by one each release.
+	Version int64
 }
 
 // ApplyTerraform5AttributePathStep applies the given AttributePathStep to the
@@ -98,9 +105,9 @@ func (s Schema) GetMarkdownDescription() string {
 	return s.MarkdownDescription
 }
 
-// GetVersion always returns 0 as action schemas cannot be versioned.
+// GetVersion returns the Version field value.
 func (s Schema) GetVersion() int64 {
-	return 0
+	return s.Version
 }
 
 // Type returns the framework type of the schema.
@@ -131,10 +138,6 @@ func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 			Path: path.Root(attributeName),
 		}
 
-		// TODO:Actions: We should confirm with core, but we should be able to remove this next line.
-		//
-		// Action schemas define a specific "config" nested block in the action block, which means there
-		// shouldn't be any conflict with existing or future Terraform core attributes.
 		diags.Append(fwschema.IsReservedResourceAttributeName(req.Name, req.Path)...)
 		diags.Append(fwschema.ValidateAttributeImplementation(ctx, attribute, req)...)
 	}
@@ -145,10 +148,6 @@ func (s Schema) ValidateImplementation(ctx context.Context) diag.Diagnostics {
 			Path: path.Root(blockName),
 		}
 
-		// TODO:Actions: We should confirm with core, but we should be able to remove this next line.
-		//
-		// Action schemas define a specific "config" nested block in the action block, which means there
-		// shouldn't be any conflict with existing or future Terraform core attributes.
 		diags.Append(fwschema.IsReservedResourceAttributeName(req.Name, req.Path)...)
 		diags.Append(fwschema.ValidateBlockImplementation(ctx, block, req)...)
 	}

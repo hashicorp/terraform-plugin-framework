@@ -1092,3 +1092,48 @@ func TestSetValueType(t *testing.T) {
 		})
 	}
 }
+
+func TestSetValueLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    SetValue
+		expected int
+	}{
+		"known-empty": {
+			input:    NewSetValueMust(StringType{}, []attr.Value{}),
+			expected: 0,
+		},
+		"known-single": {
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			expected: 1,
+		},
+		"known-multiple": {
+			input: NewSetValueMust(StringType{}, []attr.Value{
+				NewStringValue("hello"),
+				NewStringValue("world"),
+			}),
+			expected: 2,
+		},
+		"null": {
+			input:    NewSetNull(StringType{}),
+			expected: 0,
+		},
+		"unknown": {
+			input:    NewSetUnknown(StringType{}),
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Length()
+
+			if got != testCase.expected {
+				t.Errorf("Expected %d, got %d", testCase.expected, got)
+			}
+		})
+	}
+}

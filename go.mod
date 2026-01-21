@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-plugin-framework
 
-go 1.24.6
+go 1.24.0
 
 toolchain go1.24.10
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
-// StateStore returns the StateStore for a given statestore type.
+// StateStore returns the StateStore for a given state store type.
 func (s *Server) StateStore(ctx context.Context, statestoreType string) (statestore.StateStore, diag.Diagnostics) {
 	statestoreFuncs, diags := s.StateStoreFuncs(ctx)
 
@@ -22,8 +22,8 @@ func (s *Server) StateStore(ctx context.Context, statestoreType string) (statest
 
 	if !ok {
 		diags.AddError(
-			"StateStore Type Not Found",
-			fmt.Sprintf("No statestore type named %q was found in the provider.", statestoreType),
+			"State Store Type Not Found",
+			fmt.Sprintf("No state store type named %q was found in the provider.", statestoreType),
 		)
 
 		return nil, diags
@@ -48,7 +48,7 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 
 	provider, ok := s.Provider.(provider.ProviderWithStateStores)
 	if !ok {
-		// Only statestore specific RPCs should return diagnostics about the
+		// Only state store specific RPCs should return diagnostics about the
 		// provider not implementing state stores or missing state stores.
 		return s.statestoreFuncs, s.statestoreFuncsDiags
 	}
@@ -76,7 +76,7 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 			continue
 		}
 
-		logging.FrameworkTrace(ctx, "Found statestore", map[string]interface{}{logging.KeyStateStoreType: statestoreTypeResp.TypeName})
+		logging.FrameworkTrace(ctx, "Found state store", map[string]interface{}{logging.KeyStateStoreType: statestoreTypeResp.TypeName})
 
 		if _, ok := s.statestoreFuncs[statestoreTypeResp.TypeName]; ok {
 			s.statestoreFuncsDiags.AddError(

@@ -27,6 +27,8 @@ import (
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
+	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 )
 
 func TestServerGetProviderSchema(t *testing.T) {
@@ -54,6 +56,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"actionschemas": {
@@ -125,6 +128,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 				ProviderMeta:      nil,
 				DataSourceSchemas: map[string]fwschema.Schema{},
 				Diagnostics:       diag.Diagnostics{},
@@ -352,6 +356,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"datasourceschemas": {
@@ -424,6 +429,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"datasourceschemas-invalid-attribute-name": {
@@ -633,6 +639,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"ephemeralschema": {
@@ -705,6 +712,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"ephemeralschema-invalid-attribute-name": {
@@ -920,6 +928,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"functiondefinitions": {
@@ -976,6 +985,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"functiondefinitions-invalid-definition": {
@@ -1197,6 +1207,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"listresource-schemas-invalid-attribute-name": {
@@ -1309,6 +1320,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"provider-invalid-attribute-name": {
@@ -1379,6 +1391,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"providermeta-invalid-attribute-name": {
@@ -1485,6 +1498,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
 			},
 		},
 		"resourceschemas-invalid-attribute-name": {
@@ -1692,6 +1706,304 @@ func TestServerGetProviderSchema(t *testing.T) {
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
 					PlanDestroy:               true,
+				},
+				StateStoreSchemas: map[string]fwschema.Schema{},
+			},
+		},
+		"statestoreschemas": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test1": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store1"
+									},
+								}
+							},
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test2": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				StateStoreSchemas: map[string]fwschema.Schema{
+					"test_state_store1": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test1": statestoreschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_state_store2": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test2": statestoreschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		"statestoreschemas-invalid-attribute-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"$": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store1"
+									},
+								}
+							},
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test2": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid Attribute/Block Name",
+						"When validating the schema, an implementation issue was found. "+
+							"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+							"\"$\" at schema path \"$\" is an invalid attribute/block name. "+
+							"Names must only contain lowercase alphanumeric characters (a-z, 0-9) and underscores (_).",
+					),
+				},
+			},
+		},
+		"statestoreschemas-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test1": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store"
+									},
+								}
+							},
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test2": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate State Store Type Defined",
+						"The test_state_store state store type was returned for multiple state stores. "+
+							"State store type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"statestoreschemas-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"State Store Type Missing",
+						"The *testprovider.StateStore state store returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Provider:        providerschema.Schema{},
+				ResourceSchemas: map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				StateStoreSchemas: nil,
+			},
+		},
+		"statestoreschemas-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+										resp.Schema = statestoreschema.Schema{
+											Attributes: map[string]statestoreschema.Attribute{
+												"test": statestoreschema.StringAttribute{
+													Required: true,
+												},
+											},
+										}
+									},
+									MetadataMethod: func(_ context.Context, req statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_state_store"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetProviderSchemaRequest{},
+			expectedResponse: &fwserver.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]actionschema.Schema{},
+				DataSourceSchemas:        map[string]fwschema.Schema{},
+				EphemeralResourceSchemas: map[string]fwschema.Schema{},
+				FunctionDefinitions:      map[string]function.Definition{},
+				ListResourceSchemas:      map[string]fwschema.Schema{},
+				Provider:                 providerschema.Schema{},
+				ResourceSchemas:          map[string]fwschema.Schema{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				StateStoreSchemas: map[string]fwschema.Schema{
+					"testprovidertype_state_store": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test": statestoreschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
 				},
 			},
 		},

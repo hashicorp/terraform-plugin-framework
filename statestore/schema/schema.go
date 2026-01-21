@@ -85,9 +85,9 @@ func (s Schema) GetAttributes() map[string]fwschema.Attribute {
 	return schemaAttributes(s.Attributes)
 }
 
-// GetBlocks returns nil as nested blocks are not supported in state store schemas.
+// GetBlocks returns an empty map of nested blocks as they are not supported in state store schemas.
 func (s Schema) GetBlocks() map[string]fwschema.Block {
-	return nil
+	return map[string]fwschema.Block{}
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.

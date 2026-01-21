@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -96,6 +97,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"action-type-nested-attributes": {
@@ -146,6 +148,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-multiple-data-sources": {
@@ -197,6 +200,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-computed": {
@@ -230,6 +234,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-deprecated": {
@@ -265,6 +270,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-optional": {
@@ -298,6 +304,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-optional-computed": {
@@ -333,6 +340,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-required": {
@@ -366,6 +374,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-sensitive": {
@@ -401,6 +410,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-write-only": {
@@ -435,6 +445,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-bool": {
@@ -468,6 +479,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-float64": {
@@ -501,6 +513,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-int32": {
@@ -534,6 +547,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-int64": {
@@ -567,6 +581,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-list-string": {
@@ -607,6 +622,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-nested-attributes": {
@@ -656,6 +672,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-object": {
@@ -700,6 +717,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-list-string": {
@@ -736,6 +754,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-map-nested-attributes": {
@@ -785,6 +804,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-map-string": {
@@ -821,6 +841,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-number": {
@@ -854,6 +875,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-object": {
@@ -894,6 +916,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-nested-attributes": {
@@ -943,6 +966,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-object": {
@@ -987,6 +1011,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-set-string": {
@@ -1027,6 +1052,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-set-string": {
@@ -1063,6 +1089,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-single-nested-attributes": {
@@ -1110,6 +1137,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-string": {
@@ -1143,6 +1171,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-attribute-type-dynamic": {
@@ -1176,6 +1205,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-block-list": {
@@ -1223,6 +1253,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-block-set": {
@@ -1270,6 +1301,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"data-source-block-single": {
@@ -1315,6 +1347,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
 				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-multiple-ephemeral-resources": {
@@ -1366,6 +1399,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-computed": {
@@ -1399,6 +1433,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-deprecated": {
@@ -1434,6 +1469,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-optional": {
@@ -1467,6 +1503,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-optional-computed": {
@@ -1502,6 +1539,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-required": {
@@ -1535,6 +1573,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-sensitive": {
@@ -1570,6 +1609,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-bool": {
@@ -1603,6 +1643,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-float32": {
@@ -1636,6 +1677,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-float64": {
@@ -1669,6 +1711,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-int32": {
@@ -1702,6 +1745,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-int64": {
@@ -1735,6 +1779,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-list-string": {
@@ -1775,6 +1820,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-nested-attributes": {
@@ -1824,6 +1870,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-object": {
@@ -1868,6 +1915,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-list-string": {
@@ -1904,6 +1952,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-map-nested-attributes": {
@@ -1953,6 +2002,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-map-string": {
@@ -1989,6 +2039,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-number": {
@@ -2022,6 +2073,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-object": {
@@ -2062,6 +2114,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-nested-attributes": {
@@ -2111,6 +2164,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-object": {
@@ -2155,6 +2209,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-set-string": {
@@ -2195,6 +2250,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-set-string": {
@@ -2231,6 +2287,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-single-nested-attributes": {
@@ -2278,6 +2335,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-string": {
@@ -2311,6 +2369,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-attribute-type-dynamic": {
@@ -2344,6 +2403,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-block-list": {
@@ -2391,6 +2451,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-block-set": {
@@ -2438,6 +2499,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeral-resource-block-single": {
@@ -2483,6 +2545,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Functions:           map[string]*tfprotov6.Function{},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions": {
@@ -2516,6 +2579,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-deprecationmessage": {
@@ -2542,6 +2606,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-description": {
@@ -2568,6 +2633,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-parameters": {
@@ -2607,6 +2673,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-result": {
@@ -2631,6 +2698,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-summary": {
@@ -2657,6 +2725,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions-variadicparameter": {
@@ -2685,6 +2754,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 				ListResourceSchemas: map[string]*tfprotov6.Schema{},
 				ResourceSchemas:     map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:   map[string]*tfprotov6.Schema{},
 			},
 		},
 		"list-resource-multiple-list-resources": {
@@ -2735,7 +2805,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"list-resource-attribute-deprecated": {
@@ -2770,7 +2841,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"list-resource-attribute-optional": {
@@ -2803,7 +2875,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"list-resource-attribute-required": {
@@ -2836,7 +2909,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"list-resource-attribute-type-string": {
@@ -2869,7 +2943,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-deprecated": {
@@ -2901,7 +2976,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-optional": {
@@ -2931,7 +3007,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-required": {
@@ -2961,7 +3038,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-sensitive": {
@@ -2993,7 +3071,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-write-only": {
@@ -3024,7 +3103,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-bool": {
@@ -3054,7 +3134,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-float64": {
@@ -3084,7 +3165,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-int32": {
@@ -3114,7 +3196,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-int64": {
@@ -3144,7 +3227,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-list-list-string": {
@@ -3181,7 +3265,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-list-nested-attributes": {
@@ -3227,7 +3312,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-list-object": {
@@ -3268,7 +3354,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-list-string": {
@@ -3301,7 +3388,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-map-nested-attributes": {
@@ -3347,7 +3435,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-map-string": {
@@ -3380,7 +3469,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-number": {
@@ -3410,7 +3500,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-object": {
@@ -3447,7 +3538,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-set-nested-attributes": {
@@ -3493,7 +3585,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-set-object": {
@@ -3534,7 +3627,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-set-set-string": {
@@ -3571,7 +3665,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-set-string": {
@@ -3604,7 +3699,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-single-nested-attributes": {
@@ -3648,7 +3744,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-string": {
@@ -3678,7 +3775,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-attribute-type-dynamic": {
@@ -3708,7 +3806,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-block-list": {
@@ -3752,7 +3851,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-block-set": {
@@ -3796,7 +3896,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-block-single": {
@@ -3838,7 +3939,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-optional": {
@@ -3868,7 +3970,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-required": {
@@ -3898,7 +4001,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-bool": {
@@ -3928,7 +4032,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-float64": {
@@ -3958,7 +4063,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-int64": {
@@ -3988,7 +4094,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-list-string": {
@@ -4025,7 +4132,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-nested-attributes": {
@@ -4071,7 +4179,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-object": {
@@ -4112,7 +4221,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-list-string": {
@@ -4145,7 +4255,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-map-nested-attributes": {
@@ -4191,7 +4302,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-map-string": {
@@ -4224,7 +4336,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-number": {
@@ -4254,7 +4367,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-object": {
@@ -4291,7 +4405,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-set-nested-attributes": {
@@ -4337,7 +4452,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-set-object": {
@@ -4378,7 +4494,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-set-set-string": {
@@ -4415,7 +4532,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-set-string": {
@@ -4448,7 +4566,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-single-nested-attributes": {
@@ -4492,7 +4611,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider-meta-attribute-type-string": {
@@ -4522,7 +4642,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						},
 					},
 				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ResourceSchemas:   map[string]*tfprotov6.Schema{},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"resource-multiple-resources": {
@@ -4550,6 +4671,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource_1": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4594,6 +4716,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4628,6 +4751,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4662,6 +4786,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4696,6 +4821,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4730,6 +4856,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4764,6 +4891,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4799,6 +4927,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4833,6 +4962,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4866,6 +4996,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4899,6 +5030,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4932,6 +5064,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -4968,6 +5101,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5012,6 +5146,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5059,6 +5194,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5099,6 +5235,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5141,6 +5278,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5184,6 +5322,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5219,6 +5358,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5255,6 +5395,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5299,6 +5440,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5346,6 +5488,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5388,6 +5531,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5426,6 +5570,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5466,6 +5611,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5508,6 +5654,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5541,6 +5688,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5580,6 +5728,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5627,6 +5776,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5672,6 +5822,7 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block: &tfprotov6.SchemaBlock{
@@ -5709,12 +5860,118 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
 				Functions:                map[string]*tfprotov6.Function{},
 				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				StateStoreSchemas:        map[string]*tfprotov6.Schema{},
 				ResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_resource": {
 						Block:   &tfprotov6.SchemaBlock{},
 						Version: 123,
 					},
 				},
+			},
+		},
+		"statestore-multiple-statestores": {
+			input: &fwserver.GetProviderSchemaResponse{
+				StateStoreSchemas: map[string]fwschema.Schema{
+					"test_state_store_1": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test_attribute": statestoreschema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"test_state_store_2": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test_attribute": statestoreschema.StringAttribute{
+								Optional:           true,
+								DeprecationMessage: "deprecated",
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				StateStoreSchemas: map[string]*tfprotov6.Schema{
+					"test_state_store_1": {
+						Version: 0,
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test_attribute",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+					"test_state_store_2": {
+						Version: 0,
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:       "test_attribute",
+									Type:       tftypes.String,
+									Optional:   true,
+									Deprecated: true,
+								},
+							},
+						},
+					},
+				},
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				ResourceSchemas:          map[string]*tfprotov6.Schema{},
+			},
+		},
+		"statestore-type-nested-attributes": {
+			input: &fwserver.GetProviderSchemaResponse{
+				StateStoreSchemas: map[string]fwschema.Schema{
+					"test_state_store": statestoreschema.Schema{
+						Attributes: map[string]statestoreschema.Attribute{
+							"test_attribute": statestoreschema.SingleNestedAttribute{
+								Attributes: map[string]statestoreschema.Attribute{
+									"test_nested_attribute": statestoreschema.StringAttribute{
+										Required: true,
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: &tfprotov6.GetProviderSchemaResponse{
+				StateStoreSchemas: map[string]*tfprotov6.Schema{
+					"test_state_store": {
+						Version: 0,
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name: "test_attribute",
+									NestedType: &tfprotov6.SchemaObject{
+										Attributes: []*tfprotov6.SchemaAttribute{
+											{
+												Name:     "test_nested_attribute",
+												Type:     tftypes.String,
+												Required: true,
+											},
+										},
+										Nesting: tfprotov6.SchemaObjectNestingModeSingle,
+									},
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				ResourceSchemas:          map[string]*tfprotov6.Schema{},
 			},
 		},
 	}

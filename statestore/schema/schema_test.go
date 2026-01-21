@@ -571,11 +571,6 @@ func TestSchemaType(t *testing.T) {
 			expected: types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"testattr": types.StringType,
-					"testblock": types.ObjectType{
-						AttrTypes: map[string]attr.Type{
-							"testattr": types.StringType,
-						},
-					},
 				},
 			},
 		},

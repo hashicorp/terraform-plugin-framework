@@ -4,7 +4,6 @@
 package fromproto6
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -114,19 +113,6 @@ func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabiliti
 	}
 
 	return action.ModifyPlanClientCapabilities{
-		DeferralAllowed: in.DeferralAllowed,
-	}
-}
-
-func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) statestore.StateStoreClientCapabilities {
-	if in == nil {
-		// Client did not indicate any supported capabilities
-		return statestore.StateStoreClientCapabilities{
-			DeferralAllowed: false,
-		}
-	}
-
-	return statestore.StateStoreClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
 }

@@ -17,7 +17,6 @@ type SchemaRequest struct{}
 // response struct is supplied as an argument to the State Store type Schema
 // method.
 type SchemaResponse struct {
-
 	// Schema is the schema of the state store.
 	Schema schema.Schema
 

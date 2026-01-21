@@ -54,11 +54,6 @@ type Server struct {
 	// to [action.ConfigureRequest.ProviderData].
 	ActionConfigureData any
 
-	// ActionConfigureData is the
-	// [provider.ConfigureResponse.ActionData] field value which is passed
-	// to [action.ConfigureRequest.ProviderData].
-	StateStoreConfigureData any
-
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Action.Schema() method.
@@ -258,18 +253,18 @@ type Server struct {
 	// access from race conditions.
 	resourceBehaviorsMutex sync.Mutex
 
-	// statestoreSchemas is the cached Action Schemas for RPCs that need to
+	// statestoreSchemas is the cached StateStore Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
-	// fetched from the Action.Schema() method.
+	// fetched from the StateStore.Schema() method.
 	statestoreSchemas map[string]statestoreschema.Schema
 
 	// statestoreSchemasMutex is a mutex to protect concurrent statestoreSchemas
 	// access from race conditions.
 	statestoreSchemasMutex sync.RWMutex
 
-	// statestoreFuncs is the cached Action functions for RPCs that need to
+	// statestoreFuncs is the cached StateStore functions for RPCs that need to
 	// access statestores. If not found, it will be fetched from the
-	// Provider.Actions() method.
+	// Provider.StateStore() method.
 	statestoreFuncs map[string]func() statestore.StateStore
 
 	// statestoreFuncsDiags is the cached Diagnostics obtained while populating

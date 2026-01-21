@@ -69,8 +69,7 @@ type ActionMetadata struct {
 	TypeName string
 }
 
-// StateStoreMetadata is the framework server equivalent of the
-// tfprotov5.StateStoreMetadata and tfprotov6.StateStoreMetadata types.
+// StateStoreMetadata is the framework server equivalent of the tfprotov6.StateStoreMetadata types.
 type StateStoreMetadata struct {
 	// TypeName is the name of the action.
 	TypeName string

@@ -14,7 +14,7 @@ import (
 type ConfigureRequest struct {
 	// ProviderData is the data set in the
 	// [provider.ConfigureResponse.ResourceData] field. This data is
-	// provider-specific and therefore can contain any necessary remote system
+	// provider-specifc and therefore can contain any necessary remote system
 	// clients, custom provider data, or anything else pertinent to the
 	// functionality of the Resource.
 	//

@@ -26,12 +26,6 @@ type Schema struct {
 	// Names must not collide with any Blocks names.
 	Attributes map[string]Attribute
 
-	// Blocks is the mapping of underlying block names to block definitions.
-	//
-	// Names must only contain lowercase letters, numbers, and underscores.
-	// Names must not collide with any Attributes names.
-	Blocks map[string]Block
-
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this action is,
 	// what it's for, and how it should be used. It should be written as
@@ -84,9 +78,9 @@ func (s Schema) GetAttributes() map[string]fwschema.Attribute {
 	return schemaAttributes(s.Attributes)
 }
 
-// GetBlocks returns the Blocks field value.
+// GetBlocks returns nil as nested blocks are not supported in state store schemas.
 func (s Schema) GetBlocks() map[string]fwschema.Block {
-	return schemaBlocks(s.Blocks)
+	return nil
 }
 
 // GetDeprecationMessage returns the DeprecationMessage field value.

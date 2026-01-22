@@ -7,12 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// ReadClientCapabilities allows Terraform to publish information
-// regarding optionally supported protocol features for the ReadStateStore RPC,
-// such as forward-compatible Terraform behavior changes.
-type ReadClientCapabilities struct {
-}
-
 // ReadStateBytesRequest represents a request for the provider to read a data
 // source, i.e., update values in state according to the real state of the
 // state store. An instance of this request struct is supplied as an argument

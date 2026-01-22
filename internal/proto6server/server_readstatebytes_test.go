@@ -17,7 +17,7 @@ import (
 )
 
 func TestServerReadStateBytes(t *testing.T) {
-	# TODO: Test the actual chunking after configure is established
+	// TODO: Test the actual chunking after configure is established
 	t.Parallel()
 
 	testSchema := schema.Schema{

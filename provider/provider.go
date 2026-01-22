@@ -166,7 +166,8 @@ type ProviderWithValidateConfig interface {
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
 
-// ProviderWithStateStores is an interface type that extends Provider to include state store.
+// ProviderWithStateStores is an interface type that extends Provider to include state stores.
+// TODO: Add supported Terraform version note
 type ProviderWithStateStores interface {
 	Provider
 

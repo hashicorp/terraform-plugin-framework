@@ -178,7 +178,7 @@ func (m MapValue) Elements() map[string]attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the Map.
+// Length returns the number of elements in the Map, or zero if the value is null or unknown.
 func (m MapValue) Length() int {
 	return len(m.elements)
 }

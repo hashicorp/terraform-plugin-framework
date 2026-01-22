@@ -131,7 +131,7 @@ func (v TupleValue) Elements() []attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the Tuple.
+// Length returns the number of elements in the Tuple, or zero if the value is null or unknown.
 func (v TupleValue) Length() int {
 	return len(v.elements)
 }

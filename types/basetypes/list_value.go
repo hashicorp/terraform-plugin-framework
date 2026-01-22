@@ -173,7 +173,7 @@ func (l ListValue) Elements() []attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the List.
+// Length returns the number of elements in the List, or zero if the value is null or unknown.
 func (l ListValue) Length() int {
 	return len(l.elements)
 }

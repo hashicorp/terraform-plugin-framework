@@ -173,7 +173,7 @@ func (s SetValue) Elements() []attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the Set.
+// Length returns the number of elements in the Set, or zero if the value is null or unknown.
 func (s SetValue) Length() int {
 	return len(s.elements)
 }

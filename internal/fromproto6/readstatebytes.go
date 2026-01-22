@@ -27,7 +27,7 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 		diags.AddError(
 			"Missing State ID",
 			"An unexpected error was encountered when handling the request. "+
-				"This is always an issue in terraform-plugin-framework used to implement the provider and should be reported to the provider developers.\n\n"+
+				"This is always an issue in terraform-plugin-framework or Terraform itself and should be reported to the provider developers.\n\n"+
 				"Please report this to the provider developer:\n\n"+
 				"Missing State ID.",
 		)

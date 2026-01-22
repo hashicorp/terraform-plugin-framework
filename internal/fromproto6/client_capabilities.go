@@ -122,11 +122,13 @@ func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClie
 	if in == nil {
 		// Client did not indicate any supported capabilities
 		return statestore.StateStoreClientCapabilities{
-			DeferralAllowed: false,
+			ChunkSize: 0,
 		}
 	}
 
+	// TODO: Update to use in.ChunkSize once terraform-plugin-go is updated
+	// For now, return default chunk size
 	return statestore.StateStoreClientCapabilities{
-		DeferralAllowed: in.DeferralAllowed,
+		ChunkSize: 0,
 	}
 }

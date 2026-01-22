@@ -202,7 +202,7 @@ func (a ListNestedAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a ListNestedAttribute) IsComputed() bool {
 	return false
 }
@@ -217,7 +217,7 @@ func (a ListNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a ListNestedAttribute) IsSensitive() bool {
 	return false
 }

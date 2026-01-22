@@ -31,7 +31,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = []byte{}
 					},
 				},
-				StateId: "test_id",
+				StateID: "test_id",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
@@ -45,7 +45,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = nil
 					},
 				},
-				StateId: "test_id",
+				StateID: "test_id",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
@@ -59,7 +59,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = []byte("test-data")
 					},
 				},
-				StateId: "test_id",
+				StateID: "test_id",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
@@ -73,7 +73,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = []byte{}
 					},
 				},
-				StateId: "",
+				StateID: "",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{},
 		},
@@ -87,7 +87,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = []byte{}
 					},
 				},
-				StateId: "test_id",
+				StateID: "test_id",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{
 				{},
@@ -103,7 +103,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 						resp.Bytes = []byte{}
 					},
 				},
-				StateId: "",
+				StateID: "",
 			},
 			expectedStreamEvents: []fwserver.ReadStateBytesResponse{
 				{},

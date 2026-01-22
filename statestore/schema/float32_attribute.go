@@ -153,7 +153,7 @@ func (a Float32Attribute) GetType() attr.Type {
 	return types.Float32Type
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a Float32Attribute) IsComputed() bool {
 	return false
 }
@@ -168,7 +168,7 @@ func (a Float32Attribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a Float32Attribute) IsSensitive() bool {
 	return false
 }

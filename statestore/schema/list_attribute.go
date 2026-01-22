@@ -171,7 +171,7 @@ func (a ListAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a ListAttribute) IsComputed() bool {
 	return false
 }
@@ -186,7 +186,7 @@ func (a ListAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a ListAttribute) IsSensitive() bool {
 	return false
 }

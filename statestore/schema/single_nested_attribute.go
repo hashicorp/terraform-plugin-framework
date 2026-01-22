@@ -208,7 +208,7 @@ func (a SingleNestedAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a SingleNestedAttribute) IsComputed() bool {
 	return false
 }
@@ -223,7 +223,7 @@ func (a SingleNestedAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a SingleNestedAttribute) IsSensitive() bool {
 	return false
 }

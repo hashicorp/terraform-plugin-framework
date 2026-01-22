@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// Attribute define a value field inside an action type schema. Implementations in this
+// Attribute define a value field inside a statestore type schema. Implementations in this
 // package include:
 //   - BoolAttribute
 //   - DynamicAttribute

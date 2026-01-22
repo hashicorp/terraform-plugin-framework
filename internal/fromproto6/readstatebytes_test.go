@@ -67,7 +67,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 			},
 			statestoreSchema: testschema.Schema{},
 			expected: &fwserver.ReadStateBytesRequest{
-				StateId: "test-value",
+				StateID: "test-value",
 			},
 		},
 	}

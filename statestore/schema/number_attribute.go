@@ -154,7 +154,7 @@ func (a NumberAttribute) GetType() attr.Type {
 	return types.NumberType
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a NumberAttribute) IsComputed() bool {
 	return false
 }
@@ -169,7 +169,7 @@ func (a NumberAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a NumberAttribute) IsSensitive() bool {
 	return false
 }

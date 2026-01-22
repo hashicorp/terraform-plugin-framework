@@ -150,7 +150,7 @@ func (a BoolAttribute) GetType() attr.Type {
 	return types.BoolType
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a BoolAttribute) IsComputed() bool {
 	return false
 }
@@ -165,7 +165,7 @@ func (a BoolAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a BoolAttribute) IsSensitive() bool {
 	return false
 }

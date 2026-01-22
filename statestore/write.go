@@ -15,7 +15,7 @@ type WriteClientCapabilities struct {
 // state store. An instance of this request struct is supplied as an argument
 // to the state store's Write function.
 type WriteRequest struct {
-	StateId string // The ID of the state to read.
+	StateID string // The ID of the state to read.
 }
 
 type WriteResponse struct {

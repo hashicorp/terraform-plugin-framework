@@ -69,9 +69,11 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 				return
 			}
 
-			// TODO: Get chunk size from statestore.ConfiguredChunkSize() when available
-			// For now, use 8MB default
-			chunkSize := 8 << 20 // 8 MB
+			// Use chunk size from server capabilities, default to 8MB if not set
+			chunkSize := fwResp.ServerCapabilities.ChunkSize
+			if chunkSize == 0 {
+				chunkSize = 8 << 20 // 8 MB default
+			}
 
 			reader := bytes.NewReader(fwResp.Bytes)
 			totalLength := reader.Size()

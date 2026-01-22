@@ -77,6 +77,11 @@ type ConfigureResponse struct {
 	// Action type that implements the Configure method.
 	ListResourceData any
 
+	// StateStoreData is provider-defined data, clients, etc. that is
+	// passed to [statestore.ConfigureStateStoreRequest.ProviderData] for each
+	// StateStore type that implements the Configure method.
+	StateStoreData any
+
 	// Deferred indicates that Terraform should automatically defer
 	// all resources and data sources for this provider.
 	//

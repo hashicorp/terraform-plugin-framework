@@ -50,7 +50,7 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 
 	fw := &fwserver.ReadStateBytesRequest{
 		StateStore: stateStore,
-		StateId:    proto6.StateId,
+		StateID:    proto6.StateId,
 	}
 
 	return fw, diags

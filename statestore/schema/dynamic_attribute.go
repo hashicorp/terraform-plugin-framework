@@ -151,7 +151,7 @@ func (a DynamicAttribute) GetType() attr.Type {
 	return types.DynamicType
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a DynamicAttribute) IsComputed() bool {
 	return false
 }
@@ -166,7 +166,7 @@ func (a DynamicAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a DynamicAttribute) IsSensitive() bool {
 	return false
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
-// Block defines a structural field inside an action type schema. Implementations in this
+// Block defines a structural field inside a statestore type schema. Implementations in this
 // package include:
 //   - ListNestedBlock
 //   - SetNestedBlock

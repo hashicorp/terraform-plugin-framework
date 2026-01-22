@@ -22,6 +22,6 @@ type GetStatesRequest struct {
 type GetStatesResponse struct {
 	// TypeName should be the full state store type, including the
 	// type prefix and an underscore. For example, examplecloud_thing.
-	StateId     []string
+	StateID     []string
 	Diagnostics diag.Diagnostics
 }

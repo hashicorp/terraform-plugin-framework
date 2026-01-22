@@ -12,8 +12,8 @@ type UnlockStateRequest struct {
 	// TypeName should be the full state store type, including the provider
 	// type prefix and an underscore. For example, examplecloud_thing.
 	TypeName string
-	StateId  string
-	LockId   string
+	StateID  string
+	LockID   string
 }
 
 // UnlockStateResponse represents a response to a UnlockStateRequest. An

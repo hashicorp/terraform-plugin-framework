@@ -173,7 +173,7 @@ func (a ObjectAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a ObjectAttribute) IsComputed() bool {
 	return false
 }
@@ -188,7 +188,7 @@ func (a ObjectAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly always returns false as statestore schema attributes cannot be WriteOnly.
 func (a ObjectAttribute) IsSensitive() bool {
 	return false
 }

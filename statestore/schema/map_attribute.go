@@ -174,7 +174,7 @@ func (a MapAttribute) GetType() attr.Type {
 	}
 }
 
-// IsComputed always returns false as action schema attributes cannot be Computed.
+// IsComputed always returns false as statestore schema attributes cannot be Computed.
 func (a MapAttribute) IsComputed() bool {
 	return false
 }
@@ -189,7 +189,7 @@ func (a MapAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as action schema attributes cannot be Sensitive.
+// IsSensitive always returns false as statestore schema attributes cannot be Sensitive.
 func (a MapAttribute) IsSensitive() bool {
 	return false
 }

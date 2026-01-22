@@ -14,13 +14,14 @@ import (
 // ReadStateBytesRequest is the framework server request for the StateBytesResource RPC.
 type ReadStateBytesRequest struct {
 	StateStore statestore.StateStore
-	StateId    string
+	StateID    string
 }
 
 // ReadStateBytesResponse is the framework server stream for the ReadStateBytes RPC.
 type ReadStateBytesResponse struct {
-	Bytes       []byte
-	Diagnostics diag.Diagnostics
+	Bytes              []byte
+	Diagnostics        diag.Diagnostics
+	ServerCapabilities statestore.StateStoreServerCapabilities
 }
 
 // ReadStateBytes implements the framework server ReadStateBytes RPC.
@@ -32,7 +33,9 @@ func (s *Server) ReadStateBytes(ctx context.Context, req *ReadStateBytesRequest,
 	if statestoreWithConfigure, ok := req.StateStore.(statestore.StateStoreWithConfigure); ok {
 		logging.FrameworkTrace(ctx, "StateStore implements StateStoreWithConfigure")
 
-		configureReq := statestore.ConfigureStateStoreRequest{}
+		configureReq := statestore.ConfigureStateStoreRequest{
+			ProviderData: s.StateStoreConfigureData,
+		}
 		configureResp := statestore.ConfigureStateStoreResponse{}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined StateStore Configure")
@@ -40,9 +43,10 @@ func (s *Server) ReadStateBytes(ctx context.Context, req *ReadStateBytesRequest,
 		logging.FrameworkTrace(ctx, "Called provider defined StateStore Configure")
 
 		resp.Diagnostics = append(resp.Diagnostics, configureResp.Diagnostics...)
+		resp.ServerCapabilities = configureResp.ServerCapabilities
 	}
 
-	statestoreReq := statestore.ReadStateBytesRequest{StateId: req.StateId}
+	statestoreReq := statestore.ReadStateBytesRequest{StateID: req.StateID}
 	statestoreResp := statestore.ReadStateResponse{}
 
 	logging.FrameworkTrace(ctx, "Calling provider defined StateStore ReadStateBytes")

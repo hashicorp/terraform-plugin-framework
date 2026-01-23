@@ -23,3 +23,13 @@ func ServerCapabilities(ctx context.Context, fw *fwserver.ServerCapabilities) *t
 		PlanDestroy:               fw.PlanDestroy,
 	}
 }
+
+func StateStoreServerCapabilities(fw *fwserver.StateStoreServerCapabilities) *tfprotov6.StateStoreServerCapabilities {
+	if fw == nil {
+		return nil
+	}
+
+	return &tfprotov6.StateStoreServerCapabilities{
+		ChunkSize: fw.ChunkSize,
+	}
+}

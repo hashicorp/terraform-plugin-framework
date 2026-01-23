@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 func ConfigureProviderClientCapabilities(in *tfprotov6.ConfigureProviderClientCapabilities) provider.ConfigureProviderClientCapabilities {
@@ -114,5 +115,19 @@ func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabiliti
 
 	return action.ModifyPlanClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) statestore.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities, in practice this shouldn't happen, but if it does
+		// we'll just default to the same chunk size that Terraform core does, 8MB.
+		return statestore.ConfigureStateStoreClientCapabilities{
+			ChunkSize: 8 << 20,
+		}
+	}
+
+	return statestore.ConfigureStateStoreClientCapabilities{
+		ChunkSize: in.ChunkSize,
 	}
 }

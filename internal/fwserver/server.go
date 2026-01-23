@@ -53,6 +53,26 @@ type Server struct {
 	// to [action.ConfigureRequest.ProviderData].
 	ActionConfigureData any
 
+	// StateStoreProviderData is provider-defined data, clients, etc. that is
+	// passed to [statestore.ConfigureStateStoreRequest.ProviderData].
+	//
+	// As state stores have a dedicated ConfigureStateStore RPC with their
+	// own configuration to consume, this value is not passed to [statestore.ConfigureRequest.StateStoreData]
+	// automatically, but must be explicitly set to [statestore.ConfigureStateStoreResponse.StateStoreData].
+	StateStoreProviderData any
+
+	// stateStoreConfigureData is configured data from [statestore.ConfigureStateStoreResponse.StateStoreData]
+	// and the determined server capabilities (returned from ConfigureStateStore RPC).
+	//
+	// The configured data should be used to populate [statestore.ConfigureRequest.StateStoreData] prior to executing
+	// any [statestore.StateStore] methods, and the server capabilities should be used to receive/send the right chunk sizes during
+	// the ReadStateBytes and WriteStateBytes RPCs.
+	//
+	// MAINTAINER NOTE: While it's possible for a provider to contain multiple state store implementations, it's not possible
+	// for a Terraform configuration to use multiple state stores simultaneously, so it's safe to only store a single field of
+	// configure data for the entire provider.
+	stateStoreConfigureData stateStoreConfigureData
+
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Action.Schema() method.

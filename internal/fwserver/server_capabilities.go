@@ -38,3 +38,8 @@ func (s *Server) ServerCapabilities() *ServerCapabilities {
 		PlanDestroy:               true,
 	}
 }
+
+// TODO: docs
+type StateStoreServerCapabilities struct {
+	ChunkSize int64
+}

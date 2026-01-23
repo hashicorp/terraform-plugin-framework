@@ -14,8 +14,9 @@ var _ statestore.StateStore = &StateStore{}
 // Declarative statestore.StateStore for unit testing.
 type StateStore struct {
 	// StateStore interface methods
-	MetadataMethod func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
-	SchemaMethod   func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
+	MetadataMethod            func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
+	SchemaMethod              func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
+	ConfigureStateStoreMethod func(context.Context, statestore.ConfigureStateStoreRequest, *statestore.ConfigureStateStoreResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -34,4 +35,13 @@ func (d *StateStore) Schema(ctx context.Context, req statestore.SchemaRequest, r
 	}
 
 	d.SchemaMethod(ctx, req, resp)
+}
+
+// ConfigureStateStore satisfies the statestore.StateStore interface.
+func (d *StateStore) ConfigureStateStore(ctx context.Context, req statestore.ConfigureStateStoreRequest, resp *statestore.ConfigureStateStoreResponse) {
+	if d.ConfigureStateStoreMethod == nil {
+		return
+	}
+
+	d.ConfigureStateStoreMethod(ctx, req, resp)
 }

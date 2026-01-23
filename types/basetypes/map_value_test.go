@@ -861,14 +861,17 @@ func TestMapValueLength(t *testing.T) {
 
 	testCases := map[string]struct {
 		input    MapValue
+		opts     CollectionLengthOptions
 		expected int
 	}{
 		"known-empty": {
 			input:    NewMapValueMust(StringType{}, map[string]attr.Value{}),
+			opts:     CollectionLengthOptions{},
 			expected: 0,
 		},
 		"known-single": {
 			input:    NewMapValueMust(StringType{}, map[string]attr.Value{"key": NewStringValue("test")}),
+			opts:     CollectionLengthOptions{},
 			expected: 1,
 		},
 		"known-multiple": {
@@ -876,14 +879,17 @@ func TestMapValueLength(t *testing.T) {
 				"key1": NewStringValue("hello"),
 				"key2": NewStringValue("world"),
 			}),
+			opts:     CollectionLengthOptions{},
 			expected: 2,
 		},
-		"null": {
+		"null-unhandled-as-zero": {
 			input:    NewMapNull(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledNullAsZero: true},
 			expected: 0,
 		},
-		"unknown": {
+		"unknown-unhandled-as-zero": {
 			input:    NewMapUnknown(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledUnknownAsZero: true},
 			expected: 0,
 		},
 	}
@@ -892,13 +898,39 @@ func TestMapValueLength(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.input.Length()
+			got := testCase.input.Length(testCase.opts)
 
 			if got != testCase.expected {
 				t.Errorf("Expected %d, got %d", testCase.expected, got)
 			}
 		})
 	}
+}
+
+func TestMapValueLength_PanicOnNull(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on null Map with UnhandledNullAsZero=false")
+		}
+	}()
+
+	m := NewMapNull(StringType{})
+	m.Length(CollectionLengthOptions{UnhandledNullAsZero: false})
+}
+
+func TestMapValueLength_PanicOnUnknown(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on unknown Map with UnhandledUnknownAsZero=false")
+		}
+	}()
+
+	m := NewMapUnknown(StringType{})
+	m.Length(CollectionLengthOptions{UnhandledUnknownAsZero: false})
 }
 
 func TestMapTypeValidate(t *testing.T) {

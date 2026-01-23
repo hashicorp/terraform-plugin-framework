@@ -131,8 +131,20 @@ func (v TupleValue) Elements() []attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the Tuple, or zero if the value is null or unknown.
-func (v TupleValue) Length() int {
+// Length returns the number of elements in the Tuple.
+//
+// If the Tuple is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (v TupleValue) Length(opts CollectionLengthOptions) int {
+	if v.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null Tuple")
+	}
+
+	if v.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown Tuple")
+	}
+
 	return len(v.elements)
 }
 

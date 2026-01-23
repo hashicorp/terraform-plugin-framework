@@ -738,14 +738,17 @@ func TestTupleValueLength(t *testing.T) {
 
 	testCases := map[string]struct {
 		input    TupleValue
+		opts     CollectionLengthOptions
 		expected int
 	}{
 		"known-empty": {
 			input:    NewTupleValueMust([]attr.Type{}, []attr.Value{}),
+			opts:     CollectionLengthOptions{},
 			expected: 0,
 		},
 		"known-single": {
 			input:    NewTupleValueMust([]attr.Type{StringType{}}, []attr.Value{NewStringValue("test")}),
+			opts:     CollectionLengthOptions{},
 			expected: 1,
 		},
 		"known-multiple": {
@@ -753,14 +756,17 @@ func TestTupleValueLength(t *testing.T) {
 				[]attr.Type{StringType{}, BoolType{}},
 				[]attr.Value{NewStringValue("hello"), NewBoolValue(true)},
 			),
+			opts:     CollectionLengthOptions{},
 			expected: 2,
 		},
-		"null": {
+		"null-unhandled-as-zero": {
 			input:    NewTupleNull([]attr.Type{StringType{}, BoolType{}}),
+			opts:     CollectionLengthOptions{UnhandledNullAsZero: true},
 			expected: 0,
 		},
-		"unknown": {
+		"unknown-unhandled-as-zero": {
 			input:    NewTupleUnknown([]attr.Type{StringType{}, BoolType{}}),
+			opts:     CollectionLengthOptions{UnhandledUnknownAsZero: true},
 			expected: 0,
 		},
 	}
@@ -769,11 +775,37 @@ func TestTupleValueLength(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.input.Length()
+			got := testCase.input.Length(testCase.opts)
 
 			if got != testCase.expected {
 				t.Errorf("Expected %d, got %d", testCase.expected, got)
 			}
 		})
 	}
+}
+
+func TestTupleValueLength_PanicOnNull(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on null Tuple with UnhandledNullAsZero=false")
+		}
+	}()
+
+	tuple := NewTupleNull([]attr.Type{StringType{}})
+	tuple.Length(CollectionLengthOptions{UnhandledNullAsZero: false})
+}
+
+func TestTupleValueLength_PanicOnUnknown(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on unknown Tuple with UnhandledUnknownAsZero=false")
+		}
+	}()
+
+	tuple := NewTupleUnknown([]attr.Type{StringType{}})
+	tuple.Length(CollectionLengthOptions{UnhandledUnknownAsZero: false})
 }

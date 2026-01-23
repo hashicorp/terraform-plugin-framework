@@ -173,8 +173,20 @@ func (s SetValue) Elements() []attr.Value {
 	return result
 }
 
-// Length returns the number of elements in the Set, or zero if the value is null or unknown.
-func (s SetValue) Length() int {
+// Length returns the number of elements in the Set.
+//
+// If the Set is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (s SetValue) Length(opts CollectionLengthOptions) int {
+	if s.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null Set")
+	}
+
+	if s.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown Set")
+	}
+
 	return len(s.elements)
 }
 

@@ -846,14 +846,17 @@ func TestListValueLength(t *testing.T) {
 
 	testCases := map[string]struct {
 		input    ListValue
+		opts     CollectionLengthOptions
 		expected int
 	}{
 		"known-empty": {
 			input:    NewListValueMust(StringType{}, []attr.Value{}),
+			opts:     CollectionLengthOptions{},
 			expected: 0,
 		},
 		"known-single": {
 			input:    NewListValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			opts:     CollectionLengthOptions{},
 			expected: 1,
 		},
 		"known-multiple": {
@@ -861,14 +864,17 @@ func TestListValueLength(t *testing.T) {
 				NewStringValue("hello"),
 				NewStringValue("world"),
 			}),
+			opts:     CollectionLengthOptions{},
 			expected: 2,
 		},
-		"null": {
+		"null-unhandled-as-zero": {
 			input:    NewListNull(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledNullAsZero: true},
 			expected: 0,
 		},
-		"unknown": {
+		"unknown-unhandled-as-zero": {
 			input:    NewListUnknown(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledUnknownAsZero: true},
 			expected: 0,
 		},
 	}
@@ -877,13 +883,39 @@ func TestListValueLength(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := testCase.input.Length()
+			got := testCase.input.Length(testCase.opts)
 
 			if got != testCase.expected {
 				t.Errorf("Expected %d, got %d", testCase.expected, got)
 			}
 		})
 	}
+}
+
+func TestListValueLength_PanicOnNull(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on null List with UnhandledNullAsZero=false")
+		}
+	}()
+
+	list := NewListNull(StringType{})
+	list.Length(CollectionLengthOptions{UnhandledNullAsZero: false})
+}
+
+func TestListValueLength_PanicOnUnknown(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on unknown List with UnhandledUnknownAsZero=false")
+		}
+	}()
+
+	list := NewListUnknown(StringType{})
+	list.Length(CollectionLengthOptions{UnhandledUnknownAsZero: false})
 }
 
 func TestListTypeValidate(t *testing.T) {

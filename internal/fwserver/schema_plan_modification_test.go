@@ -369,7 +369,8 @@ func TestSchemaModifyPlan(t *testing.T) {
 					Schema: testschema.Schema{
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.AttributeWithStringPlanModifiers{
-								Required: true,
+								Optional: true,
+								Computed: true,
 								PlanModifiers: []planmodifier.String{
 									testplanmodifier.String{
 										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
@@ -400,7 +401,8 @@ func TestSchemaModifyPlan(t *testing.T) {
 					Schema: testschema.Schema{
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.AttributeWithStringPlanModifiers{
-								Required: true,
+								Optional: true,
+								Computed: true,
 								PlanModifiers: []planmodifier.String{
 									testplanmodifier.String{
 										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
@@ -431,7 +433,8 @@ func TestSchemaModifyPlan(t *testing.T) {
 					Schema: testschema.Schema{
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.AttributeWithStringPlanModifiers{
-								Required: true,
+								Optional: true,
+								Computed: true,
 								PlanModifiers: []planmodifier.String{
 									testplanmodifier.String{
 										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
@@ -464,7 +467,8 @@ func TestSchemaModifyPlan(t *testing.T) {
 					Schema: testschema.Schema{
 						Attributes: map[string]fwschema.Attribute{
 							"test": testschema.AttributeWithStringPlanModifiers{
-								Required: true,
+								Optional: true,
+								Computed: true,
 								PlanModifiers: []planmodifier.String{
 									testplanmodifier.String{
 										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {

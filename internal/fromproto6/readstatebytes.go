@@ -22,7 +22,6 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 
 	var diags diag.Diagnostics
 
-
 	if proto6.StateId == "" {
 		diags.AddError(
 			"Missing State ID",

@@ -46,7 +46,7 @@ func TestConfigureStateStoreRequest(t *testing.T) {
 		},
 	}
 
-	defaultClientCapabilities := statestore.ConfigureStateStoreClientCapabilities{
+	defaultClientCapabilities := statestore.InitializeClientCapabilities{
 		ChunkSize: 8 << 20,
 	}
 
@@ -107,7 +107,7 @@ func TestConfigureStateStoreRequest(t *testing.T) {
 			stateStoreSchema: testFwSchema,
 			expected: &fwserver.ConfigureStateStoreRequest{
 				StateStoreSchema: testFwSchema,
-				ClientCapabilities: statestore.ConfigureStateStoreClientCapabilities{
+				ClientCapabilities: statestore.InitializeClientCapabilities{
 					ChunkSize: 4 << 20,
 				},
 			},

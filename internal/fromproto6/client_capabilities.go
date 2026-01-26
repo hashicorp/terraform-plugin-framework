@@ -118,16 +118,16 @@ func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabiliti
 	}
 }
 
-func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) statestore.ConfigureStateStoreClientCapabilities {
+func InitializeClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) statestore.InitializeClientCapabilities {
 	if in == nil {
 		// Client did not indicate any supported capabilities, in practice this shouldn't happen, but if it does
 		// we'll just default to the same chunk size that Terraform core does, 8MB.
-		return statestore.ConfigureStateStoreClientCapabilities{
+		return statestore.InitializeClientCapabilities{
 			ChunkSize: 8 << 20,
 		}
 	}
 
-	return statestore.ConfigureStateStoreClientCapabilities{
+	return statestore.InitializeClientCapabilities{
 		ChunkSize: in.ChunkSize,
 	}
 }

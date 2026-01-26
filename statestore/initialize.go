@@ -8,19 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-type ConfigureStateStoreClientCapabilities struct {
+type InitializeClientCapabilities struct {
 	ChunkSize int64
 }
 
 // TODO: update docs
-// -> the RPC itself, similar to provider.Configure
-type ConfigureStateStoreRequest struct {
+// -> the ConfigureStateStore RPC itself, similar to provider.Configure
+type InitializeRequest struct {
 	Config       tfsdk.Config
 	ProviderData any
 }
 
 // TODO: update docs
-type ConfigureStateStoreResponse struct {
+type InitializeResponse struct {
 	Diagnostics    diag.Diagnostics
 	StateStoreData any
 }

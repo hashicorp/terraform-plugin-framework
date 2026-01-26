@@ -16,9 +16,9 @@ type StateStore interface {
 	Schema(context.Context, SchemaRequest, *SchemaResponse)
 
 	// TODO: update docs
-	// ConfigureStateStore -> the RPC itself, responsible for combining provider-level data (from ConfigureProvider RPC) and
+	// Initialize -> the ConfigureStateStore RPC itself, responsible for combining provider-level data (from ConfigureProvider RPC) and
 	// state store configuration into a response value that will be set on the server for this state store type
-	ConfigureStateStore(context.Context, ConfigureStateStoreRequest, *ConfigureStateStoreResponse)
+	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 }
 
 type StateStoreWithConfigure interface {

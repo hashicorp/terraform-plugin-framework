@@ -24,7 +24,7 @@ func ConfigureStateStoreRequest(ctx context.Context, proto6 *tfprotov6.Configure
 	fw := &fwserver.ConfigureStateStoreRequest{
 		StateStore:         reqStateStore,
 		StateStoreSchema:   stateStoreSchema,
-		ClientCapabilities: ConfigureStateStoreClientCapabilities(proto6.Capabilities),
+		ClientCapabilities: InitializeClientCapabilities(proto6.Capabilities),
 	}
 
 	config, diags := Config(ctx, proto6.Config, stateStoreSchema)

@@ -71,7 +71,7 @@ type Server struct {
 	// MAINTAINER NOTE: While it's possible for a provider to contain multiple state store implementations, it's not possible
 	// for a Terraform configuration to use multiple state stores simultaneously, so it's safe to only store a single field of
 	// configure data for the entire provider.
-	stateStoreConfigureData stateStoreConfigureData
+	StateStoreConfigureData StateStoreConfigureData
 
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be

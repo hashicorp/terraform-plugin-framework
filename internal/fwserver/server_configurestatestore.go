@@ -20,7 +20,7 @@ type ConfigureStateStoreRequest struct {
 	Config             *tfsdk.Config
 	StateStore         statestore.StateStore
 	StateStoreSchema   fwschema.Schema
-	ClientCapabilities statestore.ConfigureStateStoreClientCapabilities
+	ClientCapabilities statestore.InitializeClientCapabilities
 }
 
 // ConfigureStateStoreResponse is the framework server response for the
@@ -30,7 +30,7 @@ type ConfigureStateStoreResponse struct {
 	ServerCapabilities *StateStoreServerCapabilities
 }
 
-type stateStoreConfigureData struct {
+type StateStoreConfigureData struct {
 	ServerCapabilities      StateStoreServerCapabilities
 	StateStoreConfigureData any
 }
@@ -42,7 +42,7 @@ func (s *Server) ConfigureStateStore(ctx context.Context, req *ConfigureStateSto
 	}
 
 	nullSchemaData := tftypes.NewValue(req.StateStoreSchema.Type().TerraformType(ctx), nil)
-	configureReq := statestore.ConfigureStateStoreRequest{
+	configureReq := statestore.InitializeRequest{
 		Config: tfsdk.Config{
 			Schema: req.StateStoreSchema,
 			Raw:    nullSchemaData,
@@ -53,22 +53,22 @@ func (s *Server) ConfigureStateStore(ctx context.Context, req *ConfigureStateSto
 		configureReq.Config = *req.Config
 	}
 
-	configureResp := statestore.ConfigureStateStoreResponse{}
+	configureResp := statestore.InitializeResponse{}
 
-	logging.FrameworkTrace(ctx, "Calling provider defined StateStore ConfigureStateStore")
-	req.StateStore.ConfigureStateStore(ctx, configureReq, &configureResp)
-	logging.FrameworkTrace(ctx, "Called provider defined StateStore ConfigureStateStore")
+	logging.FrameworkTrace(ctx, "Calling provider defined StateStore Initialize")
+	req.StateStore.Initialize(ctx, configureReq, &configureResp)
+	logging.FrameworkTrace(ctx, "Called provider defined StateStore Initialize")
 
 	resp.Diagnostics = configureResp.Diagnostics
 	resp.ServerCapabilities = &StateStoreServerCapabilities{
 		// MAINTAINER NOTE: Currently, we just round-trip the proposed chunk size from Terraform core (8 MB). In the future,
-		// we could expose this to provider developers in [statestore.ConfigureStateStoreResponse] if controlling
+		// we could expose this to provider developers in [statestore.InitializeResponse] if controlling
 		// the chunk size is desired.
 		ChunkSize: req.ClientCapabilities.ChunkSize,
 	}
 
 	// Set state store configure data + server capabilities for reference in future state store RPCs
-	s.stateStoreConfigureData = stateStoreConfigureData{
+	s.StateStoreConfigureData = StateStoreConfigureData{
 		ServerCapabilities:      *resp.ServerCapabilities,
 		StateStoreConfigureData: configureResp.StateStoreData,
 	}

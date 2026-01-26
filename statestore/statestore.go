@@ -15,17 +15,25 @@ type StateStore interface {
 	// Schema should return the schema for this state store.
 	Schema(context.Context, SchemaRequest, *SchemaResponse)
 
-	// TODO: update docs
-	// Initialize -> the ConfigureStateStore RPC itself, responsible for combining provider-level data (from ConfigureProvider RPC) and
-	// state store configuration into a response value that will be set on the server for this state store type
+	// Initialize is called one time, prior to executing any state store RPCs (excluding offline validation) but after
+	// the provider is configured, and is when Terraform sends the values the user specified in the state_store configuration
+	// block to the provider. These are supplied in the InitializeRequest argument.
+	//
+	// As this method is always executed after provider configuration, data can be passed from [provider.ConfigureResponse.StateStoreData]
+	// to [InitializeRequest.ProviderData]. This provider-level data along with the values from state store configuration are often used
+	// to initialize an API client, which can be set to [InitializeResponse.StateStoreData], then eventually stored on the struct implementing
+	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 }
 
+// StateStoreWithConfigure is an interface type that extends StateStore to
+// include a method which the framework will automatically call so provider
+// developers have the opportunity to setup any necessary provider-level data
+// or clients in the StateStore type.
 type StateStoreWithConfigure interface {
 	StateStore
 
-	// TODO: update docs
-	// Configure -> called before every method to interact with a state store implementation, i.e. dependency injection
-	// Similar to all of the other configure methods in framework.
+	// Configure enables provider-level data or clients to be set in the
+	// provider-defined StateStore type.
 	Configure(context.Context, ConfigureRequest, *ConfigureResponse)
 }

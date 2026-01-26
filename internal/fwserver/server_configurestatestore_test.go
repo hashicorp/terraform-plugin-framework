@@ -126,7 +126,7 @@ func TestServerConfigureStateStore(t *testing.T) {
 			request: &fwserver.ConfigureStateStoreRequest{
 				StateStoreSchema: testSchema,
 				StateStore:       &testprovider.StateStore{},
-				ClientCapabilities: statestore.InitializeClientCapabilities{
+				ClientCapabilities: fwserver.ConfigureStateStoreClientCapabilities{
 					ChunkSize: 4 << 20,
 				},
 			},

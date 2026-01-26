@@ -54,14 +54,14 @@ type Server struct {
 	ActionConfigureData any
 
 	// StateStoreProviderData is provider-defined data, clients, etc. that is
-	// passed to [statestore.ConfigureStateStoreRequest.ProviderData].
+	// passed to [statestore.InitializeRequest.ProviderData].
 	//
 	// As state stores have a dedicated ConfigureStateStore RPC with their
 	// own configuration to consume, this value is not passed to [statestore.ConfigureRequest.StateStoreData]
-	// automatically, but must be explicitly set to [statestore.ConfigureStateStoreResponse.StateStoreData].
+	// automatically, but must be explicitly set to [statestore.InitializeResponse.StateStoreData].
 	StateStoreProviderData any
 
-	// stateStoreConfigureData is configured data from [statestore.ConfigureStateStoreResponse.StateStoreData]
+	// StateStoreConfigureData is configured data from [statestore.InitializeResponse.StateStoreData]
 	// and the determined server capabilities (returned from ConfigureStateStore RPC).
 	//
 	// The configured data should be used to populate [statestore.ConfigureRequest.StateStoreData] prior to executing

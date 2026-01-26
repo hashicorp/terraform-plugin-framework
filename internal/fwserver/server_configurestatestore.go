@@ -14,13 +14,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+// MAINTAINER NOTE: Currently, we just round-trip the proposed chunk size from Terraform core (8 MB). In the future,
+// we could expose this to provider developers in [statestore.InitializeResponse] if controlling
+// the chunk size is desired.
+type ConfigureStateStoreClientCapabilities struct {
+	// ChunkSize is the client-requested size of state byte chunks that are sent between Terraform Core and
+	// The default chunk size in Terraform core is 8 MB.
+	ChunkSize int64
+}
+
 // ConfigureStateStoreRequest is the framework server request for the
 // ConfigureStateStore RPC.
 type ConfigureStateStoreRequest struct {
 	Config             *tfsdk.Config
 	StateStore         statestore.StateStore
 	StateStoreSchema   fwschema.Schema
-	ClientCapabilities statestore.InitializeClientCapabilities
+	ClientCapabilities ConfigureStateStoreClientCapabilities
 }
 
 // ConfigureStateStoreResponse is the framework server response for the
@@ -61,9 +70,6 @@ func (s *Server) ConfigureStateStore(ctx context.Context, req *ConfigureStateSto
 
 	resp.Diagnostics = configureResp.Diagnostics
 	resp.ServerCapabilities = &StateStoreServerCapabilities{
-		// MAINTAINER NOTE: Currently, we just round-trip the proposed chunk size from Terraform core (8 MB). In the future,
-		// we could expose this to provider developers in [statestore.InitializeResponse] if controlling
-		// the chunk size is desired.
 		ChunkSize: req.ClientCapabilities.ChunkSize,
 	}
 

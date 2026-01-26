@@ -78,11 +78,11 @@ type ConfigureResponse struct {
 	ListResourceData any
 
 	// StateStoreData is provider-defined data, clients, etc. that is
-	// passed to [statestore.ConfigureStateStoreRequest.ProviderData].
+	// passed to [statestore.InitializeRequest.ProviderData].
 	//
 	// As state stores have a dedicated ConfigureStateStore RPC with their own configuration to consume, this value
 	// is not automatically passed to [statestore.ConfigureRequest.StateStoreData] but must be explicitly set
-	// to [statestore.ConfigureStateStoreResponse.StateStoreData].
+	// to [statestore.InitializeResponse.StateStoreData].
 	StateStoreData any
 
 	// Deferred indicates that Terraform should automatically defer

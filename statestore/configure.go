@@ -7,14 +7,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// TODO: update docs
-// -> passing global state store configured data (returned from ConfigureStateStore, stored on provider server) to
-// an implementation that is about to run a state store RPC (i.e. ReadStateBytes)
+// ConfigureRequest represents a request for the provider to set provider-level data or clients on a
+// StateStore type. An instance of this request struct is supplied as an argument to the StateStore type
+// Configure method.
+//
+// NOTE: This method is called any time framework needs to execute logic on a StateStore type and is different from
+// the ConfigureStateStore RPC call, which is implemented by [StateStore.Initialize].
 type ConfigureRequest struct {
+	// StateStoreData is the data set in the [InitializeResponse.StateStoreData] field.
+	// This data can contain any necessary remote system clients, state store initialization data,
+	// or anything else pertinent to the functionality of the StateStore.
+	//
+	// This data is only set after the ConfigureStateStore RPC has been called by Terraform.
 	StateStoreData any
 }
 
-// TODO: update docs
+// ConfigureResponse represents a response to a ConfigureRequest. An
+// instance of this response struct is supplied as an argument to the
+// StateStore type Configure method.
 type ConfigureResponse struct {
+	// Diagnostics report errors or warnings related to configuring of the
+	// StateStore. An empty slice indicates a successful operation with no
+	// warnings or errors generated.
 	Diagnostics diag.Diagnostics
 }

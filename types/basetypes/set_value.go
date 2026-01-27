@@ -327,6 +327,17 @@ func (s SetValue) IsUnknown() bool {
 	return s.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Set represents a currently nullable known value,
+// including all its elements, recursively.
+func (s SetValue) IsFullyNullableKnown() bool {
+	for _, elem := range s.elements {
+		if !elem.IsFullyNullableKnown() {
+			return false
+		}
+	}
+	return true
+}
+
 // String returns a human-readable representation of the Set value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

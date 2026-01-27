@@ -173,6 +173,23 @@ func (l ListValue) Elements() []attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the List.
+//
+// If the List is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (l ListValue) Length(opts CollectionLengthOptions) int {
+	if l.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null List")
+	}
+
+	if l.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown List")
+	}
+
+	return len(l.elements)
+}
+
 // ElementsAs populates `target` with the elements of the ListValue, throwing an
 // error if the elements cannot be stored in `target`.
 func (l ListValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {

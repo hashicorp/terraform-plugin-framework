@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'types/basetypes: Added `Length()` method for the `TupleValue` type.'
+time: 2026-01-27T12:30:33.573716-05:00
+custom:
+    Issue: "1067"

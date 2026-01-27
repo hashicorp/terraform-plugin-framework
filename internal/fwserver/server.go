@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 // Server implements the framework provider server. Protocol specific
@@ -250,6 +251,29 @@ type Server struct {
 	// resourceBehaviorsMutex is a mutex to protect concurrent resourceBehaviors
 	// access from race conditions.
 	resourceBehaviorsMutex sync.Mutex
+
+	// statestoreSchemas is the cached StateStore Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the StateStore.Schema() method.
+	statestoreSchemas map[string]fwschema.Schema
+
+	// statestoreSchemasMutex is a mutex to protect concurrent statestoreSchemas
+	// access from race conditions.
+	statestoreSchemasMutex sync.RWMutex
+
+	// statestoreFuncs is the cached StateStore functions for RPCs that need to
+	// access statestores. If not found, it will be fetched from the
+	// Provider.StateStore() method.
+	statestoreFuncs map[string]func() statestore.StateStore
+
+	// statestoreFuncsDiags is the cached Diagnostics obtained while populating
+	// statestoreFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching statestoreFuncs.
+	statestoreFuncsDiags diag.Diagnostics
+
+	// statestoreFuncsMutex is a mutex to protect concurrent statestoreFuncs
+	// access from race conditions.
+	statestoreFuncsMutex sync.Mutex
 }
 
 // DataSource returns the DataSource for a given type name.

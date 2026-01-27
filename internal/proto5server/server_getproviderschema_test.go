@@ -894,6 +894,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 			"@message": string("Called provider defined Actions"),
 			"@module":  string("sdk.framework"),
 		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking StateStoreFuncs lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ProviderTypeName lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined StateStores"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined StateStores"),
+			"@module":  string("sdk.framework"),
+		},
 	}
 
 	if diff := cmp.Diff(entries, expectedEntries); diff != "" {

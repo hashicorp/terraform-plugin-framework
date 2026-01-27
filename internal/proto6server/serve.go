@@ -52,11 +52,6 @@ func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.Va
 	panic("ValidateStateStoreConfig not implemented")
 }
 
-func (s *Server) ConfigureStateStore(ctx context.Context, req *tfprotov6.ConfigureStateStoreRequest) (*tfprotov6.ConfigureStateStoreResponse, error) {
-	// TODO: Implement in a separate PR for just ConfigureStateStore
-	panic("ConfigureStateStore not implemented")
-}
-
 func (s *Server) GetStates(ctx context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
 	// TODO: Implement in a separate PR for just workspace RPCs
 	panic("GetStates not implemented")

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 // Provider is the core interface that all Terraform providers must implement.
@@ -163,4 +164,18 @@ type ProviderWithValidateConfig interface {
 
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
+}
+
+// ProviderWithStateStores is an interface type that extends Provider to include state stores.
+// TODO: Add supported Terraform version note
+type ProviderWithStateStores interface {
+	Provider
+
+	// StateStores returns a slice of functions to instantiate each
+	// StateStore implementation.
+	//
+	// The state store type name is determined by the
+	// StateStore implementing the Metadata method. All state
+	// stores must have unique names.
+	StateStores(context.Context) []func() statestore.StateStore
 }

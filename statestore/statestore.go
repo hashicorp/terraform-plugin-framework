@@ -24,6 +24,12 @@ type StateStore interface {
 	// to initialize an API client, which can be set to [InitializeResponse.StateStoreData], then eventually stored on the struct implementing
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
+
+	// TODO: package docs, mention optional nature of locking, just return with no lock ID
+	Lock(context.Context, LockRequest, *LockResponse)
+
+	// TODO: package docs, mention it is only called if a lock ID is returned from Lock
+	Unlock(context.Context, UnlockRequest, *UnlockResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

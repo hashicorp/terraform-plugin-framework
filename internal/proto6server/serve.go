@@ -62,16 +62,6 @@ func (s *Server) DeleteState(ctx context.Context, req *tfprotov6.DeleteStateRequ
 	panic("DeleteState not implemented")
 }
 
-func (s *Server) LockState(ctx context.Context, req *tfprotov6.LockStateRequest) (*tfprotov6.LockStateResponse, error) {
-	// TODO: Implement in a separate PR for just locking RPCs
-	panic("LockState not implemented")
-}
-
-func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequest) (*tfprotov6.UnlockStateResponse, error) {
-	// TODO: Implement in a separate PR for just locking RPCs
-	panic("UnlockState not implemented")
-}
-
 func (s *Server) ReadStateBytes(ctx context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
 	// TODO: Implement in a separate PR for just ReadStateBytes
 	panic("ReadStateBytes not implemented")

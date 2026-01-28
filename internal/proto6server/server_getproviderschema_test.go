@@ -30,6 +30,8 @@ import (
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
+	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 )
 
 func TestServerGetProviderSchema(t *testing.T) {
@@ -127,6 +129,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"datasourceschemas": {
@@ -211,6 +214,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"ephemeralschemas": {
@@ -295,6 +299,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"functions": {
@@ -361,6 +366,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"listschemas": {
@@ -504,6 +510,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"provider": {
@@ -546,6 +553,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"providermeta": {
@@ -592,6 +600,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
 			},
 		},
 		"resourceschemas": {
@@ -675,6 +684,92 @@ func TestServerGetProviderSchema(t *testing.T) {
 					GetProviderSchemaOptional: true,
 					MoveResourceState:         true,
 					PlanDestroy:               true,
+				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{},
+			},
+		},
+		"statestoreschemas": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+							return []func() statestore.StateStore{
+								func() statestore.StateStore {
+									return &testprovider.StateStore{
+										SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+											resp.Schema = statestoreschema.Schema{
+												Attributes: map[string]statestoreschema.Attribute{
+													"test1": statestoreschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+											resp.TypeName = "test_state_store1"
+										},
+									}
+								},
+								func() statestore.StateStore {
+									return &testprovider.StateStore{
+										SchemaMethod: func(_ context.Context, _ statestore.SchemaRequest, resp *statestore.SchemaResponse) {
+											resp.Schema = statestoreschema.Schema{
+												Attributes: map[string]statestoreschema.Attribute{
+													"test2": statestoreschema.StringAttribute{
+														Required: true,
+													},
+												},
+											}
+										},
+										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+											resp.TypeName = "test_state_store2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetProviderSchemaRequest{},
+			expectedResponse: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov6.ActionSchema{},
+				DataSourceSchemas:        map[string]*tfprotov6.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{},
+				Functions:                map[string]*tfprotov6.Function{},
+				ListResourceSchemas:      map[string]*tfprotov6.Schema{},
+				Provider: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{},
+				},
+				ResourceSchemas: map[string]*tfprotov6.Schema{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				StateStoreSchemas: map[string]*tfprotov6.Schema{
+					"test_state_store1": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test1",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
+					"test_state_store2": {
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:     "test2",
+									Required: true,
+									Type:     tftypes.String,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -892,6 +987,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   string("trace"),
 			"@message": string("Called provider defined Actions"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking StateStoreFuncs lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ProviderTypeName lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined StateStores"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined StateStores"),
 			"@module":  string("sdk.framework"),
 		},
 	}

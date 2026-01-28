@@ -44,3 +44,45 @@ func (s *Server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 
 	return &tfprotov6.StopProviderResponse{}, nil
 }
+
+// TODO: All RPC methods below are temporary and should be moved to a separate file when fully implementing each RPC
+
+func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.ValidateStateStoreConfigRequest) (*tfprotov6.ValidateStateStoreConfigResponse, error) {
+	// TODO: Implement in a separate PR for just ValidateStateStoreConfig
+	panic("ValidateStateStoreConfig not implemented")
+}
+
+func (s *Server) ConfigureStateStore(ctx context.Context, req *tfprotov6.ConfigureStateStoreRequest) (*tfprotov6.ConfigureStateStoreResponse, error) {
+	// TODO: Implement in a separate PR for just ConfigureStateStore
+	panic("ConfigureStateStore not implemented")
+}
+
+func (s *Server) GetStates(ctx context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
+	// TODO: Implement in a separate PR for just workspace RPCs
+	panic("GetStates not implemented")
+}
+
+func (s *Server) DeleteState(ctx context.Context, req *tfprotov6.DeleteStateRequest) (*tfprotov6.DeleteStateResponse, error) {
+	// TODO: Implement in a separate PR for just workspace RPCs
+	panic("DeleteState not implemented")
+}
+
+func (s *Server) LockState(ctx context.Context, req *tfprotov6.LockStateRequest) (*tfprotov6.LockStateResponse, error) {
+	// TODO: Implement in a separate PR for just locking RPCs
+	panic("LockState not implemented")
+}
+
+func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequest) (*tfprotov6.UnlockStateResponse, error) {
+	// TODO: Implement in a separate PR for just locking RPCs
+	panic("UnlockState not implemented")
+}
+
+func (s *Server) ReadStateBytes(ctx context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
+	// TODO: Implement in a separate PR for just ReadStateBytes
+	panic("ReadStateBytes not implemented")
+}
+
+func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
+	// TODO: Implement in a separate PR for just WriteStateBytes
+	panic("WriteStateBytes not implemented")
+}

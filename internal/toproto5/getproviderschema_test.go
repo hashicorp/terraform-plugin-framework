@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	providerschema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -5580,6 +5581,35 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_resource": {
 						Block:   &tfprotov5.SchemaBlock{},
 						Version: 123,
+					},
+				},
+			},
+		},
+		"statestores-error": {
+			input: &fwserver.GetProviderSchemaResponse{
+				StateStoreSchemas: map[string]fwschema.Schema{
+					"test_state_store1": statestoreschema.Schema{
+						Version: 123,
+					},
+					"test_state_store2": statestoreschema.Schema{
+						Version: 123,
+					},
+				},
+			},
+			expected: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas:            map[string]*tfprotov5.ActionSchema{},
+				DataSourceSchemas:        map[string]*tfprotov5.Schema{},
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{},
+				Functions:                map[string]*tfprotov5.Function{},
+				ListResourceSchemas:      map[string]*tfprotov5.Schema{},
+				ResourceSchemas:          map[string]*tfprotov5.Schema{},
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "Unsupported State Store(s)",
+						Detail: "The schema for the provider contains at least one state store implementation, which are only supported in protocol v6. " +
+							"The provider is currently being served with protocol v5 and must either be upgraded to v6 or the state store implementation must be removed. This is always a problem with the provider and should be reported to the provider developer:\n\n" +
+							"State store(s) found in provider: test_state_store1, test_state_store2",
 					},
 				},
 			},

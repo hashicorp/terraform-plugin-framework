@@ -67,7 +67,7 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 			}
 
 			chunkSize := 8 << 20 // default 8 MB
-			if &fwResp.ServerCapabilities != nil && fwResp.ServerCapabilities.ChunkSize > 0 {
+			if fwResp.ServerCapabilities.ChunkSize > 0 {
 				chunkSize = int(fwResp.ServerCapabilities.ChunkSize)
 			}
 

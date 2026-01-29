@@ -22,7 +22,7 @@ func (s *Server) StateStore(ctx context.Context, statestoreType string) (statest
 
 	if !ok {
 		diags.AddError(
-			"State Store Type Not Found",
+			"StateStore Type Not Found",
 			fmt.Sprintf("No state store type named %q was found in the provider.", statestoreType),
 		)
 
@@ -69,7 +69,7 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 
 		if statestoreTypeResp.TypeName == "" {
 			s.statestoreFuncsDiags.AddError(
-				"State Store Type Missing",
+				"StateStore Type Missing",
 				fmt.Sprintf("The %T state store returned an empty string from the Metadata method. ", statestoreImpl)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
@@ -80,7 +80,7 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 
 		if _, ok := s.statestoreFuncs[statestoreTypeResp.TypeName]; ok {
 			s.statestoreFuncsDiags.AddError(
-				"Duplicate State Store Type Defined",
+				"Duplicate StateStore Type Defined",
 				fmt.Sprintf("The %s state store type was returned for multiple state stores. ", statestoreTypeResp.TypeName)+
 					"State store type names must be unique. "+
 					"This is always an issue with the provider and should be reported to the provider developers.",

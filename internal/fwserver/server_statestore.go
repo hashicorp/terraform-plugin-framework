@@ -23,7 +23,7 @@ func (s *Server) StateStore(ctx context.Context, statestoreType string) (statest
 	if !ok {
 		diags.AddError(
 			"StateStore Type Not Found",
-			fmt.Sprintf("No state store type named %q was found in the provider.", statestoreType),
+			fmt.Sprintf("No statestore type named %q was found in the provider.", statestoreType),
 		)
 
 		return nil, diags

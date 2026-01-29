@@ -17,6 +17,7 @@ type StateStore struct {
 	MetadataMethod   func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
 	SchemaMethod     func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
 	InitializeMethod func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
+	WriteMethod      func(context.Context, statestore.WriteRequest, *statestore.WriteResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -44,4 +45,13 @@ func (d *StateStore) Initialize(ctx context.Context, req statestore.InitializeRe
 	}
 
 	d.InitializeMethod(ctx, req, resp)
+}
+
+// Write satisfies the statestore.StateStore interface.
+func (d *StateStore) Write(ctx context.Context, req statestore.WriteRequest, resp *statestore.WriteResponse) {
+	if d.WriteMethod == nil {
+		return
+	}
+
+	d.WriteMethod(ctx, req, resp)
 }

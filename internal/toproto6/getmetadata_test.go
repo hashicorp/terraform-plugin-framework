@@ -50,6 +50,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				Functions:          []tfprotov6.FunctionMetadata{},
 				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
+				StateStores:        []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"datasources": {
@@ -77,6 +78,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				Functions:          []tfprotov6.FunctionMetadata{},
 				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
+				StateStores:        []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"diagnostics": {
@@ -106,6 +108,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				Functions:          []tfprotov6.FunctionMetadata{},
 				ListResources:      []tfprotov6.ListResourceMetadata{},
 				Resources:          []tfprotov6.ResourceMetadata{},
+				StateStores:        []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"ephemeralresources": {
@@ -133,6 +136,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				Functions:     []tfprotov6.FunctionMetadata{},
 				ListResources: []tfprotov6.ListResourceMetadata{},
 				Resources:     []tfprotov6.ResourceMetadata{},
+				StateStores:   []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"functions": {
@@ -160,6 +164,7 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 				ListResources: []tfprotov6.ListResourceMetadata{},
 				Resources:     []tfprotov6.ResourceMetadata{},
+				StateStores:   []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"listresources": {
@@ -186,7 +191,8 @@ func TestGetMetadataResponse(t *testing.T) {
 						TypeName: "test_list_resource_2",
 					},
 				},
-				Resources: []tfprotov6.ResourceMetadata{},
+				Resources:   []tfprotov6.ResourceMetadata{},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"resources": {
@@ -214,6 +220,7 @@ func TestGetMetadataResponse(t *testing.T) {
 						TypeName: "test_resource_2",
 					},
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"servercapabilities": {
@@ -234,6 +241,35 @@ func TestGetMetadataResponse(t *testing.T) {
 					GetProviderSchemaOptional: true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
+			},
+		},
+		"statestores": {
+			input: &fwserver.GetMetadataResponse{
+				StateStores: []fwserver.StateStoreMetadata{
+					{
+						TypeName: "test_state_store_1",
+					},
+					{
+						TypeName: "test_state_store_2",
+					},
+				},
+			},
+			expected: &tfprotov6.GetMetadataResponse{
+				StateStores: []tfprotov6.StateStoreMetadata{
+					{
+						TypeName: "test_state_store_1",
+					},
+					{
+						TypeName: "test_state_store_2",
+					},
+				},
+				Actions:            []tfprotov6.ActionMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
 			},
 		},
 	}

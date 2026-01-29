@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
-	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 )
 
 // Server implements the framework provider server. Protocol specific
@@ -261,7 +260,7 @@ type Server struct {
 	// statestoreSchemas is the cached StateStore Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the StateStore.Schema() method.
-	statestoreSchemas map[string]statestoreschema.Schema
+	statestoreSchemas map[string]fwschema.Schema
 
 	// statestoreSchemasMutex is a mutex to protect concurrent statestoreSchemas
 	// access from race conditions.
@@ -269,7 +268,7 @@ type Server struct {
 
 	// statestoreFuncs is the cached StateStore functions for RPCs that need to
 	// access statestores. If not found, it will be fetched from the
-	// Provider.StateStores() method.
+	// Provider.StateStore() method.
 	statestoreFuncs map[string]func() statestore.StateStore
 
 	// statestoreFuncsDiags is the cached Diagnostics obtained while populating

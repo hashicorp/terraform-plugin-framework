@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'types/basetypes: Added `Length()` method for the `ListValue` type.'
+time: 2026-01-27T12:28:35.393455-05:00
+custom:
+    Issue: "1067"

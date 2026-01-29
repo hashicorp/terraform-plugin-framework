@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -8,13 +8,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
-	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 )
 
-// StateStore returns the StateStore for a given statestore type.
+// StateStore returns the StateStore for a given state store type.
 func (s *Server) StateStore(ctx context.Context, statestoreType string) (statestore.StateStore, diag.Diagnostics) {
 	statestoreFuncs, diags := s.StateStoreFuncs(ctx)
 
@@ -22,8 +22,8 @@ func (s *Server) StateStore(ctx context.Context, statestoreType string) (statest
 
 	if !ok {
 		diags.AddError(
-			"StateStore Type Not Found",
-			fmt.Sprintf("No statestore type named %q was found in the provider.", statestoreType),
+			"State Store Type Not Found",
+			fmt.Sprintf("No state store type named %q was found in the provider.", statestoreType),
 		)
 
 		return nil, diags
@@ -48,8 +48,8 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 
 	provider, ok := s.Provider.(provider.ProviderWithStateStores)
 	if !ok {
-		// Only statestore specific RPCs should return diagnostics about the
-		// provider not implementing statestores or missing statestores.
+		// Only state store specific RPCs should return diagnostics about the
+		// provider not implementing state stores or missing state stores.
 		return s.statestoreFuncs, s.statestoreFuncsDiags
 	}
 
@@ -69,20 +69,20 @@ func (s *Server) StateStoreFuncs(ctx context.Context) (map[string]func() statest
 
 		if statestoreTypeResp.TypeName == "" {
 			s.statestoreFuncsDiags.AddError(
-				"StateStore Type Missing",
-				fmt.Sprintf("The %T StateStore returned an empty string from the Metadata method. ", statestoreImpl)+
+				"State Store Type Missing",
+				fmt.Sprintf("The %T state store returned an empty string from the Metadata method. ", statestoreImpl)+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
 		}
 
-		logging.FrameworkTrace(ctx, "Found statestore", map[string]interface{}{logging.KeyStateStoreType: statestoreTypeResp.TypeName})
+		logging.FrameworkTrace(ctx, "Found state store", map[string]interface{}{logging.KeyStateStoreType: statestoreTypeResp.TypeName})
 
 		if _, ok := s.statestoreFuncs[statestoreTypeResp.TypeName]; ok {
 			s.statestoreFuncsDiags.AddError(
-				"Duplicate StateStore Defined",
-				fmt.Sprintf("The %s statestore type was returned for multiple statestores. ", statestoreTypeResp.TypeName)+
-					"StateStore types must be unique. "+
+				"Duplicate State Store Type Defined",
+				fmt.Sprintf("The %s state store type was returned for multiple state stores. ", statestoreTypeResp.TypeName)+
+					"State store type names must be unique. "+
 					"This is always an issue with the provider and should be reported to the provider developers.",
 			)
 			continue
@@ -112,7 +112,7 @@ func (s *Server) StateStoreMetadatas(ctx context.Context) ([]StateStoreMetadata,
 
 // StateStoreSchema returns the StateStore Schema for the given type name and
 // caches the result for later StateStore operations.
-func (s *Server) StateStoreSchema(ctx context.Context, statestoreType string) (statestoreschema.Schema, diag.Diagnostics) {
+func (s *Server) StateStoreSchema(ctx context.Context, statestoreType string) (fwschema.Schema, diag.Diagnostics) {
 	s.statestoreSchemasMutex.RLock()
 	statestoreSchema, ok := s.statestoreSchemas[statestoreType]
 	s.statestoreSchemasMutex.RUnlock()
@@ -147,7 +147,7 @@ func (s *Server) StateStoreSchema(ctx context.Context, statestoreType string) (s
 	s.statestoreSchemasMutex.Lock()
 
 	if s.statestoreSchemas == nil {
-		s.statestoreSchemas = make(map[string]statestoreschema.Schema)
+		s.statestoreSchemas = make(map[string]fwschema.Schema)
 	}
 
 	s.statestoreSchemas[statestoreType] = schemaResp.Schema
@@ -161,8 +161,8 @@ func (s *Server) StateStoreSchema(ctx context.Context, statestoreType string) (s
 // GetProviderSchema RPC without caching since not all schemas are guaranteed to
 // be necessary for later provider operations. The schema implementations are
 // also validated.
-func (s *Server) StateStoreSchemas(ctx context.Context) (map[string]statestoreschema.Schema, diag.Diagnostics) {
-	statestoreSchemas := make(map[string]statestoreschema.Schema)
+func (s *Server) StateStoreSchemas(ctx context.Context) (map[string]fwschema.Schema, diag.Diagnostics) {
+	statestoreSchemas := make(map[string]fwschema.Schema)
 
 	statestoreFuncs, diags := s.StateStoreFuncs(ctx)
 

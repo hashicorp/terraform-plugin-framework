@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 func TestServerGetMetadata(t *testing.T) {
@@ -1016,6 +1017,169 @@ func TestServerGetMetadata(t *testing.T) {
 				},
 			},
 		},
+		"statestore": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store1"
+									},
+								}
+							},
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store2"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				StateStores: []fwserver.StateStoreMetadata{
+					{
+						TypeName: "test_state_store1",
+					},
+					{
+						TypeName: "test_state_store2",
+					},
+				},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"statestores-duplicate-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store"
+									},
+								}
+							},
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = "test_state_store"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				StateStores:        []fwserver.StateStoreMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Duplicate State Store Type Defined",
+						"The test_state_store state store type was returned for multiple state stores. "+
+							"State store type names must be unique. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"statestores-empty-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = ""
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				StateStores:        []fwserver.StateStoreMetadata{},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Diagnostics: diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"State Store Type Missing",
+						"The *testprovider.StateStore state store returned an empty string from the Metadata method. "+
+							"This is always an issue with the provider and should be reported to the provider developers.",
+					),
+				},
+				Functions: []fwserver.FunctionMetadata{},
+				Resources: []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
+		"statestores-provider-type-name": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					MetadataMethod: func(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+						resp.TypeName = "testprovidertype"
+					},
+					StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+						return []func() statestore.StateStore{
+							func() statestore.StateStore {
+								return &testprovider.StateStore{
+									MetadataMethod: func(_ context.Context, req statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+										resp.TypeName = req.ProviderTypeName + "_state_store"
+									},
+								}
+							},
+						}
+					},
+				},
+			},
+			request: &fwserver.GetMetadataRequest{},
+			expectedResponse: &fwserver.GetMetadataResponse{
+				StateStores: []fwserver.StateStoreMetadata{
+					{
+						TypeName: "testprovidertype_state_store",
+					},
+				},
+				DataSources:        []fwserver.DataSourceMetadata{},
+				EphemeralResources: []fwserver.EphemeralResourceMetadata{},
+				Functions:          []fwserver.FunctionMetadata{},
+				Resources:          []fwserver.ResourceMetadata{},
+				ServerCapabilities: &fwserver.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1048,6 +1212,10 @@ func TestServerGetMetadata(t *testing.T) {
 
 			sort.Slice(response.Resources, func(i int, j int) bool {
 				return response.Resources[i].TypeName < response.Resources[j].TypeName
+			})
+
+			sort.Slice(response.StateStores, func(i int, j int) bool {
+				return response.StateStores[i].TypeName < response.StateStores[j].TypeName
 			})
 
 			opts := cmp.Options{

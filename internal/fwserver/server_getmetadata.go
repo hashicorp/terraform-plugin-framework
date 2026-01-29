@@ -23,7 +23,7 @@ type GetMetadataResponse struct {
 	Functions          []FunctionMetadata
 	ListResources      []ListResourceMetadata
 	Resources          []ResourceMetadata
-	StateStore         []StateStoreMetadata
+	StateStores        []StateStoreMetadata
 	ServerCapabilities *ServerCapabilities
 }
 
@@ -69,10 +69,9 @@ type ActionMetadata struct {
 	TypeName string
 }
 
-// StateStoreMetadata is the framework server equivalent of the
-// tfprotov5.StateStoreMetadata and tfprotov6.StateStoreMetadata types.
+// StateStoreMetadata is the framework server equivalent of the tfprotov6.StateStoreMetadata types.
 type StateStoreMetadata struct {
-	// TypeName is the name of the action.
+	// TypeName is the name of the state store.
 	TypeName string
 }
 
@@ -83,7 +82,7 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
 	resp.ListResources = []ListResourceMetadata{}
-	resp.StateStore = []StateStoreMetadata{}
+	resp.StateStores = []StateStoreMetadata{}
 	resp.Resources = []ResourceMetadata{}
 
 	resp.ServerCapabilities = s.ServerCapabilities()
@@ -122,5 +121,5 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.Functions = functionMetadatas
 	resp.ListResources = listResourceMetadatas
 	resp.Resources = resourceMetadatas
-	resp.StateStore = statestoreMetadatas
+	resp.StateStores = statestoreMetadatas
 }

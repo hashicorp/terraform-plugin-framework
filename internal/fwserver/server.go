@@ -53,6 +53,11 @@ type Server struct {
 	// to [action.ConfigureRequest.ProviderData].
 	ActionConfigureData any
 
+	// StateStoreConfigureData is the
+	// [provider.ConfigureResponse.StateStoreData] field value which is passed
+	// to [statestore.ConfigureStateStoreRequest.ProviderData].
+	StateStoreConfigureData any
+
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Action.Schema() method.

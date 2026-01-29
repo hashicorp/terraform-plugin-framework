@@ -1899,7 +1899,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"Duplicate State Store Type Defined",
+						"Duplicate StateStore Type Defined",
 						"The test_state_store state store type was returned for multiple state stores. "+
 							"State store type names must be unique. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
@@ -1939,7 +1939,7 @@ func TestServerGetProviderSchema(t *testing.T) {
 				ListResourceSchemas:      map[string]fwschema.Schema{},
 				Diagnostics: diag.Diagnostics{
 					diag.NewErrorDiagnostic(
-						"State Store Type Missing",
+						"StateStore Type Missing",
 						"The *testprovider.StateStore state store returned an empty string from the Metadata method. "+
 							"This is always an issue with the provider and should be reported to the provider developers.",
 					),

@@ -22,7 +22,7 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 
 	var diags diag.Diagnostics
 
-	if proto6.StateId == "" {
+	if proto6.StateID == "" {
 		diags.AddError(
 			"Missing State ID",
 			"An unexpected error was encountered when handling the request. "+
@@ -36,7 +36,7 @@ func ReadStateBytesRequest(ctx context.Context, proto6 *tfprotov6.ReadStateBytes
 
 	fw := &fwserver.ReadStateBytesRequest{
 		StateStore: stateStore,
-		StateID:    proto6.StateId,
+		StateID:    proto6.StateID,
 	}
 
 	return fw, diags

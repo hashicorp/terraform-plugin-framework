@@ -60,7 +60,7 @@ func TestServerReadStateBytes(t *testing.T) {
 			},
 			request: &tfprotov6.ReadStateBytesRequest{
 				TypeName: "test_statestore",
-				StateId:  "test_statestore",
+				StateID:  "test_statestore",
 			},
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
@@ -101,7 +101,7 @@ func TestServerReadStateBytes(t *testing.T) {
 			},
 			request: &tfprotov6.ReadStateBytesRequest{
 				TypeName: "test_statestore",
-				StateId:  "test_statestore",
+				StateID:  "test_statestore",
 			},
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{

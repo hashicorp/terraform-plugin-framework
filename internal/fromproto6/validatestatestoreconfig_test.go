@@ -47,7 +47,7 @@ func TestValidateStateStoreRequest(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		input                    *tfprotov6.ValidateStateStoreRequest
+		input                    *tfprotov6.ValidateStateStoreConfigRequest
 		statestoreResourceSchema fwschema.Schema
 		statestoreResource       statestore.StateStore
 		expected                 *fwserver.ValidateStateStoreRequest
@@ -58,11 +58,11 @@ func TestValidateStateStoreRequest(t *testing.T) {
 			expected: nil,
 		},
 		"empty": {
-			input:    &tfprotov6.ValidateStateStoreRequest{},
+			input:    &tfprotov6.ValidateStateStoreConfigRequest{},
 			expected: &fwserver.ValidateStateStoreRequest{},
 		},
 		"config-missing-schema": {
-			input: &tfprotov6.ValidateStateStoreRequest{
+			input: &tfprotov6.ValidateStateStoreConfigRequest{
 				Config: &testProto6DynamicValue,
 			},
 			expected: &fwserver.ValidateStateStoreRequest{},
@@ -77,7 +77,7 @@ func TestValidateStateStoreRequest(t *testing.T) {
 			},
 		},
 		"config": {
-			input: &tfprotov6.ValidateStateStoreRequest{
+			input: &tfprotov6.ValidateStateStoreConfigRequest{
 				Config: &testProto6DynamicValue,
 			},
 			statestoreResourceSchema: testFwSchema,

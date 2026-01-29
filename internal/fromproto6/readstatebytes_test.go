@@ -47,7 +47,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 		},
 		"id-missing": {
 			input: &tfprotov6.ReadStateBytesRequest{
-				StateId: "",
+				StateID: "",
 			},
 			statestoreSchema: testschema.Schema{},
 			expected:         nil,
@@ -63,7 +63,7 @@ func TestReadStateBytesRequest(t *testing.T) {
 		},
 		"state-id": {
 			input: &tfprotov6.ReadStateBytesRequest{
-				StateId: "test-value",
+				StateID: "test-value",
 			},
 			statestoreSchema: testschema.Schema{},
 			expected: &fwserver.ReadStateBytesRequest{

@@ -14,8 +14,8 @@ import (
 )
 
 // ValidateStateStoreRequest returns the *fwserver.ValidateStateStoreRequest
-// equivalent of a *tfprotov6.ValidateStateStoreRequest.
-func ValidateStateStoreRequest(ctx context.Context, proto6 *tfprotov6.ValidateStateStoreRequest, reqStateStore statestore.StateStore, StateStoreSchema fwschema.Schema) (*fwserver.ValidateStateStoreRequest, diag.Diagnostics) {
+// equivalent of a *tfprotov6.ValidateStateStoreConfigRequest.
+func ValidateStateStoreRequest(ctx context.Context, proto6 *tfprotov6.ValidateStateStoreConfigRequest, reqStateStore statestore.StateStore, StateStoreSchema fwschema.Schema) (*fwserver.ValidateStateStoreRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}

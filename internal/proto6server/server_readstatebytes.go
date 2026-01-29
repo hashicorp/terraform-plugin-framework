@@ -6,6 +6,7 @@ package proto6server
 import (
 	"bytes"
 	"context"
+	"io"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
@@ -15,20 +16,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
-// readStateBytesErrorDiagnostics returns a value suitable for
-// [ReadStateBytesServerStream.Chunks]. It yields a single result that contains
-// the given error diagnostics.
 func readStateBytesErrorDiagnostics(ctx context.Context, diags diag.Diagnostics) (*tfprotov6.ReadStateBytesStream, error) {
 	return &tfprotov6.ReadStateBytesStream{
 		Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
 			push(tfprotov6.ReadStateByteChunk{
-				Diagnostics: toproto6.Diagnostics(ctx, diags), // TODO : Think about how we handle diags
+				Diagnostics: toproto6.Diagnostics(ctx, diags),
 			})
 		},
 	}, nil
 }
 
-// ReadStateBytes satisfies the tfprotov6.ProviderServer interface.
 func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
 	ctx = s.registerContext(ctx)
 	ctx = logging.InitContext(ctx)
@@ -43,7 +40,6 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 	}
 
 	statestoreSchema, diags := s.FrameworkServer.StateStoreSchema(ctx, proto6Req.TypeName)
-
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {
@@ -51,7 +47,6 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 	}
 
 	fwReq, diags := fromproto6.ReadStateBytesRequest(ctx, proto6Req, statestore, statestoreSchema)
-
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {
@@ -63,42 +58,52 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 			s.FrameworkServer.ReadStateBytes(ctx, fwReq, fwResp)
 
 			if fwResp.Diagnostics.HasError() {
-				push(tfprotov6.ReadStateByteChunk{
+				if !push(tfprotov6.ReadStateByteChunk{
 					Diagnostics: toproto6.Diagnostics(ctx, fwResp.Diagnostics),
-				})
+				}) {
+					return
+				}
 				return
 			}
 
-			// Use chunk size from server capabilities, default to 8MB if not set
-			chunkSize := fwResp.ServerCapabilities.ChunkSize
-			if chunkSize == 0 {
-				chunkSize = 8 << 20 // 8 MB default
+			chunkSize := 8 << 20 // default 8 MB
+			if &fwResp.ServerCapabilities != nil && fwResp.ServerCapabilities.ChunkSize > 0 {
+				chunkSize = int(fwResp.ServerCapabilities.ChunkSize)
 			}
 
 			reader := bytes.NewReader(fwResp.Bytes)
 			totalLength := reader.Size()
-			rangeStart := 0
+			var rangeStart int64 = 0
 
 			for {
-				readBytes := make([]byte, chunkSize)
-				byteCount, err := reader.Read(readBytes)
+				buf := make([]byte, chunkSize)
+				byteCount, err := reader.Read(buf)
+
+				if err != nil && err != io.EOF {
+					chunk := tfprotov6.ReadStateByteChunk{
+						Diagnostics: toproto6.Diagnostics(ctx, fwResp.Diagnostics),
+					}
+					if !push(chunk) {
+						return
+					}
+					return
+				}
 
 				if byteCount == 0 {
-					break
+					return
 				}
 
 				chunk := tfprotov6.ReadStateByteChunk{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       readBytes[:byteCount],
+						Bytes:       buf[:byteCount],
 						TotalLength: totalLength,
 						Range: tfprotov6.StateByteRange{
-							Start: int64(rangeStart),
-							End:   int64(rangeStart + byteCount),
+							Start: rangeStart,
+							End:   rangeStart + int64(byteCount),
 						},
 					},
 				}
 
-				// Include diagnostics only on first chunk
 				if rangeStart == 0 {
 					chunk.Diagnostics = toproto6.Diagnostics(ctx, fwResp.Diagnostics)
 				}
@@ -107,11 +112,10 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 					return
 				}
 
-				rangeStart += byteCount
+				rangeStart += int64(byteCount)
 
-				// Handle read errors
-				if err != nil {
-					break
+				if err == io.EOF {
+					return
 				}
 			}
 		},

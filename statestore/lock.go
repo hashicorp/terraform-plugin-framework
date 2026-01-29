@@ -16,5 +16,3 @@ type LockResponse struct {
 	LockID      string
 	Diagnostics diag.Diagnostics
 }
-
-// TODO: add helper struct for generating common lock info from LockRequest (see existing TF lock info class)

@@ -14,12 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// TODO: revisit package docs
-
-// LockInfo is a helper struct for representing a lock for a given state. The [NewLockInfo]
+// LockInfo is a helper struct for representing lock data for a given state. The [NewLockInfo]
 // function should be used to create this struct, which will populate [LockInfo.ID], [LockInfo.Who]
-// and [LockInfo.Created] automatically. LockInfo structs are meant to be directly marshalled to JSON, stored,
-// and unmarshalled from JSON for inspection.
+// and [LockInfo.Created] automatically. LockInfo structs are meant to be directly marshalled to JSON,
+// stored, and unmarshalled from JSON for inspection.
 //
 // The [LockInfo.Equal] method can be used to compare locks.
 //
@@ -28,6 +26,8 @@ import (
 type LockInfo struct {
 	// ID is a unique identifier for a lock. The [NewLockInfo] function should be
 	// used to create a new LockInfo struct, where this ID will be generated.
+	//
+	// This field should be used to set [LockResponse.LockID].
 	ID string `json:"id"`
 
 	// Operation is the operation provided by the [LockRequest] (plan, apply, refresh, etc.)
@@ -40,7 +40,7 @@ type LockInfo struct {
 	Created time.Time `json:"created"`
 }
 
-// NewLockInfo will create a new LockInfo struct, which is a helper struct that
+// NewLockInfo will create a new [LockInfo] struct, which is a helper struct that
 // can be marshalled to JSON and stored to represent an active lock for a state file.
 func NewLockInfo(req LockRequest) LockInfo {
 	return LockInfo{

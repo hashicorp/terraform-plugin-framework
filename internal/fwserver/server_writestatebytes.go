@@ -13,7 +13,7 @@ import (
 
 type WriteStateBytesRequest struct {
 	StateID    string
-	Data       []byte
+	StateBytes []byte
 	StateStore statestore.StateStore
 }
 
@@ -47,8 +47,8 @@ func (s *Server) WriteStateBytes(ctx context.Context, req *WriteStateBytesReques
 	}
 
 	writeReq := statestore.WriteRequest{
-		StateID: req.StateID,
-		Data:    req.Data,
+		StateID:    req.StateID,
+		StateBytes: req.StateBytes,
 	}
 
 	writeResp := statestore.WriteResponse{}

@@ -9,8 +9,8 @@ import (
 
 // TODO: package docs
 type WriteRequest struct {
-	StateID string
-	Data    []byte
+	StateID    string
+	StateBytes []byte
 }
 
 // TODO: package docs

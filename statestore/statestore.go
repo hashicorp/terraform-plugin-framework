@@ -34,7 +34,7 @@ type StateStore interface {
 	// write that would fail if the requested file already exists.
 	Lock(context.Context, LockRequest, *LockResponse)
 
-	// Unlock is called by Terraform to release a lock (previosuly acquired by [StateStore.Lock]) after an operation has been completed.
+	// Unlock is called by Terraform to release a lock (previously acquired by [StateStore.Lock]) after an operation has been completed.
 	//
 	// This method is not called by Terraform if the state store returns an empty [LockResponse.LockID] from [StateStore.Lock].
 	Unlock(context.Context, UnlockRequest, *UnlockResponse)

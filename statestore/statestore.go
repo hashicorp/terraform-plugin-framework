@@ -24,6 +24,9 @@ type StateStore interface {
 	// to initialize an API client, which can be set to [InitializeResponse.StateStoreData], then eventually stored on the struct implementing
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
+
+	// Read returns the given state as bytes from a state store.
+	Read(context.Context, ReadRequest, *ReadResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

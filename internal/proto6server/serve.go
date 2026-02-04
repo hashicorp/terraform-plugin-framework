@@ -71,8 +71,3 @@ func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequ
 	// TODO: Implement in a separate PR for just locking RPCs
 	panic("UnlockState not implemented")
 }
-
-func (s *Server) ReadStateBytes(ctx context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
-	// TODO: Implement in a separate PR for just ReadStateBytes
-	panic("ReadStateBytes not implemented")
-}

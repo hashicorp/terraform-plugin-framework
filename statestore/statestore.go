@@ -25,7 +25,7 @@ type StateStore interface {
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 
-	// TODO: package docs
+	// Write is called by Terraform to write state data to a given state ID in a state store.
 	Write(context.Context, WriteRequest, *WriteResponse)
 }
 

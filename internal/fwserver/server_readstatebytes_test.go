@@ -5,6 +5,7 @@ package fwserver_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -29,14 +30,14 @@ func TestServerReadStateBytesResource(t *testing.T) {
 			},
 			request: &fwserver.ReadStateBytesRequest{
 				StateStore: &testprovider.StateStore{
-					ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+					ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 						resp.StateBytes = []byte{}
 					},
 				},
 				StateID: "test_id",
 			},
 			expectedResponse: &fwserver.ReadStateBytesResponse{
-				Bytes: []byte{},
+				StateBytes: []byte{},
 			},
 		},
 		"success-with-nil-results": {
@@ -45,14 +46,14 @@ func TestServerReadStateBytesResource(t *testing.T) {
 			},
 			request: &fwserver.ReadStateBytesRequest{
 				StateStore: &testprovider.StateStore{
-					ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+					ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 						resp.StateBytes = nil
 					},
 				},
 				StateID: "test_id",
 			},
 			expectedResponse: &fwserver.ReadStateBytesResponse{
-				Bytes: nil,
+				StateBytes: nil,
 			},
 		},
 		"success-with-data": {
@@ -61,14 +62,53 @@ func TestServerReadStateBytesResource(t *testing.T) {
 			},
 			request: &fwserver.ReadStateBytesRequest{
 				StateStore: &testprovider.StateStore{
-					ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+					ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 						resp.StateBytes = []byte("test-data")
 					},
 				},
 				StateID: "test_id",
 			},
 			expectedResponse: &fwserver.ReadStateBytesResponse{
-				Bytes: []byte("test-data"),
+				StateBytes: []byte("test-data"),
+			},
+		},
+		"success-with-configure": {
+			server: &fwserver.Server{
+				StateStoreConfigureData: fwserver.StateStoreConfigureData{
+					StateStoreConfigureData: "test-statestore-configure-value",
+				},
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.ReadStateBytesRequest{
+				StateStore: &testprovider.StateStoreWithConfigure{
+					StateStore: &testprovider.StateStore{
+						ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+							resp.StateBytes = []byte("test-data")
+						},
+					},
+					ConfigureMethod: func(ctx context.Context, req statestore.ConfigureRequest, resp *statestore.ConfigureResponse) {
+						stateStoreData, ok := req.StateStoreData.(string)
+
+						if !ok {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.StateStoreData",
+								fmt.Sprintf("Expected string, got: %T", req.StateStoreData),
+							)
+							return
+						}
+
+						if stateStoreData != "test-statestore-configure-value" {
+							resp.Diagnostics.AddError(
+								"Unexpected ConfigureRequest.StateStoreData",
+								fmt.Sprintf("Expected test-statestore-configure-value, got: %q", stateStoreData),
+							)
+						}
+					},
+				},
+				StateID: "test_id",
+			},
+			expectedResponse: &fwserver.ReadStateBytesResponse{
+				StateBytes: []byte("test-data"),
 			},
 		},
 		"empty-state-id": {
@@ -77,14 +117,14 @@ func TestServerReadStateBytesResource(t *testing.T) {
 			},
 			request: &fwserver.ReadStateBytesRequest{
 				StateStore: &testprovider.StateStore{
-					ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+					ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 						resp.StateBytes = []byte{}
 					},
 				},
 				StateID: "",
 			},
 			expectedResponse: &fwserver.ReadStateBytesResponse{
-				Bytes: []byte{},
+				StateBytes: []byte{},
 			},
 		},
 		"with-diagnostics": {
@@ -93,7 +133,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 			},
 			request: &fwserver.ReadStateBytesRequest{
 				StateStore: &testprovider.StateStore{
-					ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+					ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 						resp.StateBytes = []byte("test-data")
 						resp.Diagnostics.AddWarning("Test Warning", "This is a test warning")
 					},
@@ -101,7 +141,7 @@ func TestServerReadStateBytesResource(t *testing.T) {
 				StateID: "test_id",
 			},
 			expectedResponse: &fwserver.ReadStateBytesResponse{
-				Bytes: []byte("test-data"),
+				StateBytes: []byte("test-data"),
 				Diagnostics: diag.Diagnostics{
 					diag.NewWarningDiagnostic("Test Warning", "This is a test warning"),
 				},

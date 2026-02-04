@@ -24,7 +24,7 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 
 	statestore, diags := s.FrameworkServer.StateStore(ctx, proto6Req.TypeName)
 
-	if diags != nil {
+	if diags.HasError() {
 		return &tfprotov6.ReadStateBytesStream{
 			Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
 				push(tfprotov6.ReadStateByteChunk{
@@ -42,23 +42,38 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 
 	s.FrameworkServer.ReadStateBytes(ctx, readStateBytesReq, readStateBytesResp)
 
-	if len(readStateBytesResp.Diagnostics) > 0 {
+	if readStateBytesResp.Diagnostics.HasError() {
 		return &tfprotov6.ReadStateBytesStream{
 			Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
 				push(tfprotov6.ReadStateByteChunk{
-					Diagnostics: toproto6.Diagnostics(ctx, diags),
+					Diagnostics: toproto6.Diagnostics(ctx, readStateBytesResp.Diagnostics),
 				})
 			},
 		}, nil
 	}
 
-	chunkSize := 8 << 20 // Default to 8 MiB chunks
-
-	if int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize) != 0 {
-		chunkSize = int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize)
+	// If ConfigureStateStore isn't called prior to ReadStateBytes
+	if int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize) == 0 {
+		return &tfprotov6.ReadStateBytesStream{
+			Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
+				push(tfprotov6.ReadStateByteChunk{
+					Diagnostics: []*tfprotov6.Diagnostic{
+						{
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Summary:  "Error reading state",
+							Detail: fmt.Sprintf("No chunk size received from Terraform while reading state data for %s. This is a bug and should be reported.",
+								proto6Req.StateID,
+							),
+						},
+					},
+				})
+			},
+		}, nil
 	}
 
-	reader := bytes.NewReader(readStateBytesResp.Bytes)
+	chunkSize := int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize)
+
+	reader := bytes.NewReader(readStateBytesResp.StateBytes)
 	totalLength := reader.Size()
 	rangeStart := 0
 
@@ -94,7 +109,7 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 					TotalLength: totalLength,
 					Range: tfprotov6.StateByteRange{
 						Start: int64(rangeStart),
-						End:   int64(rangeStart + byteCount),
+						End:   int64(rangeStart + byteCount - 1),
 					},
 				},
 			}

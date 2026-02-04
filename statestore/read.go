@@ -7,29 +7,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// ReadStateBytesRequest represents a request containing the values the user
-// specified for the state_store configuration block, along with the data configured
-// for the provider itself, populated by the [provider.ConfigureResponse.StateStoreData] field.
-//
-// An instance of this request struct is supplied as an argument to the state store's
-// Read method.
-type ReadStateBytesRequest struct {
-	StateID string // The ID of the state to read.
-
-	// ProviderData is the data set in the [provider.ConfigureResponse.StateStoreData]
-	// field. This data is provider-specific and therefore can contain any necessary remote system
-	// clients, custom provider data, or anything else pertinent to the functionality of the StateStore.
-	ProviderData any
+// ReadRequest represents a request to read the contents of a given state ([ReadRequest.StateID]) in the state store.
+type ReadRequest struct {
+	// StateID is the ID of the state to read.
+	//
+	// Typically, this is the name of the Terraform workspace the practitioner is
+	// running Terraform in: https://developer.hashicorp.com/terraform/language/state/workspaces .
+	//
+	// If the practitioner hasn't explicitly selected a workspace, StateID will be set to "default".
+	StateID string
 }
 
-// ReadStateBytesResponse represents a response to an ReadStateBytesRequest. An instance of this response
+// ReadResponse represents a response to an ReadRequest. An instance of this response
 // struct is supplied as an argument to the state store's Read method, in which the provider
-// should set values on the ReadStateBytesResponse as appropriate.
-type ReadStateBytesResponse struct {
-	// Diagnostics report errors or warnings related to initializing the
-	// state store. An empty slice indicates success, with no warnings or
+// should set values on the ReadResponse as appropriate.
+type ReadResponse struct {
+	// Diagnostics report errors or warnings related to reading the given state
+	// from the state store. An empty slice indicates success, with no warnings or
 	// errors generated.
 	Diagnostics diag.Diagnostics
 
+	// StateBytes is the entire state file for [ReadRequest.StateID].
 	StateBytes []byte
 }

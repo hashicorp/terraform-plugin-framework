@@ -17,7 +17,7 @@ type StateStore struct {
 	MetadataMethod   func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
 	SchemaMethod     func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
 	InitializeMethod func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
-	ReadMethod       func(context.Context, statestore.ReadStateBytesRequest, *statestore.ReadStateBytesResponse)
+	ReadMethod       func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -48,7 +48,7 @@ func (d *StateStore) Initialize(ctx context.Context, req statestore.InitializeRe
 }
 
 // Read satisfies the statestore.StateStore interface.
-func (d *StateStore) Read(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
+func (d *StateStore) Read(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 	if d.ReadMethod == nil {
 		return
 	}

@@ -17,7 +17,7 @@ type ReadStateBytesRequest struct {
 }
 
 type ReadStateBytesResponse struct {
-	Bytes       []byte
+	StateBytes  []byte
 	Diagnostics diag.Diagnostics
 }
 
@@ -46,16 +46,16 @@ func (s *Server) ReadStateBytes(ctx context.Context, req *ReadStateBytesRequest,
 		}
 	}
 
-	readReq := statestore.ReadStateBytesRequest{
+	readReq := statestore.ReadRequest{
 		StateID: req.StateID,
 	}
 
-	readResp := statestore.ReadStateBytesResponse{}
+	readResp := statestore.ReadResponse{}
 
-	logging.FrameworkTrace(ctx, "Calling provider defined StateStore ReadStateBytes")
+	logging.FrameworkTrace(ctx, "Calling provider defined StateStore Read")
 	req.StateStore.Read(ctx, readReq, &readResp)
-	logging.FrameworkTrace(ctx, "Called provider defined StateStore ReadStateBytes")
+	logging.FrameworkTrace(ctx, "Called provider defined StateStore Read")
 
 	resp.Diagnostics.Append(readResp.Diagnostics...)
-	resp.Bytes = readResp.StateBytes
+	resp.StateBytes = readResp.StateBytes
 }

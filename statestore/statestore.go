@@ -25,8 +25,8 @@ type StateStore interface {
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 
-	// TODO: package docs
-	Read(context.Context, ReadStateBytesRequest, *ReadStateBytesResponse)
+	// Read returns the given state as bytes from a state store.
+	Read(context.Context, ReadRequest, *ReadResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

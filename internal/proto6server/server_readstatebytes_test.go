@@ -47,12 +47,17 @@ func TestServerReadStateBytes(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 											resp.TypeName = "test_statestore"
 										},
-										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
-											resp.StateBytes = []byte("test-config-value")
+										ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+											resp.StateBytes = []byte(`{"version": 1, "terraform_version": "1.15.0"}`)
 										},
 									}
 								},
 							}
+						},
+					},
+					StateStoreConfigureData: fwserver.StateStoreConfigureData{
+						ServerCapabilities: fwserver.StateStoreServerCapabilities{
+							ChunkSize: 50,
 						},
 					},
 				},
@@ -64,11 +69,11 @@ func TestServerReadStateBytes(t *testing.T) {
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("test-config-value"),
-						TotalLength: 17,
+						Bytes:       []byte(`{"version": 1, "terraform_version": "1.15.0"}`), // total lenth is 47
+						TotalLength: 45,
 						Range: tfprotov6.StateByteRange{
 							Start: 0,
-							End:   17,
+							End:   44,
 						},
 					},
 				},
@@ -87,8 +92,8 @@ func TestServerReadStateBytes(t *testing.T) {
 										},
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 										},
-										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
-											resp.StateBytes = []byte("test-config-value")
+										ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+											resp.StateBytes = []byte(`{"version": 1, "terraform_version": "1.15.0"}`)
 										},
 									}
 								},
@@ -132,12 +137,17 @@ func TestServerReadStateBytes(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 											resp.TypeName = "test_statestore"
 										},
-										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
-											resp.StateBytes = []byte("test-config-value")
+										ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+											resp.StateBytes = []byte(`{"version": 2, "terraform_version": "1.15.0"}`)
 										},
 									}
 								},
 							}
+						},
+					},
+					StateStoreConfigureData: fwserver.StateStoreConfigureData{
+						ServerCapabilities: fwserver.StateStoreServerCapabilities{
+							ChunkSize: 8 << 20, // 8 MB
 						},
 					},
 				},
@@ -149,17 +159,17 @@ func TestServerReadStateBytes(t *testing.T) {
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("test-config-value"),
-						TotalLength: 17,
+						Bytes:       []byte(`{"version": 2, "terraform_version": "1.15.0"}`),
+						TotalLength: 45,
 						Range: tfprotov6.StateByteRange{
 							Start: 0,
-							End:   17,
+							End:   44,
 						},
 					},
 				},
 			},
 		},
-		"no-config-default-chunk-size": {
+		"no-config": {
 			server: &Server{
 				FrameworkServer: fwserver.Server{
 					Provider: &testprovider.Provider{
@@ -173,8 +183,8 @@ func TestServerReadStateBytes(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 											resp.TypeName = "test_statestore"
 										},
-										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
-											resp.StateBytes = []byte("test-config-value")
+										ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+											resp.StateBytes = []byte(`{"version": 3, "terraform_version": "1.15.0"}`)
 										},
 									}
 								},
@@ -189,13 +199,11 @@ func TestServerReadStateBytes(t *testing.T) {
 			},
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
-					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("test-config-value"),
-						TotalLength: 17,
-						Range: tfprotov6.StateByteRange{
-							Start: 0,
-							End:   17,
-						},
+					Diagnostics: []*tfprotov6.Diagnostic{
+						{
+							Severity: tfprotov6.DiagnosticSeverityError,
+							Summary:  "Error reading state",
+							Detail:   "No chunk size received from Terraform while reading state data for test_statestore. This is a bug and should be reported."},
 					},
 				},
 			},
@@ -214,8 +222,8 @@ func TestServerReadStateBytes(t *testing.T) {
 										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
 											resp.TypeName = "test_statestore"
 										},
-										ReadMethod: func(ctx context.Context, req statestore.ReadStateBytesRequest, resp *statestore.ReadStateBytesResponse) {
-											resp.StateBytes = []byte("test-config-value")
+										ReadMethod: func(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+											resp.StateBytes = []byte(`{"version": 4, "terraform_version": "1.15.0"}`)
 										},
 									}
 								},
@@ -224,7 +232,7 @@ func TestServerReadStateBytes(t *testing.T) {
 					},
 					StateStoreConfigureData: fwserver.StateStoreConfigureData{
 						ServerCapabilities: fwserver.StateStoreServerCapabilities{
-							ChunkSize: 5,
+							ChunkSize: 10,
 						},
 					},
 				},
@@ -236,41 +244,51 @@ func TestServerReadStateBytes(t *testing.T) {
 			expectedChunks: []tfprotov6.ReadStateByteChunk{
 				{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("test-"),
-						TotalLength: 17,
+						Bytes:       []byte(`{"version"`),
+						TotalLength: 45,
 						Range: tfprotov6.StateByteRange{
 							Start: 0,
-							End:   5,
+							End:   9,
 						},
 					},
 				},
 				{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("confi"),
-						TotalLength: 17,
-						Range: tfprotov6.StateByteRange{
-							Start: 5,
-							End:   10,
-						},
-					},
-				},
-				{
-					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("g-val"),
-						TotalLength: 17,
+						Bytes:       []byte(`: 4, "terr`),
+						TotalLength: 45,
 						Range: tfprotov6.StateByteRange{
 							Start: 10,
-							End:   15,
+							End:   19,
 						},
 					},
 				},
 				{
 					StateByteChunk: tfprotov6.StateByteChunk{
-						Bytes:       []byte("ue"),
-						TotalLength: 17,
+						Bytes:       []byte("aform_vers"),
+						TotalLength: 45,
 						Range: tfprotov6.StateByteRange{
-							Start: 15,
-							End:   17,
+							Start: 20,
+							End:   29,
+						},
+					},
+				},
+				{
+					StateByteChunk: tfprotov6.StateByteChunk{
+						Bytes:       []byte(`ion": "1.1`),
+						TotalLength: 45,
+						Range: tfprotov6.StateByteRange{
+							Start: 30,
+							End:   39,
+						},
+					},
+				},
+				{
+					StateByteChunk: tfprotov6.StateByteChunk{
+						Bytes:       []byte(`5.0"}`),
+						TotalLength: 45,
+						Range: tfprotov6.StateByteRange{
+							Start: 40,
+							End:   44,
 						},
 					},
 				},

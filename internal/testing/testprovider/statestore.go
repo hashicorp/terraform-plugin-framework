@@ -19,6 +19,7 @@ type StateStore struct {
 	InitializeMethod func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
 	LockMethod       func(context.Context, statestore.LockRequest, *statestore.LockResponse)
 	UnlockMethod     func(context.Context, statestore.UnlockRequest, *statestore.UnlockResponse)
+	ReadMethod       func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -64,4 +65,13 @@ func (d *StateStore) Unlock(ctx context.Context, req statestore.UnlockRequest, r
 	}
 
 	d.UnlockMethod(ctx, req, resp)
+}
+
+// Read satisfies the statestore.StateStore interface.
+func (d *StateStore) Read(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
+	if d.ReadMethod == nil {
+		return
+	}
+
+	d.ReadMethod(ctx, req, resp)
 }

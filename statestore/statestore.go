@@ -38,6 +38,9 @@ type StateStore interface {
 	//
 	// This method is not called by Terraform if the state store returns an empty [LockResponse.LockID] from [StateStore.Lock].
 	Unlock(context.Context, UnlockRequest, *UnlockResponse)
+
+	// Read returns the given state as bytes from a state store.
+	Read(context.Context, ReadRequest, *ReadResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

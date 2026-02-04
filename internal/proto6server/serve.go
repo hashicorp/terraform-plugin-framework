@@ -62,11 +62,6 @@ func (s *Server) DeleteState(ctx context.Context, req *tfprotov6.DeleteStateRequ
 	panic("DeleteState not implemented")
 }
 
-func (s *Server) ReadStateBytes(ctx context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
-	// TODO: Implement in a separate PR for just ReadStateBytes
-	panic("ReadStateBytes not implemented")
-}
-
 func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
 	// TODO: Implement in a separate PR for just WriteStateBytes
 	panic("WriteStateBytes not implemented")

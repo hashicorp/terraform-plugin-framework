@@ -47,11 +47,6 @@ func (s *Server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 
 // TODO: All RPC methods below are temporary and should be moved to a separate file when fully implementing each RPC
 
-func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.ValidateStateStoreConfigRequest) (*tfprotov6.ValidateStateStoreConfigResponse, error) {
-	// TODO: Implement in a separate PR for just ValidateStateStoreConfig
-	panic("ValidateStateStoreConfig not implemented")
-}
-
 func (s *Server) GetStates(ctx context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
 	// TODO: Implement in a separate PR for just workspace RPCs
 	panic("GetStates not implemented")

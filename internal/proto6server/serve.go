@@ -52,11 +52,6 @@ func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.Va
 	panic("ValidateStateStoreConfig not implemented")
 }
 
-func (s *Server) ConfigureStateStore(ctx context.Context, req *tfprotov6.ConfigureStateStoreRequest) (*tfprotov6.ConfigureStateStoreResponse, error) {
-	// TODO: Implement in a separate PR for just ConfigureStateStore
-	panic("ConfigureStateStore not implemented")
-}
-
 func (s *Server) GetStates(ctx context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
 	// TODO: Implement in a separate PR for just workspace RPCs
 	panic("GetStates not implemented")
@@ -75,11 +70,6 @@ func (s *Server) LockState(ctx context.Context, req *tfprotov6.LockStateRequest)
 func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequest) (*tfprotov6.UnlockStateResponse, error) {
 	// TODO: Implement in a separate PR for just locking RPCs
 	panic("UnlockState not implemented")
-}
-
-func (s *Server) ReadStateBytes(ctx context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
-	// TODO: Implement in a separate PR for just ReadStateBytes
-	panic("ReadStateBytes not implemented")
 }
 
 func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {

@@ -7,11 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-// TODO: package docs
+// GetStatesRequest represents a request to retrieve all state IDs for states persisted in the configured state store.
 type GetStatesRequest struct{}
 
-// TODO: package docs
+// GetStatesResponse represents a response to an GetStatesRequest. An instance of this response
+// struct is supplied as an argument to the state store's GetStates method, in which the provider
+// should set values on the GetStatesResponse as appropriate.
 type GetStatesResponse struct {
-	StateIDs    []string
+	// StateIDs is a list of all state IDs for states persisted in the configured state store.
+	StateIDs []string
+
+	// Diagnostics report errors or warnings related to retrieving all state IDs for states
+	// persisted in the configured state store. An empty slice indicates success, with no warnings or
+	// errors generated.
 	Diagnostics diag.Diagnostics
 }

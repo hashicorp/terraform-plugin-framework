@@ -25,10 +25,10 @@ type StateStore interface {
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 
-	// TODO: package docs
+	// GetStates returns all state IDs for states persisted in the configured state store.
 	GetStates(context.Context, GetStatesRequest, *GetStatesResponse)
 
-	// TODO: package docs
+	// DeleteState is called by Terraform to delete a state from the configured state store.
 	DeleteState(context.Context, DeleteStateRequest, *DeleteStateResponse)
 
 	// Read returns the given state as bytes from a state store.

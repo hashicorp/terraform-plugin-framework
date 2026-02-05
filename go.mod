@@ -6,6 +6,7 @@ toolchain go1.24.10
 
 require (
 	github.com/google/go-cmp v0.7.0
+	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/terraform-plugin-go v0.29.1-0.20260122204301-b0a6aca80fd7
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 
@@ -16,7 +17,6 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-plugin v1.7.0 // indirect
-	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/terraform-registry-address v0.4.0 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect

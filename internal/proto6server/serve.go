@@ -71,8 +71,3 @@ func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequ
 	// TODO: Implement in a separate PR for just locking RPCs
 	panic("UnlockState not implemented")
 }
-
-func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
-	// TODO: Implement in a separate PR for just WriteStateBytes
-	panic("WriteStateBytes not implemented")
-}

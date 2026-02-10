@@ -61,8 +61,3 @@ func (s *Server) DeleteState(ctx context.Context, req *tfprotov6.DeleteStateRequ
 	// TODO: Implement in a separate PR for just workspace RPCs
 	panic("DeleteState not implemented")
 }
-
-func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
-	// TODO: Implement in a separate PR for just WriteStateBytes
-	panic("WriteStateBytes not implemented")
-}

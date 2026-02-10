@@ -31,7 +31,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 	if configuredChunkSize <= 0 {
 		fwResp.Diagnostics.AddError(
 			"Error Writing State",
-			"The provider server does not have a chunk size configured. This is a bug in either Terraform or terraform-plugin-framework and should be reported.",
+			"The provider server does not have a chunk size configured. This is a bug in either Terraform core or terraform-plugin-framework and should be reported.",
 		)
 		return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 	}
@@ -56,7 +56,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 			if int64(len(chunk.Bytes)) != configuredChunkSize {
 				fwResp.Diagnostics.AddError(
 					"Error Writing State",
-					fmt.Sprintf("Unexpected chunk of size %d was received from Terraform, expected chunk size was %d. This is a bug and should be reported.", len(chunk.Bytes), configuredChunkSize),
+					fmt.Sprintf("Unexpected chunk of size %d was received from Terraform, expected chunk size was %d. This is a bug in Terraform core and should be reported.", len(chunk.Bytes), configuredChunkSize),
 				)
 				return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 			}
@@ -65,7 +65,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 			if int64(len(chunk.Bytes)) > configuredChunkSize {
 				fwResp.Diagnostics.AddError(
 					"Error Writing State",
-					fmt.Sprintf("Unexpected final chunk of size %d was received from Terraform, which exceeds the configured chunk size of %d. This is a bug and should be reported.", len(chunk.Bytes), configuredChunkSize),
+					fmt.Sprintf("Unexpected final chunk of size %d was received from Terraform, which exceeds the configured chunk size of %d. This is a bug in Terraform core and should be reported.", len(chunk.Bytes), configuredChunkSize),
 				)
 				return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 			}
@@ -89,7 +89,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 	if stateBuffer.Len() == 0 {
 		fwResp.Diagnostics.AddError(
 			"Error Writing State",
-			"No state data was received from Terraform. This is a bug and should be reported.",
+			"No state data was received from Terraform. This is a bug in Terraform core and should be reported.",
 		)
 		return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 	}
@@ -97,7 +97,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 	if int64(stateBuffer.Len()) != expectedTotalLength {
 		fwResp.Diagnostics.AddError(
 			"Error Writing State",
-			fmt.Sprintf("Unexpected size of state data received from Terraform, got: %d, expected: %d. This is a bug and should be reported.", stateBuffer.Len(), expectedTotalLength),
+			fmt.Sprintf("Unexpected size of state data received from Terraform, got: %d, expected: %d. This is a bug in Terraform core and should be reported.", stateBuffer.Len(), expectedTotalLength),
 		)
 		return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 	}
@@ -105,7 +105,7 @@ func (s *Server) WriteStateBytes(ctx context.Context, proto6Req *tfprotov6.Write
 	if stateID == "" {
 		fwResp.Diagnostics.AddError(
 			"Error Writing State",
-			"No state ID was received from Terraform. This is a bug and should be reported.",
+			"No state ID was received from Terraform. This is a bug in Terraform core and should be reported.",
 		)
 		return toproto6.WriteStateBytesResponse(ctx, fwResp), nil
 	}

@@ -228,7 +228,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "The provider server does not have a chunk size configured. This is a bug in either Terraform or terraform-plugin-framework and should be reported.",
+						Detail:   "The provider server does not have a chunk size configured. This is a bug in either Terraform core or terraform-plugin-framework and should be reported.",
 					},
 				},
 			},
@@ -359,7 +359,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "Unexpected chunk of size 13 was received from Terraform, expected chunk size was 10. This is a bug and should be reported.",
+						Detail:   "Unexpected chunk of size 13 was received from Terraform, expected chunk size was 10. This is a bug in Terraform core and should be reported.",
 					},
 				},
 			},
@@ -454,7 +454,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "Unexpected final chunk of size 13 was received from Terraform, which exceeds the configured chunk size of 10. This is a bug and should be reported.",
+						Detail:   "Unexpected final chunk of size 13 was received from Terraform, which exceeds the configured chunk size of 10. This is a bug in Terraform core and should be reported.",
 					},
 				},
 			},
@@ -501,7 +501,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "No state data was received from Terraform. This is a bug and should be reported.",
+						Detail:   "No state data was received from Terraform. This is a bug in Terraform core and should be reported.",
 					},
 				},
 			},
@@ -596,7 +596,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "Unexpected size of state data received from Terraform, got: 45, expected: 50. This is a bug and should be reported.",
+						Detail:   "Unexpected size of state data received from Terraform, got: 45, expected: 50. This is a bug in Terraform core and should be reported.",
 					},
 				},
 			},
@@ -648,7 +648,7 @@ func TestServerWriteStateBytes(t *testing.T) {
 					{
 						Severity: tfprotov6.DiagnosticSeverityError,
 						Summary:  "Error Writing State",
-						Detail:   "No state ID was received from Terraform. This is a bug and should be reported.",
+						Detail:   "No state ID was received from Terraform. This is a bug in Terraform core and should be reported.",
 					},
 				},
 			},

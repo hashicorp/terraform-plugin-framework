@@ -53,7 +53,7 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 	}
 
 	// If ConfigureStateStore isn't called prior to ReadStateBytes
-	if int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize) == 0 {
+	if int(s.FrameworkServer.StateStoreConfigureData.ServerCapabilities.ChunkSize) <= 0 {
 		return &tfprotov6.ReadStateBytesStream{
 			Chunks: func(push func(chunk tfprotov6.ReadStateByteChunk) bool) {
 				push(tfprotov6.ReadStateByteChunk{
@@ -61,9 +61,7 @@ func (s *Server) ReadStateBytes(ctx context.Context, proto6Req *tfprotov6.ReadSt
 						{
 							Severity: tfprotov6.DiagnosticSeverityError,
 							Summary:  "Error reading state",
-							Detail: fmt.Sprintf("No chunk size received from Terraform while reading state data for %s. This is a bug and should be reported.",
-								proto6Req.StateID,
-							),
+							Detail:   "The provider server does not have a chunk size configured. This is a bug in either Terraform core or terraform-plugin-framework and should be reported.",
 						},
 					},
 				})

@@ -19,6 +19,8 @@ type StateStore struct {
 	InitializeMethod  func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
 	GetStatesMethod   func(context.Context, statestore.GetStatesRequest, *statestore.GetStatesResponse)
 	DeleteStateMethod func(context.Context, statestore.DeleteStateRequest, *statestore.DeleteStateResponse)
+	LockMethod        func(context.Context, statestore.LockRequest, *statestore.LockResponse)
+	UnlockMethod      func(context.Context, statestore.UnlockRequest, *statestore.UnlockResponse)
 	ReadMethod        func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
 }
 
@@ -47,6 +49,24 @@ func (d *StateStore) Initialize(ctx context.Context, req statestore.InitializeRe
 	}
 
 	d.InitializeMethod(ctx, req, resp)
+}
+
+// Lock satisfies the statestore.StateStore interface.
+func (d *StateStore) Lock(ctx context.Context, req statestore.LockRequest, resp *statestore.LockResponse) {
+	if d.LockMethod == nil {
+		return
+	}
+
+	d.LockMethod(ctx, req, resp)
+}
+
+// Unlock satisfies the statestore.StateStore interface.
+func (d *StateStore) Unlock(ctx context.Context, req statestore.UnlockRequest, resp *statestore.UnlockResponse) {
+	if d.UnlockMethod == nil {
+		return
+	}
+
+	d.UnlockMethod(ctx, req, resp)
 }
 
 // GetStates satisfies the statestore.StateStore interface.

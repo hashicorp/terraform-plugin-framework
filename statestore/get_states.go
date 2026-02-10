@@ -10,7 +10,7 @@ import (
 // GetStatesRequest represents a request to retrieve all state IDs for states persisted in the configured state store.
 type GetStatesRequest struct{}
 
-// GetStatesResponse represents a response to an GetStatesRequest. An instance of this response
+// GetStatesResponse represents a response to a GetStatesRequest. An instance of this response
 // struct is supplied as an argument to the state store's GetStates method, in which the provider
 // should set values on the GetStatesResponse as appropriate.
 type GetStatesResponse struct {

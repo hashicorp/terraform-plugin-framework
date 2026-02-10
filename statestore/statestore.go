@@ -47,6 +47,9 @@ type StateStore interface {
 
 	// Read returns the given state as bytes from a state store.
 	Read(context.Context, ReadRequest, *ReadResponse)
+
+	// Write is called by Terraform to write state data to a given state ID in a state store.
+	Write(context.Context, WriteRequest, *WriteResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

@@ -22,6 +22,7 @@ type StateStore struct {
 	LockMethod        func(context.Context, statestore.LockRequest, *statestore.LockResponse)
 	UnlockMethod      func(context.Context, statestore.UnlockRequest, *statestore.UnlockResponse)
 	ReadMethod        func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
+	WriteMethod       func(context.Context, statestore.WriteRequest, *statestore.WriteResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -94,4 +95,13 @@ func (d *StateStore) Read(ctx context.Context, req statestore.ReadRequest, resp 
 	}
 
 	d.ReadMethod(ctx, req, resp)
+}
+
+// Write satisfies the statestore.StateStore interface.
+func (d *StateStore) Write(ctx context.Context, req statestore.WriteRequest, resp *statestore.WriteResponse) {
+	if d.WriteMethod == nil {
+		return
+	}
+
+	d.WriteMethod(ctx, req, resp)
 }

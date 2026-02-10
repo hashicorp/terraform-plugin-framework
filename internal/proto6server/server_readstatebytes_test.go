@@ -203,7 +203,7 @@ func TestServerReadStateBytes(t *testing.T) {
 						{
 							Severity: tfprotov6.DiagnosticSeverityError,
 							Summary:  "Error reading state",
-							Detail:   "No chunk size received from Terraform while reading state data for test_statestore. This is a bug and should be reported."},
+							Detail:   "The provider server does not have a chunk size configured. This is a bug in either Terraform core or terraform-plugin-framework and should be reported."},
 					},
 				},
 			},

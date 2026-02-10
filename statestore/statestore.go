@@ -25,6 +25,12 @@ type StateStore interface {
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 
+	// GetStates returns all state IDs for states persisted in the configured state store.
+	GetStates(context.Context, GetStatesRequest, *GetStatesResponse)
+
+	// DeleteState is called by Terraform to delete a state from the configured state store.
+	DeleteState(context.Context, DeleteStateRequest, *DeleteStateResponse)
+
 	// Lock is called by Terraform to acquire a lock prior to performing an operation that needs to write to state. If the [LockResponse.LockID] field
 	// is a non-empty string, Terraform will call [StateStore.Unlock] once the operation has been completed.
 	//

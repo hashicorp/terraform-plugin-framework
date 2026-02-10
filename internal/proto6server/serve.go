@@ -51,13 +51,3 @@ func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.Va
 	// TODO: Implement in a separate PR for just ValidateStateStoreConfig
 	panic("ValidateStateStoreConfig not implemented")
 }
-
-func (s *Server) GetStates(ctx context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
-	// TODO: Implement in a separate PR for just workspace RPCs
-	panic("GetStates not implemented")
-}
-
-func (s *Server) DeleteState(ctx context.Context, req *tfprotov6.DeleteStateRequest) (*tfprotov6.DeleteStateResponse, error) {
-	// TODO: Implement in a separate PR for just workspace RPCs
-	panic("DeleteState not implemented")
-}

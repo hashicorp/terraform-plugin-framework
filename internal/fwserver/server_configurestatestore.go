@@ -18,7 +18,7 @@ import (
 // we could expose this to provider developers in [statestore.InitializeResponse] if controlling
 // the chunk size is desired.
 type ConfigureStateStoreClientCapabilities struct {
-	// ChunkSize is the client-requested size of state byte chunks that are sent between Terraform Core and
+	// ChunkSize is the client-requested size of state byte chunks that are sent between Terraform Core and the provider.
 	// The default chunk size in Terraform core is 8 MB.
 	ChunkSize int64
 }

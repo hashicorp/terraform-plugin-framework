@@ -22,7 +22,7 @@ type WriteRequest struct {
 	StateBytes []byte
 }
 
-// WriteResponse represents a response to an WriteRequest. An instance of this response
+// WriteResponse represents a response to a WriteRequest. An instance of this response
 // struct is supplied as an argument to the state store's Write method, in which the provider
 // should set values on the WriteResponse as appropriate.
 type WriteResponse struct {

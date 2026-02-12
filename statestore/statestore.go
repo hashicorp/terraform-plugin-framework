@@ -25,8 +25,31 @@ type StateStore interface {
 	// the StateStore interface in the [StateStoreWithConfigure.Configure] method.
 	Initialize(context.Context, InitializeRequest, *InitializeResponse)
 
+	// GetStates returns all state IDs for states persisted in the configured state store.
+	GetStates(context.Context, GetStatesRequest, *GetStatesResponse)
+
+	// DeleteState is called by Terraform to delete a state from the configured state store.
+	DeleteState(context.Context, DeleteStateRequest, *DeleteStateResponse)
+
+	// Lock is called by Terraform to acquire a lock prior to performing an operation that needs to write to state. If the [LockResponse.LockID] field
+	// is a non-empty string, Terraform will call [StateStore.Unlock] once the operation has been completed.
+	//
+	// State stores that support locking are expected to handle concurrent clients by ensuring multiple locks cannot be acquired on the same state
+	// simultaneously. The backing data store must be strongly consistent (i.e. a newly created lock is immediately visible to all clients) and some form
+	// of concurrency control must be implemented when attempting to acquire a lock. An example of this would be creating a lock file with a conditional
+	// write that would fail if the requested file already exists.
+	Lock(context.Context, LockRequest, *LockResponse)
+
+	// Unlock is called by Terraform to release a lock (previously acquired by [StateStore.Lock]) after an operation has been completed.
+	//
+	// This method is not called by Terraform if the state store returns an empty [LockResponse.LockID] from [StateStore.Lock].
+	Unlock(context.Context, UnlockRequest, *UnlockResponse)
+
 	// Read returns the given state as bytes from a state store.
 	Read(context.Context, ReadRequest, *ReadResponse)
+
+	// Write is called by Terraform to write state data to a given state ID in a state store.
+	Write(context.Context, WriteRequest, *WriteResponse)
 }
 
 // StateStoreWithConfigure is an interface type that extends StateStore to

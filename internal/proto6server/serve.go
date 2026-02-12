@@ -70,4 +70,7 @@ func (s *Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStateRequ
 func (s *Server) WriteStateBytes(ctx context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
 	// TODO: Implement in a separate PR for just WriteStateBytes
 	panic("WriteStateBytes not implemented")
+func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.ValidateStateStoreConfigRequest) (*tfprotov6.ValidateStateStoreConfigResponse, error) {
+	// TODO: Implement in a separate PR for just ValidateStateStoreConfig
+	panic("ValidateStateStoreConfig not implemented")
 }

@@ -14,10 +14,15 @@ var _ statestore.StateStore = &StateStore{}
 // Declarative statestore.StateStore for unit testing.
 type StateStore struct {
 	// StateStore interface methods
-	MetadataMethod   func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
-	SchemaMethod     func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
-	InitializeMethod func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
-	ReadMethod       func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
+	MetadataMethod    func(context.Context, statestore.MetadataRequest, *statestore.MetadataResponse)
+	SchemaMethod      func(context.Context, statestore.SchemaRequest, *statestore.SchemaResponse)
+	InitializeMethod  func(context.Context, statestore.InitializeRequest, *statestore.InitializeResponse)
+	GetStatesMethod   func(context.Context, statestore.GetStatesRequest, *statestore.GetStatesResponse)
+	DeleteStateMethod func(context.Context, statestore.DeleteStateRequest, *statestore.DeleteStateResponse)
+	LockMethod        func(context.Context, statestore.LockRequest, *statestore.LockResponse)
+	UnlockMethod      func(context.Context, statestore.UnlockRequest, *statestore.UnlockResponse)
+	ReadMethod        func(context.Context, statestore.ReadRequest, *statestore.ReadResponse)
+	WriteMethod       func(context.Context, statestore.WriteRequest, *statestore.WriteResponse)
 }
 
 // Metadata satisfies the statestore.StateStore interface.
@@ -47,6 +52,42 @@ func (d *StateStore) Initialize(ctx context.Context, req statestore.InitializeRe
 	d.InitializeMethod(ctx, req, resp)
 }
 
+// Lock satisfies the statestore.StateStore interface.
+func (d *StateStore) Lock(ctx context.Context, req statestore.LockRequest, resp *statestore.LockResponse) {
+	if d.LockMethod == nil {
+		return
+	}
+
+	d.LockMethod(ctx, req, resp)
+}
+
+// Unlock satisfies the statestore.StateStore interface.
+func (d *StateStore) Unlock(ctx context.Context, req statestore.UnlockRequest, resp *statestore.UnlockResponse) {
+	if d.UnlockMethod == nil {
+		return
+	}
+
+	d.UnlockMethod(ctx, req, resp)
+}
+
+// GetStates satisfies the statestore.StateStore interface.
+func (d *StateStore) GetStates(ctx context.Context, req statestore.GetStatesRequest, resp *statestore.GetStatesResponse) {
+	if d.GetStatesMethod == nil {
+		return
+	}
+
+	d.GetStatesMethod(ctx, req, resp)
+}
+
+// DeleteState satisfies the statestore.StateStore interface.
+func (d *StateStore) DeleteState(ctx context.Context, req statestore.DeleteStateRequest, resp *statestore.DeleteStateResponse) {
+	if d.DeleteStateMethod == nil {
+		return
+	}
+
+	d.DeleteStateMethod(ctx, req, resp)
+}
+
 // Read satisfies the statestore.StateStore interface.
 func (d *StateStore) Read(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
 	if d.ReadMethod == nil {
@@ -54,4 +95,13 @@ func (d *StateStore) Read(ctx context.Context, req statestore.ReadRequest, resp 
 	}
 
 	d.ReadMethod(ctx, req, resp)
+}
+
+// Write satisfies the statestore.StateStore interface.
+func (d *StateStore) Write(ctx context.Context, req statestore.WriteRequest, resp *statestore.WriteResponse) {
+	if d.WriteMethod == nil {
+		return
+	}
+
+	d.WriteMethod(ctx, req, resp)
 }

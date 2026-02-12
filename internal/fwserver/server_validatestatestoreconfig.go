@@ -36,7 +36,7 @@ func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *ValidateStat
 		logging.FrameworkTrace(ctx, "StateStore implements StateStoreWithConfigure")
 
 		configureReq := statestore.ConfigureRequest{
-			StateStoreData: s.StateStoreConfigureData,
+			StateStoreData: s.StateStoreConfigureData.StateStoreConfigureData,
 		}
 		configureResp := statestore.ConfigureResponse{}
 

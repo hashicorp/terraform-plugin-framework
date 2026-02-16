@@ -7,6 +7,8 @@ import (
 	"context"
 )
 
+// NOTE: State store support is experimental and exposed without compatibility promises until
+// these notices are removed.
 type StateStore interface {
 	// Metadata should return the full name of the state store, such
 	// as examplecloud_store.

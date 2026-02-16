@@ -72,9 +72,10 @@ func Schema(ctx context.Context, s fwschema.Schema) (*tfprotov5.Schema, error) {
 	result.Block = &tfprotov5.SchemaBlock{
 		// core doesn't do anything with version, as far as I can tell,
 		// so let's not set it.
-		Attributes: attrs,
-		BlockTypes: blocks,
-		Deprecated: s.GetDeprecationMessage() != "",
+		Attributes:         attrs,
+		BlockTypes:         blocks,
+		Deprecated:         s.GetDeprecationMessage() != "",
+		DeprecationMessage: s.GetDeprecationMessage(),
 	}
 
 	if s.GetDescription() != "" {

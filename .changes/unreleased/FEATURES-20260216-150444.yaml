@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'statestore: New package for implementing state stores'
+time: 2026-02-16T15:04:44.812342-05:00
+custom:
+    Issue: "1259"

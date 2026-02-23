@@ -387,6 +387,7 @@ func (o ObjectValue) String() string {
 		if i != 0 {
 			res.WriteString(",")
 		}
+		//nolint:staticcheck
 		res.WriteString(fmt.Sprintf(`"%s":%s`, k, o.Attributes()[k].String()))
 	}
 	res.WriteString("}")

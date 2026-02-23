@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proto5server
@@ -892,6 +892,36 @@ func TestServerGetProviderSchema_logging(t *testing.T) {
 		{
 			"@level":   string("trace"),
 			"@message": string("Called provider defined Actions"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking StateStoreFuncs lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Checking ProviderTypeName lock"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined Provider Metadata"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Calling provider defined StateStores"),
+			"@module":  string("sdk.framework"),
+		},
+		{
+			"@level":   string("trace"),
+			"@message": string("Called provider defined StateStores"),
 			"@module":  string("sdk.framework"),
 		},
 	}

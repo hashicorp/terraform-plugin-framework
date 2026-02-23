@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -37,4 +37,14 @@ func (s *Server) ServerCapabilities() *ServerCapabilities {
 		MoveResourceState:         true,
 		PlanDestroy:               true,
 	}
+}
+
+// StateStoreServerCapabilities is internal to fwserver as we don't need to expose it to state store implementations currently.
+type StateStoreServerCapabilities struct {
+	// ChunkSize is the provider-chosen size of state byte chunks that will be sent between Terraform and
+	// the provider in the ReadStateBytes and WriteStateBytes RPC calls.
+	//
+	// As we don't expose this to providers during ConfigureStateStore currently, the provider-chosen size will always be
+	// the Terraform core defaulted value (8 MB).
+	ChunkSize int64
 }

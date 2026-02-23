@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver_test
@@ -218,6 +218,20 @@ func TestServerConfigureProvider(t *testing.T) {
 			request: &provider.ConfigureRequest{},
 			expectedResponse: &provider.ConfigureResponse{
 				ListResourceData: "test-provider-configure-value",
+			},
+		},
+		"response-statestore-data": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{
+					SchemaMethod: func(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {},
+					ConfigureMethod: func(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+						resp.StateStoreData = "test-provider-configure-value"
+					},
+				},
+			},
+			request: &provider.ConfigureRequest{},
+			expectedResponse: &provider.ConfigureResponse{
+				StateStoreData: "test-provider-configure-value",
 			},
 		},
 		"response-invalid-deferral-diagnostic": {

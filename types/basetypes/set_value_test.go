@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package basetypes
@@ -1091,4 +1091,81 @@ func TestSetValueType(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSetValueLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    SetValue
+		opts     CollectionLengthOptions
+		expected int
+	}{
+		"known-empty": {
+			input:    NewSetValueMust(StringType{}, []attr.Value{}),
+			opts:     CollectionLengthOptions{},
+			expected: 0,
+		},
+		"known-single": {
+			input:    NewSetValueMust(StringType{}, []attr.Value{NewStringValue("test")}),
+			opts:     CollectionLengthOptions{},
+			expected: 1,
+		},
+		"known-multiple": {
+			input: NewSetValueMust(StringType{}, []attr.Value{
+				NewStringValue("hello"),
+				NewStringValue("world"),
+			}),
+			opts:     CollectionLengthOptions{},
+			expected: 2,
+		},
+		"null-unhandled-as-zero": {
+			input:    NewSetNull(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledNullAsZero: true},
+			expected: 0,
+		},
+		"unknown-unhandled-as-zero": {
+			input:    NewSetUnknown(StringType{}),
+			opts:     CollectionLengthOptions{UnhandledUnknownAsZero: true},
+			expected: 0,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := testCase.input.Length(testCase.opts)
+
+			if got != testCase.expected {
+				t.Errorf("Expected %d, got %d", testCase.expected, got)
+			}
+		})
+	}
+}
+
+func TestSetValueLength_PanicOnNull(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on null Set with UnhandledNullAsZero=false")
+		}
+	}()
+
+	set := NewSetNull(StringType{})
+	set.Length(CollectionLengthOptions{UnhandledNullAsZero: false})
+}
+
+func TestSetValueLength_PanicOnUnknown(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic when calling Length on unknown Set with UnhandledUnknownAsZero=false")
+		}
+	}()
+
+	set := NewSetUnknown(StringType{})
+	set.Length(CollectionLengthOptions{UnhandledUnknownAsZero: false})
 }

@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'statestore/schema: New package for implementing state store schemas'
+time: 2026-02-16T15:15:18.148949-05:00
+custom:
+    Issue: "1259"

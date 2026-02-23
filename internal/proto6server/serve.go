@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proto6server
@@ -43,4 +43,11 @@ func (s *Server) StopProvider(ctx context.Context, _ *tfprotov6.StopProviderRequ
 	s.cancelRegisteredContexts(ctx)
 
 	return &tfprotov6.StopProviderResponse{}, nil
+}
+
+// TODO: All RPC methods below are temporary and should be moved to a separate file when fully implementing each RPC
+
+func (s *Server) ValidateStateStoreConfig(ctx context.Context, req *tfprotov6.ValidateStateStoreConfigRequest) (*tfprotov6.ValidateStateStoreConfigResponse, error) {
+	// TODO: Implement in a separate PR for just ValidateStateStoreConfig
+	panic("ValidateStateStoreConfig not implemented")
 }

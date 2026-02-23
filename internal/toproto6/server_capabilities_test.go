@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6_test
@@ -55,6 +55,40 @@ func TestServerCapabilities(t *testing.T) {
 			t.Parallel()
 
 			got := toproto6.ServerCapabilities(context.Background(), testCase.fw)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestStateStoreServerCapabilities(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		fw       *fwserver.StateStoreServerCapabilities
+		expected *tfprotov6.StateStoreServerCapabilities
+	}{
+		"nil": {
+			fw:       nil,
+			expected: nil,
+		},
+		"ChunkSize": {
+			fw: &fwserver.StateStoreServerCapabilities{
+				ChunkSize: 4 << 20,
+			},
+			expected: &tfprotov6.StateStoreServerCapabilities{
+				ChunkSize: 4 << 20,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := toproto6.StateStoreServerCapabilities(testCase.fw)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

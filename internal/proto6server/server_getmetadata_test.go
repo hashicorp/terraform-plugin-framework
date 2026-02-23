@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2021, 2025
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proto6server
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -74,6 +75,7 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"datasources": {
@@ -121,6 +123,7 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"ephemeralresources": {
@@ -168,6 +171,7 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"functions": {
@@ -215,6 +219,7 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"listresources": {
@@ -287,6 +292,7 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
 			},
 		},
 		"resources": {
@@ -334,6 +340,55 @@ func TestServerGetMetadata(t *testing.T) {
 					MoveResourceState:         true,
 					PlanDestroy:               true,
 				},
+				StateStores: []tfprotov6.StateStoreMetadata{},
+			},
+		},
+		"statestores": {
+			server: &Server{
+				FrameworkServer: fwserver.Server{
+					Provider: &testprovider.Provider{
+						StateStoresMethod: func(_ context.Context) []func() statestore.StateStore {
+							return []func() statestore.StateStore{
+								func() statestore.StateStore {
+									return &testprovider.StateStore{
+										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+											resp.TypeName = "test_state_store1"
+										},
+									}
+								},
+								func() statestore.StateStore {
+									return &testprovider.StateStore{
+										MetadataMethod: func(_ context.Context, _ statestore.MetadataRequest, resp *statestore.MetadataResponse) {
+											resp.TypeName = "test_state_store2"
+										},
+									}
+								},
+							}
+						},
+					},
+				},
+			},
+			request: &tfprotov6.GetMetadataRequest{},
+			expectedResponse: &tfprotov6.GetMetadataResponse{
+				Actions:            []tfprotov6.ActionMetadata{},
+				DataSources:        []tfprotov6.DataSourceMetadata{},
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+				Functions:          []tfprotov6.FunctionMetadata{},
+				ListResources:      []tfprotov6.ListResourceMetadata{},
+				Resources:          []tfprotov6.ResourceMetadata{},
+				ServerCapabilities: &tfprotov6.ServerCapabilities{
+					GetProviderSchemaOptional: true,
+					MoveResourceState:         true,
+					PlanDestroy:               true,
+				},
+				StateStores: []tfprotov6.StateStoreMetadata{
+					{
+						TypeName: "test_state_store1",
+					},
+					{
+						TypeName: "test_state_store2",
+					},
+				},
 			},
 		},
 	}
@@ -375,6 +430,10 @@ func TestServerGetMetadata(t *testing.T) {
 
 			sort.Slice(got.Resources, func(i int, j int) bool {
 				return got.Resources[i].TypeName < got.Resources[j].TypeName
+			})
+
+			sort.Slice(got.StateStores, func(i int, j int) bool {
+				return got.StateStores[i].TypeName < got.StateStores[j].TypeName
 			})
 
 			if diff := cmp.Diff(testCase.expectedResponse, got); diff != "" {

@@ -48,6 +48,10 @@ type StateStore interface {
 	Unlock(context.Context, UnlockRequest, *UnlockResponse)
 
 	// Read returns the given state as bytes from a state store.
+	//
+	// Terraform will always attempt to read the state prior to writing, even in the initial case of writing the first state
+	// for a new workspace. If the given [ReadRequest.StateID] does not exist in the configured state store, [ReadResponse.StateBytes]
+	// should be kept empty and returned with no diagnostics.
 	Read(context.Context, ReadRequest, *ReadResponse)
 
 	// Write is called by Terraform to write state data to a given state ID in a state store.

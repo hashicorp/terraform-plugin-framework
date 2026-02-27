@@ -42,6 +42,11 @@ func (v missingValue) IsUnknown() bool {
 	return false
 }
 
+// IsFullyNullableKnown returns false.
+func (v missingValue) IsFullyNullableKnown() bool {
+	return !v.IsUnknown()
+}
+
 // String returns a human-readable representation of the value.
 //
 // The string returned here is not protected by any compatibility guarantees,

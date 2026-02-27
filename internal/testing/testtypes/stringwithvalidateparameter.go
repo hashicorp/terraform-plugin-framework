@@ -75,6 +75,10 @@ func (v StringValueWithValidateParameterError) IsUnknown() bool {
 	return v.InternalString.IsUnknown()
 }
 
+func (v StringValueWithValidateParameterError) IsFullyNullableKnown() bool {
+	return v.InternalString.IsFullyNullableKnown()
+}
+
 func (v StringValueWithValidateParameterError) String() string {
 	return v.InternalString.String()
 }

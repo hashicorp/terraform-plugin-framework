@@ -140,6 +140,12 @@ func (v DynamicValue) IsUnknown() bool {
 	return v.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the DynamicValue's underlying value
+// represents a currently nullable known value.
+func (v DynamicValue) IsFullyNullableKnown() bool {
+	return v.value == nil || v.value.IsFullyNullableKnown()
+}
+
 // String returns a human-readable representation of the DynamicValue. The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.
 func (v DynamicValue) String() string {

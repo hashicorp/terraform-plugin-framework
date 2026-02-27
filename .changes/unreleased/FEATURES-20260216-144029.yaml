@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'framework: Add support for deprecation messages on attributes and blocks in the configuration schema'
-time: 2026-02-16T14:40:29.58453+01:00
-custom:
-    Issue: "1276"

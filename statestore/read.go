@@ -8,6 +8,10 @@ import (
 )
 
 // ReadRequest represents a request to read the contents of a given state ([ReadRequest.StateID]) in the state store.
+//
+// Terraform will always attempt to read the state prior to writing, even in the initial case of writing the first state
+// for a new workspace. If the given [ReadRequest.StateID] does not exist in the configured state store, [ReadResponse.StateBytes]
+// should be kept empty and returned with no diagnostics.
 type ReadRequest struct {
 	// StateID is the ID of the state to read.
 	//
@@ -15,6 +19,9 @@ type ReadRequest struct {
 	// running Terraform in: https://developer.hashicorp.com/terraform/language/state/workspaces .
 	//
 	// If the practitioner hasn't explicitly selected a workspace, StateID will be set to "default".
+	//
+	// If the StateID does not exist in the configured state store, [ReadResponse.StateBytes] should be
+	// kept empty and returned with no diagnostics.
 	StateID string
 }
 

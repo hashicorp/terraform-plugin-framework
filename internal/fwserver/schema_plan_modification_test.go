@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -349,6 +350,140 @@ func TestSchemaModifyPlan(t *testing.T) {
 							"test": testschema.Attribute{
 								Type:     types.StringType,
 								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		"attribute-pathexpression": {
+			req: ModifySchemaPlanRequest{
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
+								Optional: true,
+								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											got := req.PathExpression
+											expected := path.MatchRoot("test")
+
+											if !got.Equal(expected) {
+												resp.Diagnostics.AddError(
+													"Unexpected StringRequest.PathExpression",
+													fmt.Sprintf("expected %s, got: %s", expected, got),
+												)
+											}
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
+								Optional: true,
+								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											got := req.PathExpression
+											expected := path.MatchRoot("test")
+
+											if !got.Equal(expected) {
+												resp.Diagnostics.AddError(
+													"Unexpected StringRequest.PathExpression",
+													fmt.Sprintf("expected %s, got: %s", expected, got),
+												)
+											}
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
+								Optional: true,
+								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											got := req.PathExpression
+											expected := path.MatchRoot("test")
+
+											if !got.Equal(expected) {
+												resp.Diagnostics.AddError(
+													"Unexpected StringRequest.PathExpression",
+													fmt.Sprintf("expected %s, got: %s", expected, got),
+												)
+											}
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"test": tftypes.String,
+						},
+					}, map[string]tftypes.Value{
+						"test": tftypes.NewValue(tftypes.String, "testvalue"),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"test": testschema.AttributeWithStringPlanModifiers{
+								Optional: true,
+								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									testplanmodifier.String{
+										PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+											got := req.PathExpression
+											expected := path.MatchRoot("test")
+
+											if !got.Equal(expected) {
+												resp.Diagnostics.AddError(
+													"Unexpected StringRequest.PathExpression",
+													fmt.Sprintf("expected %s, got: %s", expected, got),
+												)
+											}
+										},
+									},
+								},
 							},
 						},
 					},

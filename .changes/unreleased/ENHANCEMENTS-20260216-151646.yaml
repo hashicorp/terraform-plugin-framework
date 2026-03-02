@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'provider: Added `StateStoreData` to `ConfigureResponse`, to pass provider-defined data to `(statestore.StateStore).Initialize` methods'
-time: 2026-02-16T15:16:46.375269-05:00
-custom:
-    Issue: "1262"

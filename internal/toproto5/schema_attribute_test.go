@@ -38,10 +38,11 @@ func TestSchemaAttribute(t *testing.T) {
 			},
 			path: tftypes.NewAttributePath(),
 			expected: &tfprotov5.SchemaAttribute{
-				Name:       "string",
-				Type:       tftypes.String,
-				Optional:   true,
-				Deprecated: true,
+				Name:               "string",
+				Type:               tftypes.String,
+				Optional:           true,
+				Deprecated:         true,
+				DeprecationMessage: "deprecated, use new_string instead",
 			},
 		},
 		"description-plain": {

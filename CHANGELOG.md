@@ -1,3 +1,24 @@
+## 1.18.0 (February 27, 2026)
+
+NOTES:
+
+* State store support is considered experimental and offered without compatibility promises until support for `state_store` in Terraform core is generally available. ([#1259](https://github.com/hashicorp/terraform-plugin-framework/issues/1259))
+
+FEATURES:
+
+* framework: Add support for deprecation messages on attributes and blocks in the configuration schema ([#1276](https://github.com/hashicorp/terraform-plugin-framework/issues/1276))
+* statestore: New package for implementing state stores ([#1259](https://github.com/hashicorp/terraform-plugin-framework/issues/1259))
+* statestore/schema: New package for implementing state store schemas ([#1259](https://github.com/hashicorp/terraform-plugin-framework/issues/1259))
+
+ENHANCEMENTS:
+
+* types/basetypes: Added `Length()` method for the `ListValue` type. ([#1067](https://github.com/hashicorp/terraform-plugin-framework/issues/1067))
+* types/basetypes: Added `Length()` method for the `MapValue` type. ([#1067](https://github.com/hashicorp/terraform-plugin-framework/issues/1067))
+* types/basetypes: Added `Length()` method for the `SetValue` type. ([#1067](https://github.com/hashicorp/terraform-plugin-framework/issues/1067))
+* types/basetypes: Added `Length()` method for the `TupleValue` type. ([#1067](https://github.com/hashicorp/terraform-plugin-framework/issues/1067))
+* provider: Added `ProviderWithStateStores` interface for implementing state stores ([#1259](https://github.com/hashicorp/terraform-plugin-framework/issues/1259))
+* provider: Added `StateStoreData` to `ConfigureResponse`, to pass provider-defined data to `(statestore.StateStore).Initialize` methods ([#1262](https://github.com/hashicorp/terraform-plugin-framework/issues/1262))
+
 ## 1.17.0 (December 02, 2025)
 
 NOTES:

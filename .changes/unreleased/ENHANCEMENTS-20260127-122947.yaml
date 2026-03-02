@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'types/basetypes: Added `Length()` method for the `MapValue` type.'
-time: 2026-01-27T12:29:47.763838-05:00
-custom:
-    Issue: "1067"

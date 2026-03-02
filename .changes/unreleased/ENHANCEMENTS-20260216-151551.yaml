@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: 'provider: Added `ProviderWithStateStores` interface for implementing state stores'
-time: 2026-02-16T15:15:51.783658-05:00
-custom:
-    Issue: "1259"

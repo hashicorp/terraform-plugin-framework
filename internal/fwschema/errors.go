@@ -16,6 +16,10 @@ var (
 	// block, not an attribute. Use blockAtPath on the path instead.
 	ErrPathIsBlock = errors.New("path leads to block, not an attribute")
 
+	// ErrPathIsAttribute is used when BlockAtPath is called on a path is a
+	// attribute, not an attribute. Use attributeAtPath on the path instead.
+	ErrPathIsAttribute = errors.New("path leads to attribute, not a block")
+
 	// ErrPathInsideDynamicAttribute is used when AttributeAtPath is called on a path that doesn't
 	// have a schema associated with it because it's nested in a dynamic attribute.
 	ErrPathInsideDynamicAttribute = errors.New("path leads to element or attribute nested in a schema.DynamicAttribute")

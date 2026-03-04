@@ -89,7 +89,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 			// If we have "" for an optional value, assume it is actually null
 			// due to the legacy SDK.
-			if ty.Equal(tftypes.String) {
+			if ty.Is(tftypes.String) {
 				var stringVal string
 				err := value.As(&stringVal)
 				if err != nil {

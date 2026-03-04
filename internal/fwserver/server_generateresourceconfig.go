@@ -35,6 +35,11 @@ type GenerateResourceConfigResponse struct {
 }
 
 // GenerateResourceConfig implements the framework server GenerateResourceConfig RPC.
+// MAINTAINER NOTE:
+// The current logic is transcribed from Terraform Core's default generate resource config logic:
+// https://github.com/hashicorp/terraform/blob/2274026c68260dd7be6ca77e72c355a0da6db1b6/internal/genconfig/generate_config.go#L668
+// This is meant to introduce the `GenerateResourceConfig` RPC implementation with no functionality changes to
+// providers in v1.19.0. This logic will be replaced in a future release.
 func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResourceConfigRequest, resp *GenerateResourceConfigResponse) {
 	if req == nil {
 		return
@@ -78,18 +83,26 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 				return null, nil
 			}
 
-			// The legacy SDK adds an Optional+Computed "id" attribute to the
-			// resource schema even if not defined in provider code.
-			// During validation, however, the presence of an extraneous "id"
-			// attribute in config will cause an error.
-			// Remove this attribute so we do not generate an "id" attribute
-			// where there is a risk that it is not in the real resource schema.
+			// MAINTAINER NOTE:
+			// This is SDKv2 compatibility logic that was present in
+			// Core's default logic and is left here for functional
+			// parity. This logic can be safely removed in a future release.
+			//
+			// The SDKv2 adds an Optional+Computed "id" attribute to the
+			// resource schema even if it is not defined in provider code.
+			// This will cause a validation error in Core, so it should be
+			// removed.
 			if path.Equal(tftypes.NewAttributePath().WithAttributeName("id")) && attr.IsComputed() && attr.IsOptional() {
 				return null, nil
 			}
 
-			// If we have "" for an optional value, assume it is actually null
-			// due to the legacy SDK.
+			// MAINTAINER NOTE:
+			// This is SDKv2 compatibility logic that was present in
+			// Core's default logic and is left here for functional
+			// parity. This logic can be safely removed in a future release.
+			//
+			// The SDKv2 doesn't differentiate between null and empty value strings, so
+			// if we have "" for an optional value, assume it is actually null.
 			if ty.Is(tftypes.String) {
 				var stringVal string
 				err := value.As(&stringVal)

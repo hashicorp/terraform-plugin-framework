@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -73,7 +74,23 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		null := tftypes.NewValue(ty, nil)
 
 		attr, err := req.ResourceSchema.AttributeAtTerraformPath(ctx, path)
-		if err == nil {
+		if err != nil {
+			if !(errors.Is(err, fwschema.ErrPathIsBlock) || errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) || errors.Is(err, fwschema.ErrPathInsideAtomicAttribute)) {
+				logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
+
+				fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, req.ResourceSchema)
+
+				diags.Append(fwPathDiags...)
+
+				diags.AddAttributeError(
+					fwPath,
+					"Generate Resource Config Error",
+					"An unexpected error was encountered trying to generate the resource config for import. "+
+						"This likely indicates a bug in the Terraform provider framework or Terraform Core. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return value, err
+			}
+		} else {
 			if attr.GetDeprecationMessage() != "" {
 				return null, nil
 			}
@@ -126,7 +143,23 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		}
 
 		block, err := fwschema.SchemaBlockAtTerraformPath(ctx, req.ResourceSchema, path)
-		if err == nil {
+		if err != nil {
+			if !(errors.Is(err, fwschema.ErrPathIsAttribute) || errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) || errors.Is(err, fwschema.ErrPathInsideAtomicAttribute)) {
+				logging.FrameworkError(ctx, "couldn't find block in resource schema")
+
+				fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, req.ResourceSchema)
+
+				diags.Append(fwPathDiags...)
+
+				diags.AddAttributeError(
+					fwPath,
+					"Generate Resource Config Error",
+					"An unexpected error was encountered trying to generate the resource config for import. "+
+						"This likely indicates a bug in the Terraform provider framework or Terraform Core. Please report the following to the provider developer:\n\n"+err.Error(),
+				)
+				return value, err
+			}
+		} else {
 			if block.GetDeprecationMessage() != "" {
 				return null, nil
 			}

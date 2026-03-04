@@ -163,11 +163,6 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if testCase.configureProviderReq != nil {
-				configureProviderResp := &provider.ConfigureResponse{}
-				testCase.server.ConfigureProvider(t.Context(), testCase.configureProviderReq, configureProviderResp)
-			}
-
 			response := &fwserver.GenerateResourceConfigResponse{}
 			testCase.server.GenerateResourceConfig(t.Context(), testCase.request, response)
 

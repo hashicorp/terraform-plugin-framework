@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -54,7 +55,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	resp.GeneratedConfig = stateToConfig(*req.State)
 
 	// Errors are handled using diags.Diagnostics instead
-	config, _ = tftypes.Transform(config, func(path *tftypes.AttributePath, value tftypes.Value) (tftypes.Value, error) {
+	config, err := tftypes.Transform(config, func(path *tftypes.AttributePath, value tftypes.Value) (tftypes.Value, error) {
 		if value.IsNull() {
 			return value, nil
 		}
@@ -120,6 +121,17 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 		return value, nil
 	})
+	// Errors in the Transform callback function should be handled in diagnostics,
+	// if we see an error here, it should be from the Transform function itself
+	// so we will log those errors for now.
+	if err != nil {
+		logging.FrameworkError(ctx,
+			"Error transforming state value during resource config generation",
+			map[string]any{
+				logging.KeyError: err.Error(),
+			},
+		)
+	}
 
 	resp.GeneratedConfig.Raw = config
 	resp.Diagnostics = diags

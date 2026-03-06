@@ -28,6 +28,13 @@ type ServerCapabilities struct {
 	// This should always be enabled in framework providers and requires
 	// Terraform 1.3 or later.
 	PlanDestroy bool
+
+	// GenerateResourceConfig signals that the provider is ready for the
+	// GenerateResourceConfig RPC.
+	//
+	// This should always be enabled in framework providers and requires
+	// Terraform 1.14 or later.
+	GenerateResourceConfig bool
 }
 
 // ServerCapabilities returns the server capabilities.
@@ -36,6 +43,7 @@ func (s *Server) ServerCapabilities() *ServerCapabilities {
 		GetProviderSchemaOptional: true,
 		MoveResourceState:         true,
 		PlanDestroy:               true,
+		GenerateResourceConfig:    true,
 	}
 }
 

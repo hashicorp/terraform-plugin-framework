@@ -153,6 +153,33 @@ func SchemaAttributeAtTerraformPath(ctx context.Context, s Schema, p *tftypes.At
 	}
 }
 
+// SchemaBlockAtTerraformPath is a helper function to perform base type
+// handling using the tftypes.AttributePathStepper interface.
+func SchemaBlockAtTerraformPath(ctx context.Context, s Schema, p *tftypes.AttributePath) (Block, error) {
+	rawType, remaining, err := tftypes.WalkAttributePath(s, p)
+
+	if err != nil {
+		return nil, checkErrForDynamic(rawType, remaining, err)
+	}
+
+	switch typ := rawType.(type) {
+	case attr.Type:
+		return nil, ErrPathInsideAtomicAttribute
+	case Attribute:
+		return nil, ErrPathIsAttribute
+	case Block:
+		return typ, nil
+	case NestedAttributeObject:
+		return nil, ErrPathInsideAtomicAttribute
+	case NestedBlockObject:
+		return nil, ErrPathInsideAtomicAttribute
+	case UnderlyingAttributes:
+		return nil, ErrPathInsideAtomicAttribute
+	default:
+		return nil, fmt.Errorf("got unexpected type %T", rawType)
+	}
+}
+
 // SchemaBlockPathExpressions returns a slice of all path expressions which
 // represent a Block according to the Schema.
 func SchemaBlockPathExpressions(ctx context.Context, s Schema) path.Expressions {

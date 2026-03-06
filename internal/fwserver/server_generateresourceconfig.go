@@ -75,7 +75,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 		attr, err := req.ResourceSchema.AttributeAtTerraformPath(ctx, path)
 		if err != nil {
-			if !(errors.Is(err, fwschema.ErrPathIsBlock) || errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) || errors.Is(err, fwschema.ErrPathInsideAtomicAttribute)) {
+			if !errors.Is(err, fwschema.ErrPathIsBlock) && !errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) && !errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
 				logging.FrameworkError(ctx, "couldn't find attribute in resource schema")
 
 				fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, req.ResourceSchema)
@@ -144,7 +144,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 		block, err := fwschema.SchemaBlockAtTerraformPath(ctx, req.ResourceSchema, path)
 		if err != nil {
-			if !(errors.Is(err, fwschema.ErrPathIsAttribute) || errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) || errors.Is(err, fwschema.ErrPathInsideAtomicAttribute)) {
+			if !errors.Is(err, fwschema.ErrPathIsAttribute) && !errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) && !errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) {
 				logging.FrameworkError(ctx, "couldn't find block in resource schema")
 
 				fwPath, fwPathDiags := fromtftypes.AttributePath(ctx, path, req.ResourceSchema)

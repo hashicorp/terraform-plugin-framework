@@ -19,7 +19,7 @@
 // If the value was associated with a custom type and using the custom value
 // type is desired, the developer must use the type's ValueFrom{TYPE} method.
 //
-// In the custom type model, the developer must always convert to a concreate
+// In the custom type model, the developer must always convert to a concrete
 // type before using the value unless checking for null or unknown. Since any
 // custom type may be passed due to the schema, it is possible, if not likely,
 // that unknown concrete types will be passed to the validator.

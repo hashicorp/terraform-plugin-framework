@@ -5,16 +5,15 @@ package fwserver
 
 import (
 	"context"
+	"maps"
 	"sort"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -63,6 +62,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	// 1) Set top level properties named id and timeouts to null
 	idPath := tftypes.NewAttributePath().WithAttributeName("id")
 
+	// id
 	idAttribute, err := req.State.Schema.AttributeAtTerraformPath(ctx, idPath)
 	if err == nil && idAttribute.IsComputed() && idAttribute.IsOptional() {
 		config = nullValueAtPath(config, idPath)
@@ -112,9 +112,12 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	// names are sorted and the first non-null value is retained while the others are
 	// set to null. If all are null, we attempt to set one in the group by checking
 	// for a default value
+	config, diags = resolveExactlyOneOfGroups(ctx, config, req.ResourceSchema, diags)
+
 	// 6) Construct a mapping of AlsoRequires (RequiredWith in SDKv2) properties to
 	// iterate over alphabetically. If a group of AlsoRequires properties are not
 	// all set, we set all properties in the group to null
+	config, diags = resolveAlsoRequiresGroups(ctx, config, req.ResourceSchema, diags)
 
 	resp.GeneratedConfig.Raw = config
 	resp.Diagnostics = diags
@@ -196,144 +199,401 @@ func nullEmptyOptionalValues(ctx context.Context, config tftypes.Value, schema f
 // names are sorted alphabetically and the first non-null value is retained while
 // the others are set to null.
 func resolveConflictsWithGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
-	// Phase 1: Build conflict groups from schema attributes.
-	// Each ConflictsWith validator defines a group: the attribute itself + the paths it conflicts with.
-	// Groups are deduplicated by sorting member names and using the joined string as a key.
-	groups := map[string][]string{}
+	groups := buildAttributeValidatorGroups(schema, getConflictsWithExpressions)
 
-	for name, attr := range schema.GetAttributes() {
-		conflictExprs := getConflictsWithExpressions(attr)
-		if len(conflictExprs) == 0 {
-			continue
-		}
-
-		members := []string{name}
-		for _, expr := range conflictExprs {
-			members = append(members, expr.String())
-		}
-		sort.Strings(members)
-
-		key := strings.Join(members, ",")
-		groups[key] = members
-	}
-
-	// Phase 2: For each group, find which attributes have non-null values.
-	// If more than one is set, keep the first (alphabetically) and null the rest.
-	for _, members := range groups {
-		var nonNullMembers []string
-		for _, memberName := range members {
-			attrPath := tftypes.NewAttributePath().WithAttributeName(memberName)
-			rawVal, _, err := tftypes.WalkAttributePath(config, attrPath)
-			if err != nil {
-				continue
-			}
-			if tfVal, ok := rawVal.(tftypes.Value); ok && !tfVal.IsNull() {
-				nonNullMembers = append(nonNullMembers, memberName)
-			}
-		}
+	for _, key := range sortedGroupKeys(groups) {
+		members := groups[key]
+		nonNullMembers := nonNullGroupMembers(config, members)
 
 		if len(nonNullMembers) <= 1 {
 			continue
 		}
 
-		// Members are already sorted; null all but the first non-null
 		for _, memberName := range nonNullMembers[1:] {
-			attrPath := tftypes.NewAttributePath().WithAttributeName(memberName)
-			config = nullValueAtPath(config, attrPath)
+			config = nullValueAtPath(config, rootAttributePath(memberName))
 		}
 	}
 
 	return config, diags
 }
 
-// getConflictsWithExpressions extracts ConflictsWith path expressions from an attribute's
-// validators. It checks all typed validator interfaces (String, Bool, Int64, etc.) and
-// returns the paths from any validator that implements validator.ConflictsWithValidator.
-func getConflictsWithExpressions(attr fwschema.Attribute) path.Expressions {
-	var result path.Expressions
+// resolveExactlyOneOfGroups finds all ExactlyOneOf validator groups in the schema.
+// For each group with more than one non-null value, the first non-null value is
+// retained and the others are set to null. If all values are null, the first
+// attribute in alphabetical order with a default value is set.
+func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
+	groups := buildAttributeValidatorGroups(schema, getExactlyOneOfExpressions)
 
-	checkValidator := func(v interface{}) {
-		if cv, ok := v.(validator.ConflictsWithValidator); ok {
-			result = append(result, cv.Paths()...)
+	for _, key := range sortedGroupKeys(groups) {
+		members := groups[key]
+		nonNullMembers := nonNullGroupMembers(config, members)
+
+		switch len(nonNullMembers) {
+		case 0:
+			for _, memberName := range members {
+				var applied bool
+
+				config, applied, diags = setDefaultValueAtAttribute(ctx, config, schema, memberName, diags)
+
+				if applied {
+					break
+				}
+			}
+		case 1:
+			continue
+		default:
+			for _, memberName := range nonNullMembers[1:] {
+				config = nullValueAtPath(config, rootAttributePath(memberName))
+			}
 		}
 	}
 
-	if a, ok := attr.(fwxschema.AttributeWithBoolValidators); ok {
-		for _, v := range a.BoolValidators() {
-			checkValidator(v)
+	return config, diags
+}
+
+// resolveAlsoRequiresGroups finds all AlsoRequires validator groups in the schema.
+// If some, but not all, values in a group are set then the set values are nulled.
+// The process is repeated until no group changes so transitive requirements are
+// also cleared.
+func resolveAlsoRequiresGroups(_ context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
+	groups := buildAttributeValidatorGroups(schema, getAlsoRequiresExpressions)
+	groupKeys := sortedGroupKeys(groups)
+
+	for {
+		changed := false
+
+		for _, key := range groupKeys {
+			members := groups[key]
+			nonNullMembers := nonNullGroupMembers(config, members)
+
+			if len(nonNullMembers) == 0 || len(nonNullMembers) == len(members) {
+				continue
+			}
+
+			for _, memberName := range nonNullMembers {
+				config = nullValueAtPath(config, rootAttributePath(memberName))
+			}
+
+			changed = true
+		}
+
+		if !changed {
+			break
 		}
 	}
-	if a, ok := attr.(fwxschema.AttributeWithFloat32Validators); ok {
-		for _, v := range a.Float32Validators() {
-			checkValidator(v)
-		}
+
+	return config, diags
+}
+
+func sortedGroupKeys(groups map[string][]string) []string {
+	keys := make([]string, 0, len(groups))
+
+	for key := range groups {
+		keys = append(keys, key)
 	}
-	if a, ok := attr.(fwxschema.AttributeWithFloat64Validators); ok {
-		for _, v := range a.Float64Validators() {
-			checkValidator(v)
+
+	sort.Strings(keys)
+
+	return keys
+}
+
+func nonNullGroupMembers(config tftypes.Value, members []string) []string {
+	result := make([]string, 0, len(members))
+
+	for _, memberName := range members {
+		value, ok := valueAtPath(config, rootAttributePath(memberName))
+
+		if !ok || value.IsNull() {
+			continue
 		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithInt32Validators); ok {
-		for _, v := range a.Int32Validators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithInt64Validators); ok {
-		for _, v := range a.Int64Validators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithListValidators); ok {
-		for _, v := range a.ListValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithMapValidators); ok {
-		for _, v := range a.MapValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithNumberValidators); ok {
-		for _, v := range a.NumberValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithObjectValidators); ok {
-		for _, v := range a.ObjectValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithSetValidators); ok {
-		for _, v := range a.SetValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithStringValidators); ok {
-		for _, v := range a.StringValidators() {
-			checkValidator(v)
-		}
-	}
-	if a, ok := attr.(fwxschema.AttributeWithDynamicValidators); ok {
-		for _, v := range a.DynamicValidators() {
-			checkValidator(v)
-		}
+
+		result = append(result, memberName)
 	}
 
 	return result
 }
 
+func valueAtPath(value tftypes.Value, attrPath *tftypes.AttributePath) (tftypes.Value, bool) {
+	rawValue, _, err := tftypes.WalkAttributePath(value, attrPath)
+	if err != nil {
+		return tftypes.Value{}, false
+	}
+
+	tfValue, ok := rawValue.(tftypes.Value)
+
+	return tfValue, ok
+}
+
+func rootAttributePath(name string) *tftypes.AttributePath {
+	return tftypes.NewAttributePath().WithAttributeName(name)
+}
+
+func setDefaultValueAtAttribute(ctx context.Context, config tftypes.Value, schema fwschema.Schema, attributeName string, diags diag.Diagnostics) (tftypes.Value, bool, diag.Diagnostics) {
+	attr, ok := schema.GetAttributes()[attributeName]
+	if !ok {
+		return config, false, diags
+	}
+
+	defaultValue, hasDefault, diags := attributeDefaultValue(ctx, attr, path.Root(attributeName), diags)
+	if !hasDefault || defaultValue.IsNull() {
+		return config, false, diags
+	}
+
+	config, err := replaceValueAtPath(config, rootAttributePath(attributeName), defaultValue)
+	if err != nil {
+		diags.AddError(
+			"Generate Resource Config Error",
+			"An unexpected error was encountered setting a default value for attribute "+attributeName+": "+err.Error(),
+		)
+		return config, false, diags
+	}
+
+	return config, true, diags
+}
+
+func attributeDefaultValue(ctx context.Context, attr fwschema.Attribute, fwPath path.Path, diags diag.Diagnostics) (tftypes.Value, bool, diag.Diagnostics) {
+	var (
+		result tftypes.Value
+		err    error
+	)
+
+	switch a := attr.(type) {
+	case fwschema.AttributeWithBoolDefaultValue:
+		defaultValue := a.BoolDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.BoolResponse{}
+		defaultValue.DefaultBool(ctx, defaults.BoolRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithFloat32DefaultValue:
+		defaultValue := a.Float32DefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.Float32Response{}
+		defaultValue.DefaultFloat32(ctx, defaults.Float32Request{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithFloat64DefaultValue:
+		defaultValue := a.Float64DefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.Float64Response{}
+		defaultValue.DefaultFloat64(ctx, defaults.Float64Request{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithInt32DefaultValue:
+		defaultValue := a.Int32DefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.Int32Response{}
+		defaultValue.DefaultInt32(ctx, defaults.Int32Request{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithInt64DefaultValue:
+		defaultValue := a.Int64DefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.Int64Response{}
+		defaultValue.DefaultInt64(ctx, defaults.Int64Request{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithListDefaultValue:
+		defaultValue := a.ListDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.ListResponse{}
+		defaultValue.DefaultList(ctx, defaults.ListRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() || resp.PlanValue.ElementType(ctx) == nil {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithMapDefaultValue:
+		defaultValue := a.MapDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.MapResponse{}
+		defaultValue.DefaultMap(ctx, defaults.MapRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() || resp.PlanValue.ElementType(ctx) == nil {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithNumberDefaultValue:
+		defaultValue := a.NumberDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.NumberResponse{}
+		defaultValue.DefaultNumber(ctx, defaults.NumberRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithObjectDefaultValue:
+		defaultValue := a.ObjectDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.ObjectResponse{}
+		defaultValue.DefaultObject(ctx, defaults.ObjectRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithSetDefaultValue:
+		defaultValue := a.SetDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.SetResponse{}
+		defaultValue.DefaultSet(ctx, defaults.SetRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() || resp.PlanValue.ElementType(ctx) == nil {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithStringDefaultValue:
+		defaultValue := a.StringDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.StringResponse{}
+		defaultValue.DefaultString(ctx, defaults.StringRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	case fwschema.AttributeWithDynamicDefaultValue:
+		defaultValue := a.DynamicDefaultValue()
+		if defaultValue == nil {
+			return result, false, diags
+		}
+
+		resp := defaults.DynamicResponse{}
+		defaultValue.DefaultDynamic(ctx, defaults.DynamicRequest{Path: fwPath}, &resp)
+		diags.Append(resp.Diagnostics...)
+
+		if resp.Diagnostics.HasError() {
+			return result, false, diags
+		}
+
+		result, err = resp.PlanValue.ToTerraformValue(ctx)
+	default:
+		return result, false, diags
+	}
+
+	if err != nil {
+		diags.AddError(
+			"Generate Resource Config Error",
+			"An unexpected error was encountered converting a default value at "+fwPath.String()+": "+err.Error(),
+		)
+		return tftypes.Value{}, false, diags
+	}
+
+	return result, true, diags
+}
+
 // nulls the value at the given path in the value and returns the modified value. If the path does not exist, the original value is returned unmodified.
 func nullValueAtPath(value tftypes.Value, path *tftypes.AttributePath) tftypes.Value {
-	newValue, err := tftypes.Transform(value, func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
-		if p.Equal(path) {
-			return tftypes.NewValue(v.Type(), nil), nil
-		}
-		return v, nil
-	})
+	currentValue, ok := valueAtPath(value, path)
+	if !ok {
+		return value
+	}
+
+	newValue, err := replaceValueAtPath(value, path, tftypes.NewValue(currentValue.Type(), nil))
 
 	if err != nil {
 		return value
 	}
 
 	return newValue
+}
+
+func replaceValueAtPath(value tftypes.Value, path *tftypes.AttributePath, replaceWith tftypes.Value) (tftypes.Value, error) {
+	steps := path.Steps()
+
+	// Top-level attribute replacement needs special handling. During transform the
+	// root object is visited at the empty path, so replacing a single-step path
+	// means rebuilding that root object with one field swapped out.
+	if len(steps) == 1 {
+		if attributeName, ok := steps[0].(tftypes.AttributeName); ok {
+			var objectValue map[string]tftypes.Value
+			if err := value.As(&objectValue); err != nil {
+				return value, err
+			}
+
+			copiedObjectValue := maps.Clone(objectValue)
+			copiedObjectValue[string(attributeName)] = replaceWith
+
+			return tftypes.NewValue(value.Type(), copiedObjectValue), nil
+		}
+	}
+
+	return tftypes.Transform(value, func(p *tftypes.AttributePath, v tftypes.Value) (tftypes.Value, error) {
+		if p.Equal(path) {
+			return replaceWith, nil
+		}
+
+		return v, nil
+	})
 }

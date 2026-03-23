@@ -1,6 +1,0 @@
-kind: NOTES
-body: 'State store support is considered experimental and offered without compatibility
-    promises until support for `state_store` in Terraform core is generally available.'
-time: 2026-02-16T15:04:51.956532-05:00
-custom:
-    Issue: "1259"

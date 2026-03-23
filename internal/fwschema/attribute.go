@@ -69,7 +69,7 @@ type Attribute interface {
 	// write-only. This is named differently than WriteOnly to prevent a
 	// conflict with the tfsdk.Attribute field name.
 	//
-	// Write-only attributes are a managed-resource schema concept only.
+	// Write-only attributes are a managed-resource and actions schema concept only.
 	IsWriteOnly() bool
 
 	// IsOptionalForImport should return true if the identity attribute is optional to be set by

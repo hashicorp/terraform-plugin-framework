@@ -144,14 +144,24 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 			expectedResponse: &fwserver.GenerateResourceConfigResponse{
 				GeneratedConfig: &tfsdk.Config{
 					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
-						"id":                    tftypes.NewValue(tftypes.String, nil),
-						"test_computed":         tftypes.NewValue(tftypes.String, nil),
-						"test_optional":         tftypes.NewValue(tftypes.String, "test-optional-val"),
-						"test_required":         tftypes.NewValue(tftypes.String, "test-config-value"),
-						"test_deprecated":       tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
-						"test_false_bool":       tftypes.NewValue(tftypes.Bool, false),
-						"test_empty_string":     tftypes.NewValue(tftypes.String, nil),
-						"test_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockType}, nil),
+						"id":            tftypes.NewValue(tftypes.String, nil),
+						"test_computed": tftypes.NewValue(tftypes.String, nil),
+						"test_optional": tftypes.NewValue(tftypes.String, "test-optional-val"),
+						"test_required": tftypes.NewValue(tftypes.String, "test-config-value"),
+						"test_deprecated": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{
+							tftypes.NewValue(tftypes.String, "test-deprecated-a"),
+							tftypes.NewValue(tftypes.String, "test-deprecated-b"),
+						}),
+						"test_false_bool":   tftypes.NewValue(tftypes.Bool, false),
+						"test_empty_string": tftypes.NewValue(tftypes.String, nil),
+						"test_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockType}, []tftypes.Value{
+							tftypes.NewValue(testNestedBlockType, map[string]tftypes.Value{
+								"test_nested_block_attr": tftypes.NewValue(tftypes.String, "test-nested-block-val-a"),
+							}),
+							tftypes.NewValue(testNestedBlockType, map[string]tftypes.Value{
+								"test_nested_block_attr": tftypes.NewValue(tftypes.String, "test-nested-block-val-b"),
+							}),
+						}),
 					}),
 					Schema: testSchema,
 				},

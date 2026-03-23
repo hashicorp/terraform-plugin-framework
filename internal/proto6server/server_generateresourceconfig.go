@@ -21,6 +21,13 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, proto6Req *tfprotov
 
 	fwResp := &fwserver.GenerateResourceConfigResponse{}
 
+	resource, diags := s.FrameworkServer.Resource(ctx, proto6Req.TypeName)
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.GenerateResourceConfigResponse(ctx, fwResp), nil
+	}
+
 	resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto6Req.TypeName)
 	fwResp.Diagnostics.Append(diags...)
 
@@ -28,7 +35,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, proto6Req *tfprotov
 		return toproto6.GenerateResourceConfigResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.GenerateResourceConfigRequest(ctx, proto6Req, resourceSchema)
+	fwReq, diags := fromproto6.GenerateResourceConfigRequest(ctx, proto6Req, resource, resourceSchema)
 	fwResp.Diagnostics.Append(diags...)
 
 	if fwResp.Diagnostics.HasError() {

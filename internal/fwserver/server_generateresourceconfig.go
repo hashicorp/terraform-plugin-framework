@@ -56,7 +56,6 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	// copy as we'll modify in place
 	config := req.State.Raw.Copy()
 	var diags diag.Diagnostics
-	// TODO: make sure all error cases are reflected in diags and not just ignored, maybe some need to be caught?
 
 	resp.GeneratedConfig = &tfsdk.Config{
 		Raw:    req.State.Raw,
@@ -81,6 +80,13 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		}
 		return value, nil
 	})
+	if err != nil {
+		diags.AddError(
+			"Generate Resource Config Error",
+			"An unexpected error was encountered setting the top-level timeouts property to null: "+err.Error()+"\n\n"+
+				"This is always an issue with the provider and should be reported to the provider developers.",
+		)
+	}
 
 	// 2) Set Computed only properties to null
 	config, err = tftypes.Transform(config, func(path *tftypes.AttributePath, value tftypes.Value) (tftypes.Value, error) {
@@ -93,6 +99,13 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		}
 		return value, nil
 	})
+	if err != nil {
+		diags.AddError(
+			"Generate Resource Config Error",
+			"An unexpected error was encountered setting computed-only properties to null: "+err.Error()+"\n\n"+
+				"This is always an issue with the provider and should be reported to the provider developers.",
+		)
+	}
 
 	// 3) Set empty Optional properties to null.
 	// Unlike the SDKv2 implementation, we do not set schema-defined default values
@@ -182,7 +195,8 @@ func nullEmptyOptionalValues(ctx context.Context, config tftypes.Value, schema f
 	if err != nil {
 		diags.AddError(
 			"Generate Resource Config Error",
-			"An unexpected error was encountered replacing empty optional values: "+err.Error(),
+			"An unexpected error was encountered replacing empty optional values with null: "+err.Error()+"\n\n"+
+				"This is always an issue with the provider and should be reported to the provider developers.",
 		)
 		return config, diags
 	}

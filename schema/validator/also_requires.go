@@ -6,6 +6,6 @@ package validator
 import "github.com/hashicorp/terraform-plugin-framework/path"
 
 type AlsoRequiresValidator interface {
-	// Paths returns attribute paths that this validator applies to
-	Paths() path.Expressions
+	// AlsoRequiresPaths returns attribute paths that this validator applies to.
+	AlsoRequiresPaths() path.Expressions
 }

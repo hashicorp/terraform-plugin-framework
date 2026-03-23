@@ -6,6 +6,6 @@ package validator
 import "github.com/hashicorp/terraform-plugin-framework/path"
 
 type ExactlyOneOfValidator interface {
-	// Paths returns attribute paths that this validator applies to
-	Paths() path.Expressions
+	// ExactlyOneOfPaths returns attribute paths that this validator applies to.
+	ExactlyOneOfPaths() path.Expressions
 }

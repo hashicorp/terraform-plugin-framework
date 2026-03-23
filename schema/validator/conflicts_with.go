@@ -6,6 +6,6 @@ package validator
 import "github.com/hashicorp/terraform-plugin-framework/path"
 
 type ConflictsWithValidator interface {
-	// Paths returns attribute paths that this validator applies to
-	Paths() path.Expressions
+	// ConflictsWithPaths returns attribute paths that this validator applies to.
+	ConflictsWithPaths() path.Expressions
 }

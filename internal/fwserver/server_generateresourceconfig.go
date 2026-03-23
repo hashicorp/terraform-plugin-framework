@@ -58,7 +58,10 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	var diags diag.Diagnostics
 	// TODO: make sure all error cases are reflected in diags and not just ignored, maybe some need to be caught?
 
-	resp.GeneratedConfig = stateToConfig(*req.State)
+	resp.GeneratedConfig = &tfsdk.Config{
+		Raw:    req.State.Raw,
+		Schema: req.State.Schema,
+	}
 
 	// smarter algorithm steps:
 	// 1) Set top level properties named id and timeouts to null
@@ -122,14 +125,6 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 	resp.GeneratedConfig.Raw = config
 	resp.Diagnostics = diags
-}
-
-// stateToConfig returns a *tfsdk.Config with a copied value from a tfsdk.State.
-func stateToConfig(state tfsdk.State) *tfsdk.Config {
-	return &tfsdk.Config{
-		Raw:    state.Raw.Copy(),
-		Schema: state.Schema,
-	}
 }
 
 // nullEmptyOptionalValues transforms a config value by replacing empty optional

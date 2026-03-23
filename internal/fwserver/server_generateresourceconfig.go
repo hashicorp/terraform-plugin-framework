@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -22,6 +23,8 @@ import (
 type GenerateResourceConfigRequest struct {
 	// State is the resource's state value.
 	State *tfsdk.State
+	// Resource is the resource implementation.
+	Resource resource.Resource
 
 	// ResourceSchema is the resource's schema.
 	ResourceSchema fwschema.Schema
@@ -104,20 +107,19 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	// If a group of ConflictsWith properties has more than one value set, the property
 	// names are sorted and the first non-null value is retained while the others are
 	// set to null
-	config, diags = resolveConflictsWithGroups(ctx, config, req.ResourceSchema, diags)
-	// TODO: also handle resource level validators!
+	config, diags = resolveConflictsWithGroups(ctx, config, req.ResourceSchema, req.Resource, diags)
 
 	// 5) Construct a mapping of ExactlyOneOf properties to iterate over alphabetically.
 	// If a group of ExactlyOneOf properties has more than one value set, the property
 	// names are sorted and the first non-null value is retained while the others are
 	// set to null. If all are null, we attempt to set one in the group by checking
 	// for a default value
-	config, diags = resolveExactlyOneOfGroups(ctx, config, req.ResourceSchema, diags)
+	config, diags = resolveExactlyOneOfGroups(ctx, config, req.ResourceSchema, req.Resource, diags)
 
 	// 6) Construct a mapping of AlsoRequires (RequiredWith in SDKv2) properties to
 	// iterate over alphabetically. If a group of AlsoRequires properties are not
 	// all set, we set all properties in the group to null
-	config, diags = resolveAlsoRequiresGroups(ctx, config, req.ResourceSchema, diags)
+	config, diags = resolveAlsoRequiresGroups(ctx, config, req.ResourceSchema, req.Resource, diags)
 
 	resp.GeneratedConfig.Raw = config
 	resp.Diagnostics = diags
@@ -198,19 +200,19 @@ func nullEmptyOptionalValues(ctx context.Context, config tftypes.Value, schema f
 // For each group where more than one attribute has a non-null value, the attribute
 // names are sorted alphabetically and the first non-null value is retained while
 // the others are set to null.
-func resolveConflictsWithGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
-	groups := buildAttributeValidatorGroups(schema, getConflictsWithExpressions)
+func resolveConflictsWithGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, res resource.Resource, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
+	groups := buildValidatorGroups(ctx, config, schema, res, getConflictsWithExpressions)
 
 	for _, key := range sortedGroupKeys(groups) {
 		members := groups[key]
-		nonNullMembers := nonNullGroupMembers(config, members)
+		nonNullMembers := nonNullGroupMembers(ctx, config, members)
 
 		if len(nonNullMembers) <= 1 {
 			continue
 		}
 
-		for _, memberName := range nonNullMembers[1:] {
-			config = nullValueAtPath(config, rootAttributePath(memberName))
+		for _, memberPath := range nonNullMembers[1:] {
+			config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 		}
 	}
 
@@ -221,19 +223,19 @@ func resolveConflictsWithGroups(ctx context.Context, config tftypes.Value, schem
 // For each group with more than one non-null value, the first non-null value is
 // retained and the others are set to null. If all values are null, the first
 // attribute in alphabetical order with a default value is set.
-func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
-	groups := buildAttributeValidatorGroups(schema, getExactlyOneOfExpressions)
+func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, res resource.Resource, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
+	groups := buildValidatorGroups(ctx, config, schema, res, getExactlyOneOfExpressions)
 
 	for _, key := range sortedGroupKeys(groups) {
 		members := groups[key]
-		nonNullMembers := nonNullGroupMembers(config, members)
+		nonNullMembers := nonNullGroupMembers(ctx, config, members)
 
 		switch len(nonNullMembers) {
 		case 0:
-			for _, memberName := range members {
+			for _, memberPath := range members {
 				var applied bool
 
-				config, applied, diags = setDefaultValueAtAttribute(ctx, config, schema, memberName, diags)
+				config, applied, diags = setDefaultValueAtPath(ctx, config, schema, memberPath, diags)
 
 				if applied {
 					break
@@ -242,8 +244,8 @@ func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema
 		case 1:
 			continue
 		default:
-			for _, memberName := range nonNullMembers[1:] {
-				config = nullValueAtPath(config, rootAttributePath(memberName))
+			for _, memberPath := range nonNullMembers[1:] {
+				config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 			}
 		}
 	}
@@ -255,8 +257,8 @@ func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema
 // If some, but not all, values in a group are set then the set values are nulled.
 // The process is repeated until no group changes so transitive requirements are
 // also cleared.
-func resolveAlsoRequiresGroups(_ context.Context, config tftypes.Value, schema fwschema.Schema, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
-	groups := buildAttributeValidatorGroups(schema, getAlsoRequiresExpressions)
+func resolveAlsoRequiresGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, res resource.Resource, diags diag.Diagnostics) (tftypes.Value, diag.Diagnostics) {
+	groups := buildValidatorGroups(ctx, config, schema, res, getAlsoRequiresExpressions)
 	groupKeys := sortedGroupKeys(groups)
 
 	for {
@@ -264,14 +266,14 @@ func resolveAlsoRequiresGroups(_ context.Context, config tftypes.Value, schema f
 
 		for _, key := range groupKeys {
 			members := groups[key]
-			nonNullMembers := nonNullGroupMembers(config, members)
+			nonNullMembers := nonNullGroupMembers(ctx, config, members)
 
 			if len(nonNullMembers) == 0 || len(nonNullMembers) == len(members) {
 				continue
 			}
 
-			for _, memberName := range nonNullMembers {
-				config = nullValueAtPath(config, rootAttributePath(memberName))
+			for _, memberPath := range nonNullMembers {
+				config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 			}
 
 			changed = true
@@ -285,7 +287,7 @@ func resolveAlsoRequiresGroups(_ context.Context, config tftypes.Value, schema f
 	return config, diags
 }
 
-func sortedGroupKeys(groups map[string][]string) []string {
+func sortedGroupKeys(groups map[string]path.Paths) []string {
 	keys := make([]string, 0, len(groups))
 
 	for key := range groups {
@@ -297,17 +299,17 @@ func sortedGroupKeys(groups map[string][]string) []string {
 	return keys
 }
 
-func nonNullGroupMembers(config tftypes.Value, members []string) []string {
-	result := make([]string, 0, len(members))
+func nonNullGroupMembers(ctx context.Context, config tftypes.Value, members path.Paths) path.Paths {
+	result := make(path.Paths, 0, len(members))
 
-	for _, memberName := range members {
-		value, ok := valueAtPath(config, rootAttributePath(memberName))
+	for _, memberPath := range members {
+		value, ok := valueAtPath(config, terraformPathFromPath(ctx, memberPath))
 
 		if !ok || value.IsNull() {
 			continue
 		}
 
-		result = append(result, memberName)
+		result = append(result, memberPath)
 	}
 
 	return result
@@ -328,22 +330,27 @@ func rootAttributePath(name string) *tftypes.AttributePath {
 	return tftypes.NewAttributePath().WithAttributeName(name)
 }
 
-func setDefaultValueAtAttribute(ctx context.Context, config tftypes.Value, schema fwschema.Schema, attributeName string, diags diag.Diagnostics) (tftypes.Value, bool, diag.Diagnostics) {
-	attr, ok := schema.GetAttributes()[attributeName]
-	if !ok {
+func setDefaultValueAtPath(ctx context.Context, config tftypes.Value, schema fwschema.Schema, attributePath path.Path, diags diag.Diagnostics) (tftypes.Value, bool, diag.Diagnostics) {
+	tfPath := terraformPathFromPath(ctx, attributePath)
+	if tfPath == nil {
 		return config, false, diags
 	}
 
-	defaultValue, hasDefault, diags := attributeDefaultValue(ctx, attr, path.Root(attributeName), diags)
+	attr, err := schema.AttributeAtTerraformPath(ctx, tfPath)
+	if err != nil {
+		return config, false, diags
+	}
+
+	defaultValue, hasDefault, diags := attributeDefaultValue(ctx, attr, attributePath, diags)
 	if !hasDefault || defaultValue.IsNull() {
 		return config, false, diags
 	}
 
-	config, err := replaceValueAtPath(config, rootAttributePath(attributeName), defaultValue)
+	config, err = replaceValueAtPath(config, tfPath, defaultValue)
 	if err != nil {
 		diags.AddError(
 			"Generate Resource Config Error",
-			"An unexpected error was encountered setting a default value for attribute "+attributeName+": "+err.Error(),
+			"An unexpected error was encountered setting a default value for attribute "+attributePath.String()+": "+err.Error(),
 		)
 		return config, false, diags
 	}

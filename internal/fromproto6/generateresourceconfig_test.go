@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
@@ -93,6 +94,7 @@ func TestGenerateResourceConfigRequest(t *testing.T) {
 					Raw:    testProto6Value,
 					Schema: testSchema,
 				},
+				Resource:       &testprovider.Resource{},
 				ResourceSchema: testSchema,
 			},
 		},
@@ -102,7 +104,7 @@ func TestGenerateResourceConfigRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got, diags := fromproto6.GenerateResourceConfigRequest(t.Context(), testCase.input, testCase.resourceSchema)
+			got, diags := fromproto6.GenerateResourceConfigRequest(t.Context(), testCase.input, &testprovider.Resource{}, testCase.resourceSchema)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

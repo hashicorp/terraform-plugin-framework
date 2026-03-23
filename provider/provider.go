@@ -167,7 +167,9 @@ type ProviderWithValidateConfig interface {
 }
 
 // ProviderWithStateStores is an interface type that extends Provider to include state stores.
-// TODO: Add supported Terraform version note
+//
+// NOTE: State store support is experimental and exposed without compatibility promises until
+// these notices are removed.
 type ProviderWithStateStores interface {
 	Provider
 

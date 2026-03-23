@@ -18,7 +18,8 @@ import (
 func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwschema.Block) (*tfprotov6.SchemaNestedBlock, error) {
 	schemaNestedBlock := &tfprotov6.SchemaNestedBlock{
 		Block: &tfprotov6.SchemaBlock{
-			Deprecated: b.GetDeprecationMessage() != "",
+			Deprecated:         b.GetDeprecationMessage() != "",
+			DeprecationMessage: b.GetDeprecationMessage(),
 		},
 		TypeName: name,
 	}

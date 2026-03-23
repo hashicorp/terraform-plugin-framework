@@ -1,6 +1,9 @@
 // Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
+// Package basetypes provides concrete implementations of basic attribute
+// value types used by the framework (Map, List, Set, etc.). These are
+// internal base implementations used across the terraform-plugin-framework.
 package basetypes
 
 import (
@@ -352,6 +355,7 @@ func (m MapValue) String() string {
 		if i != 0 {
 			res.WriteString(",")
 		}
+		//nolint:staticcheck
 		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elements()[k].String()))
 	}
 	res.WriteString("}")

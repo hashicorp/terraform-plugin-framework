@@ -40,6 +40,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 
 	if a.GetDeprecationMessage() != "" {
 		schemaAttribute.Deprecated = true
+		schemaAttribute.DeprecationMessage = a.GetDeprecationMessage()
 	}
 
 	if a.GetDescription() != "" {

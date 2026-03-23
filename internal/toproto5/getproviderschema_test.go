@@ -82,10 +82,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 							Block: &tfprotov5.SchemaBlock{
 								Attributes: []*tfprotov5.SchemaAttribute{
 									{
-										Name:       "test_attribute",
-										Type:       tftypes.String,
-										Optional:   true,
-										Deprecated: true,
+										Name:               "test_attribute",
+										Type:               tftypes.String,
+										Optional:           true,
+										Deprecated:         true,
+										DeprecationMessage: "deprecated",
 									},
 								},
 							},
@@ -238,10 +239,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov5.SchemaBlock{
 							Attributes: []*tfprotov5.SchemaAttribute{
 								{
-									Deprecated: true,
-									Name:       "test_attribute",
-									Optional:   true,
-									Type:       tftypes.Bool,
+									Deprecated:         true,
+									DeprecationMessage: "deprecated",
+									Name:               "test_attribute",
+									Optional:           true,
+									Type:               tftypes.Bool,
 								},
 							},
 						},
@@ -1393,10 +1395,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov5.SchemaBlock{
 							Attributes: []*tfprotov5.SchemaAttribute{
 								{
-									Deprecated: true,
-									Name:       "test_attribute",
-									Optional:   true,
-									Type:       tftypes.Bool,
+									Deprecated:         true,
+									DeprecationMessage: "deprecated",
+									Name:               "test_attribute",
+									Optional:           true,
+									Type:               tftypes.Bool,
 								},
 							},
 						},
@@ -2718,10 +2721,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov5.SchemaBlock{
 							Attributes: []*tfprotov5.SchemaAttribute{
 								{
-									Deprecated: true,
-									Name:       "test_attribute",
-									Optional:   true,
-									Type:       tftypes.String,
+									Deprecated:         true,
+									DeprecationMessage: "deprecated",
+									Name:               "test_attribute",
+									Optional:           true,
+									Type:               tftypes.String,
 								},
 							},
 						},
@@ -2850,10 +2854,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					Block: &tfprotov5.SchemaBlock{
 						Attributes: []*tfprotov5.SchemaAttribute{
 							{
-								Deprecated: true,
-								Name:       "test_attribute",
-								Optional:   true,
-								Type:       tftypes.Bool,
+								Deprecated:         true,
+								DeprecationMessage: "deprecated",
+								Name:               "test_attribute",
+								Optional:           true,
+								Type:               tftypes.Bool,
 							},
 						},
 					},
@@ -4516,10 +4521,11 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov5.SchemaBlock{
 							Attributes: []*tfprotov5.SchemaAttribute{
 								{
-									Deprecated: true,
-									Name:       "test_attribute",
-									Optional:   true,
-									Type:       tftypes.Bool,
+									Deprecated:         true,
+									DeprecationMessage: "deprecated",
+									Name:               "test_attribute",
+									Optional:           true,
+									Type:               tftypes.Bool,
 								},
 							},
 						},

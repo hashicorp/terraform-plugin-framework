@@ -21,7 +21,7 @@ import (
 // buildValidatorGroups builds deduplicated validator groups from schema
 // attributes, blocks, and nested objects. Matching uses the current config so
 // wildcard expressions expand into concrete paths when values are present.
-func buildValidatorGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, res resource.Resource, expressionFunc func(interface{}) path.Expressions) map[string]path.Paths {
+func buildValidatorGroups(ctx context.Context, config tftypes.Value, schema fwschema.Schema, res resource.Resource, expressionFunc func(any) path.Expressions) map[string]path.Paths {
 	groups := map[string]path.Paths{}
 	configView := tfsdk.Config{Raw: config, Schema: schema}
 
@@ -76,7 +76,9 @@ func addValidatorGroup(groups map[string]path.Paths, members path.Paths) {
 	groups[strings.Join(keyParts, ",")] = members
 }
 
-func getExactlyOneOfPaths(v interface{}) path.Expressions {
+// getExactlyOneOfPaths returns the paths from the given validator if it is an
+// ExactlyOneOfValidator, or nil if it is not.
+func getExactlyOneOfPaths(v any) path.Expressions {
 	if exactlyOneOfValidator, ok := v.(validator.ExactlyOneOfValidator); ok {
 		return exactlyOneOfValidator.ExactlyOneOfPaths()
 	}
@@ -84,7 +86,9 @@ func getExactlyOneOfPaths(v interface{}) path.Expressions {
 	return nil
 }
 
-func getAlsoRequiresPaths(v interface{}) path.Expressions {
+// getRequiredPaths returns the paths from the given validator if it is a
+// RequiredValidator, or nil if it is not.
+func getAlsoRequiresPaths(v any) path.Expressions {
 	if alsoRequiresValidator, ok := v.(validator.AlsoRequiresValidator); ok {
 		return alsoRequiresValidator.AlsoRequiresPaths()
 	}
@@ -92,7 +96,9 @@ func getAlsoRequiresPaths(v interface{}) path.Expressions {
 	return nil
 }
 
-func getConflictsWithPaths(v interface{}) path.Expressions {
+// getConflictsWithPaths returns the paths from the given validator if it is a
+// ConflictsWithValidator, or nil if it is not.
+func getConflictsWithPaths(v any) path.Expressions {
 	if conflictsWithValidator, ok := v.(validator.ConflictsWithValidator); ok {
 		return conflictsWithValidator.ConflictsWithPaths()
 	}
@@ -100,10 +106,10 @@ func getConflictsWithPaths(v interface{}) path.Expressions {
 	return nil
 }
 
-func getValidatorPathExpressions(attr fwschema.Attribute, expressionFunc func(interface{}) path.Expressions) path.Expressions {
+func getValidatorPathExpressions(attr fwschema.Attribute, expressionFunc func(any) path.Expressions) path.Expressions {
 	var result path.Expressions
 
-	checkValidator := func(v interface{}) {
+	checkValidator := func(v any) {
 		result = append(result, expressionFunc(v)...)
 	}
 
@@ -171,10 +177,10 @@ func getValidatorPathExpressions(attr fwschema.Attribute, expressionFunc func(in
 	return result
 }
 
-func getBlockValidatorPathExpressions(block fwschema.Block, expressionFunc func(interface{}) path.Expressions) path.Expressions {
+func getBlockValidatorPathExpressions(block fwschema.Block, expressionFunc func(any) path.Expressions) path.Expressions {
 	var result path.Expressions
 
-	appendValidatorPaths := func(v interface{}) {
+	appendValidatorPaths := func(v any) {
 		result = append(result, expressionFunc(v)...)
 	}
 
@@ -197,7 +203,7 @@ func getBlockValidatorPathExpressions(block fwschema.Block, expressionFunc func(
 	return result
 }
 
-func getNestedAttributeObjectValidatorPathExpressions(object fwschema.NestedAttributeObject, expressionFunc func(interface{}) path.Expressions) path.Expressions {
+func getNestedAttributeObjectValidatorPathExpressions(object fwschema.NestedAttributeObject, expressionFunc func(any) path.Expressions) path.Expressions {
 	if o, ok := object.(fwxschema.NestedAttributeObjectWithValidators); ok {
 		return getObjectValidatorsPathExpressions(o.ObjectValidators(), expressionFunc)
 	}
@@ -205,7 +211,7 @@ func getNestedAttributeObjectValidatorPathExpressions(object fwschema.NestedAttr
 	return nil
 }
 
-func getNestedBlockObjectValidatorPathExpressions(object fwschema.NestedBlockObject, expressionFunc func(interface{}) path.Expressions) path.Expressions {
+func getNestedBlockObjectValidatorPathExpressions(object fwschema.NestedBlockObject, expressionFunc func(any) path.Expressions) path.Expressions {
 	if o, ok := object.(fwxschema.NestedBlockObjectWithValidators); ok {
 		return getObjectValidatorsPathExpressions(o.ObjectValidators(), expressionFunc)
 	}
@@ -213,7 +219,7 @@ func getNestedBlockObjectValidatorPathExpressions(object fwschema.NestedBlockObj
 	return nil
 }
 
-func getObjectValidatorsPathExpressions(validators []validator.Object, expressionFunc func(interface{}) path.Expressions) path.Expressions {
+func getObjectValidatorsPathExpressions(validators []validator.Object, expressionFunc func(any) path.Expressions) path.Expressions {
 	var result path.Expressions
 
 	for _, v := range validators {
@@ -223,7 +229,7 @@ func getObjectValidatorsPathExpressions(validators []validator.Object, expressio
 	return result
 }
 
-func collectNestedAttributeValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, attr fwschema.Attribute, expressionFunc func(interface{}) path.Expressions, groups map[string]path.Paths) {
+func collectNestedAttributeValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, attr fwschema.Attribute, expressionFunc func(any) path.Expressions, groups map[string]path.Paths) {
 	nestedAttribute, ok := attr.(fwschema.NestedAttribute)
 	if !ok {
 		return
@@ -234,7 +240,7 @@ func collectNestedAttributeValidatorGroups(ctx context.Context, config tfsdk.Con
 	}
 }
 
-func collectNestedAttributeObjectValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, object fwschema.NestedAttributeObject, expressionFunc func(interface{}) path.Expressions, groups map[string]path.Paths) {
+func collectNestedAttributeObjectValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, object fwschema.NestedAttributeObject, expressionFunc func(any) path.Expressions, groups map[string]path.Paths) {
 	addResolvedValidatorGroup(ctx, config, groups, currentPath.Expression(), getNestedAttributeObjectValidatorPathExpressions(object, expressionFunc))
 
 	for name, attr := range object.GetAttributes() {
@@ -245,7 +251,7 @@ func collectNestedAttributeObjectValidatorGroups(ctx context.Context, config tfs
 	}
 }
 
-func collectNestedBlockValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, block fwschema.Block, expressionFunc func(interface{}) path.Expressions, groups map[string]path.Paths) {
+func collectNestedBlockValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, block fwschema.Block, expressionFunc func(any) path.Expressions, groups map[string]path.Paths) {
 	addResolvedValidatorGroup(ctx, config, groups, currentPath.Expression(), getBlockValidatorPathExpressions(block, expressionFunc))
 
 	for _, instancePath := range nestedBlockInstancePaths(ctx, config, currentPath, block.GetNestingMode()) {
@@ -253,7 +259,7 @@ func collectNestedBlockValidatorGroups(ctx context.Context, config tfsdk.Config,
 	}
 }
 
-func collectNestedBlockObjectValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, object fwschema.NestedBlockObject, expressionFunc func(interface{}) path.Expressions, groups map[string]path.Paths) {
+func collectNestedBlockObjectValidatorGroups(ctx context.Context, config tfsdk.Config, currentPath path.Path, object fwschema.NestedBlockObject, expressionFunc func(any) path.Expressions, groups map[string]path.Paths) {
 	addResolvedValidatorGroup(ctx, config, groups, currentPath.Expression(), getNestedBlockObjectValidatorPathExpressions(object, expressionFunc))
 
 	for name, attr := range object.GetAttributes() {

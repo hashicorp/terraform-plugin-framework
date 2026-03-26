@@ -215,10 +215,12 @@ func resolveConflictsWithGroups(ctx context.Context, config tftypes.Value, schem
 		members := groups[key]
 		nonNullMembers := nonNullGroupMembers(ctx, config, members)
 
+		// nothing to do if there aren't multiple non-null values that conflict with each other
 		if len(nonNullMembers) <= 1 {
 			continue
 		}
 
+		// null out all but the first non-null value in the group
 		for _, memberPath := range nonNullMembers[1:] {
 			config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 		}
@@ -240,18 +242,22 @@ func resolveExactlyOneOfGroups(ctx context.Context, config tftypes.Value, schema
 
 		switch len(nonNullMembers) {
 		case 0:
+			// if there are no non-null values, attempt to set the first attribute in alphabetical order with a default value
+			// if there's no default value, try the next
 			for _, memberPath := range members {
-				var applied bool
+				var defaultApplied bool
 
-				config, applied, diags = setDefaultValueAtPath(ctx, config, schema, memberPath, diags)
+				config, defaultApplied, diags = setDefaultValueAtPath(ctx, config, schema, memberPath, diags)
 
-				if applied {
+				if defaultApplied {
 					break
 				}
 			}
 		case 1:
+			// there is exactly one non-null value, do nothing, keep it in place
 			continue
 		default:
+			// if there are multiple non-null values, null out all but the first non-null value in the group
 			for _, memberPath := range nonNullMembers[1:] {
 				config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 			}
@@ -270,7 +276,7 @@ func resolveAlsoRequiresGroups(ctx context.Context, config tftypes.Value, schema
 	groupKeys := sortedGroupKeys(groups)
 
 	for {
-		changed := false
+		before := config
 
 		for _, key := range groupKeys {
 			members := groups[key]
@@ -283,18 +289,17 @@ func resolveAlsoRequiresGroups(ctx context.Context, config tftypes.Value, schema
 			for _, memberPath := range nonNullMembers {
 				config = nullValueAtPath(config, terraformPathFromPath(ctx, memberPath))
 			}
-
-			changed = true
 		}
 
-		if !changed {
-			break
+		if config.Equal(before) {
+			break // exit loop if there were no changes in the pass
 		}
 	}
 
 	return config, diags
 }
 
+// sortedGroupKeys returns the keys of the given groups mapping sorted alphabetically.
 func sortedGroupKeys(groups map[string]path.Paths) []string {
 	keys := make([]string, 0, len(groups))
 
@@ -307,6 +312,7 @@ func sortedGroupKeys(groups map[string]path.Paths) []string {
 	return keys
 }
 
+// nonNullGroupMembers returns the subset of the given group member paths that have non-null values in the config.
 func nonNullGroupMembers(ctx context.Context, config tftypes.Value, members path.Paths) path.Paths {
 	result := make(path.Paths, 0, len(members))
 
@@ -323,6 +329,7 @@ func nonNullGroupMembers(ctx context.Context, config tftypes.Value, members path
 	return result
 }
 
+// valueAtPath returns the value at the given path in the config. If the path does not exist, a null value and false are returned.
 func valueAtPath(value tftypes.Value, attrPath *tftypes.AttributePath) (tftypes.Value, bool) {
 	rawValue, _, err := tftypes.WalkAttributePath(value, attrPath)
 	if err != nil {

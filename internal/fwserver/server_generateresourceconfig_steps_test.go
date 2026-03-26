@@ -178,6 +178,46 @@ func TestResolveAlsoRequiresGroups(t *testing.T) {
 	}
 }
 
+func TestNullValueAtPathLeavesNullUnchanged(t *testing.T) {
+	t.Parallel()
+
+	testType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"alpha": tftypes.String,
+	}}
+
+	config := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"alpha": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	got := nullValueAtPath(config, tftypes.NewAttributePath().WithAttributeName("alpha"))
+
+	if diff := cmp.Diff(config, got); diff != "" {
+		t.Fatalf("unexpected config diff: %s", diff)
+	}
+}
+
+func TestNullValueAtPathReportsChangeForNonNullValue(t *testing.T) {
+	t.Parallel()
+
+	testType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"alpha": tftypes.String,
+	}}
+
+	config := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+	})
+
+	got := nullValueAtPath(config, tftypes.NewAttributePath().WithAttributeName("alpha"))
+
+	expected := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"alpha": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Fatalf("unexpected config diff: %s", diff)
+	}
+}
+
 func TestResolveConflictsWithGroupsBlockNested(t *testing.T) {
 	t.Parallel()
 

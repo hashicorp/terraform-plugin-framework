@@ -218,6 +218,45 @@ func TestNullValueAtPathReportsChangeForNonNullValue(t *testing.T) {
 	}
 }
 
+func TestSetDefaultValueAtPathAppliesDefault(t *testing.T) {
+	t.Parallel()
+
+	testType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"alpha": tftypes.String,
+	}}
+
+	testSchema := testschema.Schema{Attributes: map[string]fwschema.Attribute{
+		"alpha": testschema.AttributeWithStringDefaultValue{
+			Optional: true,
+			Default: testdefaults.String{DefaultStringMethod: func(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
+				resp.PlanValue = types.StringValue("alpha-default")
+			}},
+		},
+	}}
+
+	config := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"alpha": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	got, applied, gotDiags := setDefaultValueAtPath(t.Context(), config, testSchema, path.Root("alpha"), diag.Diagnostics{})
+
+	if !applied {
+		t.Fatal("expected default to be applied")
+	}
+
+	if len(gotDiags) != 0 {
+		t.Fatalf("unexpected diagnostics: %v", gotDiags)
+	}
+
+	expected := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"alpha": tftypes.NewValue(tftypes.String, "alpha-default"),
+	})
+
+	if diff := cmp.Diff(expected, got); diff != "" {
+		t.Fatalf("unexpected config diff: %s", diff)
+	}
+}
+
 func TestResolveConflictsWithGroupsBlockNested(t *testing.T) {
 	t.Parallel()
 
@@ -250,7 +289,7 @@ func TestResolveConflictsWithGroupsBlockNested(t *testing.T) {
 	expected := tftypes.NewValue(testType, map[string]tftypes.Value{
 		"settings": tftypes.NewValue(testType.AttributeTypes["settings"], map[string]tftypes.Value{
 			"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
-			"beta":  tftypes.NewValue(tftypes.String, nil),
+			"beta":  tftypes.NewValue(tftypes.String, "configured-beta"),
 		}),
 	})
 

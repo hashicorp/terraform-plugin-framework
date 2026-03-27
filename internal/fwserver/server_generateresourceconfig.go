@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"math/big"
 	"sort"
@@ -151,7 +152,15 @@ func nullEmptyOptionalValues(ctx context.Context, config tftypes.Value, schema f
 		}
 
 		attr, err := schema.AttributeAtTerraformPath(ctx, attrPath)
-		if err != nil || !attr.IsOptional() {
+		if err != nil {
+			if errors.Is(err, fwschema.ErrPathInsideAtomicAttribute) || errors.Is(err, fwschema.ErrPathIsBlock) {
+				return value, nil
+			}
+
+			return value, err
+		}
+
+		if !attr.IsOptional() {
 			return value, nil
 		}
 

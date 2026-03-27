@@ -4,6 +4,8 @@
 package fwserver_test
 
 import (
+	"context"
+	"math/big"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,9 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testdefaults"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testprovider"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	schemavalidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -78,6 +84,93 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 						"test_nested_block_attr": schema.StringAttribute{
 							Optional: true,
 						},
+					},
+				},
+			},
+		},
+	}
+
+	validatorGroupType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"alpha": tftypes.String,
+			"beta":  tftypes.String,
+		},
+	}
+
+	conflictsWithSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"alpha": schema.StringAttribute{
+				Optional: true,
+				Validators: []schemavalidator.String{
+					testConflictsWithStringValidator{paths: path.Expressions{path.MatchRoot("beta")}},
+				},
+			},
+			"beta": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
+
+	exactlyOneOfSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"alpha": schema.StringAttribute{
+				Optional: true,
+				Validators: []schemavalidator.String{
+					testExactlyOneOfStringValidator{paths: path.Expressions{path.MatchRoot("beta")}},
+				},
+			},
+			"beta": schema.StringAttribute{
+				Optional: true,
+				Default: testdefaults.String{
+					DefaultStringMethod: func(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
+						resp.PlanValue = types.StringValue("beta-default")
+					},
+				},
+			},
+		},
+	}
+
+	alsoRequiresSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"alpha": schema.StringAttribute{
+				Optional: true,
+				Validators: []schemavalidator.String{
+					testAlsoRequiresStringValidator{paths: path.Expressions{path.MatchRoot("beta")}},
+				},
+			},
+			"beta": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
+
+	timeoutsType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"create": tftypes.String,
+		},
+	}
+
+	timeoutsAndNumberType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_optional_number": tftypes.Number,
+			"test_nonzero_number":  tftypes.Number,
+			"timeouts":             timeoutsType,
+		},
+	}
+
+	timeoutsAndNumberSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"test_optional_number": schema.NumberAttribute{
+				Optional: true,
+			},
+			"test_nonzero_number": schema.NumberAttribute{
+				Optional: true,
+			},
+			"timeouts": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"create": schema.StringAttribute{
+						Optional: true,
 					},
 				},
 			},
@@ -167,6 +260,106 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 				},
 			},
 		},
+		"response-conflicts-with-group": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: conflictsWithSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, "configured-beta"),
+					}),
+					Schema: conflictsWithSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: conflictsWithSchema,
+				},
+			},
+		},
+		"response-exactly-one-of-group-applies-default": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: exactlyOneOfSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, nil),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: exactlyOneOfSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, nil),
+						"beta":  tftypes.NewValue(tftypes.String, "beta-default"),
+					}),
+					Schema: exactlyOneOfSchema,
+				},
+			},
+		},
+		"response-also-requires-group": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: alsoRequiresSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: alsoRequiresSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, nil),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: alsoRequiresSchema,
+				},
+			},
+		},
+		"response-timeouts-and-optional-number": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: timeoutsAndNumberSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(timeoutsAndNumberType, map[string]tftypes.Value{
+						"test_optional_number": tftypes.NewValue(tftypes.Number, big.NewFloat(0)),
+						"test_nonzero_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(7)),
+						"timeouts": tftypes.NewValue(timeoutsType, map[string]tftypes.Value{
+							"create": tftypes.NewValue(tftypes.String, "30m"),
+						}),
+					}),
+					Schema: timeoutsAndNumberSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(timeoutsAndNumberType, map[string]tftypes.Value{
+						"test_optional_number": tftypes.NewValue(tftypes.Number, nil),
+						"test_nonzero_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(7)),
+						"timeouts":             tftypes.NewValue(timeoutsType, nil),
+					}),
+					Schema: timeoutsAndNumberSchema,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -182,3 +375,67 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 		})
 	}
 }
+
+type testConflictsWithStringValidator struct {
+	paths path.Expressions
+}
+
+func (v testConflictsWithStringValidator) Description(context.Context) string {
+	return ""
+}
+
+func (v testConflictsWithStringValidator) MarkdownDescription(context.Context) string {
+	return ""
+}
+
+func (v testConflictsWithStringValidator) ValidateString(context.Context, schemavalidator.StringRequest, *schemavalidator.StringResponse) {
+}
+
+func (v testConflictsWithStringValidator) ConflictsWithPaths() path.Expressions {
+	return v.paths
+}
+
+type testExactlyOneOfStringValidator struct {
+	paths path.Expressions
+}
+
+func (v testExactlyOneOfStringValidator) Description(context.Context) string {
+	return ""
+}
+
+func (v testExactlyOneOfStringValidator) MarkdownDescription(context.Context) string {
+	return ""
+}
+
+func (v testExactlyOneOfStringValidator) ValidateString(context.Context, schemavalidator.StringRequest, *schemavalidator.StringResponse) {
+}
+
+func (v testExactlyOneOfStringValidator) ExactlyOneOfPaths() path.Expressions {
+	return v.paths
+}
+
+type testAlsoRequiresStringValidator struct {
+	paths path.Expressions
+}
+
+func (v testAlsoRequiresStringValidator) Description(context.Context) string {
+	return ""
+}
+
+func (v testAlsoRequiresStringValidator) MarkdownDescription(context.Context) string {
+	return ""
+}
+
+func (v testAlsoRequiresStringValidator) ValidateString(context.Context, schemavalidator.StringRequest, *schemavalidator.StringResponse) {
+}
+
+func (v testAlsoRequiresStringValidator) AlsoRequiresPaths() path.Expressions {
+	return v.paths
+}
+
+var _ schemavalidator.String = testConflictsWithStringValidator{}
+var _ schemavalidator.ConflictsWithValidator = testConflictsWithStringValidator{}
+var _ schemavalidator.String = testExactlyOneOfStringValidator{}
+var _ schemavalidator.ExactlyOneOfValidator = testExactlyOneOfStringValidator{}
+var _ schemavalidator.String = testAlsoRequiresStringValidator{}
+var _ schemavalidator.AlsoRequiresValidator = testAlsoRequiresStringValidator{}

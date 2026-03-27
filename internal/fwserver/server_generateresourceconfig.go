@@ -6,6 +6,7 @@ package fwserver
 import (
 	"context"
 	"maps"
+	"math/big"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -180,11 +181,11 @@ func nullEmptyOptionalValues(ctx context.Context, config tftypes.Value, schema f
 				return null, nil
 			}
 		case tfType.Equal(tftypes.Number):
-			var numVal float64
+			var numVal big.Float
 			if err := value.As(&numVal); err != nil {
 				return value, err
 			}
-			if numVal == 0 {
+			if numVal.Sign() == 0 {
 				return null, nil
 			}
 		}

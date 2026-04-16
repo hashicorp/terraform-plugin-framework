@@ -8,7 +8,6 @@ import (
 	"errors"
 	"math/big"
 	"sort"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -48,11 +47,6 @@ type GenerateResourceConfigResponse struct {
 }
 
 // GenerateResourceConfig implements the framework server GenerateResourceConfig RPC.
-// MAINTAINER NOTE:
-// The current logic is transcribed from Terraform Core's default generate resource config logic:
-// https://github.com/hashicorp/terraform/blob/2274026c68260dd7be6ca77e72c355a0da6db1b6/internal/genconfig/generate_config.go#L668
-// This is meant to introduce the `GenerateResourceConfig` RPC implementation with no functionality changes to
-// providers in v1.19.0. This logic will be replaced in a future release.
 func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResourceConfigRequest, resp *GenerateResourceConfigResponse) {
 	if req == nil {
 		return
@@ -72,6 +66,8 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 	var resourceConfigValidators []resource.ConfigValidator
 
+	// Resource-level validator paths can depend on provider-configured resource state,
+	// so configure the resource before collecting validator groups.
 	if resourceWithConfigValidators, ok := req.Resource.(resource.ResourceWithConfigValidators); ok {
 		if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
 			configureReq := resource.ConfigureRequest{
@@ -98,6 +94,8 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	markedForNullification := path.Paths{}
 	resourceValidatorGroups := resolveResourceValidatorGroups(ctx, resp.GeneratedConfig, resourceConfigValidators, &diags)
 
+	// First pass: drop values that should never appear in generated config and
+	// record any validator-driven paths that must be nulled as a group.
 	config, err := tftypes.Transform(config, func(tfPath *tftypes.AttributePath, value tftypes.Value) (tftypes.Value, error) {
 		if len(tfPath.Steps()) == 0 {
 			return value, nil
@@ -212,93 +210,21 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		if attribute != nil {
 			attributeValidatorGroups := resolveAttributeValidatorGroups(ctx, resp.GeneratedConfig, fwPath, attribute, &diags)
 
-			for _, conflictsWithPaths := range attributeValidatorGroups.ConflictsWith {
-				markedForNullification.Append(processConflictsWith(ctx, req.ResourceSchema, conflictsWithPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
-			}
-
-			for _, exactlyOneOfPaths := range attributeValidatorGroups.ExactlyOneOf {
-				markedForNullification.Append(processExactlyOneOf(ctx, req.ResourceSchema, exactlyOneOfPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
-			}
-
-			for _, alsoRequiresPaths := range attributeValidatorGroups.AlsoRequires {
-				markedForNullification.Append(processAlsoRequires(ctx, req.ResourceSchema, alsoRequiresPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
+			if applyValidatorGroups(ctx, req.ResourceSchema, attributeValidatorGroups, config, fwPath, false, &markedForNullification, &diags) {
+				return null, nil
 			}
 		}
 
 		if block != nil {
 			blockValidatorGroups := resolveBlockValidatorGroups(ctx, resp.GeneratedConfig, fwPath, block, &diags)
 
-			for _, conflictsWithPaths := range blockValidatorGroups.ConflictsWith {
-				markedForNullification.Append(processConflictsWith(ctx, req.ResourceSchema, conflictsWithPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
-			}
-
-			for _, exactlyOneOfPaths := range blockValidatorGroups.ExactlyOneOf {
-				markedForNullification.Append(processExactlyOneOf(ctx, req.ResourceSchema, exactlyOneOfPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
-			}
-
-			for _, alsoRequiresPaths := range blockValidatorGroups.AlsoRequires {
-				markedForNullification.Append(processAlsoRequires(ctx, req.ResourceSchema, alsoRequiresPaths, config, fwPath, &diags)...)
-
-				if markedForNullification.Contains(fwPath) {
-					return null, nil
-				}
-			}
-		}
-
-		for _, conflictsWithPaths := range resourceValidatorGroups.ConflictsWith {
-			if !conflictsWithPaths.Contains(fwPath) {
-				continue
-			}
-
-			markedForNullification.Append(processConflictsWith(ctx, req.ResourceSchema, conflictsWithPaths, config, fwPath, &diags)...)
-
-			if markedForNullification.Contains(fwPath) {
+			if applyValidatorGroups(ctx, req.ResourceSchema, blockValidatorGroups, config, fwPath, false, &markedForNullification, &diags) {
 				return null, nil
 			}
 		}
 
-		for _, exactlyOneOfPaths := range resourceValidatorGroups.ExactlyOneOf {
-			if !exactlyOneOfPaths.Contains(fwPath) {
-				continue
-			}
-
-			markedForNullification.Append(processExactlyOneOf(ctx, req.ResourceSchema, exactlyOneOfPaths, config, fwPath, &diags)...)
-
-			if markedForNullification.Contains(fwPath) {
-				return null, nil
-			}
-		}
-
-		for _, alsoRequiresPaths := range resourceValidatorGroups.AlsoRequires {
-			if !alsoRequiresPaths.Contains(fwPath) {
-				continue
-			}
-
-			markedForNullification.Append(processAlsoRequires(ctx, req.ResourceSchema, alsoRequiresPaths, config, fwPath, &diags)...)
-
-			if markedForNullification.Contains(fwPath) {
-				return null, nil
-			}
+		if applyValidatorGroups(ctx, req.ResourceSchema, resourceValidatorGroups, config, fwPath, true, &markedForNullification, &diags) {
+			return null, nil
 		}
 
 		return value, nil
@@ -313,6 +239,8 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 		)
 	}
 
+	// Second pass: apply the accumulated group nullifications after every path has
+	// had a chance to contribute to its validator group.
 	config, err = tftypes.Transform(config, func(tfPath *tftypes.AttributePath, value tftypes.Value) (tftypes.Value, error) {
 		if len(tfPath.Steps()) == 0 || value.IsNull() {
 			return value, nil
@@ -345,6 +273,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 	resp.Diagnostics = diags
 }
 
+// readTerraformValue returns the raw Terraform value at the given framework path.
 func readTerraformValue(ctx context.Context, schema fwschema.Schema, currentConfig tftypes.Value, targetPath path.Path, diags *diag.Diagnostics) (tftypes.Value, bool) {
 	tfPath, pathDiags := totftypes.AttributePath(ctx, targetPath)
 	diags.Append(pathDiags...)
@@ -365,32 +294,7 @@ func readTerraformValue(ctx context.Context, schema fwschema.Schema, currentConf
 	return value, true
 }
 
-func setPathValue(ctx context.Context, schema fwschema.Schema, config *tftypes.Value, targetPath path.Path, value any, diags *diag.Diagnostics) bool {
-	data := fwschemadata.Data{
-		Description:    fwschemadata.DataDescriptionConfiguration,
-		Schema:         schema,
-		TerraformValue: *config,
-	}
-	setDiags := data.SetAtPath(ctx, targetPath, value)
-	diags.Append(setDiags...)
-
-	if setDiags.HasError() {
-		return false
-	}
-
-	*config = data.TerraformValue
-	return true
-}
-
-func nullPathValue(ctx context.Context, schema fwschema.Schema, config *tftypes.Value, targetPath path.Path, diags *diag.Diagnostics) bool {
-	currentValue, ok := readTerraformValue(ctx, schema, *config, targetPath, diags)
-	if !ok || currentValue.IsNull() {
-		return false
-	}
-
-	return setPathValue(ctx, schema, config, targetPath, tftypes.NewValue(currentValue.Type(), nil), diags)
-}
-
+// sortedPaths returns a copy ordered by string form so group decisions are deterministic.
 func sortedPaths(paths path.Paths) path.Paths {
 	result := make(path.Paths, 0, len(paths))
 	result.Append(paths...)
@@ -402,22 +306,7 @@ func sortedPaths(paths path.Paths) path.Paths {
 	return result
 }
 
-func addGroup(groups map[string]path.Paths, members path.Paths) {
-	members = sortedPaths(members)
-
-	if len(members) < 2 {
-		return
-	}
-
-	parts := make([]string, 0, len(members))
-
-	for _, member := range members {
-		parts = append(parts, member.String())
-	}
-
-	groups[strings.Join(parts, "|")] = members
-}
-
+// resolveExpressions expands validator expressions against the current config.
 func resolveExpressions(ctx context.Context, config *tfsdk.Config, baseExpression path.Expression, expressions path.Expressions, diags *diag.Diagnostics) path.Paths {
 	var matches path.Paths
 
@@ -437,6 +326,7 @@ type validatorGroups struct {
 	AlsoRequires  []path.Paths
 }
 
+// resolveResourceValidatorGroups materializes resource-level validator expressions into concrete path groups.
 func resolveResourceValidatorGroups(ctx context.Context, config *tfsdk.Config, validators []resource.ConfigValidator, diags *diag.Diagnostics) validatorGroups {
 	var groups validatorGroups
 
@@ -447,6 +337,7 @@ func resolveResourceValidatorGroups(ctx context.Context, config *tfsdk.Config, v
 	return groups
 }
 
+// resolveAttributeValidatorGroups collects attribute validator groups for the current path.
 func resolveAttributeValidatorGroups(ctx context.Context, config *tfsdk.Config, currentPath path.Path, attribute fwschema.Attribute, diags *diag.Diagnostics) validatorGroups {
 	var groups validatorGroups
 
@@ -504,6 +395,7 @@ func resolveAttributeValidatorGroups(ctx context.Context, config *tfsdk.Config, 
 	return groups
 }
 
+// resolveBlockValidatorGroups collects block validator groups for the current path.
 func resolveBlockValidatorGroups(ctx context.Context, config *tfsdk.Config, currentPath path.Path, block fwschema.Block, diags *diag.Diagnostics) validatorGroups {
 	var groups validatorGroups
 
@@ -525,6 +417,7 @@ func resolveBlockValidatorGroups(ctx context.Context, config *tfsdk.Config, curr
 	return groups
 }
 
+// appendValidatorGroups adds any group-oriented validator paths exposed by a validator.
 func appendValidatorGroups(ctx context.Context, config *tfsdk.Config, baseExpression path.Expression, currentPath path.Path, includeCurrent bool, validator any, groups *validatorGroups, diags *diag.Diagnostics) {
 	if validatorWithConflictsWith, ok := validator.(schemavalidator.ConflictsWithValidator); ok {
 		members := resolveValidatorGroupPaths(ctx, config, baseExpression, currentPath, includeCurrent, validatorWithConflictsWith.ConflictsWithPaths(), diags)
@@ -551,6 +444,43 @@ func appendValidatorGroups(ctx context.Context, config *tfsdk.Config, baseExpres
 	}
 }
 
+// applyValidatorGroups applies all validator group rules for the current path.
+func applyValidatorGroups(ctx context.Context, schema fwschema.Schema, groups validatorGroups, configVal tftypes.Value, curPath path.Path, requireMembership bool, markedForNullification *path.Paths, diags *diag.Diagnostics) bool {
+	if applyValidatorGroupRule(ctx, schema, groups.ConflictsWith, configVal, curPath, requireMembership, markedForNullification, diags, processKeepFirstSetGroup) {
+		return true
+	}
+
+	if applyValidatorGroupRule(ctx, schema, groups.ExactlyOneOf, configVal, curPath, requireMembership, markedForNullification, diags, processKeepFirstSetGroup) {
+		return true
+	}
+
+	if applyValidatorGroupRule(ctx, schema, groups.AlsoRequires, configVal, curPath, requireMembership, markedForNullification, diags, processAlsoRequires) {
+		return true
+	}
+
+	return false
+}
+
+// applyValidatorGroupRule runs one validator rule family across all resolved groups.
+// Resource-level groups require explicit membership because they are resolved once up
+// front, while attribute/block groups are already scoped to the current path.
+func applyValidatorGroupRule(ctx context.Context, schema fwschema.Schema, groups []path.Paths, configVal tftypes.Value, curPath path.Path, requireMembership bool, markedForNullification *path.Paths, diags *diag.Diagnostics, processor func(context.Context, fwschema.Schema, path.Paths, tftypes.Value, path.Path, *diag.Diagnostics) path.Paths) bool {
+	for _, groupPaths := range groups {
+		if requireMembership && !groupPaths.Contains(curPath) {
+			continue
+		}
+
+		markedForNullification.Append(processor(ctx, schema, groupPaths, configVal, curPath, diags)...)
+
+		if markedForNullification.Contains(curPath) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// resolveValidatorGroupPaths returns the concrete members of a validator group for the current path.
 func resolveValidatorGroupPaths(ctx context.Context, config *tfsdk.Config, baseExpression path.Expression, currentPath path.Path, includeCurrent bool, expressions path.Expressions, diags *diag.Diagnostics) path.Paths {
 	var members path.Paths
 
@@ -568,17 +498,19 @@ func resolveValidatorGroupPaths(ctx context.Context, config *tfsdk.Config, baseE
 	return members
 }
 
-func processConflictsWith(ctx context.Context, schema fwschema.Schema, conflictsWith path.Paths, configVal tftypes.Value, curPath path.Path, diags *diag.Diagnostics) path.Paths {
+// processKeepFirstSetGroup preserves the lexicographically first configured path in
+// a mutually-exclusive group and marks the rest for nullification.
+func processKeepFirstSetGroup(ctx context.Context, schema fwschema.Schema, paths path.Paths, configVal tftypes.Value, curPath path.Path, diags *diag.Diagnostics) path.Paths {
 	var markedForNullification path.Paths
 	var nonNullKeys path.Paths
 
-	if len(conflictsWith) == 0 {
+	if len(paths) == 0 {
 		return markedForNullification
 	}
 
 	nonNullKeys.Append(curPath)
 
-	for _, key := range conflictsWith {
+	for _, key := range paths {
 		if key.Equal(curPath) {
 			continue
 		}
@@ -604,42 +536,7 @@ func processConflictsWith(ctx context.Context, schema fwschema.Schema, conflicts
 	return markedForNullification
 }
 
-func processExactlyOneOf(ctx context.Context, schema fwschema.Schema, exactlyOneOf path.Paths, configVal tftypes.Value, curPath path.Path, diags *diag.Diagnostics) path.Paths {
-	var markedForNullification path.Paths
-	var nonNullKeys path.Paths
-
-	if len(exactlyOneOf) == 0 {
-		return markedForNullification
-	}
-
-	nonNullKeys.Append(curPath)
-
-	for _, key := range exactlyOneOf {
-		if key.Equal(curPath) {
-			continue
-		}
-
-		val, ok := readTerraformValue(ctx, schema, configVal, key, diags)
-		if !ok || val.IsNull() {
-			continue
-		}
-
-		nonNullKeys.Append(key)
-	}
-
-	nonNullKeys = sortedPaths(nonNullKeys)
-
-	for keyIndex, key := range nonNullKeys {
-		if keyIndex == 0 {
-			continue
-		}
-
-		markedForNullification.Append(key)
-	}
-
-	return markedForNullification
-}
-
+// processAlsoRequires nulls all configured members when the required peer set is incomplete.
 func processAlsoRequires(ctx context.Context, schema fwschema.Schema, alsoRequires path.Paths, configVal tftypes.Value, curPath path.Path, diags *diag.Diagnostics) path.Paths {
 	var markedForNullification path.Paths
 	var nonNullKeys path.Paths

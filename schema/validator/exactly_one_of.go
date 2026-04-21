@@ -6,8 +6,7 @@ package validator
 import "github.com/hashicorp/terraform-plugin-framework/path"
 
 // ExactlyOneOfValidator exposes grouped paths where generated configuration
-// should preserve exactly one value, optionally applying a default when all are
-// null.
+// should preserve exactly one configured value.
 type ExactlyOneOfValidator interface {
 	ExactlyOneOfPaths() path.Expressions
 }

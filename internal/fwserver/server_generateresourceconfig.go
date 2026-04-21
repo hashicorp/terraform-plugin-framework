@@ -66,27 +66,7 @@ func (s *Server) GenerateResourceConfig(ctx context.Context, req *GenerateResour
 
 	var resourceConfigValidators []resource.ConfigValidator
 
-	// Resource-level validator paths can depend on provider-configured resource state,
-	// so configure the resource before collecting validator groups.
 	if resourceWithConfigValidators, ok := req.Resource.(resource.ResourceWithConfigValidators); ok {
-		if resourceWithConfigure, ok := req.Resource.(resource.ResourceWithConfigure); ok {
-			configureReq := resource.ConfigureRequest{
-				ProviderData: s.ResourceConfigureData,
-			}
-			configureResp := resource.ConfigureResponse{}
-
-			logging.FrameworkTrace(ctx, "Calling provider defined Resource Configure")
-			resourceWithConfigure.Configure(ctx, configureReq, &configureResp)
-			logging.FrameworkTrace(ctx, "Called provider defined Resource Configure")
-
-			diags.Append(configureResp.Diagnostics...)
-
-			if diags.HasError() {
-				resp.Diagnostics = diags
-				return
-			}
-		}
-
 		resourceConfigValidators = resourceWithConfigValidators.ConfigValidators(ctx)
 	}
 

@@ -33,6 +33,33 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 		},
 	}
 
+	testNestedNestedBlockType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_computed":   tftypes.String,
+			"test_optional":   tftypes.String,
+			"test_required":   tftypes.String,
+			"test_deprecated": tftypes.List{ElementType: tftypes.String},
+		},
+	}
+
+	testNestedBlockWithNestedType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_nested_nested_block": tftypes.List{ElementType: testNestedNestedBlockType},
+		},
+	}
+
+	testNestedDeprecatedInnerBlockType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_nested_nested_block_attr": tftypes.String,
+		},
+	}
+
+	testNestedDeprecatedOuterBlockType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"test_nested_nested_block": tftypes.List{ElementType: testNestedDeprecatedInnerBlockType},
+		},
+	}
+
 	testType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"id":                tftypes.String,
@@ -44,6 +71,12 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 			"test_empty_string": tftypes.String,
 			"test_deprecated_block": tftypes.List{
 				ElementType: testNestedBlockType,
+			},
+			"test_nested_block": tftypes.List{
+				ElementType: testNestedBlockWithNestedType,
+			},
+			"test_nested_deprecated_block": tftypes.List{
+				ElementType: testNestedDeprecatedOuterBlockType,
 			},
 		},
 	}
@@ -82,6 +115,48 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 					Attributes: map[string]schema.Attribute{
 						"test_nested_block_attr": schema.StringAttribute{
 							Optional: true,
+						},
+					},
+				},
+			},
+			"test_nested_block": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"test_nested_nested_block": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"test_computed": schema.StringAttribute{
+										Computed: true,
+									},
+									"test_optional": schema.StringAttribute{
+										Optional: true,
+									},
+									"test_required": schema.StringAttribute{
+										Required: true,
+									},
+									"test_deprecated": schema.ListAttribute{
+										ElementType:        types.StringType,
+										Optional:           true,
+										DeprecationMessage: "deprecated",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"test_nested_deprecated_block": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"test_nested_nested_block": schema.ListNestedBlock{
+							DeprecationMessage: "deprecated",
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"test_nested_nested_block_attr": schema.StringAttribute{
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -134,6 +209,66 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 			},
 			"beta": schema.StringAttribute{
 				Optional: true,
+			},
+		},
+	}
+
+	threeWayValidatorGroupType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"alpha": tftypes.String,
+			"beta":  tftypes.String,
+			"gamma": tftypes.String,
+		},
+	}
+
+	threeWayExactlyOneOfSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"alpha": schema.StringAttribute{
+				Optional: true,
+				Validators: []schemavalidator.String{
+					testExactlyOneOfStringValidator{paths: path.Expressions{path.MatchRoot("beta"), path.MatchRoot("gamma")}},
+				},
+			},
+			"beta": schema.StringAttribute{
+				Optional: true,
+			},
+			"gamma": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
+
+	blockValidatorElementType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"value": tftypes.String,
+		},
+	}
+
+	blockValidatorSchemaType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"alpha_block": tftypes.List{ElementType: blockValidatorElementType},
+			"beta":        tftypes.String,
+		},
+	}
+
+	blockValidatorSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"beta": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"alpha_block": schema.ListNestedBlock{
+				Validators: []schemavalidator.List{
+					testConflictsWithListValidator{paths: path.Expressions{path.MatchRoot("beta")}},
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"value": schema.StringAttribute{
+							Optional: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -224,6 +359,36 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 								"test_nested_block_attr": tftypes.NewValue(tftypes.String, "test-nested-block-val-b"),
 							}),
 						}),
+						"test_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockWithNestedType}, []tftypes.Value{
+							tftypes.NewValue(testNestedBlockWithNestedType, map[string]tftypes.Value{
+								"test_nested_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedNestedBlockType}, []tftypes.Value{
+									tftypes.NewValue(testNestedNestedBlockType, map[string]tftypes.Value{
+										"test_computed":   tftypes.NewValue(tftypes.String, "computed-val-a"),
+										"test_optional":   tftypes.NewValue(tftypes.String, "optional-val-a"),
+										"test_required":   tftypes.NewValue(tftypes.String, "required-val-a"),
+										"test_deprecated": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello-a"), tftypes.NewValue(tftypes.String, "world-a")}),
+									}),
+									tftypes.NewValue(testNestedNestedBlockType, map[string]tftypes.Value{
+										"test_computed":   tftypes.NewValue(tftypes.String, "computed-val-b"),
+										"test_optional":   tftypes.NewValue(tftypes.String, "optional-val-b"),
+										"test_required":   tftypes.NewValue(tftypes.String, "required-val-b"),
+										"test_deprecated": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, []tftypes.Value{tftypes.NewValue(tftypes.String, "hello-b"), tftypes.NewValue(tftypes.String, "world-b")}),
+									}),
+								}),
+							}),
+						}),
+						"test_nested_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedDeprecatedOuterBlockType}, []tftypes.Value{
+							tftypes.NewValue(testNestedDeprecatedOuterBlockType, map[string]tftypes.Value{
+								"test_nested_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedDeprecatedInnerBlockType}, []tftypes.Value{
+									tftypes.NewValue(testNestedDeprecatedInnerBlockType, map[string]tftypes.Value{
+										"test_nested_nested_block_attr": tftypes.NewValue(tftypes.String, "val-a"),
+									}),
+									tftypes.NewValue(testNestedDeprecatedInnerBlockType, map[string]tftypes.Value{
+										"test_nested_nested_block_attr": tftypes.NewValue(tftypes.String, "val-b"),
+									}),
+								}),
+							}),
+						}),
 					}),
 					Schema: testSchema,
 				},
@@ -239,6 +404,29 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 						"test_false_bool":       tftypes.NewValue(tftypes.Bool, false),
 						"test_empty_string":     tftypes.NewValue(tftypes.String, nil),
 						"test_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockType}, nil),
+						"test_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockWithNestedType}, []tftypes.Value{
+							tftypes.NewValue(testNestedBlockWithNestedType, map[string]tftypes.Value{
+								"test_nested_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedNestedBlockType}, []tftypes.Value{
+									tftypes.NewValue(testNestedNestedBlockType, map[string]tftypes.Value{
+										"test_computed":   tftypes.NewValue(tftypes.String, nil),
+										"test_optional":   tftypes.NewValue(tftypes.String, "optional-val-a"),
+										"test_required":   tftypes.NewValue(tftypes.String, "required-val-a"),
+										"test_deprecated": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+									}),
+									tftypes.NewValue(testNestedNestedBlockType, map[string]tftypes.Value{
+										"test_computed":   tftypes.NewValue(tftypes.String, nil),
+										"test_optional":   tftypes.NewValue(tftypes.String, "optional-val-b"),
+										"test_required":   tftypes.NewValue(tftypes.String, "required-val-b"),
+										"test_deprecated": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+									}),
+								}),
+							}),
+						}),
+						"test_nested_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedDeprecatedOuterBlockType}, []tftypes.Value{
+							tftypes.NewValue(testNestedDeprecatedOuterBlockType, map[string]tftypes.Value{
+								"test_nested_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedDeprecatedInnerBlockType}, nil),
+							}),
+						}),
 					}),
 					Schema: testSchema,
 				},
@@ -382,6 +570,32 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 				},
 			},
 		},
+		"response-exactly-one-of-group-multiple-non-null": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: threeWayExactlyOneOfSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(threeWayValidatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, "configured-beta"),
+						"gamma": tftypes.NewValue(tftypes.String, "configured-gamma"),
+					}),
+					Schema: threeWayExactlyOneOfSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(threeWayValidatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+						"gamma": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: threeWayExactlyOneOfSchema,
+				},
+			},
+		},
 		"response-resource-also-requires-group": {
 			server: &fwserver.Server{
 				Provider: &testprovider.Provider{},
@@ -412,6 +626,97 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 						"beta":  tftypes.NewValue(tftypes.String, nil),
 					}),
 					Schema: alsoRequiresSchema,
+				},
+			},
+		},
+		"response-also-requires-group-complete": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: alsoRequiresSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, "configured-beta"),
+					}),
+					Schema: alsoRequiresSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(validatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, "configured-alpha"),
+						"beta":  tftypes.NewValue(tftypes.String, "configured-beta"),
+					}),
+					Schema: alsoRequiresSchema,
+				},
+			},
+		},
+		"response-resource-also-requires-group-non-member": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: threeWayExactlyOneOfSchema,
+				Resource: &testprovider.ResourceWithConfigValidators{
+					Resource: &testprovider.Resource{},
+					ConfigValidatorsMethod: func(context.Context) []resource.ConfigValidator {
+						return []resource.ConfigValidator{&testResourceAlsoRequiresValidator{paths: path.Expressions{
+							path.MatchRoot("alpha"),
+							path.MatchRoot("beta"),
+						}}}
+					},
+				},
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(threeWayValidatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, nil),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+						"gamma": tftypes.NewValue(tftypes.String, "configured-gamma"),
+					}),
+					Schema: threeWayExactlyOneOfSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(threeWayValidatorGroupType, map[string]tftypes.Value{
+						"alpha": tftypes.NewValue(tftypes.String, nil),
+						"beta":  tftypes.NewValue(tftypes.String, nil),
+						"gamma": tftypes.NewValue(tftypes.String, "configured-gamma"),
+					}),
+					Schema: threeWayExactlyOneOfSchema,
+				},
+			},
+		},
+		"response-block-conflicts-with-group": {
+			server: &fwserver.Server{
+				Provider: &testprovider.Provider{},
+			},
+			request: &fwserver.GenerateResourceConfigRequest{
+				ResourceSchema: blockValidatorSchema,
+				State: &tfsdk.State{
+					Raw: tftypes.NewValue(blockValidatorSchemaType, map[string]tftypes.Value{
+						"alpha_block": tftypes.NewValue(tftypes.List{ElementType: blockValidatorElementType}, []tftypes.Value{
+							tftypes.NewValue(blockValidatorElementType, map[string]tftypes.Value{
+								"value": tftypes.NewValue(tftypes.String, "configured-alpha-block"),
+							}),
+						}),
+						"beta": tftypes.NewValue(tftypes.String, "configured-beta"),
+					}),
+					Schema: blockValidatorSchema,
+				},
+			},
+			expectedResponse: &fwserver.GenerateResourceConfigResponse{
+				GeneratedConfig: &tfsdk.Config{
+					Raw: tftypes.NewValue(blockValidatorSchemaType, map[string]tftypes.Value{
+						"alpha_block": tftypes.NewValue(tftypes.List{ElementType: blockValidatorElementType}, []tftypes.Value{
+							tftypes.NewValue(blockValidatorElementType, map[string]tftypes.Value{
+								"value": tftypes.NewValue(tftypes.String, "configured-alpha-block"),
+							}),
+						}),
+						"beta": tftypes.NewValue(tftypes.String, nil),
+					}),
+					Schema: blockValidatorSchema,
 				},
 			},
 		},
@@ -478,6 +783,25 @@ func (v testConflictsWithStringValidator) ConflictsWithPaths() path.Expressions 
 	return v.paths
 }
 
+type testConflictsWithListValidator struct {
+	paths path.Expressions
+}
+
+func (v testConflictsWithListValidator) Description(context.Context) string {
+	return ""
+}
+
+func (v testConflictsWithListValidator) MarkdownDescription(context.Context) string {
+	return ""
+}
+
+func (v testConflictsWithListValidator) ValidateList(context.Context, schemavalidator.ListRequest, *schemavalidator.ListResponse) {
+}
+
+func (v testConflictsWithListValidator) ConflictsWithPaths() path.Expressions {
+	return v.paths
+}
+
 type testExactlyOneOfStringValidator struct {
 	paths path.Expressions
 }
@@ -539,6 +863,8 @@ func (v *testResourceAlsoRequiresValidator) AlsoRequiresPaths() path.Expressions
 
 var _ schemavalidator.String = testConflictsWithStringValidator{}
 var _ schemavalidator.ConflictsWithValidator = testConflictsWithStringValidator{}
+var _ schemavalidator.List = testConflictsWithListValidator{}
+var _ schemavalidator.ConflictsWithValidator = testConflictsWithListValidator{}
 var _ schemavalidator.String = testExactlyOneOfStringValidator{}
 var _ schemavalidator.ExactlyOneOfValidator = testExactlyOneOfStringValidator{}
 var _ schemavalidator.String = testAlsoRequiresStringValidator{}

@@ -396,13 +396,13 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 			expectedResponse: &fwserver.GenerateResourceConfigResponse{
 				GeneratedConfig: &tfsdk.Config{
 					Raw: tftypes.NewValue(testType, map[string]tftypes.Value{
-						"id":                    tftypes.NewValue(tftypes.String, nil),
+						"id":                    tftypes.NewValue(tftypes.String, "test-id-val"), // this should stay for framework as id is not special here
 						"test_computed":         tftypes.NewValue(tftypes.String, nil),
 						"test_optional":         tftypes.NewValue(tftypes.String, "test-optional-val"),
 						"test_required":         tftypes.NewValue(tftypes.String, "test-config-value"),
 						"test_deprecated":       tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
 						"test_false_bool":       tftypes.NewValue(tftypes.Bool, false),
-						"test_empty_string":     tftypes.NewValue(tftypes.String, nil),
+						"test_empty_string":     tftypes.NewValue(tftypes.String, ""), // for framework and empty string and null are not the same, so it should stay
 						"test_deprecated_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockType}, nil),
 						"test_nested_block": tftypes.NewValue(tftypes.List{ElementType: testNestedBlockWithNestedType}, []tftypes.Value{
 							tftypes.NewValue(testNestedBlockWithNestedType, map[string]tftypes.Value{
@@ -740,7 +740,7 @@ func TestServerGenerateResourceConfig(t *testing.T) {
 			expectedResponse: &fwserver.GenerateResourceConfigResponse{
 				GeneratedConfig: &tfsdk.Config{
 					Raw: tftypes.NewValue(timeoutsAndNumberType, map[string]tftypes.Value{
-						"test_optional_number": tftypes.NewValue(tftypes.Number, nil),
+						"test_optional_number": tftypes.NewValue(tftypes.Number, big.NewFloat(0)),
 						"test_nonzero_number":  tftypes.NewValue(tftypes.Number, big.NewFloat(7)),
 						"timeouts":             tftypes.NewValue(timeoutsType, nil),
 					}),

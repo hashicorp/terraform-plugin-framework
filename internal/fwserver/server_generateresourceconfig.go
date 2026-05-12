@@ -432,8 +432,8 @@ func getValidatorsFromBlock(block fwschema.Block) []any {
 			validators = append(validators, v)
 		}
 	}
-	// TODO: case fwxschema.NestedBlockObjectWithValidators?
-	// TODO: make sure tests have nested block in it and see if it passes or not!
+	// TODO: case fwxschema.NestedBlockObjectWithValidators? -> it's not passed in here i think, but it should be handled somewhere: NestedBlockObjectWithValidators
+	// TODO: -> failing test case name: response-nested-block-object-conflicts-with-group
 
 	return validators
 }

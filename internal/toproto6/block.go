@@ -5,11 +5,9 @@ package toproto6
 
 import (
 	"context"
-	"reflect"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -26,13 +24,9 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		TypeName: name,
 	}
 
-	if computedBlock, ok := b.(fwxschema.BlockWithComputed); ok {
-		blockValue := reflect.ValueOf(schemaNestedBlock.Block).Elem()
-		computedField := blockValue.FieldByName("Computed")
-
-		if computedField.IsValid() && computedField.CanSet() && computedField.Kind() == reflect.Bool {
-			computedField.SetBool(computedBlock.GetComputed())
-		}
+	if computedBlock, ok := b.(interface{ GetComputed() bool }); ok {
+		schemaNestedBlock.Computed = computedBlock.GetComputed()
+		schemaNestedBlock.Block.Computed = computedBlock.GetComputed()
 	}
 
 	if b.GetDescription() != "" {

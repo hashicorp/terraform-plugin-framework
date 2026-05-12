@@ -5,7 +5,6 @@ package toproto6_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -26,7 +25,6 @@ func TestBlock(t *testing.T) {
 		path        *tftypes.AttributePath
 		expected    *tfprotov6.SchemaNestedBlock
 		expectedErr string
-		computed    *bool
 	}
 
 	tests := map[string]testCase{
@@ -481,11 +479,12 @@ func TestBlock(t *testing.T) {
 							Type:     tftypes.String,
 						},
 					},
+					Computed: true,
 				},
 				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
 				TypeName: "test",
+				Computed: true,
 			},
-			computed: func() *bool { b := true; return &b }(),
 		},
 		"description": {
 			name: "test",
@@ -607,21 +606,6 @@ func TestBlock(t *testing.T) {
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 				return
-			}
-
-			if tc.computed != nil {
-				computedField := reflect.ValueOf(got.Block).Elem().FieldByName("Computed")
-
-				if computedField.IsValid() {
-					if computedField.Kind() != reflect.Bool {
-						t.Errorf("expected computed field kind bool, got %s", computedField.Kind())
-						return
-					}
-
-					if computedField.Bool() != *tc.computed {
-						t.Errorf("expected computed field to be %t, got %t", *tc.computed, computedField.Bool())
-					}
-				}
 			}
 		})
 	}

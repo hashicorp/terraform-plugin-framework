@@ -5,6 +5,7 @@ package toproto6_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -25,6 +26,7 @@ func TestBlock(t *testing.T) {
 		path        *tftypes.AttributePath
 		expected    *tfprotov6.SchemaNestedBlock
 		expectedErr string
+		computed    *bool
 	}
 
 	tests := map[string]testCase{
@@ -455,6 +457,36 @@ func TestBlock(t *testing.T) {
 				TypeName: "test",
 			},
 		},
+		"computed": {
+			name: "test",
+			block: testschema.Block{
+				Computed: true,
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov6.SchemaNestedBlock{
+				Block: &tfprotov6.SchemaBlock{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "sub_test",
+							Optional: true,
+							Type:     tftypes.String,
+						},
+					},
+				},
+				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+				TypeName: "test",
+			},
+			computed: func() *bool { b := true; return &b }(),
+		},
 		"description": {
 			name: "test",
 			block: testschema.Block{
@@ -575,6 +607,21 @@ func TestBlock(t *testing.T) {
 			if diff := cmp.Diff(got, tc.expected); diff != "" {
 				t.Errorf("Unexpected diff (+wanted, -got): %s", diff)
 				return
+			}
+
+			if tc.computed != nil {
+				computedField := reflect.ValueOf(got.Block).Elem().FieldByName("Computed")
+
+				if computedField.IsValid() {
+					if computedField.Kind() != reflect.Bool {
+						t.Errorf("expected computed field kind bool, got %s", computedField.Kind())
+						return
+					}
+
+					if computedField.Bool() != *tc.computed {
+						t.Errorf("expected computed field to be %t, got %t", *tc.computed, computedField.Bool())
+					}
+				}
 			}
 		})
 	}

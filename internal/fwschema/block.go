@@ -73,6 +73,17 @@ func BlocksEqual(a, b Block) bool {
 		return false
 	}
 
+	aComputed, aHasComputed := a.(interface{ GetComputed() bool })
+	bComputed, bHasComputed := b.(interface{ GetComputed() bool })
+
+	if aHasComputed != bHasComputed {
+		return false
+	}
+
+	if aHasComputed && aComputed.GetComputed() != bComputed.GetComputed() {
+		return false
+	}
+
 	if a.GetDeprecationMessage() != b.GetDeprecationMessage() {
 		return false
 	}

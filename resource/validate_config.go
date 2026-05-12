@@ -17,6 +17,11 @@ type ValidateConfigClientCapabilities struct {
 	// initiating the request supports write-only attributes for managed
 	// resources.
 	WriteOnlyAttributesAllowed bool
+
+	// ComputedBlocksAllowed indicates that the Terraform client initiating
+	// the request supports optionally computed nested block values for
+	// managed resources.
+	ComputedBlocksAllowed bool
 }
 
 // ValidateConfigRequest represents a request to validate the

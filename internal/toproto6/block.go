@@ -24,6 +24,11 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		TypeName: name,
 	}
 
+	if computedBlock, ok := b.(interface{ GetComputed() bool }); ok {
+		schemaNestedBlock.Computed = computedBlock.GetComputed()
+		schemaNestedBlock.Block.Computed = computedBlock.GetComputed()
+	}
+
 	if b.GetDescription() != "" {
 		schemaNestedBlock.Block.Description = b.GetDescription()
 		schemaNestedBlock.Block.DescriptionKind = tfprotov6.StringKindPlain

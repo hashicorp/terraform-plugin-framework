@@ -23,7 +23,7 @@ import (
 func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target reflect.Value, opts Options, path path.Path) (reflect.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if target.Kind() != reflect.Ptr {
+	if target.Kind() != reflect.Pointer {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 			Val:        val,
 			TargetType: target.Type(),
@@ -60,7 +60,7 @@ func Pointer(ctx context.Context, typ attr.Type, val tftypes.Value, target refle
 func pointerSafeZeroValue(_ context.Context, target reflect.Value) reflect.Value {
 	pointer := target.Type()
 	var pointers int
-	for pointer.Kind() == reflect.Ptr {
+	for pointer.Kind() == reflect.Pointer {
 		pointer = pointer.Elem()
 		pointers++
 	}
@@ -82,7 +82,7 @@ func pointerSafeZeroValue(_ context.Context, target reflect.Value) reflect.Value
 func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path path.Path) (attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if value.Kind() != reflect.Ptr {
+	if value.Kind() != reflect.Pointer {
 		err := fmt.Errorf("cannot use type %s as a pointer", value.Type())
 		diags.AddAttributeError(
 			path,

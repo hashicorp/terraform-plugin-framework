@@ -50,6 +50,7 @@ func TestServerValidateResourceConfig(t *testing.T) {
 
 	testClientCapabilities := resource.ValidateConfigClientCapabilities{
 		WriteOnlyAttributesAllowed: true,
+		ComputedBlocksAllowed:      true,
 	}
 
 	testSchemaAttributeValidator := schema.Schema{
@@ -83,6 +84,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 						ValidateStringMethod: func(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 							if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
 								resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
+							}
+
+							if !req.ClientCapabilities.ComputedBlocksAllowed {
+								resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected ComputedBlocksAllowed client capability")
 							}
 						},
 					},
@@ -247,6 +252,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 									if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
 										resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
 									}
+
+									if !req.ClientCapabilities.ComputedBlocksAllowed {
+										resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected ComputedBlocksAllowed client capability")
+									}
 								},
 							},
 						}
@@ -345,6 +354,10 @@ func TestServerValidateResourceConfig(t *testing.T) {
 					ValidateConfigMethod: func(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 						if !req.ClientCapabilities.WriteOnlyAttributesAllowed {
 							resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected WriteOnlyAttributesAllowed client capability")
+						}
+
+						if !req.ClientCapabilities.ComputedBlocksAllowed {
+							resp.Diagnostics.AddError("Incorrect req.ClientCapabilities", "expected ComputedBlocksAllowed client capability")
 						}
 					},
 				},

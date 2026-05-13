@@ -14,6 +14,7 @@ var _ fwschema.Block = Block{}
 
 type Block struct {
 	CustomType          attr.Type
+	Computed            bool
 	DeprecationMessage  string
 	Description         string
 	MarkdownDescription string
@@ -50,6 +51,11 @@ func (b Block) GetDescription() string {
 // GetMarkdownDescription satisfies the fwschema.Block interface.
 func (b Block) GetMarkdownDescription() string {
 	return b.MarkdownDescription
+}
+
+// GetComputed satisfies optional computed block support.
+func (b Block) GetComputed() bool {
+	return b.Computed
 }
 
 // GetNestedObject satisfies the fwschema.Block interface.

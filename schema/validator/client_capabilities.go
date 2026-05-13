@@ -14,4 +14,12 @@ type ValidateSchemaClientCapabilities struct {
 	// This client capability is only populated during managed resource schema
 	// validation.
 	WriteOnlyAttributesAllowed bool
+
+	// ComputedBlocksAllowed indicates that the Terraform client initiating
+	// the request supports optionally computed nested block values for managed
+	// resources.
+	//
+	// This client capability is only populated during managed resource schema
+	// validation.
+	ComputedBlocksAllowed bool
 }

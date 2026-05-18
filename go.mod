@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-plugin-framework
 
-go 1.25.0
+go 1.25.8
 
 require (
 	github.com/google/go-cmp v0.7.0

@@ -138,6 +138,11 @@ func (n NumberValue) IsUnknown() bool {
 	return n.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Number represents a currently nullable known value.
+func (n NumberValue) IsFullyNullableKnown() bool {
+	return !n.IsUnknown()
+}
+
 // String returns a human-readable representation of the Number value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

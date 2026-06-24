@@ -100,6 +100,7 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 			expected: &fwserver.ValidateResourceConfigRequest{
 				ClientCapabilities: resource.ValidateConfigClientCapabilities{
 					WriteOnlyAttributesAllowed: true,
+					ComputedBlocksAllowed:      false,
 				},
 				Config: &tfsdk.Config{
 					Raw:    testProto5Value,
@@ -115,6 +116,7 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 			expected: &fwserver.ValidateResourceConfigRequest{
 				ClientCapabilities: resource.ValidateConfigClientCapabilities{
 					WriteOnlyAttributesAllowed: false,
+					ComputedBlocksAllowed:      false,
 				},
 				Config: &tfsdk.Config{
 					Raw:    testProto5Value,

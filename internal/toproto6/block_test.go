@@ -455,6 +455,37 @@ func TestBlock(t *testing.T) {
 				TypeName: "test",
 			},
 		},
+		"computed": {
+			name: "test",
+			block: testschema.Block{
+				Computed: true,
+				NestedObject: testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"sub_test": testschema.Attribute{
+							Type:     types.StringType,
+							Optional: true,
+						},
+					},
+				},
+				NestingMode: fwschema.BlockNestingModeList,
+			},
+			path: tftypes.NewAttributePath(),
+			expected: &tfprotov6.SchemaNestedBlock{
+				Block: &tfprotov6.SchemaBlock{
+					Attributes: []*tfprotov6.SchemaAttribute{
+						{
+							Name:     "sub_test",
+							Optional: true,
+							Type:     tftypes.String,
+						},
+					},
+					Computed: true,
+				},
+				Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+				TypeName: "test",
+				Computed: true,
+			},
+		},
 		"description": {
 			name: "test",
 			block: testschema.Block{

@@ -94,12 +94,14 @@ func TestValidateResourceConfigRequest(t *testing.T) {
 				Config: &testProto6DynamicValue,
 				ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
 					WriteOnlyAttributesAllowed: true,
+					ComputedBlocksAllowed:      true,
 				},
 			},
 			resourceSchema: testFwSchema,
 			expected: &fwserver.ValidateResourceConfigRequest{
 				ClientCapabilities: resource.ValidateConfigClientCapabilities{
 					WriteOnlyAttributesAllowed: true,
+					ComputedBlocksAllowed:      true,
 				},
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,
@@ -115,6 +117,7 @@ func TestValidateResourceConfigRequest(t *testing.T) {
 			expected: &fwserver.ValidateResourceConfigRequest{
 				ClientCapabilities: resource.ValidateConfigClientCapabilities{
 					WriteOnlyAttributesAllowed: false,
+					ComputedBlocksAllowed:      false,
 				},
 				Config: &tfsdk.Config{
 					Raw:    testProto6Value,

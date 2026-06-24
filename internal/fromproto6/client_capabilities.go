@@ -97,11 +97,13 @@ func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConf
 		// Client did not indicate any supported capabilities
 		return resource.ValidateConfigClientCapabilities{
 			WriteOnlyAttributesAllowed: false,
+			ComputedBlocksAllowed:      false,
 		}
 	}
 
 	return resource.ValidateConfigClientCapabilities{
 		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+		ComputedBlocksAllowed:      in.ComputedBlocksAllowed,
 	}
 }
 

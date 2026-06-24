@@ -142,6 +142,10 @@ type SingleNestedBlock struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Object
+
+	// Computed indicates whether the provider may return its own value for this
+	// block when configuration does not set it.
+	Computed bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -187,6 +191,11 @@ func (b SingleNestedBlock) GetDescription() string {
 // GetMarkdownDescription returns the MarkdownDescription field value.
 func (b SingleNestedBlock) GetMarkdownDescription() string {
 	return b.MarkdownDescription
+}
+
+// GetComputed returns the Computed field value.
+func (b SingleNestedBlock) GetComputed() bool {
+	return b.Computed
 }
 
 // GetNestedObject returns a generated NestedBlockObject from the

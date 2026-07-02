@@ -67,6 +67,11 @@ func (b BlockWithObjectValidators) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSingle
 }
 
+// IsComputed satisfies the fwschema.Block interface.
+func (b BlockWithObjectValidators) IsComputed() bool {
+	return false
+}
+
 // ObjectValidators satisfies the fwxschema.BlockWithObjectValidators interface.
 func (b BlockWithObjectValidators) ObjectValidators() []validator.Object {
 	return b.Validators

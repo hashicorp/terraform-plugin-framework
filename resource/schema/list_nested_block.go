@@ -148,6 +148,16 @@ type ListNestedBlock struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.List
+
+	// Computed indicates that the provider will supply a value for this block.
+	// When Computed is true, the block does not need to be present in the
+	// practitioner configuration and the provider is responsible for setting
+	// its value.
+	//
+	// This functionality is only supported by Terraform clients that support
+	// computed blocks. Practitioners that use this block with unsupported
+	// clients will receive an error.
+	Computed bool
 }
 
 // ApplyTerraform5AttributePathStep returns the NestedObject field value if step
@@ -195,6 +205,11 @@ func (b ListNestedBlock) GetNestedObject() fwschema.NestedBlockObject {
 // GetNestingMode always returns BlockNestingModeList.
 func (b ListNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeList
+}
+
+// IsComputed returns the Computed field value.
+func (b ListNestedBlock) IsComputed() bool {
+	return b.Computed
 }
 
 // ListPlanModifiers returns the PlanModifiers field value.

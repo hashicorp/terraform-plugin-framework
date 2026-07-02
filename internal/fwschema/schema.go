@@ -180,13 +180,13 @@ func SchemaBlockAtTerraformPath(ctx context.Context, s Schema, p *tftypes.Attrib
 	}
 }
 
-// SchemaBlockPathExpressions returns a slice of all path expressions which
-// represent a Block according to the Schema.
-func SchemaBlockPathExpressions(ctx context.Context, s Schema) path.Expressions {
+// SchemaConfigOnlyBlockPathExpressions returns a slice of all path expressions which
+// represent a config-only Block according to the Schema.
+func SchemaConfigOnlyBlockPathExpressions(ctx context.Context, s Schema) path.Expressions {
 	result := path.Expressions{}
 
 	for name, block := range s.GetBlocks() {
-		result = append(result, BlockPathExpressions(ctx, block, path.MatchRoot(name))...)
+		result = append(result, ConfigOnlyBlockPathExpressions(ctx, block, path.MatchRoot(name))...)
 	}
 
 	return result

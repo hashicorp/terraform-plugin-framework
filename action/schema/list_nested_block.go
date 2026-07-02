@@ -177,6 +177,12 @@ func (b ListNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeList
 }
 
+// IsComputed returns false as computed blocks are only supported in managed
+// resource schemas.
+func (b ListNestedBlock) IsComputed() bool {
+	return false
+}
+
 // Type returns ListType of ObjectType or CustomType.
 func (b ListNestedBlock) Type() attr.Type {
 	if b.CustomType != nil {

@@ -430,9 +430,54 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			}
 
 			if errors.Is(err, fwschema.ErrPathIsBlock) {
-				// ignore blocks, they do not have a computed field
-				logging.FrameworkTrace(ctx, "attribute is a block, not marking unknown")
-				return val, nil
+				// Historically, blocks were a configuration-only concept and
+				// could never be computed, so they were always skipped here.
+				//
+				// Computed blocks behave like computed attributes: when the block
+				// is null in the configuration, it must be marked unknown so the
+				// provider can supply a value during apply. Blocks have no default
+				// values and cannot be dynamic, so that handling does not apply.
+				block, blockErr := fwschema.SchemaBlockAtTerraformPath(ctx, resourceSchema, path)
+
+				if blockErr != nil {
+					logging.FrameworkError(ctx, "couldn't find block in resource schema")
+
+					return tftypes.Value{}, fmt.Errorf("couldn't find block in resource schema: %w", blockErr)
+				}
+
+				if !block.IsComputed() {
+					logging.FrameworkTrace(ctx, "block is not computed in schema, not marking unknown")
+
+					return val, nil
+				}
+
+				configValIface, _, blockConfigErr := tftypes.WalkAttributePath(config, path)
+
+				if blockConfigErr != nil && blockConfigErr != tftypes.ErrInvalidStep {
+					logging.FrameworkError(ctx,
+						"Error walking block path during unknown marking",
+						map[string]any{
+							logging.KeyError: blockConfigErr.Error(),
+						},
+					)
+
+					return val, fmt.Errorf("error walking block path during unknown marking: %w", blockConfigErr)
+				}
+
+				configVal, ok := configValIface.(tftypes.Value)
+				if !ok {
+					return val, fmt.Errorf("unexpected type during unknown marking: %T", configValIface)
+				}
+
+				if !configVal.IsNull() {
+					logging.FrameworkTrace(ctx, "block not null in configuration, not marking unknown")
+
+					return val, nil
+				}
+
+				logging.FrameworkDebug(ctx, "marking computed block that is null in the config as unknown")
+
+				return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
 			}
 
 			if errors.Is(err, fwschema.ErrPathInsideDynamicAttribute) {

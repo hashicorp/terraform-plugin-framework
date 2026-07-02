@@ -142,6 +142,16 @@ type SingleNestedBlock struct {
 	//
 	// Any errors will prevent further execution of this sequence or modifiers.
 	PlanModifiers []planmodifier.Object
+
+	// Computed indicates that the provider will supply a value for this block.
+	// When Computed is true, the block does not need to be present in the
+	// practitioner configuration and the provider is responsible for setting
+	// its value.
+	//
+	// This functionality is only supported by Terraform clients that support
+	// computed blocks. Practitioners that use this block with unsupported
+	// clients will receive an error.
+	Computed bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -203,6 +213,11 @@ func (b SingleNestedBlock) GetNestedObject() fwschema.NestedBlockObject {
 // GetNestingMode always returns BlockNestingModeSingle.
 func (b SingleNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSingle
+}
+
+// IsComputed returns the Computed field value.
+func (b SingleNestedBlock) IsComputed() bool {
+	return b.Computed
 }
 
 // ObjectPlanModifiers returns the PlanModifiers field value.

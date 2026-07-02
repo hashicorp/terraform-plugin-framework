@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestSchemaBlockPathExpressions(t *testing.T) {
+func TestSchemaConfigOnlyBlockPathExpressions(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -167,13 +167,110 @@ func TestSchemaBlockPathExpressions(t *testing.T) {
 				path.MatchRoot("single_block").AtName("nested_single_block"),
 			},
 		},
+		"computed-blocks": {
+			schema: testschema.Schema{
+				Blocks: map[string]fwschema.Block{
+					// Computed blocks are provider-owned and must be excluded.
+					"computed_list_block": testschema.Block{
+						Computed: true,
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"test_block_attribute": testschema.Attribute{
+									Required: true,
+									Type:     types.StringType,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeList,
+					},
+					"list_block": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Attributes: map[string]fwschema.Attribute{
+								"test_block_attribute": testschema.Attribute{
+									Required: true,
+									Type:     types.StringType,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeList,
+					},
+				},
+			},
+			expected: path.Expressions{
+				path.MatchRoot("list_block"),
+			},
+		},
+		"computed-nested-blocks": {
+			schema: testschema.Schema{
+				Blocks: map[string]fwschema.Block{
+					// Non-computed parent with a computed nested block: the
+					// parent is included, but the computed nested block and its
+					// contents are excluded.
+					"list_block": testschema.Block{
+						NestedObject: testschema.NestedBlockObject{
+							Blocks: map[string]fwschema.Block{
+								"computed_nested_list_block": testschema.Block{
+									Computed: true,
+									NestedObject: testschema.NestedBlockObject{
+										Attributes: map[string]fwschema.Attribute{
+											"test_block_attribute": testschema.Attribute{
+												Required: true,
+												Type:     types.StringType,
+											},
+										},
+									},
+									NestingMode: fwschema.BlockNestingModeList,
+								},
+								"nested_list_block": testschema.Block{
+									NestedObject: testschema.NestedBlockObject{
+										Attributes: map[string]fwschema.Attribute{
+											"test_block_attribute": testschema.Attribute{
+												Required: true,
+												Type:     types.StringType,
+											},
+										},
+									},
+									NestingMode: fwschema.BlockNestingModeList,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeList,
+					},
+					// Computed parent with a non-computed nested block: the
+					// entire subtree is excluded.
+					"computed_single_block": testschema.Block{
+						Computed: true,
+						NestedObject: testschema.NestedBlockObject{
+							Blocks: map[string]fwschema.Block{
+								"nested_single_block": testschema.Block{
+									NestedObject: testschema.NestedBlockObject{
+										Attributes: map[string]fwschema.Attribute{
+											"test_block_attribute": testschema.Attribute{
+												Required: true,
+												Type:     types.StringType,
+											},
+										},
+									},
+									NestingMode: fwschema.BlockNestingModeSingle,
+								},
+							},
+						},
+						NestingMode: fwschema.BlockNestingModeSingle,
+					},
+				},
+			},
+			expected: path.Expressions{
+				path.MatchRoot("list_block"),
+				path.MatchRoot("list_block").AtAnyListIndex().AtName("nested_list_block"),
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fwschema.SchemaBlockPathExpressions(context.Background(), testCase.schema)
+			got := fwschema.SchemaConfigOnlyBlockPathExpressions(context.Background(), testCase.schema)
 
 			// Prevent differences due to randomized Go map access during testing.
 			sort.Slice(testCase.expected, func(i, j int) bool {

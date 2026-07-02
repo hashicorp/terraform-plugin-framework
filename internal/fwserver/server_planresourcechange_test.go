@@ -189,6 +189,34 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 					},
 				},
 			},
+			// nil computed blocks should become unknown
+			"computed-block-nil": schema.SetNestedBlock{
+				Computed: true,
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"string-nil": schema.StringAttribute{
+							Computed: true,
+						},
+						"string-set": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
+			// non-nil computed blocks should be left alone
+			"computed-block-value": schema.SetNestedBlock{
+				Computed: true,
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"string-nil": schema.StringAttribute{
+							Computed: true,
+						},
+						"string-set": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 	input := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
@@ -268,6 +296,32 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 				"string-set": tftypes.NewValue(tftypes.String, "bar"),
 			}),
 		}),
+		"computed-block-nil": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, nil),
+		"computed-block-value": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"string-nil": tftypes.NewValue(tftypes.String, nil),
+				"string-set": tftypes.NewValue(tftypes.String, "bar"),
+			}),
+		}),
 	})
 	expected := tftypes.NewValue(s.Type().TerraformType(context.Background()), map[string]tftypes.Value{
 		"string-value":                           tftypes.NewValue(tftypes.String, "hello, world"),
@@ -329,6 +383,32 @@ func TestMarkComputedNilsAsUnknown(t *testing.T) {
 			},
 		}, nil),
 		"block-value-optional-computed": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, []tftypes.Value{
+			tftypes.NewValue(tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			}, map[string]tftypes.Value{
+				"string-nil": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"string-set": tftypes.NewValue(tftypes.String, "bar"),
+			}),
+		}),
+		"computed-block-nil": tftypes.NewValue(tftypes.Set{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"string-nil": tftypes.String,
+					"string-set": tftypes.String,
+				},
+			},
+		}, tftypes.UnknownValue),
+		"computed-block-value": tftypes.NewValue(tftypes.Set{
 			ElementType: tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"string-nil": tftypes.String,

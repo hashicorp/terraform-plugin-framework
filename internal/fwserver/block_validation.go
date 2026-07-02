@@ -37,6 +37,14 @@ func BlockValidate(ctx context.Context, b fwschema.Block, req ValidateAttributeR
 
 	req.AttributeConfig = attributeConfig
 
+	if !req.ClientCapabilities.ComputedBlocksAllowed && b.IsComputed() {
+		resp.Diagnostics.AddAttributeError(
+			req.AttributePath,
+			"Computed Block Not Allowed",
+			fmt.Sprintf("The resource schema contains a Computed block at %s. Computed blocks are not supported by this version of Terraform. Upgrade to a version of Terraform that supports computed blocks to use this resource.", req.AttributePath.String()),
+		)
+	}
+
 	switch blockWithValidators := b.(type) {
 	case fwxschema.BlockWithListValidators:
 		BlockValidateList(ctx, blockWithValidators, req, resp)

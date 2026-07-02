@@ -68,6 +68,11 @@ func (b BlockWithListPlanModifiers) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeList
 }
 
+// IsComputed satisfies the fwschema.Block interface.
+func (b BlockWithListPlanModifiers) IsComputed() bool {
+	return false
+}
+
 // ListPlanModifiers satisfies the fwxschema.BlockWithListPlanModifiers interface.
 func (b BlockWithListPlanModifiers) ListPlanModifiers() []planmodifier.List {
 	return b.PlanModifiers

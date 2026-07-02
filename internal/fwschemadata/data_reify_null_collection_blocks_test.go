@@ -236,6 +236,96 @@ func TestDataReifyNullCollectionBlocks(t *testing.T) {
 				),
 			},
 		},
+		"computed-list-block-null-unmodified": {
+			data: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list_block": testschema.Block{
+							Computed: true,
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"list_block_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeList,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_block": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"list_block_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_block": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"list_block_attribute": tftypes.String,
+									},
+								},
+							},
+							nil, // computed block must not be modified
+						),
+					},
+				),
+			},
+			expected: &fwschemadata.Data{
+				Description: fwschemadata.DataDescriptionConfiguration,
+				Schema: testschema.Schema{
+					Blocks: map[string]fwschema.Block{
+						"list_block": testschema.Block{
+							Computed: true,
+							NestedObject: testschema.NestedBlockObject{
+								Attributes: map[string]fwschema.Attribute{
+									"list_block_attribute": testschema.Attribute{
+										Computed: true,
+										Type:     types.StringType,
+									},
+								},
+							},
+							NestingMode: fwschema.BlockNestingModeList,
+						},
+					},
+				},
+				TerraformValue: tftypes.NewValue(
+					tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"list_block": tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"list_block_attribute": tftypes.String,
+									},
+								},
+							},
+						},
+					},
+					map[string]tftypes.Value{
+						"list_block": tftypes.NewValue(
+							tftypes.List{
+								ElementType: tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"list_block_attribute": tftypes.String,
+									},
+								},
+							},
+							nil, // computed block must stay null
+						),
+					},
+				),
+			},
+		},
 		"list-block-unknown": {
 			data: &fwschemadata.Data{
 				Description: fwschemadata.DataDescriptionConfiguration,

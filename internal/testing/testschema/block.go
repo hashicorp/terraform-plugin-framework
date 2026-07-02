@@ -19,6 +19,7 @@ type Block struct {
 	MarkdownDescription string
 	NestedObject        fwschema.NestedBlockObject
 	NestingMode         fwschema.BlockNestingMode
+	Computed            bool
 }
 
 // ApplyTerraform5AttributePathStep satisfies the fwschema.Block interface.
@@ -60,6 +61,11 @@ func (b Block) GetNestedObject() fwschema.NestedBlockObject {
 // GetNestingMode satisfies the fwschema.Block interface.
 func (b Block) GetNestingMode() fwschema.BlockNestingMode {
 	return b.NestingMode
+}
+
+// IsComputed satisfies the fwschema.Block interface.
+func (b Block) IsComputed() bool {
+	return b.Computed
 }
 
 // Type satisfies the fwschema.Block interface.

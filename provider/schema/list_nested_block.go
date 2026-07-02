@@ -178,6 +178,12 @@ func (b ListNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeList
 }
 
+// IsComputed returns false as computed blocks are only supported in managed
+// resource schemas.
+func (b ListNestedBlock) IsComputed() bool {
+	return false
+}
+
 // ListValidators returns the Validators field value.
 func (b ListNestedBlock) ListValidators() []validator.List {
 	return b.Validators

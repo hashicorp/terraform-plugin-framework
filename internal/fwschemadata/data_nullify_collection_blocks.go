@@ -20,7 +20,7 @@ import (
 func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	blockPathExpressions := fwschema.SchemaBlockPathExpressions(ctx, d.Schema)
+	configOnlyBlockPathExpressions := fwschema.SchemaConfigOnlyBlockPathExpressions(ctx, d.Schema)
 
 	// Errors are handled as richer diag.Diagnostics instead.
 	d.TerraformValue, _ = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
@@ -53,8 +53,8 @@ func (d *Data) NullifyCollectionBlocks(ctx context.Context) diag.Diagnostics {
 			return tfTypeValue, nil
 		}
 
-		// Do not transform if path is not a block.
-		if !blockPathExpressions.Matches(fwPath) {
+		// Do not transform if path is not a config-only block.
+		if !configOnlyBlockPathExpressions.Matches(fwPath) {
 			return tfTypeValue, nil
 		}
 

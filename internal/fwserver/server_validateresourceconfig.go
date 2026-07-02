@@ -101,6 +101,7 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 
 	schemaCapabilities := validator.ValidateSchemaClientCapabilities{
 		WriteOnlyAttributesAllowed: req.ClientCapabilities.WriteOnlyAttributesAllowed,
+		ComputedBlocksAllowed:      req.ClientCapabilities.ComputedBlocksAllowed,
 	}
 
 	validateSchemaReq := ValidateSchemaRequest{

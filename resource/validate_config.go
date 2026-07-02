@@ -17,6 +17,14 @@ type ValidateConfigClientCapabilities struct {
 	// initiating the request supports write-only attributes for managed
 	// resources.
 	WriteOnlyAttributesAllowed bool
+
+	// ComputedBlocksAllowed indicates that the Terraform client
+	// initiating the request supports computed blocks for managed
+	// resources.
+	//
+	// This client capability is only populated for protocol version 6, as
+	// computed blocks are not supported by protocol version 5.
+	ComputedBlocksAllowed bool
 }
 
 // ValidateConfigRequest represents a request to validate the

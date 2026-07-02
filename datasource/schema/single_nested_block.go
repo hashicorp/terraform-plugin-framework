@@ -186,6 +186,12 @@ func (b SingleNestedBlock) GetNestingMode() fwschema.BlockNestingMode {
 	return fwschema.BlockNestingModeSingle
 }
 
+// IsComputed returns false as computed blocks are only supported in managed
+// resource schemas.
+func (b SingleNestedBlock) IsComputed() bool {
+	return false
+}
+
 // ObjectValidators returns the Validators field value.
 func (b SingleNestedBlock) ObjectValidators() []validator.Object {
 	return b.Validators

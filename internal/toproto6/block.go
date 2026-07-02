@@ -20,6 +20,7 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 		Block: &tfprotov6.SchemaBlock{
 			Deprecated:         b.GetDeprecationMessage() != "",
 			DeprecationMessage: b.GetDeprecationMessage(),
+			Computed:           b.IsComputed(),
 		},
 		TypeName: name,
 	}

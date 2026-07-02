@@ -61,6 +61,13 @@ type Block interface {
 	// field name.
 	GetNestingMode() BlockNestingMode
 
+	// IsComputed should return true if the block configuration value is
+	// computed. This is named differently than Computed to prevent a conflict
+	// with the tfsdk.Block field name.
+	//
+	// Computed blocks are a managed-resource schema concept only.
+	IsComputed() bool
+
 	// Type should return the framework type of a block.
 	Type() attr.Type
 }
@@ -89,12 +96,21 @@ func BlocksEqual(a, b Block) bool {
 		return false
 	}
 
+	if a.IsComputed() != b.IsComputed() {
+		return false
+	}
+
 	return a.GetNestedObject().Equal(b.GetNestedObject())
 }
 
-// BlockPathExpressions recursively returns a slice of the current path
-// expression and all underlying path expressions which represent a Block.
-func BlockPathExpressions(ctx context.Context, block Block, pathExpression path.Expression) path.Expressions {
+// ConfigOnlyBlockPathExpressions recursively returns a slice of the current path
+// expression and all underlying path expressions which represent a config-only
+// Block.
+func ConfigOnlyBlockPathExpressions(ctx context.Context, block Block, pathExpression path.Expression) path.Expressions {
+	if block.IsComputed() {
+		return nil
+	}
+
 	result := path.Expressions{pathExpression}
 
 	for name, nestedBlock := range block.GetNestedObject().GetBlocks() {
@@ -102,11 +118,11 @@ func BlockPathExpressions(ctx context.Context, block Block, pathExpression path.
 
 		switch nestingMode {
 		case BlockNestingModeList:
-			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnyListIndex().AtName(name))...)
+			result = append(result, ConfigOnlyBlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnyListIndex().AtName(name))...)
 		case BlockNestingModeSet:
-			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnySetValue().AtName(name))...)
+			result = append(result, ConfigOnlyBlockPathExpressions(ctx, nestedBlock, pathExpression.AtAnySetValue().AtName(name))...)
 		case BlockNestingModeSingle:
-			result = append(result, BlockPathExpressions(ctx, nestedBlock, pathExpression.AtName(name))...)
+			result = append(result, ConfigOnlyBlockPathExpressions(ctx, nestedBlock, pathExpression.AtName(name))...)
 		default:
 			panic(fmt.Sprintf("unhandled BlockNestingMode: %T", nestingMode))
 		}

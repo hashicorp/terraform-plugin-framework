@@ -489,6 +489,289 @@ func TestSchemaModifyPlan(t *testing.T) {
 				},
 			},
 		},
+		"attribute-plan-nested-single-path-expression": {
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/1219
+			req: ModifySchemaPlanRequest{
+				Config: tfsdk.Config{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"double_nested": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"str_a": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"double_nested": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"str_a": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"double_nested": tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"str_a": tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"str_a": tftypes.NewValue(tftypes.String, "testvalue"),
+							}),
+						}),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"nested": testschema.NestedAttribute{
+								Required:    true,
+								NestingMode: fwschema.NestingModeSingle,
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"double_nested": testschema.NestedAttribute{
+											Required:    true,
+											NestingMode: fwschema.NestingModeSingle,
+											NestedObject: testschema.NestedAttributeObject{
+												Attributes: map[string]fwschema.Attribute{
+													"str_a": testschema.AttributeWithStringPlanModifiers{
+														Required: true,
+														PlanModifiers: []planmodifier.String{
+															testplanmodifier.String{
+																PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+																	expected := "nested.double_nested.str_a"
+																	if req.PathExpression.String() != expected {
+																		resp.Diagnostics.AddError(
+																			"Unexpected req.PathExpression",
+																			"expected: "+expected+", got: "+req.PathExpression.String(),
+																		)
+																	}
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"double_nested": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"str_a": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"double_nested": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"str_a": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"double_nested": tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"str_a": tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"str_a": tftypes.NewValue(tftypes.String, "testvalue"),
+							}),
+						}),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"nested": testschema.NestedAttribute{
+								Required:    true,
+								NestingMode: fwschema.NestingModeSingle,
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"double_nested": testschema.NestedAttribute{
+											Required:    true,
+											NestingMode: fwschema.NestingModeSingle,
+											NestedObject: testschema.NestedAttributeObject{
+												Attributes: map[string]fwschema.Attribute{
+													"str_a": testschema.AttributeWithStringPlanModifiers{
+														Required: true,
+														PlanModifiers: []planmodifier.String{
+															testplanmodifier.String{
+																PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+																	expected := "nested.double_nested.str_a"
+																	if req.PathExpression.String() != expected {
+																		resp.Diagnostics.AddError(
+																			"Unexpected req.PathExpression",
+																			"expected: "+expected+", got: "+req.PathExpression.String(),
+																		)
+																	}
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				State: tfsdk.State{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"double_nested": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"str_a": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"double_nested": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"str_a": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"double_nested": tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"str_a": tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"str_a": tftypes.NewValue(tftypes.String, "testvalue"),
+							}),
+						}),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"nested": testschema.NestedAttribute{
+								Required:    true,
+								NestingMode: fwschema.NestingModeSingle,
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"double_nested": testschema.NestedAttribute{
+											Required:    true,
+											NestingMode: fwschema.NestingModeSingle,
+											NestedObject: testschema.NestedAttributeObject{
+												Attributes: map[string]fwschema.Attribute{
+													"str_a": testschema.AttributeWithStringPlanModifiers{
+														Required: true,
+														PlanModifiers: []planmodifier.String{
+															testplanmodifier.String{
+																PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+																	expected := "nested.double_nested.str_a"
+																	if req.PathExpression.String() != expected {
+																		resp.Diagnostics.AddError(
+																			"Unexpected req.PathExpression",
+																			"expected: "+expected+", got: "+req.PathExpression.String(),
+																		)
+																	}
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedResp: ModifySchemaPlanResponse{
+				Plan: tfsdk.Plan{
+					Raw: tftypes.NewValue(tftypes.Object{
+						AttributeTypes: map[string]tftypes.Type{
+							"nested": tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"double_nested": tftypes.Object{
+										AttributeTypes: map[string]tftypes.Type{
+											"str_a": tftypes.String,
+										},
+									},
+								},
+							},
+						},
+					}, map[string]tftypes.Value{
+						"nested": tftypes.NewValue(tftypes.Object{
+							AttributeTypes: map[string]tftypes.Type{
+								"double_nested": tftypes.Object{
+									AttributeTypes: map[string]tftypes.Type{
+										"str_a": tftypes.String,
+									},
+								},
+							},
+						}, map[string]tftypes.Value{
+							"double_nested": tftypes.NewValue(tftypes.Object{
+								AttributeTypes: map[string]tftypes.Type{
+									"str_a": tftypes.String,
+								},
+							}, map[string]tftypes.Value{
+								"str_a": tftypes.NewValue(tftypes.String, "testvalue"),
+							}),
+						}),
+					}),
+					Schema: testschema.Schema{
+						Attributes: map[string]fwschema.Attribute{
+							"nested": testschema.NestedAttribute{
+								Required:    true,
+								NestingMode: fwschema.NestingModeSingle,
+								NestedObject: testschema.NestedAttributeObject{
+									Attributes: map[string]fwschema.Attribute{
+										"double_nested": testschema.NestedAttribute{
+											Required:    true,
+											NestingMode: fwschema.NestingModeSingle,
+											NestedObject: testschema.NestedAttributeObject{
+												Attributes: map[string]fwschema.Attribute{
+													"str_a": testschema.AttributeWithStringPlanModifiers{
+														Required: true,
+														PlanModifiers: []planmodifier.String{
+															testplanmodifier.String{
+																PlanModifyStringMethod: func(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+																	expected := "nested.double_nested.str_a"
+																	if req.PathExpression.String() != expected {
+																		resp.Diagnostics.AddError(
+																			"Unexpected req.PathExpression",
+																			"expected: "+expected+", got: "+req.PathExpression.String(),
+																		)
+																	}
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"attribute-request-private": {
 			req: ModifySchemaPlanRequest{
 				Config: tfsdk.Config{

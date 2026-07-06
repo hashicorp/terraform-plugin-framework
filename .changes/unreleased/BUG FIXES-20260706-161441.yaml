@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'fwserver: Fixed plan modifiers of nested attributes and nested blocks receiving a request `PathExpression` that was missing the root attribute or block step'
+time: 2026-07-06T16:14:41+03:00
+custom:
+    Issue: "1219"

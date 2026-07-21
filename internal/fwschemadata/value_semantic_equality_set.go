@@ -119,6 +119,13 @@ func ValueSemanticEqualitySetElements(ctx context.Context, req ValueSemanticEqua
 		return
 	}
 
+	// If no element type anywhere in the tree implements semantic equality,
+	// the per-element walk below is guaranteed to be a no-op. Skip it to
+	// avoid the O(n^2) prior/proposed element comparison on large collections.
+	if !typeMightHaveSemanticEquals(ctx, proposedNewValue.ElementType(ctx)) {
+		return
+	}
+
 	proposedNewValueElements := proposedNewValue.Elements()
 
 	// Create a new element value slice, which will be used to create the final

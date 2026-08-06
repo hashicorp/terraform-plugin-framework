@@ -30,7 +30,7 @@ func Into(ctx context.Context, typ attr.Type, val tftypes.Value, target interfac
 	var diags diag.Diagnostics
 
 	v := reflect.ValueOf(target)
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		err := fmt.Errorf("target must be a pointer, got %T, which is a %s", target, v.Kind())
 		diags.AddAttributeError(
 			path,
@@ -196,7 +196,7 @@ func BuildValue(ctx context.Context, typ attr.Type, val tftypes.Value, target re
 		val, valDiags := Map(ctx, typ, val, target, opts, path)
 		diags.Append(valDiags...)
 		return val, diags
-	case reflect.Ptr:
+	case reflect.Pointer:
 		val, valDiags := Pointer(ctx, typ, val, target, opts, path)
 		diags.Append(valDiags...)
 		return val, diags

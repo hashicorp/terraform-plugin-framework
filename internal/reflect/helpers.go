@@ -18,7 +18,7 @@ import (
 // beneath it all.
 func trueReflectValue(val reflect.Value) reflect.Value {
 	kind := val.Type().Kind()
-	for kind == reflect.Interface || kind == reflect.Ptr {
+	for kind == reflect.Interface || kind == reflect.Pointer {
 		innerVal := val.Elem()
 		if !innerVal.IsValid() {
 			break
@@ -140,7 +140,7 @@ func isValidFieldName(name string) bool {
 // canBeNil returns true if `target`'s type can hold a nil value
 func canBeNil(target reflect.Value) bool {
 	switch target.Kind() {
-	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface:
+	case reflect.Pointer, reflect.Slice, reflect.Map, reflect.Interface:
 		// these types can all hold nils
 		return true
 	default:

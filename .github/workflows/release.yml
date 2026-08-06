@@ -25,19 +25,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # Avoid persisting GITHUB_TOKEN credentials as they take priority over our service account PAT for `git push` operations
           # More details: https://github.com/actions/checkout/blob/b4626ce19ce1106186ddf9bb20e706842f11a7c3/adrs/0153-checkout-v2.md#persist-credentials
           persist-credentials: false
       - name: Batch changes
-        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # v2.1.0
+        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3.0.1
         with:
           version: latest
           args: batch ${{ needs.changelog-version.outputs.version }}
       - name: Merge changes
-        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # v2.1.0
+        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3.0.1
         with:
           version: latest
           args: merge
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           # Default input is the SHA that initially triggered the workflow. As we created a new commit in the previous job,
@@ -79,12 +79,12 @@ jobs:
       contents: write # Needed for goreleaser to create GitHub release
       issues: write # Needed for goreleaser to close associated milestone
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.versionNumber }}
           fetch-depth: 0
 
-      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: 'go.mod'
 
@@ -93,7 +93,7 @@ jobs:
           cd .changes
           sed -e "1{/# /d;}" -e "2{/^$/d;}" ${{ needs.changelog-version.outputs.version }}.md > /tmp/release-notes.txt
 
-      - uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
+      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

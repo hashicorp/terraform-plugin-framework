@@ -81,7 +81,7 @@ func FromValue(ctx context.Context, typ attr.Type, val interface{}, path path.Pa
 			return nil, diags
 		}
 		return FromMap(ctx, t, value, path)
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return FromPointer(ctx, typ, value, path)
 	default:
 		err := fmt.Errorf("cannot construct attr.Type from %T (%s)", val, kind)

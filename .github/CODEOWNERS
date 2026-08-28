@@ -2,16 +2,16 @@
 
 # engineering and web presence get notified of, and can approve changes to web tooling, but not content.
 
-/website/               @hashicorp/web-presence @hashicorp/terraform-core-plugins
+/website/               @hashicorp/web-presence @hashicorp/terraform-core
 /website/data/
 /website/public/
 /website/content/
 
 # education and engineering get notified of, and can approve changes to web content.
 
-/website/data/          @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
-/website/public/        @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
-/website/content/       @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
-/website/docs/          @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
-/website/img/           @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
-/website/README.md      @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core-plugins
+/website/data/          @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core
+/website/public/        @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core
+/website/content/       @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core
+/website/docs/          @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core
+/website/img/           @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core
+/website/README.md      @hashicorp/team-docs-packer-and-terraform @hashicorp/terraform-core

@@ -127,6 +127,10 @@ func (s String) IsUnknown() bool {
 	return s.InternalString.IsUnknown()
 }
 
+func (s String) IsFullyNullableKnown() bool {
+	return s.InternalString.IsFullyNullableKnown()
+}
+
 func (s String) String() string {
 	return s.InternalString.String()
 }

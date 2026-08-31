@@ -138,6 +138,11 @@ func (b BoolValue) IsUnknown() bool {
 	return b.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Bool represents a currently nullable known value.
+func (b BoolValue) IsFullyNullableKnown() bool {
+	return !b.IsUnknown()
+}
+
 // String returns a human-readable representation of the Bool value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

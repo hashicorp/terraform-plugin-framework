@@ -148,6 +148,11 @@ func (s StringValue) IsUnknown() bool {
 	return s.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the String represents a currently nullable known value.
+func (s StringValue) IsFullyNullableKnown() bool {
+	return s.state != attr.ValueStateUnknown
+}
+
 // String returns a human-readable representation of the String value. Use
 // the ValueString method for Terraform data handling instead.
 //

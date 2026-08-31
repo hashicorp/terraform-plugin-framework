@@ -63,6 +63,10 @@ func (i Invalid) IsUnknown() bool {
 	return false
 }
 
+func (i Invalid) IsFullyNullableKnown() bool {
+	return false
+}
+
 func (i Invalid) String() string {
 	return "<invalid>"
 }

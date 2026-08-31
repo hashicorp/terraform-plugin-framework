@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'types: Added `ObjectAsOptions` type alias for `basetypes.ObjectAsOptions`'
+time: 2026-08-06T17:45:55.206779-05:00
+custom:
+    Issue: "723"

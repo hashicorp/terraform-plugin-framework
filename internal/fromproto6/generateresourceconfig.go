@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 // GenerateResourceConfigRequest returns the *fwserver.GenerateResourceConfigRequest
 // equivalent of a *tfprotov6.GenerateResourceConfigRequest.
-func GenerateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.GenerateResourceConfigRequest, resourceSchema fwschema.Schema) (*fwserver.GenerateResourceConfigRequest, diag.Diagnostics) {
+func GenerateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.GenerateResourceConfigRequest, resource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.GenerateResourceConfigRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -41,6 +42,7 @@ func GenerateResourceConfigRequest(ctx context.Context, proto6 *tfprotov6.Genera
 	diags.Append(stateDiags...)
 
 	fw := &fwserver.GenerateResourceConfigRequest{
+		Resource:       resource,
 		ResourceSchema: resourceSchema,
 		State:          state,
 	}

@@ -144,6 +144,7 @@ func TestSchemaSemanticEquality(t *testing.T) {
 				},
 			},
 			expected: &fwserver.SchemaSemanticEqualityResponse{
+				Modified: true,
 				NewData: fwschemadata.Data{
 					Description: fwschemadata.DataDescriptionPlan,
 					Schema: testschema.Schema{
@@ -619,6 +620,7 @@ func TestSchemaSemanticEquality(t *testing.T) {
 				},
 			},
 			expected: &fwserver.SchemaSemanticEqualityResponse{
+				Modified: true,
 				NewData: fwschemadata.Data{
 					Description: fwschemadata.DataDescriptionPlan,
 					Schema: testschema.Schema{
@@ -1325,6 +1327,7 @@ func TestSchemaSemanticEquality(t *testing.T) {
 				},
 			},
 			expected: &fwserver.SchemaSemanticEqualityResponse{
+				Modified: true,
 				NewData: fwschemadata.Data{
 					Description: fwschemadata.DataDescriptionPlan,
 					Schema: testschema.Schema{
@@ -1966,6 +1969,7 @@ func TestSchemaSemanticEquality(t *testing.T) {
 				},
 			},
 			expected: &fwserver.SchemaSemanticEqualityResponse{
+				Modified: true,
 				NewData: fwschemadata.Data{
 					Description: fwschemadata.DataDescriptionPlan,
 					Schema: testschema.Schema{

@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'all: Improved performance of resource read, create and update and of data source
+    read by no longer deep-comparing the entire value to detect semantic equality changes'
+time: 2026-09-03T10:35:34+03:30
+custom:
+    Issue: "1322"

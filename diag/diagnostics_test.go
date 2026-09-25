@@ -679,7 +679,7 @@ func TestDiagnosticsErrorsCount(t *testing.T) {
 			got := test.diags.ErrorsCount()
 
 			if diff := cmp.Diff(test.expected, got); diff != "" {
-				t.Fatalf("expected: %v, got: %q", test.expected, got)
+				t.Fatalf("expected: %v, got: %v", test.expected, got)
 			}
 		})
 	}

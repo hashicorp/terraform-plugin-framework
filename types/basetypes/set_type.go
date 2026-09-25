@@ -179,9 +179,31 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	validatableType, isValidatable := st.ElementType().(xattr.TypeWithValidate)
 
-	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:
+	// Duplicate detection groups elements by a hashable key derived from
+	// Value.String() instead of comparing every pair of elements. Equal values
+	// always render to the same string, so grouping cannot miss a duplicate,
+	// while only elements that share a key pay for the deep Equal comparison.
+	//
+	// tftypes.Value itself cannot be a map key:
 	//   panic: runtime error: hash of unhashable type tftypes.primitive
-	// Instead, use for loops.
+	// which is why the key is its string form.
+	elemsByKey := make(map[string][]int, len(elems))
+
+	// Sets nested in the element type make String() an unsound key, because set
+	// equality ignores element order while String() does not. Those keep the
+	// original all-pairs comparison.
+	stringKeyed := typeCanBeStringKeyed(st.ElementType())
+
+	reportDuplicate := func(elem tftypes.Value) {
+		// TODO: Point at element attr.Value when Validate method is converted to attr.Value
+		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
+		diags.AddAttributeError(
+			path,
+			"Duplicate Set Element",
+			fmt.Sprintf("This attribute contains duplicate values of: %s", elem),
+		)
+	}
+
 	for indexOuter, elemOuter := range elems {
 		// Only evaluate fully known values for duplicates and validation.
 		if !elemOuter.IsFullyKnown() {
@@ -202,22 +224,27 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 			diags = append(diags, validatableType.Validate(ctx, elemOuter, path.AtSetValue(elemValue))...)
 		}
 
-		// Then check for duplicates
-		for indexInner := indexOuter + 1; indexInner < len(elems); indexInner++ {
-			elemInner := elems[indexInner]
-
-			if !elemInner.Equal(elemOuter) {
-				continue
+		// Then check for duplicates, against the earlier elements that share a
+		// key rather than against every other element.
+		if !stringKeyed {
+			for indexInner := 0; indexInner < indexOuter; indexInner++ {
+				if elems[indexInner].Equal(elemOuter) {
+					reportDuplicate(elems[indexInner])
+				}
 			}
 
-			// TODO: Point at element attr.Value when Validate method is converted to attr.Value
-			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/172
-			diags.AddAttributeError(
-				path,
-				"Duplicate Set Element",
-				fmt.Sprintf("This attribute contains duplicate values of: %s", elemInner),
-			)
+			continue
 		}
+
+		key := elemOuter.String()
+
+		for _, indexInner := range elemsByKey[key] {
+			if elems[indexInner].Equal(elemOuter) {
+				reportDuplicate(elems[indexInner])
+			}
+		}
+
+		elemsByKey[key] = append(elemsByKey[key], indexOuter)
 	}
 
 	return diags

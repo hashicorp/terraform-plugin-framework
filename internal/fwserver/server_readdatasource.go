@@ -135,7 +135,7 @@ func (s *Server) ReadDataSource(ctx context.Context, req *ReadDataSourceRequest,
 		return
 	}
 
-	if semanticEqualityResp.NewData.TerraformValue.Equal(resp.State.Raw) {
+	if !semanticEqualityResp.Modified {
 		return
 	}
 

@@ -28,6 +28,11 @@ type SchemaSemanticEqualityResponse struct {
 	// NewData is the new schema-based data after any modifications.
 	NewData fwschemadata.Data
 
+	// Modified reports whether any value in NewData was replaced by its prior
+	// value. Callers use this instead of comparing NewData against the data
+	// they passed in, which is a deep comparison of the whole value.
+	Modified bool
+
 	// Diagnostics report errors or warnings related to running all attribute
 	// plan modifiers. Returning an empty slice indicates a successful
 	// plan modification with no warnings or errors generated.
@@ -91,6 +96,8 @@ func SchemaSemanticEquality(ctx context.Context, req SchemaSemanticEqualityReque
 			continue
 		}
 
+		resp.Modified = true
+
 		resp.Diagnostics.Append(resp.NewData.SetAtPath(ctx, valueReq.Path, valueResp.NewValue)...)
 
 		if resp.Diagnostics.HasError() {
@@ -136,6 +143,8 @@ func SchemaSemanticEquality(ctx context.Context, req SchemaSemanticEqualityReque
 		if valueResp.NewValue.Equal(valueReq.ProposedNewValue) {
 			continue
 		}
+
+		resp.Modified = true
 
 		resp.Diagnostics.Append(resp.NewData.SetAtPath(ctx, valueReq.Path, valueResp.NewValue)...)
 

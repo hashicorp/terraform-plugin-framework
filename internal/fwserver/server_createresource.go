@@ -204,7 +204,7 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		return
 	}
 
-	if !semanticEqualityResp.NewData.TerraformValue.Equal(resp.NewState.Raw) {
+	if semanticEqualityResp.Modified {
 		logging.FrameworkDebug(ctx, "State updated due to semantic equality")
 
 		resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue

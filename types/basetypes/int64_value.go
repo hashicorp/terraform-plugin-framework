@@ -138,6 +138,11 @@ func (i Int64Value) IsUnknown() bool {
 	return i.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Int64 represents a currently nullable known value.
+func (i Int64Value) IsFullyNullableKnown() bool {
+	return !i.IsUnknown()
+}
+
 // String returns a human-readable representation of the Int64 value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

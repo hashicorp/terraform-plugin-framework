@@ -361,6 +361,17 @@ func (o ObjectValue) IsUnknown() bool {
 	return o.state == attr.ValueStateUnknown
 }
 
+// IsFullyNullableKnown returns true if the Object represents a currently nullable known value,
+// including all its attributes, recursively.
+func (o ObjectValue) IsFullyNullableKnown() bool {
+	for _, attr := range o.attributes {
+		if !attr.IsFullyNullableKnown() {
+			return false
+		}
+	}
+	return true
+}
+
 // String returns a human-readable representation of the Object value.
 // The string returned here is not protected by any compatibility guarantees,
 // and is intended for logging and error reporting.

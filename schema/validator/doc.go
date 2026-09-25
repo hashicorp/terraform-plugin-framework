@@ -33,4 +33,8 @@
 //
 // Validators that are not type dependent need to implement all interfaces,
 // but can use shared logic to reduce implementation code.
+//
+// Validators can also optionally implement marker interfaces such as
+// ConflictsWithValidator, ExactlyOneOfValidator, and AlsoRequiresValidator to
+// expose validator group path expressions for generated configuration handling.
 package validator

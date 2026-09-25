@@ -83,12 +83,13 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 
 	for name, attribute := range s.GetAttributes() {
 		attrReq := ModifyAttributePlanRequest{
-			AttributePath: path.Root(name),
-			Config:        req.Config,
-			State:         req.State,
-			Plan:          req.Plan,
-			ProviderMeta:  req.ProviderMeta,
-			Private:       req.Private,
+			AttributePath:           path.Root(name),
+			AttributePathExpression: path.MatchRoot(name),
+			Config:                  req.Config,
+			State:                   req.State,
+			Plan:                    req.Plan,
+			ProviderMeta:            req.ProviderMeta,
+			Private:                 req.Private,
 		}
 
 		attrReq.AttributeConfig, diags = configData.ValueAtPath(ctx, attrReq.AttributePath)
@@ -140,12 +141,13 @@ func SchemaModifyPlan(ctx context.Context, s fwschema.Schema, req ModifySchemaPl
 
 	for name, block := range s.GetBlocks() {
 		blockReq := ModifyAttributePlanRequest{
-			AttributePath: path.Root(name),
-			Config:        req.Config,
-			State:         req.State,
-			Plan:          req.Plan,
-			ProviderMeta:  req.ProviderMeta,
-			Private:       req.Private,
+			AttributePath:           path.Root(name),
+			AttributePathExpression: path.MatchRoot(name),
+			Config:                  req.Config,
+			State:                   req.State,
+			Plan:                    req.Plan,
+			ProviderMeta:            req.ProviderMeta,
+			Private:                 req.Private,
 		}
 
 		blockReq.AttributeConfig, diags = configData.ValueAtPath(ctx, blockReq.AttributePath)

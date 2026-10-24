@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'internal/fwserver: Fixed bug where marking computed attributes as unknown and nullifying write-only attributes took time quadratic in the number of values in a resource, which slowed down plan, apply, refresh, import, move, and upgrade of resources with large values'
+time: 2026-10-24T11:57:31.222219+02:00
+custom:
+    Issue: "1332"

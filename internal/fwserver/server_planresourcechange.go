@@ -413,7 +413,11 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resourceSchema fwschema.Schema) func(*tftypes.AttributePath, tftypes.Value) (tftypes.Value, error) {
 	return func(path *tftypes.AttributePath, val tftypes.Value) (tftypes.Value, error) {
-		ctx = logging.FrameworkWithAttributePath(ctx, path.String())
+		// Derive the logging context for this value from the context the
+		// callback was created with. Reassigning the captured ctx instead nests
+		// one more context per visited value, and every log call then walks the
+		// whole chain, which makes the transform quadratic in the number of values.
+		ctx := logging.FrameworkWithAttributePath(ctx, path.String())
 
 		// we are only modifying attributes, not the entire resource
 		if len(path.Steps()) < 1 {

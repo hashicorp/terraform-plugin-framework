@@ -304,3 +304,37 @@ func TestServerValidateActionConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestServerValidateActionConfigWriteOnlyAttribute(t *testing.T) {
+	t.Parallel()
+
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"secret": schema.StringAttribute{Optional: true, WriteOnly: true},
+		},
+	}
+	testConfig := tfsdk.Config{
+		Raw: tftypes.NewValue(tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{"secret": tftypes.String},
+		}, map[string]tftypes.Value{
+			"secret": tftypes.NewValue(tftypes.String, "test-secret"),
+		}),
+		Schema: testSchema,
+	}
+	server := &fwserver.Server{Provider: &testprovider.Provider{}}
+	request := &fwserver.ValidateActionConfigRequest{
+		Config: &testConfig,
+		Action: &testprovider.Action{
+			SchemaMethod: func(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+				resp.Schema = testSchema
+			},
+		},
+	}
+	response := &fwserver.ValidateActionConfigResponse{}
+
+	server.ValidateActionConfig(context.Background(), request, response)
+
+	if response.Diagnostics.HasError() {
+		t.Fatalf("unexpected validation diagnostics for write-only action attribute: %v", response.Diagnostics)
+	}
+}

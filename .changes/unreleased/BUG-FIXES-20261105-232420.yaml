@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: "action: Allow non-null values for write-only action attributes during configuration validation."
+time: 2026-11-05T23:24:20.2915171-03:00
+custom:
+    Issue: "1334"

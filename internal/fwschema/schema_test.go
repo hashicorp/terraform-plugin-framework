@@ -610,3 +610,85 @@ func TestSchemaPathIsBlock(t *testing.T) {
 		})
 	}
 }
+
+// FuzzSchemaPathIsBlock compares direct lookup with the previous expression
+// matcher across mixed block nesting and valid and invalid path steps.
+func FuzzSchemaPathIsBlock(f *testing.F) {
+	for _, seed := range [][]byte{
+		{}, {0}, {1, 0}, {3, 0, 5, 1, 6, 2, 0},
+		{3, 1, 6, 0, 5, 2, 1}, {3, 2, 2, 2, 0},
+		{2, 0, 5, 3}, {2, 0, 5, 4}, {2, 1, 7, 0},
+	} {
+		f.Add(seed)
+	}
+	// Seed every block path in four mixed nesting levels, plus paths ending
+	// at collection elements and attributes rather than blocks.
+	var addPaths func([]byte, int)
+	addPaths = func(prefix []byte, remaining int) {
+		if remaining == 0 {
+			return
+		}
+		for mode := range byte(3) {
+			next := append(append([]byte{}, prefix...), mode)
+			f.Add(append([]byte{3}, next...))
+			f.Add(append(append([]byte{3}, next...), byte(3)))
+			if mode < 2 {
+				next = append(next, 5+mode)
+				f.Add(append([]byte{3}, next...))
+			}
+			addPaths(next, remaining-1)
+		}
+	}
+	addPaths(nil, 4)
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if len(data) > 24 {
+			t.Skip()
+		}
+		depth := 1
+		if len(data) > 0 {
+			depth += int(data[0] % 4)
+			data = data[1:]
+		}
+		nested := testschema.NestedBlockObject{
+			Attributes: map[string]fwschema.Attribute{
+				"attribute": testschema.Attribute{Type: types.DynamicType, Optional: true},
+			},
+		}
+		for range depth {
+			nested = testschema.NestedBlockObject{
+				Attributes: nested.Attributes,
+				Blocks: map[string]fwschema.Block{
+					"list":   testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: nested},
+					"set":    testschema.Block{NestingMode: fwschema.BlockNestingModeSet, NestedObject: nested},
+					"single": testschema.Block{NestingMode: fwschema.BlockNestingModeSingle, NestedObject: nested},
+				},
+			}
+		}
+		s := testschema.Schema{Attributes: nested.Attributes, Blocks: nested.Blocks}
+		p := path.Empty()
+		for _, step := range data {
+			switch step % 8 {
+			case 0:
+				p = p.AtName("list")
+			case 1:
+				p = p.AtName("set")
+			case 2:
+				p = p.AtName("single")
+			case 3:
+				p = p.AtName("attribute")
+			case 4:
+				p = p.AtName("missing")
+			case 5:
+				p = p.AtListIndex(int(step) - 128)
+			case 6:
+				p = p.AtSetValue(types.StringUnknown())
+			case 7:
+				p = p.AtMapKey("key")
+			}
+		}
+		want := fwschema.SchemaBlockPathExpressions(t.Context(), s).Matches(p)
+		if got := fwschema.SchemaPathIsBlock(s, p); got != want {
+			t.Fatalf("depth %d, path %s: direct lookup = %t, expression matcher = %t", depth, p, got, want)
+		}
+	})
+}

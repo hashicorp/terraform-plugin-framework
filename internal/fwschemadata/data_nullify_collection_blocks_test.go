@@ -5,6 +5,8 @@ package fwschemadata_test
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -961,6 +963,77 @@ func TestDataNullifyCollectionBlocks(t *testing.T) {
 
 			if diff := cmp.Diff(testCase.data, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+// BenchmarkDataCollectionBlocks uses a large recursive schema with a small value,
+// like a rule selecting one statement from many supported statement types.
+func BenchmarkDataCollectionBlocks(b *testing.B) {
+	ctx := b.Context()
+	for _, depth := range []int{0, 3, 6} {
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			var nested func(int) testschema.NestedBlockObject
+			nested = func(depth int) testschema.NestedBlockObject {
+				n := testschema.NestedBlockObject{
+					Attributes: map[string]fwschema.Attribute{
+						"value": testschema.Attribute{Type: types.StringType, Optional: true},
+					},
+				}
+				if depth > 0 {
+					n.Blocks = map[string]fwschema.Block{}
+					child := nested(depth - 1)
+					for _, name := range []string{"and", "or", "not"} {
+						n.Blocks[name] = testschema.Block{
+							NestingMode: fwschema.BlockNestingModeList, NestedObject: child,
+							CustomType: types.ListType{ElemType: child.Type()},
+						}
+					}
+				}
+				return n
+			}
+			root := nested(depth)
+			s := testschema.Schema{Blocks: map[string]fwschema.Block{
+				"statement": testschema.Block{
+					NestingMode:  fwschema.BlockNestingModeList,
+					NestedObject: root,
+					CustomType:   types.ListType{ElemType: root.Type()},
+				},
+			}}
+			ty := s.Type().TerraformType(ctx)
+			json := `{"statement":[` + strings.Repeat(`{"and":[`, depth) + `{"value":"test"}` + strings.Repeat(`]}`, depth) + `]}`
+			v, err := tftypes.ValueFromJSONWithOpts([]byte(json), ty, tftypes.ValueFromJSONOpts{})
+			if err != nil {
+				b.Fatal(err)
+			}
+			for _, reify := range []bool{false, true} {
+				name := "nullify"
+				input := v
+				if reify {
+					name = "reify"
+				} else {
+					d := fwschemadata.Data{Schema: s, TerraformValue: v}
+					if diags := d.ReifyNullCollectionBlocks(ctx); diags.HasError() {
+						b.Fatal(diags)
+					}
+					input = d.TerraformValue
+				}
+				b.Run(name, func(b *testing.B) {
+					b.ReportAllocs()
+					for b.Loop() {
+						d := fwschemadata.Data{Schema: s, TerraformValue: input}
+						var diags diag.Diagnostics
+						if reify {
+							diags = d.ReifyNullCollectionBlocks(ctx)
+						} else {
+							diags = d.NullifyCollectionBlocks(ctx)
+						}
+						if diags.HasError() {
+							b.Fatal(diags)
+						}
+					}
+				})
 			}
 		})
 	}

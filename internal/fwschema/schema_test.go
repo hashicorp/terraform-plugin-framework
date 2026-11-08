@@ -542,3 +542,71 @@ func TestSchemaTypeAtTerraformPath(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaPathIsBlock(t *testing.T) {
+	t.Parallel()
+
+	leaf := testschema.Block{
+		NestingMode: fwschema.BlockNestingModeList,
+		NestedObject: testschema.NestedBlockObject{
+			Attributes: map[string]fwschema.Attribute{
+				"value": testschema.Attribute{Type: types.StringType, Optional: true},
+			},
+		},
+	}
+	nested := testschema.NestedBlockObject{
+		Attributes: map[string]fwschema.Attribute{
+			"attribute": testschema.Attribute{Type: types.ListType{ElemType: types.StringType}, Optional: true},
+		},
+		Blocks: map[string]fwschema.Block{"child": leaf},
+	}
+	s := testschema.Schema{
+		Attributes: map[string]fwschema.Attribute{
+			"attribute": testschema.Attribute{Type: types.ListType{ElemType: types.StringType}, Optional: true},
+		},
+		Blocks: map[string]fwschema.Block{
+			"list":   testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: nested},
+			"set":    testschema.Block{NestingMode: fwschema.BlockNestingModeSet, NestedObject: nested},
+			"single": testschema.Block{NestingMode: fwschema.BlockNestingModeSingle, NestedObject: nested},
+		},
+	}
+	setValue := types.ObjectNull(map[string]attr.Type{
+		"attribute": types.ListType{ElemType: types.StringType},
+		"child":     leaf.Type(),
+	})
+	testCases := map[string]struct {
+		path path.Path
+		want bool
+	}{
+		"root":                 {path.Empty(), false},
+		"missing":              {path.Root("missing"), false},
+		"attribute":            {path.Root("attribute"), false},
+		"list":                 {path.Root("list"), true},
+		"list-element":         {path.Root("list").AtListIndex(0), false},
+		"list-child":           {path.Root("list").AtListIndex(0).AtName("child"), true},
+		"list-child-element":   {path.Root("list").AtListIndex(0).AtName("child").AtListIndex(0), false},
+		"list-child-attribute": {path.Root("list").AtListIndex(0).AtName("child").AtListIndex(0).AtName("value"), false},
+		"list-attribute":       {path.Root("list").AtListIndex(0).AtName("attribute"), false},
+		"list-missing-index":   {path.Root("list").AtName("child"), false},
+		"list-wrong-index":     {path.Root("list").AtMapKey("0").AtName("child"), false},
+		"set":                  {path.Root("set"), true},
+		"set-element":          {path.Root("set").AtSetValue(setValue), false},
+		"set-child":            {path.Root("set").AtSetValue(setValue).AtName("child"), true},
+		"set-wrong-index":      {path.Root("set").AtListIndex(0).AtName("child"), false},
+		"single":               {path.Root("single"), true},
+		"single-child":         {path.Root("single").AtName("child"), true},
+		"single-attribute":     {path.Root("single").AtName("attribute"), false},
+	}
+	expressions := fwschema.SchemaBlockPathExpressions(t.Context(), s)
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			if got := expressions.Matches(testCase.path); got != testCase.want {
+				t.Errorf("legacy block matching(%s) = %t, want %t", testCase.path, got, testCase.want)
+			}
+			if got := fwschema.SchemaPathIsBlock(s, testCase.path); got != testCase.want {
+				t.Errorf("SchemaPathIsBlock(%s) = %t, want %t", testCase.path, got, testCase.want)
+			}
+		})
+	}
+}

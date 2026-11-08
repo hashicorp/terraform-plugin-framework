@@ -180,6 +180,47 @@ func SchemaBlockAtTerraformPath(ctx context.Context, s Schema, p *tftypes.Attrib
 	}
 }
 
+// SchemaPathIsBlock reports whether p addresses a block, without enumerating
+// unrelated blocks in the schema. Paths inside attributes are never block paths.
+func SchemaPathIsBlock(s Schema, p path.Path) bool {
+	blocks := s.GetBlocks()
+	steps := p.Steps()
+
+	for len(steps) > 0 {
+		name, ok := steps[0].(path.PathStepAttributeName)
+		if !ok {
+			return false
+		}
+		block, ok := blocks[string(name)]
+		if !ok {
+			return false
+		}
+		steps = steps[1:]
+		if len(steps) == 0 {
+			return true
+		}
+
+		switch block.GetNestingMode() {
+		case BlockNestingModeList:
+			if _, ok := steps[0].(path.PathStepElementKeyInt); !ok {
+				return false
+			}
+			steps = steps[1:]
+		case BlockNestingModeSet:
+			if _, ok := steps[0].(path.PathStepElementKeyValue); !ok {
+				return false
+			}
+			steps = steps[1:]
+		case BlockNestingModeSingle:
+		default:
+			return false
+		}
+		blocks = block.GetNestedObject().GetBlocks()
+	}
+
+	return false
+}
+
 // SchemaBlockPathExpressions returns a slice of all path expressions which
 // represent a Block according to the Schema.
 func SchemaBlockPathExpressions(ctx context.Context, s Schema) path.Expressions {

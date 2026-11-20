@@ -12,6 +12,72 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var benchmarkPathResult path.Path
+
+func BenchmarkPathBuilders(b *testing.B) {
+	paths := map[string]path.Path{
+		"empty": path.Empty(),
+		"root":  path.Root("root"),
+		"deep":  path.Root("root").AtName("nested").AtListIndex(0).AtName("leaf"),
+	}
+	value := types.StringValue("element")
+
+	for name, p := range paths {
+		b.Run(name, func(b *testing.B) {
+			b.Run("AtListIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtListIndex(0)
+				}
+			})
+			b.Run("AtTupleIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtTupleIndex(0)
+				}
+			})
+			b.Run("AtMapKey", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtMapKey("key")
+				}
+			})
+			b.Run("AtName", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtName("attribute")
+				}
+			})
+			b.Run("AtSetValue", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtSetValue(value)
+				}
+			})
+		})
+	}
+}
+
+func BenchmarkPathChain(b *testing.B) {
+	root := path.Root("root")
+
+	b.Run("one", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one")
+		}
+	})
+	b.Run("two", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0)
+		}
+	})
+	b.Run("four", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0).AtName("two").AtMapKey("key")
+		}
+	})
+	b.Run("eight", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0).AtName("two").AtMapKey("key").AtName("three").AtTupleIndex(0).AtName("four").AtListIndex(1)
+		}
+	})
+}
+
 func TestPathAtListIndex(t *testing.T) {
 	t.Parallel()
 

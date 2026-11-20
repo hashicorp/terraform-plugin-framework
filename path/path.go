@@ -45,11 +45,7 @@ type Path struct {
 //
 // List indices are 0-based. The first element of a list is 0.
 func (p Path) AtListIndex(index int) Path {
-	copiedPath := p.Copy()
-
-	copiedPath.steps.Append(PathStepElementKeyInt(index))
-
-	return copiedPath
+	return p.atStep(PathStepElementKeyInt(index))
 }
 
 // AtTupleIndex returns a copied path with a new tuple index step at the end.
@@ -57,41 +53,25 @@ func (p Path) AtListIndex(index int) Path {
 //
 // Tuple indices are 0-based. The first element of a tuple is 0.
 func (p Path) AtTupleIndex(index int) Path {
-	copiedPath := p.Copy()
-
-	copiedPath.steps.Append(PathStepElementKeyInt(index))
-
-	return copiedPath
+	return p.atStep(PathStepElementKeyInt(index))
 }
 
 // AtMapKey returns a copied path with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (p Path) AtMapKey(key string) Path {
-	copiedPath := p.Copy()
-
-	copiedPath.steps.Append(PathStepElementKeyString(key))
-
-	return copiedPath
+	return p.atStep(PathStepElementKeyString(key))
 }
 
 // AtName returns a copied path with a new attribute or block name step at the
 // end. The returned path is safe to modify without affecting the original.
 func (p Path) AtName(name string) Path {
-	copiedPath := p.Copy()
-
-	copiedPath.steps.Append(PathStepAttributeName(name))
-
-	return copiedPath
+	return p.atStep(PathStepAttributeName(name))
 }
 
 // AtSetValue returns a copied path with a new set value step at the end.
 // The returned path is safe to modify without affecting the original.
 func (p Path) AtSetValue(value attr.Value) Path {
-	copiedPath := p.Copy()
-
-	copiedPath.steps.Append(PathStepElementKeyValue{Value: value})
-
-	return copiedPath
+	return p.atStep(PathStepElementKeyValue{Value: value})
 }
 
 // Copy returns a duplicate of the path that is safe to modify without
@@ -99,6 +79,19 @@ func (p Path) AtSetValue(value attr.Value) Path {
 func (p Path) Copy() Path {
 	return Path{
 		steps: p.Steps(),
+	}
+}
+
+// atStep returns a copy of the path with the given step added at the end.
+// The copy is safe to modify without affecting the original. It is allocated
+// once, with room for the new step, rather than copied and then grown.
+func (p Path) atStep(step PathStep) Path {
+	steps := make(PathSteps, len(p.steps), len(p.steps)+1)
+
+	copy(steps, p.steps)
+
+	return Path{
+		steps: append(steps, step),
 	}
 }
 

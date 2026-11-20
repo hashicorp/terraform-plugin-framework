@@ -193,13 +193,11 @@ func (e Expression) Merge(other Expression) Expression {
 // If no Expression are given, then it will return a collection of expressions
 // containing only the current expression.
 func (e Expression) MergeExpressions(others ...Expression) Expressions {
-	var result Expressions
-
 	if len(others) == 0 {
-		result.Append(e)
-
-		return result
+		return Expressions{e}
 	}
+
+	var result Expressions
 
 	for _, other := range others {
 		result.Append(e.Merge(other))

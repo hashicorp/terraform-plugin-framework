@@ -135,6 +135,33 @@ func BenchmarkExpressionMerge(b *testing.B) {
 	}
 }
 
+var benchmarkExpressionsResult path.Expressions
+
+func BenchmarkExpressionMergeExpressions(b *testing.B) {
+	base := path.MatchRoot("root").AtName("nested")
+	for _, count := range []int{0, 1, 2, 4, 8, 16, 32} {
+		unique := make(path.Expressions, count)
+		duplicates := make(path.Expressions, count)
+		for i := range count {
+			unique[i] = path.MatchRelative().AtListIndex(i)
+			duplicates[i] = path.MatchRelative().AtListIndex(0)
+		}
+
+		b.Run(fmt.Sprintf("count-%d", count), func(b *testing.B) {
+			b.Run("unique", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionsResult = base.MergeExpressions(unique...)
+				}
+			})
+			b.Run("duplicates", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionsResult = base.MergeExpressions(duplicates...)
+				}
+			})
+		})
+	}
+}
+
 func BenchmarkExpressionResolve(b *testing.B) {
 	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
 		expression := path.MatchRelative()
@@ -1003,6 +1030,19 @@ func TestExpressionMergeExpressions(t *testing.T) {
 			expected: path.Expressions{
 				path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test2"),
 				path.MatchRoot("test3"),
+			},
+		},
+		"duplicates": {
+			expression: path.MatchRoot("root"),
+			others: path.Expressions{
+				path.MatchRelative().AtName("first"),
+				path.MatchRoot("root").AtName("first"),
+				path.MatchRelative().AtName("second"),
+				path.MatchRelative().AtName("first"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("root").AtName("first"),
+				path.MatchRoot("root").AtName("second"),
 			},
 		},
 	}

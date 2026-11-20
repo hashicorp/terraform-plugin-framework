@@ -120,6 +120,11 @@ func (p Path) Expression() Expression {
 	}
 }
 
+// Len returns the number of steps in the path.
+func (p Path) Len() int {
+	return len(p.steps)
+}
+
 // ParentPath returns a copy of the path with the last step removed.
 //
 // If the current path is empty, an empty path is returned.

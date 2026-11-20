@@ -385,6 +385,30 @@ func TestPathExpression(t *testing.T) {
 	}
 }
 
+func TestPathLen(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		path     path.Path
+		expected int
+	}{
+		"zero":   {path: path.Path{}, expected: 0},
+		"empty":  {path: path.Empty(), expected: 0},
+		"root":   {path: path.Root("test"), expected: 1},
+		"nested": {path: path.Root("test").AtListIndex(0).AtName("nested"), expected: 3},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := testCase.path.Len(); got != testCase.expected {
+				t.Errorf("expected %d steps, got %d", testCase.expected, got)
+			}
+		})
+	}
+}
+
 func TestPathParentPath(t *testing.T) {
 	t.Parallel()
 

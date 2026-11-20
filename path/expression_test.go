@@ -109,6 +109,32 @@ func BenchmarkExpressionCopy(b *testing.B) {
 	}
 }
 
+func BenchmarkExpressionMerge(b *testing.B) {
+	others := map[string]path.Expression{
+		"relative-empty": path.MatchRelative(),
+		"relative-one":   path.MatchRelative().AtName("one"),
+		"relative-four":  path.MatchRelative().AtName("one").AtListIndex(0).AtParent().AtName("two"),
+		"root":           path.MatchRoot("other").AtName("nested"),
+	}
+
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for name, other := range others {
+				b.Run(name, func(b *testing.B) {
+					for b.Loop() {
+						benchmarkExpressionResult = expression.Merge(other)
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestExpressionBuilders(t *testing.T) {
 	t.Parallel()
 

@@ -60,82 +60,61 @@ type Expression struct {
 // AtAnyListIndex returns a copied expression with a new list index step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnyListIndex() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyIntAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyIntAny{})
 }
 
 // AtAnyMapKey returns a copied expression with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnyMapKey() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyStringAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyStringAny{})
 }
 
 // AtAnySetValue returns a copied expression with a new set value step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnySetValue() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyValueAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyValueAny{})
 }
 
 // AtListIndex returns a copied expression with a new list index step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtListIndex(index int) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyIntExact(index))
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyIntExact(index))
 }
 
 // AtMapKey returns a copied expression with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtMapKey(key string) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyStringExact(key))
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyStringExact(key))
 }
 
 // AtName returns a copied expression with a new attribute or block name step
 // at the end. The returned path is safe to modify without affecting the
 // original.
 func (e Expression) AtName(name string) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepAttributeNameExact(name))
-
-	return copiedPath
+	return e.atStep(ExpressionStepAttributeNameExact(name))
 }
 
 // AtParent returns a copied expression with a new parent step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtParent() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepParent{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepParent{})
 }
 
 // AtSetValue returns a copied expression with a new set value step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtSetValue(value attr.Value) Expression {
-	copiedPath := e.Copy()
+	return e.atStep(ExpressionStepElementKeyValueExact{Value: value})
+}
 
-	copiedPath.steps.Append(ExpressionStepElementKeyValueExact{Value: value})
+// atStep returns a copy of the expression with the given step added at the end.
+func (e Expression) atStep(step ExpressionStep) Expression {
+	steps := make(ExpressionSteps, len(e.steps), len(e.steps)+1)
+	copy(steps, e.steps)
 
-	return copiedPath
+	return Expression{
+		root:  e.root,
+		steps: append(steps, step),
+	}
 }
 
 // Copy returns a duplicate of the expression that is safe to modify without

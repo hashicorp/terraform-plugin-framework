@@ -4,6 +4,7 @@
 package path_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,6 +12,229 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+var benchmarkExpressionResult path.Expression
+
+func BenchmarkExpressionBuilders(b *testing.B) {
+	expressions := map[string]path.Expression{
+		"empty": path.MatchRelative(),
+		"root":  path.MatchRoot("root"),
+		"deep":  path.MatchRoot("root").AtName("nested").AtListIndex(0).AtName("leaf"),
+	}
+	value := types.StringValue("element")
+
+	for name, e := range expressions {
+		b.Run(name, func(b *testing.B) {
+			b.Run("AtAnyListIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtAnyListIndex()
+				}
+			})
+			b.Run("AtAnyMapKey", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtAnyMapKey()
+				}
+			})
+			b.Run("AtAnySetValue", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtAnySetValue()
+				}
+			})
+			b.Run("AtListIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtListIndex(0)
+				}
+			})
+			b.Run("AtMapKey", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtMapKey("key")
+				}
+			})
+			b.Run("AtName", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtName("attribute")
+				}
+			})
+			b.Run("AtParent", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtParent()
+				}
+			})
+			b.Run("AtSetValue", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionResult = e.AtSetValue(value)
+				}
+			})
+		})
+	}
+}
+
+func BenchmarkExpressionChain(b *testing.B) {
+	root := path.MatchRoot("root")
+
+	b.Run("one", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkExpressionResult = root.AtName("one")
+		}
+	})
+	b.Run("two", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkExpressionResult = root.AtName("one").AtListIndex(0)
+		}
+	})
+	b.Run("four", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkExpressionResult = root.AtName("one").AtListIndex(0).AtName("two").AtAnyMapKey()
+		}
+	})
+	b.Run("eight", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkExpressionResult = root.AtName("one").AtListIndex(0).AtName("two").AtAnyMapKey().AtName("three").AtAnyListIndex().AtName("four").AtParent()
+		}
+	})
+}
+
+func BenchmarkExpressionCopy(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for b.Loop() {
+				benchmarkExpressionResult = expression.Copy()
+			}
+		})
+	}
+}
+
+func BenchmarkExpressionMerge(b *testing.B) {
+	others := map[string]path.Expression{
+		"relative-empty": path.MatchRelative(),
+		"relative-one":   path.MatchRelative().AtName("one"),
+		"relative-four":  path.MatchRelative().AtName("one").AtListIndex(0).AtParent().AtName("two"),
+		"root":           path.MatchRoot("other").AtName("nested"),
+	}
+
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for name, other := range others {
+				b.Run(name, func(b *testing.B) {
+					for b.Loop() {
+						benchmarkExpressionResult = expression.Merge(other)
+					}
+				})
+			}
+		})
+	}
+}
+
+var benchmarkExpressionsResult path.Expressions
+
+func BenchmarkExpressionMergeExpressions(b *testing.B) {
+	base := path.MatchRoot("root").AtName("nested")
+	for _, count := range []int{0, 1, 2, 4, 8, 16, 32} {
+		unique := make(path.Expressions, count)
+		duplicates := make(path.Expressions, count)
+		for i := range count {
+			unique[i] = path.MatchRelative().AtListIndex(i)
+			duplicates[i] = path.MatchRelative().AtListIndex(0)
+		}
+
+		b.Run(fmt.Sprintf("count-%d", count), func(b *testing.B) {
+			b.Run("unique", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionsResult = base.MergeExpressions(unique...)
+				}
+			})
+			b.Run("duplicates", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkExpressionsResult = base.MergeExpressions(duplicates...)
+				}
+			})
+		})
+	}
+}
+
+func BenchmarkExpressionResolve(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			cases := map[string]path.Expression{
+				"no-parent":   expression,
+				"parent":      expression.AtName("child").AtParent().AtName("sibling"),
+				"beyond-root": path.MatchRelative().AtParent().Merge(expression),
+			}
+			for name, candidate := range cases {
+				b.Run(name, func(b *testing.B) {
+					for b.Loop() {
+						benchmarkExpressionResult = candidate.Resolve()
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestExpressionBuilders(t *testing.T) {
+	t.Parallel()
+
+	value := types.StringValue("element")
+	testCases := map[string]struct {
+		build func(path.Expression) path.Expression
+		step  path.ExpressionStep
+	}{
+		"any list index": {func(e path.Expression) path.Expression { return e.AtAnyListIndex() }, path.ExpressionStepElementKeyIntAny{}},
+		"any map key":    {func(e path.Expression) path.Expression { return e.AtAnyMapKey() }, path.ExpressionStepElementKeyStringAny{}},
+		"any set value":  {func(e path.Expression) path.Expression { return e.AtAnySetValue() }, path.ExpressionStepElementKeyValueAny{}},
+		"list index":     {func(e path.Expression) path.Expression { return e.AtListIndex(1) }, path.ExpressionStepElementKeyIntExact(1)},
+		"map key":        {func(e path.Expression) path.Expression { return e.AtMapKey("key") }, path.ExpressionStepElementKeyStringExact("key")},
+		"name":           {func(e path.Expression) path.Expression { return e.AtName("attribute") }, path.ExpressionStepAttributeNameExact("attribute")},
+		"parent":         {func(e path.Expression) path.Expression { return e.AtParent() }, path.ExpressionStepParent{}},
+		"set value":      {func(e path.Expression) path.Expression { return e.AtSetValue(value) }, path.ExpressionStepElementKeyValueExact{Value: value}},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, root := range []bool{false, true} {
+				original := path.MatchRelative().AtName("base")
+				if root {
+					original = path.MatchRoot("base")
+				}
+
+				got := testCase.build(original)
+				_ = original.AtName("other")
+				wantSteps := path.ExpressionSteps{path.ExpressionStepAttributeNameExact("base"), testCase.step}
+				if diff := cmp.Diff(wantSteps, got.Steps()); diff != "" {
+					t.Errorf("unexpected steps (root=%t): %s", root, diff)
+				}
+				if diff := cmp.Diff(path.ExpressionSteps{path.ExpressionStepAttributeNameExact("base")}, original.Steps()); diff != "" {
+					t.Errorf("original changed (root=%t): %s", root, diff)
+				}
+
+				if !root {
+					wantSteps = append(path.ExpressionSteps{path.ExpressionStepAttributeNameExact("prefix")}, wantSteps...)
+				}
+				merged := path.MatchRoot("prefix").Merge(got)
+				if diff := cmp.Diff(wantSteps, merged.Steps()); diff != "" {
+					t.Errorf("unexpected merged steps (root=%t): %s", root, diff)
+				}
+			}
+		})
+	}
+}
 
 func TestExpressionAtAnyListIndex(t *testing.T) {
 	t.Parallel()
@@ -271,6 +495,14 @@ func TestExpressionCopy(t *testing.T) {
 		expression path.Expression
 		expected   path.Expression
 	}{
+		"zero": {
+			expression: path.Expression{},
+			expected:   path.MatchRelative(),
+		},
+		"empty": {
+			expression: path.MatchRelative(),
+			expected:   path.MatchRelative(),
+		},
 		"shallow": {
 			expression: path.MatchRoot("test"),
 			expected:   path.MatchRoot("test"),
@@ -798,6 +1030,19 @@ func TestExpressionMergeExpressions(t *testing.T) {
 			expected: path.Expressions{
 				path.MatchRoot("test_parent").AtListIndex(1).AtName("test_child1").AtParent().AtName("test2"),
 				path.MatchRoot("test3"),
+			},
+		},
+		"duplicates": {
+			expression: path.MatchRoot("root"),
+			others: path.Expressions{
+				path.MatchRelative().AtName("first"),
+				path.MatchRoot("root").AtName("first"),
+				path.MatchRelative().AtName("second"),
+				path.MatchRelative().AtName("first"),
+			},
+			expected: path.Expressions{
+				path.MatchRoot("root").AtName("first"),
+				path.MatchRoot("root").AtName("second"),
 			},
 		},
 	}

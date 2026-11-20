@@ -4,6 +4,7 @@
 package path_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,6 +12,87 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+var benchmarkPathResult path.Path
+
+func BenchmarkPathBuilders(b *testing.B) {
+	paths := map[string]path.Path{
+		"empty": path.Empty(),
+		"root":  path.Root("root"),
+		"deep":  path.Root("root").AtName("nested").AtListIndex(0).AtName("leaf"),
+	}
+	value := types.StringValue("element")
+
+	for name, p := range paths {
+		b.Run(name, func(b *testing.B) {
+			b.Run("AtListIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtListIndex(0)
+				}
+			})
+			b.Run("AtTupleIndex", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtTupleIndex(0)
+				}
+			})
+			b.Run("AtMapKey", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtMapKey("key")
+				}
+			})
+			b.Run("AtName", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtName("attribute")
+				}
+			})
+			b.Run("AtSetValue", func(b *testing.B) {
+				for b.Loop() {
+					benchmarkPathResult = p.AtSetValue(value)
+				}
+			})
+		})
+	}
+}
+
+func BenchmarkPathChain(b *testing.B) {
+	root := path.Root("root")
+
+	b.Run("one", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one")
+		}
+	})
+	b.Run("two", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0)
+		}
+	})
+	b.Run("four", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0).AtName("two").AtMapKey("key")
+		}
+	})
+	b.Run("eight", func(b *testing.B) {
+		for b.Loop() {
+			benchmarkPathResult = root.AtName("one").AtListIndex(0).AtName("two").AtMapKey("key").AtName("three").AtTupleIndex(0).AtName("four").AtListIndex(1)
+		}
+	})
+}
+
+func BenchmarkPathParentPath(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		p := path.Empty()
+		for range depth {
+			p = p.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for b.Loop() {
+				benchmarkPathResult = p.ParentPath()
+			}
+		})
+	}
+}
 
 func TestPathAtListIndex(t *testing.T) {
 	t.Parallel()
@@ -314,6 +396,30 @@ func TestPathExpression(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestPathLen(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		path     path.Path
+		expected int
+	}{
+		"zero":   {path: path.Path{}, expected: 0},
+		"empty":  {path: path.Empty(), expected: 0},
+		"root":   {path: path.Root("test"), expected: 1},
+		"nested": {path: path.Root("test").AtListIndex(0).AtName("nested"), expected: 3},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := testCase.path.Len(); got != testCase.expected {
+				t.Errorf("expected %d steps, got %d", testCase.expected, got)
 			}
 		})
 	}

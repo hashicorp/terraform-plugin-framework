@@ -4,6 +4,7 @@
 package path_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -91,6 +92,21 @@ func BenchmarkExpressionChain(b *testing.B) {
 			benchmarkExpressionResult = root.AtName("one").AtListIndex(0).AtName("two").AtAnyMapKey().AtName("three").AtAnyListIndex().AtName("four").AtParent()
 		}
 	})
+}
+
+func BenchmarkExpressionCopy(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for b.Loop() {
+				benchmarkExpressionResult = expression.Copy()
+			}
+		})
+	}
 }
 
 func TestExpressionBuilders(t *testing.T) {
@@ -402,6 +418,14 @@ func TestExpressionCopy(t *testing.T) {
 		expression path.Expression
 		expected   path.Expression
 	}{
+		"zero": {
+			expression: path.Expression{},
+			expected:   path.MatchRelative(),
+		},
+		"empty": {
+			expression: path.MatchRelative(),
+			expected:   path.MatchRelative(),
+		},
 		"shallow": {
 			expression: path.MatchRoot("test"),
 			expected:   path.MatchRoot("test"),

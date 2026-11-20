@@ -216,11 +216,14 @@ func (e Expression) MergeExpressions(others ...Expression) Expressions {
 // Returns an empty expression if any ExpressionStepParent attempt to go
 // beyond the first element.
 func (e Expression) Resolve() Expression {
-	copiedExpression := e.Copy()
+	if len(e.steps) == 0 {
+		return Expression{root: e.root, steps: ExpressionSteps{}}
+	}
 
-	copiedExpression.steps = copiedExpression.steps.Resolve()
-
-	return copiedExpression
+	return Expression{
+		root:  e.root,
+		steps: e.steps.Resolve(),
+	}
 }
 
 // Steps returns a copy of the underlying expression steps. Returns an empty

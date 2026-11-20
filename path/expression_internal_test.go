@@ -81,3 +81,49 @@ func TestExpressionMergeEmpty(t *testing.T) {
 		t.Errorf("unexpected relative merge: %#v", relative)
 	}
 }
+
+func TestExpressionResolveIndependent(t *testing.T) {
+	t.Parallel()
+
+	for _, root := range []bool{false, true} {
+		t.Run(map[bool]string{false: "relative", true: "root"}[root], func(t *testing.T) {
+			t.Parallel()
+
+			original := Expression{root: root, steps: ExpressionSteps{
+				ExpressionStepAttributeNameExact("first"),
+				ExpressionStepAttributeNameExact("second"),
+				ExpressionStepParent{},
+				ExpressionStepAttributeNameExact("third"),
+			}}
+			resolved := original.Resolve()
+			if resolved.root != root || len(resolved.steps) != 2 {
+				t.Fatalf("unexpected resolved expression: %#v", resolved)
+			}
+
+			resolved.steps[0] = ExpressionStepAttributeNameExact("resolved")
+			if got, want := original.steps[0], ExpressionStepAttributeNameExact("first"); got != want {
+				t.Errorf("modifying result changed original: got %v, want %v", got, want)
+			}
+			original.steps[3] = ExpressionStepAttributeNameExact("original")
+			if got, want := resolved.steps[1], ExpressionStepAttributeNameExact("third"); got != want {
+				t.Errorf("modifying original changed result: got %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+func TestExpressionResolveEmpty(t *testing.T) {
+	t.Parallel()
+
+	for _, expression := range []Expression{
+		{},
+		{root: true},
+		{steps: ExpressionSteps{}},
+		{root: true, steps: ExpressionSteps{ExpressionStepParent{}}},
+	} {
+		resolved := expression.Resolve()
+		if resolved.root != expression.root || resolved.steps == nil || len(resolved.steps) != 0 {
+			t.Errorf("unexpected resolved expression: %#v", resolved)
+		}
+	}
+}

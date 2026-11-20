@@ -135,6 +135,30 @@ func BenchmarkExpressionMerge(b *testing.B) {
 	}
 }
 
+func BenchmarkExpressionResolve(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		expression := path.MatchRelative()
+		for range depth {
+			expression = expression.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			cases := map[string]path.Expression{
+				"no-parent":   expression,
+				"parent":      expression.AtName("child").AtParent().AtName("sibling"),
+				"beyond-root": path.MatchRelative().AtParent().Merge(expression),
+			}
+			for name, candidate := range cases {
+				b.Run(name, func(b *testing.B) {
+					for b.Loop() {
+						benchmarkExpressionResult = candidate.Resolve()
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestExpressionBuilders(t *testing.T) {
 	t.Parallel()
 

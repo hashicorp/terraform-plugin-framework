@@ -177,11 +177,14 @@ func (e Expression) Merge(other Expression) Expression {
 		return other.Copy()
 	}
 
-	copiedExpression := e.Copy()
+	steps := make(ExpressionSteps, len(e.steps)+len(other.steps))
+	copy(steps, e.steps)
+	copy(steps[len(e.steps):], other.steps)
 
-	copiedExpression.steps.Append(other.steps...)
-
-	return copiedExpression
+	return Expression{
+		root:  e.root,
+		steps: steps,
+	}
 }
 
 // MergeExpressions returns collection of expressions that calls Merge() on

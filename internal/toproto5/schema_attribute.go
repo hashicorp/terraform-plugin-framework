@@ -16,16 +16,24 @@ import (
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov5.SchemaAttribute, error) {
+	result, err := schemaAttribute(ctx, name, a)
+	if err != nil {
+		return nil, err.attributePathError(path)
+	}
+	return result, nil
+}
+
+func schemaAttribute(ctx context.Context, name string, a fwschema.Attribute) (*tfprotov5.SchemaAttribute, *schemaError) {
 	if _, ok := a.(fwschema.NestedAttribute); ok {
-		return nil, path.NewErrorf("protocol version 5 cannot have Attributes set")
+		return nil, &schemaError{message: "protocol version 5 cannot have Attributes set"}
 	}
 
 	if a.GetType() == nil {
-		return nil, path.NewErrorf("must have Type set")
+		return nil, &schemaError{message: "must have Type set"}
 	}
 
 	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
-		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
+		return nil, &schemaError{message: "must have Required, Optional, or Computed set"}
 	}
 
 	schemaAttribute := &tfprotov5.SchemaAttribute{

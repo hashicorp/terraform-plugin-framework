@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Schema returns the *tfprotov6.Schema equivalent of a Schema.
@@ -26,20 +25,20 @@ func Schema(ctx context.Context, s fwschema.Schema) (*tfprotov6.Schema, error) {
 	var blocks []*tfprotov6.SchemaNestedBlock
 
 	for name, attr := range s.GetAttributes() {
-		a, err := SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), attr)
+		a, err := schemaAttribute(ctx, name, attr)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(name).attributePathError(nil)
 		}
 
 		attrs = append(attrs, a)
 	}
 
-	for name, block := range s.GetBlocks() {
-		proto6, err := Block(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), block)
+	for name, nestedBlock := range s.GetBlocks() {
+		proto6, err := block(ctx, name, nestedBlock)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(name).attributePathError(nil)
 		}
 
 		blocks = append(blocks, proto6)

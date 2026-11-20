@@ -5,6 +5,7 @@ package toproto6
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -16,6 +17,14 @@ import (
 // Errors will be tftypes.AttributePathErrors based on `path`. `name` is the
 // name of the attribute.
 func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwschema.Block) (*tfprotov6.SchemaNestedBlock, error) {
+	result, err := block(ctx, name, b)
+	if err != nil {
+		return nil, err.attributePathError(path)
+	}
+	return result, nil
+}
+
+func block(ctx context.Context, name string, b fwschema.Block) (*tfprotov6.SchemaNestedBlock, *schemaError) {
 	schemaNestedBlock := &tfprotov6.SchemaNestedBlock{
 		Block: &tfprotov6.SchemaBlock{
 			Deprecated:         b.GetDeprecationMessage() != "",
@@ -43,28 +52,26 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 	case fwschema.BlockNestingModeSingle:
 		schemaNestedBlock.Nesting = tfprotov6.SchemaNestedBlockNestingModeSingle
 	default:
-		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
+		return nil, &schemaError{message: fmt.Sprintf("unrecognized nesting mode %v", nm)}
 	}
 
 	nestedBlockObject := b.GetNestedObject()
 
 	for attrName, attr := range nestedBlockObject.GetAttributes() {
-		attrPath := path.WithAttributeName(attrName)
-		attrProto6, err := SchemaAttribute(ctx, attrName, attrPath, attr)
+		attrProto6, err := schemaAttribute(ctx, attrName, attr)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(attrName)
 		}
 
 		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto6)
 	}
 
-	for blockName, block := range nestedBlockObject.GetBlocks() {
-		blockPath := path.WithAttributeName(blockName)
-		blockProto6, err := Block(ctx, blockName, blockPath, block)
+	for blockName, nestedBlock := range nestedBlockObject.GetBlocks() {
+		blockProto6, err := block(ctx, blockName, nestedBlock)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(blockName)
 		}
 
 		schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto6)

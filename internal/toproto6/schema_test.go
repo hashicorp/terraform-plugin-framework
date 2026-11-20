@@ -5,6 +5,7 @@ package toproto6_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -16,6 +17,127 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+func TestConvertersPreserveErrorPathPrefix(t *testing.T) {
+	t.Parallel()
+
+	prefix := tftypes.NewAttributePath().WithAttributeName("root").WithElementKeyInt(3).WithElementKeyString("key")
+	invalid := testschema.Attribute{Type: types.StringType}
+	nested := testschema.NestedAttribute{Optional: true, NestingMode: fwschema.NestingModeSingle, NestedObject: testschema.NestedAttributeObject{
+		Attributes: map[string]fwschema.Attribute{"invalid": invalid},
+	}}
+	testCases := map[string]struct {
+		convert func() error
+		path    *tftypes.AttributePath
+	}{
+		"nested attribute": {
+			convert: func() error {
+				_, err := toproto6.SchemaAttribute(context.Background(), "object", prefix, nested)
+				return err
+			},
+			path: prefix.WithAttributeName("invalid"),
+		},
+		"nested block": {
+			convert: func() error {
+				b := testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{
+					Blocks: map[string]fwschema.Block{"inner": testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{
+						Attributes: map[string]fwschema.Attribute{"object": nested},
+					}}},
+				}}
+				_, err := toproto6.Block(context.Background(), "block", prefix, b)
+				return err
+			},
+			path: prefix.WithAttributeName("inner").WithAttributeName("object").WithAttributeName("invalid"),
+		},
+	}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			err := testCase.convert()
+			var pathErr tftypes.AttributePathError
+			if !errors.As(err, &pathErr) {
+				t.Fatalf("expected AttributePathError, got %v", err)
+			}
+			want := testCase.path.NewErrorf("must have Required, Optional, or Computed set")
+			if !pathErr.Path.Equal(testCase.path) || err.Error() != want.Error() {
+				t.Errorf("unexpected error: got %v, want %v", err, want)
+			}
+		})
+	}
+}
+
+func TestSchemaDeepErrorPath(t *testing.T) {
+	t.Parallel()
+
+	nested := testschema.NestedAttribute{
+		Optional: true, NestingMode: fwschema.NestingModeSingle,
+		NestedObject: testschema.NestedAttributeObject{Attributes: map[string]fwschema.Attribute{
+			"child": testschema.NestedAttribute{
+				Optional: true, NestingMode: fwschema.NestingModeSingle,
+				NestedObject: testschema.NestedAttributeObject{Attributes: map[string]fwschema.Attribute{
+					"invalid": testschema.Attribute{Type: types.StringType},
+				}},
+			},
+		}},
+	}
+	inner := testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{Attributes: map[string]fwschema.Attribute{"object": nested}}}
+	middle := testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{Blocks: map[string]fwschema.Block{"inner": inner}}}
+	schema := testschema.Schema{Blocks: map[string]fwschema.Block{"outer": middle}}
+	wantPath := tftypes.NewAttributePath().WithAttributeName("outer").WithAttributeName("inner").WithAttributeName("object").WithAttributeName("child").WithAttributeName("invalid")
+	want := wantPath.NewErrorf("must have Required, Optional, or Computed set")
+
+	_, err := toproto6.Schema(context.Background(), schema)
+	var pathErr tftypes.AttributePathError
+	if !errors.As(err, &pathErr) {
+		t.Fatalf("expected AttributePathError, got %v", err)
+	}
+	if !pathErr.Path.Equal(wantPath) || err.Error() != want.Error() {
+		t.Errorf("unexpected error: got %v, want %v", err, want)
+	}
+}
+
+func TestSchemaDeepNestingModeError(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		inner   testschema.Block
+		want    *tftypes.AttributePath
+		message string
+	}{
+		"block": {
+			inner:   testschema.Block{},
+			want:    tftypes.NewAttributePath().WithAttributeName("outer").WithAttributeName("middle").WithAttributeName("inner"),
+			message: "unrecognized nesting mode 0",
+		},
+		"nested attribute": {
+			inner: testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{
+				Attributes: map[string]fwschema.Attribute{
+					"object": testschema.NestedAttribute{Optional: true, NestingMode: fwschema.NestingModeSingle, NestedObject: testschema.NestedAttributeObject{
+						Attributes: map[string]fwschema.Attribute{"invalid": testschema.NestedAttribute{Optional: true, Type: types.StringType}},
+					}},
+				},
+			}},
+			want:    tftypes.NewAttributePath().WithAttributeName("outer").WithAttributeName("middle").WithAttributeName("inner").WithAttributeName("object").WithAttributeName("invalid"),
+			message: "unrecognized nesting mode 0",
+		},
+	}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			middle := testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{Blocks: map[string]fwschema.Block{"inner": testCase.inner}}}
+			outer := testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{Blocks: map[string]fwschema.Block{"middle": middle}}}
+			_, err := toproto6.Schema(context.Background(), testschema.Schema{Blocks: map[string]fwschema.Block{"outer": outer}})
+			var pathErr tftypes.AttributePathError
+			if !errors.As(err, &pathErr) {
+				t.Fatalf("expected AttributePathError, got %v", err)
+			}
+			want := testCase.want.NewErrorf("%s", testCase.message)
+			if !pathErr.Path.Equal(testCase.want) || err.Error() != want.Error() {
+				t.Errorf("unexpected error: got %v, want %v", err, want)
+			}
+		})
+	}
+}
 
 func TestSchema(t *testing.T) {
 	t.Parallel()

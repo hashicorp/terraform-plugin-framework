@@ -133,10 +133,8 @@ func (p Path) ParentPath() Path {
 		return Empty()
 	}
 
-	_, remainingSteps := p.steps.Copy().LastStep()
-
 	return Path{
-		steps: remainingSteps,
+		steps: p.steps[:len(p.steps)-1].Copy(),
 	}
 }
 

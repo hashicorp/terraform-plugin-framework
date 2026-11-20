@@ -4,6 +4,7 @@
 package path_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -76,6 +77,21 @@ func BenchmarkPathChain(b *testing.B) {
 			benchmarkPathResult = root.AtName("one").AtListIndex(0).AtName("two").AtMapKey("key").AtName("three").AtTupleIndex(0).AtName("four").AtListIndex(1)
 		}
 	})
+}
+
+func BenchmarkPathParentPath(b *testing.B) {
+	for _, depth := range []int{0, 1, 2, 3, 4, 8, 16, 32} {
+		p := path.Empty()
+		for range depth {
+			p = p.AtName("attribute")
+		}
+
+		b.Run(fmt.Sprintf("depth-%d", depth), func(b *testing.B) {
+			for b.Loop() {
+				benchmarkPathResult = p.ParentPath()
+			}
+		})
+	}
 }
 
 func TestPathAtListIndex(t *testing.T) {

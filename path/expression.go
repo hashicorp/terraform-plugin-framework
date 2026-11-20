@@ -122,7 +122,7 @@ func (e Expression) atStep(step ExpressionStep) Expression {
 func (e Expression) Copy() Expression {
 	return Expression{
 		root:  e.root,
-		steps: e.Steps().Copy(),
+		steps: e.Steps(),
 	}
 }
 

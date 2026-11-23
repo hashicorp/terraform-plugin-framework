@@ -57,35 +57,40 @@ func block(ctx context.Context, name string, b fwschema.Block) (*tfprotov6.Schem
 
 	nestedBlockObject := b.GetNestedObject()
 
-	var conversionErr *schemaError
-	nestedBlockObject.RangeAttributes(func(attrName string, attr fwschema.Attribute) bool {
-		attrProto6, err := schemaAttribute(ctx, attrName, attr)
+	if nestedBlockObject.LenAttributes() > 0 {
+		var conversionErr *schemaError
+		nestedBlockObject.RangeAttributes(func(attrName string, attr fwschema.Attribute) bool {
+			attrProto6, err := schemaAttribute(ctx, attrName, attr)
 
-		if err != nil {
-			conversionErr = err.withAttributeName(attrName)
-			return false
+			if err != nil {
+				conversionErr = err.withAttributeName(attrName)
+				return false
+			}
+
+			schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto6)
+			return true
+		})
+		if conversionErr != nil {
+			return nil, conversionErr
 		}
-
-		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto6)
-		return true
-	})
-	if conversionErr != nil {
-		return nil, conversionErr
 	}
 
-	nestedBlockObject.RangeBlocks(func(blockName string, nestedBlock fwschema.Block) bool {
-		blockProto6, err := block(ctx, blockName, nestedBlock)
+	if nestedBlockObject.LenBlocks() > 0 {
+		var conversionErr *schemaError
+		nestedBlockObject.RangeBlocks(func(blockName string, nestedBlock fwschema.Block) bool {
+			blockProto6, err := block(ctx, blockName, nestedBlock)
 
-		if err != nil {
-			conversionErr = err.withAttributeName(blockName)
-			return false
+			if err != nil {
+				conversionErr = err.withAttributeName(blockName)
+				return false
+			}
+
+			schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto6)
+			return true
+		})
+		if conversionErr != nil {
+			return nil, conversionErr
 		}
-
-		schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto6)
-		return true
-	})
-	if conversionErr != nil {
-		return nil, conversionErr
 	}
 
 	sort.Slice(schemaNestedBlock.Block.Attributes, func(i, j int) bool {

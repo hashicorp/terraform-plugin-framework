@@ -5,7 +5,8 @@ package toproto6
 
 import (
 	"context"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -44,28 +45,36 @@ func Schema(ctx context.Context, s fwschema.Schema) (*tfprotov6.Schema, error) {
 		blocks = append(blocks, proto6)
 	}
 
-	sort.Slice(attrs, func(i, j int) bool {
-		if attrs[i] == nil {
-			return true
+	slices.SortFunc(attrs, func(a, b *tfprotov6.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if attrs[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return attrs[i].Name < attrs[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
-	sort.Slice(blocks, func(i, j int) bool {
-		if blocks[i] == nil {
-			return true
+	slices.SortFunc(blocks, func(a, b *tfprotov6.SchemaNestedBlock) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if blocks[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return blocks[i].TypeName < blocks[j].TypeName
+		return strings.Compare(a.TypeName, b.TypeName)
 	})
 
 	result.Block = &tfprotov6.SchemaBlock{

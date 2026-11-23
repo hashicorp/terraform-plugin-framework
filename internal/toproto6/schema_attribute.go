@@ -6,7 +6,8 @@ package toproto6
 import (
 	"context"
 	"fmt"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -86,16 +87,20 @@ func schemaAttribute(ctx context.Context, name string, a fwschema.Attribute) (*t
 		object.Attributes = append(object.Attributes, nestedSchemaAttribute)
 	}
 
-	sort.Slice(object.Attributes, func(i, j int) bool {
-		if object.Attributes[i] == nil {
-			return true
+	slices.SortFunc(object.Attributes, func(a, b *tfprotov6.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if object.Attributes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return object.Attributes[i].Name < object.Attributes[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
 	result.NestedType = object

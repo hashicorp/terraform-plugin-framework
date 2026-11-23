@@ -61,6 +61,16 @@ func (o NestedBlockObjectWithPlanModifiers) RangeBlocks(yield func(string, fwsch
 	}
 }
 
+// LenAttributes returns the number of Attributes.
+func (o NestedBlockObjectWithPlanModifiers) LenAttributes() int {
+	return len(o.Attributes)
+}
+
+// LenBlocks returns the number of Blocks.
+func (o NestedBlockObjectWithPlanModifiers) LenBlocks() int {
+	return len(o.Blocks)
+}
+
 // ObjectPlanModifiers returns the PlanModifiers field value.
 func (o NestedBlockObjectWithPlanModifiers) ObjectPlanModifiers() []planmodifier.Object {
 	return o.PlanModifiers

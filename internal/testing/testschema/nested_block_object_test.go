@@ -55,3 +55,36 @@ func TestNestedBlockObjectRange(t *testing.T) {
 		})
 	}
 }
+
+func TestNestedBlockObjectLen(t *testing.T) {
+	t.Parallel()
+
+	attributes := map[string]fwschema.Attribute{
+		"a": testschema.Attribute{Optional: true},
+		"b": testschema.Attribute{Required: true},
+	}
+	blocks := map[string]fwschema.Block{
+		"a": testschema.Block{NestingMode: fwschema.BlockNestingModeList},
+		"b": testschema.Block{NestingMode: fwschema.BlockNestingModeSet},
+	}
+	testCases := map[string]fwschema.NestedBlockObject{
+		"empty":               testschema.NestedBlockObject{},
+		"base":                testschema.NestedBlockObject{Attributes: attributes, Blocks: blocks},
+		"with-plan-modifiers": testschema.NestedBlockObjectWithPlanModifiers{Attributes: attributes, Blocks: blocks},
+		"with-validators":     testschema.NestedBlockObjectWithValidators{Attributes: attributes, Blocks: blocks},
+	}
+
+	for name, object := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got, want := object.LenAttributes(), len(object.GetAttributes()); got != want {
+				t.Errorf("attribute length = %d, want %d", got, want)
+			}
+
+			if got, want := object.LenBlocks(), len(object.GetBlocks()); got != want {
+				t.Errorf("block length = %d, want %d", got, want)
+			}
+		})
+	}
+}

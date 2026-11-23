@@ -61,6 +61,16 @@ func (o NestedBlockObjectWithValidators) RangeBlocks(yield func(string, fwschema
 	}
 }
 
+// LenAttributes returns the number of Attributes.
+func (o NestedBlockObjectWithValidators) LenAttributes() int {
+	return len(o.Attributes)
+}
+
+// LenBlocks returns the number of Blocks.
+func (o NestedBlockObjectWithValidators) LenBlocks() int {
+	return len(o.Blocks)
+}
+
 // ObjectValidators returns the Validators field value.
 func (o NestedBlockObjectWithValidators) ObjectValidators() []validator.Object {
 	return o.Validators

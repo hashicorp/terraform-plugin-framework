@@ -55,6 +55,31 @@ func TestNestedBlockObjectRange(t *testing.T) {
 	}
 }
 
+func TestNestedBlockObjectLen(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]schema.NestedBlockObject{
+		"empty": {},
+		"populated": {
+			Attributes: map[string]schema.Attribute{"a": schema.StringAttribute{Optional: true}, "b": schema.StringAttribute{Required: true}},
+			Blocks:     map[string]schema.Block{"a": schema.ListNestedBlock{}, "b": schema.SetNestedBlock{}},
+		},
+	}
+	for name, object := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got, want := object.LenAttributes(), len(object.GetAttributes()); got != want {
+				t.Errorf("attribute length = %d, want %d", got, want)
+			}
+
+			if got, want := object.LenBlocks(), len(object.GetBlocks()); got != want {
+				t.Errorf("block length = %d, want %d", got, want)
+			}
+		})
+	}
+}
+
 func TestNestedBlockObjectApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 

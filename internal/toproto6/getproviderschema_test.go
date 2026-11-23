@@ -36,11 +36,19 @@ func BenchmarkGetProviderSchemaResponse(b *testing.B) {
 	for i := range 10 {
 		attributes[fmt.Sprintf("attribute_%d", i)] = testschema.Attribute{Type: types.StringType, Optional: true}
 	}
-	var blocks map[string]fwschema.Block
+	blockAttributes := make(map[string]resourceschema.Attribute, len(attributes))
+	for name := range attributes {
+		blockAttributes[name] = resourceschema.StringAttribute{Optional: true}
+	}
+	var blocks map[string]resourceschema.Block
 	for range 4 {
-		blocks = map[string]fwschema.Block{
-			"nested": testschema.Block{NestingMode: fwschema.BlockNestingModeList, NestedObject: testschema.NestedBlockObject{Attributes: attributes, Blocks: blocks}},
+		blocks = map[string]resourceschema.Block{
+			"nested": resourceschema.ListNestedBlock{NestedObject: resourceschema.NestedBlockObject{Attributes: blockAttributes, Blocks: blocks}},
 		}
+	}
+	schemaBlocks := make(map[string]fwschema.Block, len(blocks))
+	for name, block := range blocks {
+		schemaBlocks[name] = block
 	}
 	nestedAttributes := attributes
 	for range 4 {
@@ -50,7 +58,7 @@ func BenchmarkGetProviderSchemaResponse(b *testing.B) {
 	}
 
 	cases := map[string]testschema.Schema{
-		"blocks":            {Attributes: attributes, Blocks: blocks},
+		"blocks":            {Attributes: attributes, Blocks: schemaBlocks},
 		"nested-attributes": {Attributes: nestedAttributes},
 	}
 	for name, schema := range cases {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -54,6 +55,40 @@ func TestConvertersPreserveErrorPathPrefix(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			err := testCase.convert()
+			var pathErr tftypes.AttributePathError
+			if !errors.As(err, &pathErr) {
+				t.Fatalf("expected AttributePathError, got %v", err)
+			}
+			want := testCase.path.NewErrorf("must have Required, Optional, or Computed set")
+			if !pathErr.Path.Equal(testCase.path) || err.Error() != want.Error() {
+				t.Errorf("unexpected error: got %v, want %v", err, want)
+			}
+		})
+	}
+}
+
+func TestSchemaRangerErrorPath(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		block resourceschema.ListNestedBlock
+		path  *tftypes.AttributePath
+	}{
+		"attribute": {
+			block: resourceschema.ListNestedBlock{NestedObject: resourceschema.NestedBlockObject{Attributes: map[string]resourceschema.Attribute{"invalid": resourceschema.StringAttribute{}}}},
+			path:  tftypes.NewAttributePath().WithAttributeName("outer").WithAttributeName("invalid"),
+		},
+		"block": {
+			block: resourceschema.ListNestedBlock{NestedObject: resourceschema.NestedBlockObject{Blocks: map[string]resourceschema.Block{
+				"inner": resourceschema.ListNestedBlock{NestedObject: resourceschema.NestedBlockObject{Attributes: map[string]resourceschema.Attribute{"invalid": resourceschema.StringAttribute{}}}},
+			}}},
+			path: tftypes.NewAttributePath().WithAttributeName("outer").WithAttributeName("inner").WithAttributeName("invalid"),
+		},
+	}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			_, err := toproto6.Schema(context.Background(), testschema.Schema{Blocks: map[string]fwschema.Block{"outer": testCase.block}})
 			var pathErr tftypes.AttributePathError
 			if !errors.As(err, &pathErr) {
 				t.Fatalf("expected AttributePathError, got %v", err)

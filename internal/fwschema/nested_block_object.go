@@ -27,6 +27,12 @@ type NestedBlockObject interface {
 	// GetBlocks should return the nested attributes of the object.
 	GetBlocks() map[string]Block
 
+	// RangeAttributes visits attributes until yield returns false.
+	RangeAttributes(func(string, Attribute) bool)
+
+	// RangeBlocks visits blocks until yield returns false.
+	RangeBlocks(func(string, Block) bool)
+
 	// Type should return the framework type of the object.
 	Type() basetypes.ObjectTypable
 }

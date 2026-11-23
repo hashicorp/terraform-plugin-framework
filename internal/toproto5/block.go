@@ -6,7 +6,8 @@ package toproto5
 import (
 	"context"
 	"fmt"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -93,28 +94,36 @@ func block(ctx context.Context, name string, b fwschema.Block) (*tfprotov5.Schem
 		}
 	}
 
-	sort.Slice(schemaNestedBlock.Block.Attributes, func(i, j int) bool {
-		if schemaNestedBlock.Block.Attributes[i] == nil {
-			return true
+	slices.SortFunc(schemaNestedBlock.Block.Attributes, func(a, b *tfprotov5.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if schemaNestedBlock.Block.Attributes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return schemaNestedBlock.Block.Attributes[i].Name < schemaNestedBlock.Block.Attributes[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
-	sort.Slice(schemaNestedBlock.Block.BlockTypes, func(i, j int) bool {
-		if schemaNestedBlock.Block.BlockTypes[i] == nil {
-			return true
+	slices.SortFunc(schemaNestedBlock.Block.BlockTypes, func(a, b *tfprotov5.SchemaNestedBlock) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if schemaNestedBlock.Block.BlockTypes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return schemaNestedBlock.Block.BlockTypes[i].TypeName < schemaNestedBlock.Block.BlockTypes[j].TypeName
+		return strings.Compare(a.TypeName, b.TypeName)
 	})
 
 	return schemaNestedBlock, nil

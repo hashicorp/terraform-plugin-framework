@@ -57,24 +57,35 @@ func block(ctx context.Context, name string, b fwschema.Block) (*tfprotov5.Schem
 
 	nestedBlockObject := b.GetNestedObject()
 
-	for attrName, attr := range nestedBlockObject.GetAttributes() {
+	var conversionErr *schemaError
+	nestedBlockObject.RangeAttributes(func(attrName string, attr fwschema.Attribute) bool {
 		attrProto5, err := schemaAttribute(ctx, attrName, attr)
 
 		if err != nil {
-			return nil, err.withAttributeName(attrName)
+			conversionErr = err.withAttributeName(attrName)
+			return false
 		}
 
 		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto5)
+		return true
+	})
+	if conversionErr != nil {
+		return nil, conversionErr
 	}
 
-	for blockName, nestedBlock := range nestedBlockObject.GetBlocks() {
+	nestedBlockObject.RangeBlocks(func(blockName string, nestedBlock fwschema.Block) bool {
 		blockProto5, err := block(ctx, blockName, nestedBlock)
 
 		if err != nil {
-			return nil, err.withAttributeName(blockName)
+			conversionErr = err.withAttributeName(blockName)
+			return false
 		}
 
 		schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto5)
+		return true
+	})
+	if conversionErr != nil {
+		return nil, conversionErr
 	}
 
 	sort.Slice(schemaNestedBlock.Block.Attributes, func(i, j int) bool {

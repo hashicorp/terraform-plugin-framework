@@ -55,7 +55,7 @@ func ValidateBlockImplementation(ctx context.Context, block Block, req ValidateI
 
 	nestingMode := block.GetNestingMode()
 
-	for nestedAttributeName, nestedAttribute := range nestedObject.GetAttributes() {
+	nestedObject.RangeAttributes(func(nestedAttributeName string, nestedAttribute Attribute) bool {
 		var nestedAttributePath path.Path
 
 		// TODO: path.Path and path.PathExpression are intended to map onto
@@ -86,9 +86,10 @@ func ValidateBlockImplementation(ctx context.Context, block Block, req ValidateI
 		}
 
 		diags.Append(ValidateAttributeImplementation(ctx, nestedAttribute, nestedReq)...)
-	}
+		return true
+	})
 
-	for nestedBlockName, nestedBlock := range nestedObject.GetBlocks() {
+	nestedObject.RangeBlocks(func(nestedBlockName string, nestedBlock Block) bool {
 		var nestedBlockPath path.Path
 
 		// TODO: path.Path and path.PathExpression are intended to map onto
@@ -119,7 +120,8 @@ func ValidateBlockImplementation(ctx context.Context, block Block, req ValidateI
 		}
 
 		diags.Append(ValidateBlockImplementation(ctx, nestedBlock, nestedReq)...)
-	}
+		return true
+	})
 
 	return diags
 }

@@ -391,11 +391,9 @@ func BenchmarkIsValidFieldName(b *testing.B) {
 	for name, input := range tests {
 		b.Run(name, func(b *testing.B) {
 			b.ReportAllocs()
-			var result bool
-			for i := 0; i < b.N; i++ {
-				result = isValidFieldName(input)
+			for b.Loop() {
+				isValidFieldName(input)
 			}
-			benchmarkIsValidFieldNameResult = result
 		})
 	}
 }

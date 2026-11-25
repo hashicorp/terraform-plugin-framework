@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'statestore/schema: Allow all state store attribute types to be marked as sensitive.'
+time: 2026-11-25T13:12:54.387172Z
+custom:
+    Issue: "1339"

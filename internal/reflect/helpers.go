@@ -130,11 +130,12 @@ func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[s
 	return tags, nil
 }
 
+var validFieldNameRegexp = regexp.MustCompile("^[a-z][a-z0-9_]*$")
+
 // isValidFieldName returns true if `name` can be used as a field name in a
 // Terraform resource or data source.
 func isValidFieldName(name string) bool {
-	re := regexp.MustCompile("^[a-z][a-z0-9_]*$")
-	return re.MatchString(name)
+	return validFieldNameRegexp.MatchString(name)
 }
 
 // canBeNil returns true if `target`'s type can hold a nil value

@@ -351,6 +351,10 @@ func TestSetAttributeIsSensitive(t *testing.T) {
 			attribute: schema.SetAttribute{ElementType: types.StringType},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.SetAttribute{ElementType: types.StringType, Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

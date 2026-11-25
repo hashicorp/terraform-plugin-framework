@@ -344,6 +344,10 @@ func TestBoolAttributeIsSensitive(t *testing.T) {
 			attribute: schema.BoolAttribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.BoolAttribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

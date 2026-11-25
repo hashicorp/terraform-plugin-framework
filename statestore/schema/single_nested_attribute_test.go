@@ -475,6 +475,14 @@ func TestSingleNestedAttributeIsSensitive(t *testing.T) {
 		expected  bool
 	}{
 		"not-sensitive": {
+			attribute: schema.SingleNestedAttribute{},
+			expected:  false,
+		},
+		"sensitive": {
+			attribute: schema.SingleNestedAttribute{Sensitive: true},
+			expected:  true,
+		},
+		"not-sensitive-with-nested-attributes": {
 			attribute: schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"testattr": schema.StringAttribute{},

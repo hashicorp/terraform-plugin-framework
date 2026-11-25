@@ -355,6 +355,14 @@ func TestObjectAttributeIsSensitive(t *testing.T) {
 		expected  bool
 	}{
 		"not-sensitive": {
+			attribute: schema.ObjectAttribute{},
+			expected:  false,
+		},
+		"sensitive": {
+			attribute: schema.ObjectAttribute{Sensitive: true},
+			expected:  true,
+		},
+		"not-sensitive-with-attribute-types": {
 			attribute: schema.ObjectAttribute{AttributeTypes: map[string]attr.Type{"testattr": types.StringType}},
 			expected:  false,
 		},

@@ -344,6 +344,10 @@ func TestNumberAttributeIsSensitive(t *testing.T) {
 			attribute: schema.NumberAttribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.NumberAttribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

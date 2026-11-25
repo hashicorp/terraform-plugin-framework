@@ -344,6 +344,10 @@ func TestStringAttributeIsSensitive(t *testing.T) {
 			attribute: schema.StringAttribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.StringAttribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -512,6 +512,14 @@ func TestListNestedAttributeIsSensitive(t *testing.T) {
 		expected  bool
 	}{
 		"not-sensitive": {
+			attribute: schema.ListNestedAttribute{},
+			expected:  false,
+		},
+		"sensitive": {
+			attribute: schema.ListNestedAttribute{Sensitive: true},
+			expected:  true,
+		},
+		"not-sensitive-with-nested-object": {
 			attribute: schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

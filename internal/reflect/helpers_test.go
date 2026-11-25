@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -369,7 +370,27 @@ func TestIsValidFieldName(t *testing.T) {
 	}
 }
 
-var benchmarkIsValidFieldNameResult bool
+func FuzzIsValidFieldNameMatchesRegexp(f *testing.F) {
+	for _, input := range []string{
+		"",
+		"id",
+		"resource_name",
+		"ipv6_address",
+		"1name",
+		"name-",
+		"café",
+		"a\xff",
+	} {
+		f.Add(input)
+	}
+
+	validFieldNameRegexp := regexp.MustCompile("^[a-z][a-z0-9_]*$")
+	f.Fuzz(func(t *testing.T, input string) {
+		if got, want := isValidFieldName(input), validFieldNameRegexp.MatchString(input); got != want {
+			t.Errorf("isValidFieldName(%q) = %t, regexp = %t", input, got, want)
+		}
+	})
+}
 
 func BenchmarkIsValidFieldName(b *testing.B) {
 	tests := map[string]string{

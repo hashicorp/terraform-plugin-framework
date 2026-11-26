@@ -18,6 +18,68 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestNestedBlockObjectRange(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]schema.NestedBlockObject{
+		"empty": {},
+		"populated": {
+			Attributes: map[string]schema.Attribute{"a": schema.StringAttribute{Optional: true}, "b": schema.StringAttribute{Required: true}},
+			Blocks:     map[string]schema.Block{"a": schema.ListNestedBlock{}, "b": schema.SetNestedBlock{}},
+		},
+	}
+	for name, object := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			attributes := make(map[string]fwschema.Attribute)
+			object.RangeAttributes(func(name string, attribute fwschema.Attribute) bool { attributes[name] = attribute; return true })
+			if diff := cmp.Diff(object.GetAttributes(), fwschema.UnderlyingAttributes(attributes)); diff != "" {
+				t.Errorf("unexpected attributes (-want +got): %s", diff)
+			}
+			blocks := make(map[string]fwschema.Block)
+			object.RangeBlocks(func(name string, block fwschema.Block) bool { blocks[name] = block; return true })
+			if diff := cmp.Diff(object.GetBlocks(), blocks); diff != "" {
+				t.Errorf("unexpected blocks (-want +got): %s", diff)
+			}
+			attributeCount := 0
+			object.RangeAttributes(func(string, fwschema.Attribute) bool { attributeCount++; return false })
+			blockCount := 0
+			object.RangeBlocks(func(string, fwschema.Block) bool { blockCount++; return false })
+			if want := min(len(object.Attributes), 1); attributeCount != want {
+				t.Errorf("attribute early-stop count = %d, want %d", attributeCount, want)
+			}
+			if want := min(len(object.Blocks), 1); blockCount != want {
+				t.Errorf("block early-stop count = %d, want %d", blockCount, want)
+			}
+		})
+	}
+}
+
+func TestNestedBlockObjectLen(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]schema.NestedBlockObject{
+		"empty": {},
+		"populated": {
+			Attributes: map[string]schema.Attribute{"a": schema.StringAttribute{Optional: true}, "b": schema.StringAttribute{Required: true}},
+			Blocks:     map[string]schema.Block{"a": schema.ListNestedBlock{}, "b": schema.SetNestedBlock{}},
+		},
+	}
+	for name, object := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got, want := object.LenAttributes(), len(object.GetAttributes()); got != want {
+				t.Errorf("attribute length = %d, want %d", got, want)
+			}
+
+			if got, want := object.LenBlocks(), len(object.GetBlocks()); got != want {
+				t.Errorf("block length = %d, want %d", got, want)
+			}
+		})
+	}
+}
+
 func TestNestedBlockObjectApplyTerraform5AttributePathStep(t *testing.T) {
 	t.Parallel()
 

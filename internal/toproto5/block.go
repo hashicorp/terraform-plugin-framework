@@ -5,7 +5,9 @@ package toproto5
 
 import (
 	"context"
-	"sort"
+	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -16,6 +18,14 @@ import (
 // Errors will be tftypes.AttributePathErrors based on `path`. `name` is the
 // name of the attribute.
 func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwschema.Block) (*tfprotov5.SchemaNestedBlock, error) {
+	result, err := block(ctx, name, b)
+	if err != nil {
+		return nil, err.attributePathError(path)
+	}
+	return result, nil
+}
+
+func block(ctx context.Context, name string, b fwschema.Block) (*tfprotov5.SchemaNestedBlock, *schemaError) {
 	schemaNestedBlock := &tfprotov5.SchemaNestedBlock{
 		Block: &tfprotov5.SchemaBlock{
 			Deprecated:         b.GetDeprecationMessage() != "",
@@ -43,55 +53,77 @@ func Block(ctx context.Context, name string, path *tftypes.AttributePath, b fwsc
 	case fwschema.BlockNestingModeSingle:
 		schemaNestedBlock.Nesting = tfprotov5.SchemaNestedBlockNestingModeSingle
 	default:
-		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
+		return nil, &schemaError{message: fmt.Sprintf("unrecognized nesting mode %v", nm)}
 	}
 
 	nestedBlockObject := b.GetNestedObject()
 
-	for attrName, attr := range nestedBlockObject.GetAttributes() {
-		attrPath := path.WithAttributeName(attrName)
-		attrProto5, err := SchemaAttribute(ctx, attrName, attrPath, attr)
+	if nestedBlockObject.LenAttributes() > 0 {
+		var conversionErr *schemaError
+		nestedBlockObject.RangeAttributes(func(attrName string, attr fwschema.Attribute) bool {
+			attrProto5, err := schemaAttribute(ctx, attrName, attr)
 
-		if err != nil {
-			return nil, err
-		}
+			if err != nil {
+				conversionErr = err.withAttributeName(attrName)
+				return false
+			}
 
-		schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto5)
-	}
-
-	for blockName, block := range nestedBlockObject.GetBlocks() {
-		blockPath := path.WithAttributeName(blockName)
-		blockProto5, err := Block(ctx, blockName, blockPath, block)
-
-		if err != nil {
-			return nil, err
-		}
-
-		schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto5)
-	}
-
-	sort.Slice(schemaNestedBlock.Block.Attributes, func(i, j int) bool {
-		if schemaNestedBlock.Block.Attributes[i] == nil {
+			schemaNestedBlock.Block.Attributes = append(schemaNestedBlock.Block.Attributes, attrProto5)
 			return true
+		})
+		if conversionErr != nil {
+			return nil, conversionErr
+		}
+	}
+
+	if nestedBlockObject.LenBlocks() > 0 {
+		var conversionErr *schemaError
+		nestedBlockObject.RangeBlocks(func(blockName string, nestedBlock fwschema.Block) bool {
+			blockProto5, err := block(ctx, blockName, nestedBlock)
+
+			if err != nil {
+				conversionErr = err.withAttributeName(blockName)
+				return false
+			}
+
+			schemaNestedBlock.Block.BlockTypes = append(schemaNestedBlock.Block.BlockTypes, blockProto5)
+			return true
+		})
+		if conversionErr != nil {
+			return nil, conversionErr
+		}
+	}
+
+	slices.SortFunc(schemaNestedBlock.Block.Attributes, func(a, b *tfprotov5.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if schemaNestedBlock.Block.Attributes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return schemaNestedBlock.Block.Attributes[i].Name < schemaNestedBlock.Block.Attributes[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
-	sort.Slice(schemaNestedBlock.Block.BlockTypes, func(i, j int) bool {
-		if schemaNestedBlock.Block.BlockTypes[i] == nil {
-			return true
+	slices.SortFunc(schemaNestedBlock.Block.BlockTypes, func(a, b *tfprotov5.SchemaNestedBlock) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if schemaNestedBlock.Block.BlockTypes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return schemaNestedBlock.Block.BlockTypes[i].TypeName < schemaNestedBlock.Block.BlockTypes[j].TypeName
+		return strings.Compare(a.TypeName, b.TypeName)
 	})
 
 	return schemaNestedBlock, nil

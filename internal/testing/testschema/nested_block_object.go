@@ -44,6 +44,32 @@ func (o NestedBlockObject) GetBlocks() map[string]fwschema.Block {
 	return o.Blocks
 }
 
+func (o NestedBlockObject) RangeAttributes(yield func(string, fwschema.Attribute) bool) {
+	for name, attribute := range o.Attributes {
+		if !yield(name, attribute) {
+			return
+		}
+	}
+}
+
+func (o NestedBlockObject) RangeBlocks(yield func(string, fwschema.Block) bool) {
+	for name, block := range o.Blocks {
+		if !yield(name, block) {
+			return
+		}
+	}
+}
+
+// LenAttributes returns the number of Attributes.
+func (o NestedBlockObject) LenAttributes() int {
+	return len(o.Attributes)
+}
+
+// LenBlocks returns the number of Blocks.
+func (o NestedBlockObject) LenBlocks() int {
+	return len(o.Blocks)
+}
+
 // Type returns the framework type of the NestedBlockObject.
 func (o NestedBlockObject) Type() basetypes.ObjectTypable {
 	return fwschema.NestedBlockObjectType(o)

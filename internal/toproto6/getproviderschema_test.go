@@ -5,6 +5,7 @@ package toproto6_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/testing/testschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto6"
 	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
@@ -26,6 +28,60 @@ import (
 	statestoreschema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+var benchmarkGetProviderSchemaResponse *tfprotov6.GetProviderSchemaResponse
+
+func BenchmarkGetProviderSchemaResponse(b *testing.B) {
+	attributes := make(map[string]fwschema.Attribute, 10)
+	for i := range 10 {
+		attributes[fmt.Sprintf("attribute_%d", i)] = testschema.Attribute{Type: types.StringType, Optional: true}
+	}
+	blockAttributes := make(map[string]resourceschema.Attribute, len(attributes))
+	for name := range attributes {
+		blockAttributes[name] = resourceschema.StringAttribute{Optional: true}
+	}
+	var blocks map[string]resourceschema.Block
+	for range 4 {
+		blocks = map[string]resourceschema.Block{
+			"nested": resourceschema.ListNestedBlock{NestedObject: resourceschema.NestedBlockObject{Attributes: blockAttributes, Blocks: blocks}},
+		}
+	}
+	schemaBlocks := make(map[string]fwschema.Block, len(blocks))
+	for name, block := range blocks {
+		schemaBlocks[name] = block
+	}
+	nestedAttributes := attributes
+	for range 4 {
+		nestedAttributes = map[string]fwschema.Attribute{
+			"nested": testschema.NestedAttribute{Optional: true, NestingMode: fwschema.NestingModeSingle, NestedObject: testschema.NestedAttributeObject{Attributes: nestedAttributes}},
+		}
+	}
+
+	cases := map[string]testschema.Schema{
+		"blocks":            {Attributes: attributes, Blocks: schemaBlocks},
+		"nested-attributes": {Attributes: nestedAttributes},
+	}
+	for name, schema := range cases {
+		b.Run(name, func(b *testing.B) {
+			response := &fwserver.GetProviderSchemaResponse{ResourceSchemas: make(map[string]fwschema.Schema, 100)}
+			for i := range 100 {
+				response.ResourceSchemas[fmt.Sprintf("resource_%d", i)] = schema
+			}
+			ctx := context.Background()
+			for b.Loop() {
+				benchmarkGetProviderSchemaResponse = toproto6.GetProviderSchemaResponse(ctx, response)
+				for _, diagnostic := range benchmarkGetProviderSchemaResponse.Diagnostics {
+					if diagnostic.Severity == tfprotov6.DiagnosticSeverityError {
+						b.Fatalf("schema conversion failed: %s: %s", diagnostic.Summary, diagnostic.Detail)
+					}
+				}
+				if len(benchmarkGetProviderSchemaResponse.ResourceSchemas) != len(response.ResourceSchemas) {
+					b.Fatalf("expected %d resource schemas, got %d", len(response.ResourceSchemas), len(benchmarkGetProviderSchemaResponse.ResourceSchemas))
+				}
+			}
+		})
+	}
+}
 
 // TODO: Tuple type support
 // Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/54

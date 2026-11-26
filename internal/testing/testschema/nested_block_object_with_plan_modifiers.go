@@ -45,6 +45,32 @@ func (o NestedBlockObjectWithPlanModifiers) GetBlocks() map[string]fwschema.Bloc
 	return o.Blocks
 }
 
+func (o NestedBlockObjectWithPlanModifiers) RangeAttributes(yield func(string, fwschema.Attribute) bool) {
+	for name, attribute := range o.Attributes {
+		if !yield(name, attribute) {
+			return
+		}
+	}
+}
+
+func (o NestedBlockObjectWithPlanModifiers) RangeBlocks(yield func(string, fwschema.Block) bool) {
+	for name, block := range o.Blocks {
+		if !yield(name, block) {
+			return
+		}
+	}
+}
+
+// LenAttributes returns the number of Attributes.
+func (o NestedBlockObjectWithPlanModifiers) LenAttributes() int {
+	return len(o.Attributes)
+}
+
+// LenBlocks returns the number of Blocks.
+func (o NestedBlockObjectWithPlanModifiers) LenBlocks() int {
+	return len(o.Blocks)
+}
+
 // ObjectPlanModifiers returns the PlanModifiers field value.
 func (o NestedBlockObjectWithPlanModifiers) ObjectPlanModifiers() []planmodifier.Object {
 	return o.PlanModifiers

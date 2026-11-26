@@ -5,7 +5,8 @@ package toproto6
 
 import (
 	"context"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -34,16 +35,20 @@ func IdentitySchema(ctx context.Context, s fwschema.Schema) (*tfprotov6.Resource
 		attrs = append(attrs, a)
 	}
 
-	sort.Slice(attrs, func(i, j int) bool {
-		if attrs[i] == nil {
-			return true
+	slices.SortFunc(attrs, func(a, b *tfprotov6.ResourceIdentitySchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if attrs[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return attrs[i].Name < attrs[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
 	result.IdentityAttributes = attrs

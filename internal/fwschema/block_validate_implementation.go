@@ -53,72 +53,91 @@ func ValidateBlockImplementation(ctx context.Context, block Block, req ValidateI
 		return diags
 	}
 
-	nestingMode := block.GetNestingMode()
-
-	for nestedAttributeName, nestedAttribute := range nestedObject.GetAttributes() {
-		var nestedAttributePath path.Path
-
-		// TODO: path.Path and path.PathExpression are intended to map onto
-		// actual data implementations, however we need some representation
-		// for schema paths without data. It may make sense to introduce an
-		// internal "schema path" to simplify outputting specialized
-		// strings for these types of diagnostics.
-		//
-		// The below choices of AtListIndex(0), etc. are arbitrary in this
-		// situation.
-		//
-		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/574
-		switch nestingMode {
-		// case BlockNestingModeList:
-		// 	nestedAttributePath = req.Path.AtListIndex(0).AtName(nestedAttributeName)
-		// case BlockNestingModeSet:
-		// 	nestedAttributePath = req.Path.AtSetValue(types.StringValue("*")).AtName(nestedAttributeName)
-		// case BlockNestingModeSingle:
-		// 	nestedAttributePath = req.Path.AtName(nestedAttributeName)
-		default:
-			// This is purely to preserve the prior logic. Refer to above comment.
-			nestedAttributePath = req.Path.AtName(nestedAttributeName)
-		}
-
-		nestedReq := ValidateImplementationRequest{
-			Name: nestedAttributeName,
-			Path: nestedAttributePath,
-		}
-
-		diags.Append(ValidateAttributeImplementation(ctx, nestedAttribute, nestedReq)...)
+	if nestedObject.LenAttributes() == 0 && nestedObject.LenBlocks() == 0 {
+		return diags
 	}
 
-	for nestedBlockName, nestedBlock := range nestedObject.GetBlocks() {
-		var nestedBlockPath path.Path
+	diags.Append(validateNestedBlockObject(ctx, block.GetNestingMode(), nestedObject, req)...)
 
-		// TODO: path.Path and path.PathExpression are intended to map onto
-		// actual data implementations, however we need some representation
-		// for schema paths without data. It may make sense to introduce an
-		// internal "schema path" to simplify outputting specialized
-		// strings for these types of diagnostics.
-		//
-		// The below choices of AtListIndex(0), etc. are arbitrary in this
-		// situation.
-		//
-		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/574
-		switch nestingMode {
-		// case BlockNestingModeList:
-		// 	nestedBlockPath = req.Path.AtListIndex(0).AtName(nestedBlockName)
-		// case BlockNestingModeSet:
-		// 	nestedBlockPath = req.Path.AtSetValue(types.StringValue("*")).AtName(nestedBlockName)
-		// case BlockNestingModeSingle:
-		// 	nestedBlockPath = req.Path.AtName(nestedBlockName)
-		default:
-			// This is purely to preserve the prior logic. Refer to above comment.
-			nestedBlockPath = req.Path.AtName(nestedBlockName)
-		}
+	return diags
+}
 
-		nestedReq := ValidateImplementationRequest{
-			Name: nestedBlockName,
-			Path: nestedBlockPath,
-		}
+// validateNestedBlockObject validates the attributes and blocks of a nested
+// object. It is a separate function so that the iteration closures, and the
+// state they capture, are only allocated for blocks which have children.
+func validateNestedBlockObject(ctx context.Context, nestingMode BlockNestingMode, nestedObject NestedBlockObject, req ValidateImplementationRequest) diag.Diagnostics {
+	var diags diag.Diagnostics
 
-		diags.Append(ValidateBlockImplementation(ctx, nestedBlock, nestedReq)...)
+	if nestedObject.LenAttributes() > 0 {
+		nestedObject.RangeAttributes(func(nestedAttributeName string, nestedAttribute Attribute) bool {
+			var nestedAttributePath path.Path
+
+			// TODO: path.Path and path.PathExpression are intended to map onto
+			// actual data implementations, however we need some representation
+			// for schema paths without data. It may make sense to introduce an
+			// internal "schema path" to simplify outputting specialized
+			// strings for these types of diagnostics.
+			//
+			// The below choices of AtListIndex(0), etc. are arbitrary in this
+			// situation.
+			//
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/574
+			switch nestingMode {
+			// case BlockNestingModeList:
+			// 	nestedAttributePath = req.Path.AtListIndex(0).AtName(nestedAttributeName)
+			// case BlockNestingModeSet:
+			// 	nestedAttributePath = req.Path.AtSetValue(types.StringValue("*")).AtName(nestedAttributeName)
+			// case BlockNestingModeSingle:
+			// 	nestedAttributePath = req.Path.AtName(nestedAttributeName)
+			default:
+				// This is purely to preserve the prior logic. Refer to above comment.
+				nestedAttributePath = req.Path.AtName(nestedAttributeName)
+			}
+
+			nestedReq := ValidateImplementationRequest{
+				Name: nestedAttributeName,
+				Path: nestedAttributePath,
+			}
+
+			diags.Append(ValidateAttributeImplementation(ctx, nestedAttribute, nestedReq)...)
+			return true
+		})
+	}
+
+	if nestedObject.LenBlocks() > 0 {
+		nestedObject.RangeBlocks(func(nestedBlockName string, nestedBlock Block) bool {
+			var nestedBlockPath path.Path
+
+			// TODO: path.Path and path.PathExpression are intended to map onto
+			// actual data implementations, however we need some representation
+			// for schema paths without data. It may make sense to introduce an
+			// internal "schema path" to simplify outputting specialized
+			// strings for these types of diagnostics.
+			//
+			// The below choices of AtListIndex(0), etc. are arbitrary in this
+			// situation.
+			//
+			// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/574
+			switch nestingMode {
+			// case BlockNestingModeList:
+			// 	nestedBlockPath = req.Path.AtListIndex(0).AtName(nestedBlockName)
+			// case BlockNestingModeSet:
+			// 	nestedBlockPath = req.Path.AtSetValue(types.StringValue("*")).AtName(nestedBlockName)
+			// case BlockNestingModeSingle:
+			// 	nestedBlockPath = req.Path.AtName(nestedBlockName)
+			default:
+				// This is purely to preserve the prior logic. Refer to above comment.
+				nestedBlockPath = req.Path.AtName(nestedBlockName)
+			}
+
+			nestedReq := ValidateImplementationRequest{
+				Name: nestedBlockName,
+				Path: nestedBlockPath,
+			}
+
+			diags.Append(ValidateBlockImplementation(ctx, nestedBlock, nestedReq)...)
+			return true
+		})
 	}
 
 	return diags

@@ -5,7 +5,9 @@ package toproto6
 
 import (
 	"context"
-	"sort"
+	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -17,11 +19,19 @@ import (
 // Attribute. Errors will be tftypes.AttributePathErrors based on `path`.
 // `name` is the name of the attribute.
 func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePath, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, error) {
+	result, err := schemaAttribute(ctx, name, a)
+	if err != nil {
+		return nil, err.attributePathError(path)
+	}
+	return result, nil
+}
+
+func schemaAttribute(ctx context.Context, name string, a fwschema.Attribute) (*tfprotov6.SchemaAttribute, *schemaError) {
 	if !a.IsRequired() && !a.IsOptional() && !a.IsComputed() {
-		return nil, path.NewErrorf("must have Required, Optional, or Computed set")
+		return nil, &schemaError{message: "must have Required, Optional, or Computed set"}
 	}
 
-	schemaAttribute := &tfprotov6.SchemaAttribute{
+	result := &tfprotov6.SchemaAttribute{
 		Name:      name,
 		Required:  a.IsRequired(),
 		Optional:  a.IsOptional(),
@@ -32,24 +42,24 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 	}
 
 	if a.GetDeprecationMessage() != "" {
-		schemaAttribute.Deprecated = true
-		schemaAttribute.DeprecationMessage = a.GetDeprecationMessage()
+		result.Deprecated = true
+		result.DeprecationMessage = a.GetDeprecationMessage()
 	}
 
 	if a.GetDescription() != "" {
-		schemaAttribute.Description = a.GetDescription()
-		schemaAttribute.DescriptionKind = tfprotov6.StringKindPlain
+		result.Description = a.GetDescription()
+		result.DescriptionKind = tfprotov6.StringKindPlain
 	}
 
 	if a.GetMarkdownDescription() != "" {
-		schemaAttribute.Description = a.GetMarkdownDescription()
-		schemaAttribute.DescriptionKind = tfprotov6.StringKindMarkdown
+		result.Description = a.GetMarkdownDescription()
+		result.DescriptionKind = tfprotov6.StringKindMarkdown
 	}
 
 	nestedAttribute, ok := a.(fwschema.NestedAttribute)
 
 	if !ok {
-		return schemaAttribute, nil
+		return result, nil
 	}
 
 	object := &tfprotov6.SchemaObject{}
@@ -64,33 +74,37 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 	case fwschema.NestingModeMap:
 		object.Nesting = tfprotov6.SchemaObjectNestingModeMap
 	default:
-		return nil, path.NewErrorf("unrecognized nesting mode %v", nm)
+		return nil, &schemaError{message: fmt.Sprintf("unrecognized nesting mode %v", nm)}
 	}
 
 	for nestedName, nestedA := range nestedAttribute.GetNestedObject().GetAttributes() {
-		nestedSchemaAttribute, err := SchemaAttribute(ctx, nestedName, path.WithAttributeName(nestedName), nestedA)
+		nestedSchemaAttribute, err := schemaAttribute(ctx, nestedName, nestedA)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(nestedName)
 		}
 
 		object.Attributes = append(object.Attributes, nestedSchemaAttribute)
 	}
 
-	sort.Slice(object.Attributes, func(i, j int) bool {
-		if object.Attributes[i] == nil {
-			return true
+	slices.SortFunc(object.Attributes, func(a, b *tfprotov6.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if object.Attributes[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return object.Attributes[i].Name < object.Attributes[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
-	schemaAttribute.NestedType = object
-	schemaAttribute.Type = nil
+	result.NestedType = object
+	result.Type = nil
 
-	return schemaAttribute, nil
+	return result, nil
 }

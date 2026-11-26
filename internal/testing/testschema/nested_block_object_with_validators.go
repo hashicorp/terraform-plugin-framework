@@ -45,6 +45,32 @@ func (o NestedBlockObjectWithValidators) GetBlocks() map[string]fwschema.Block {
 	return o.Blocks
 }
 
+func (o NestedBlockObjectWithValidators) RangeAttributes(yield func(string, fwschema.Attribute) bool) {
+	for name, attribute := range o.Attributes {
+		if !yield(name, attribute) {
+			return
+		}
+	}
+}
+
+func (o NestedBlockObjectWithValidators) RangeBlocks(yield func(string, fwschema.Block) bool) {
+	for name, block := range o.Blocks {
+		if !yield(name, block) {
+			return
+		}
+	}
+}
+
+// LenAttributes returns the number of Attributes.
+func (o NestedBlockObjectWithValidators) LenAttributes() int {
+	return len(o.Attributes)
+}
+
+// LenBlocks returns the number of Blocks.
+func (o NestedBlockObjectWithValidators) LenBlocks() int {
+	return len(o.Blocks)
+}
+
 // ObjectValidators returns the Validators field value.
 func (o NestedBlockObjectWithValidators) ObjectValidators() []validator.Object {
 	return o.Validators

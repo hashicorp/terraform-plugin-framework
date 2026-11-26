@@ -5,11 +5,11 @@ package toproto5
 
 import (
 	"context"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Schema returns the *tfprotov5.Schema equivalent of a Schema.
@@ -26,47 +26,55 @@ func Schema(ctx context.Context, s fwschema.Schema) (*tfprotov5.Schema, error) {
 	var blocks []*tfprotov5.SchemaNestedBlock
 
 	for name, attr := range s.GetAttributes() {
-		a, err := SchemaAttribute(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), attr)
+		a, err := schemaAttribute(ctx, name, attr)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(name).attributePathError(nil)
 		}
 
 		attrs = append(attrs, a)
 	}
 
-	for name, block := range s.GetBlocks() {
-		proto5, err := Block(ctx, name, tftypes.NewAttributePath().WithAttributeName(name), block)
+	for name, nestedBlock := range s.GetBlocks() {
+		proto5, err := block(ctx, name, nestedBlock)
 
 		if err != nil {
-			return nil, err
+			return nil, err.withAttributeName(name).attributePathError(nil)
 		}
 
 		blocks = append(blocks, proto5)
 	}
 
-	sort.Slice(attrs, func(i, j int) bool {
-		if attrs[i] == nil {
-			return true
+	slices.SortFunc(attrs, func(a, b *tfprotov5.SchemaAttribute) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if attrs[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return attrs[i].Name < attrs[j].Name
+		return strings.Compare(a.Name, b.Name)
 	})
 
-	sort.Slice(blocks, func(i, j int) bool {
-		if blocks[i] == nil {
-			return true
+	slices.SortFunc(blocks, func(a, b *tfprotov5.SchemaNestedBlock) int {
+		if a == nil {
+			if b == nil {
+				return 0
+			}
+
+			return -1
 		}
 
-		if blocks[j] == nil {
-			return false
+		if b == nil {
+			return 1
 		}
 
-		return blocks[i].TypeName < blocks[j].TypeName
+		return strings.Compare(a.TypeName, b.TypeName)
 	})
 
 	result.Block = &tfprotov5.SchemaBlock{

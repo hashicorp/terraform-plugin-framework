@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -364,6 +365,55 @@ func TestIsValidFieldName(t *testing.T) {
 			result := isValidFieldName(in)
 			if result != expected {
 				t.Errorf("Expected %v, got %v", expected, result)
+			}
+		})
+	}
+}
+
+func FuzzIsValidFieldNameMatchesRegexp(f *testing.F) {
+	for _, input := range []string{
+		"",
+		"id",
+		"resource_name",
+		"ipv6_address",
+		"1name",
+		"name-",
+		"café",
+		"a\xff",
+	} {
+		f.Add(input)
+	}
+
+	validFieldNameRegexp := regexp.MustCompile("^[a-z][a-z0-9_]*$")
+	f.Fuzz(func(t *testing.T, input string) {
+		if got, want := isValidFieldName(input), validFieldNameRegexp.MatchString(input); got != want {
+			t.Errorf("isValidFieldName(%q) = %t, regexp = %t", input, got, want)
+		}
+	})
+}
+
+func BenchmarkIsValidFieldName(b *testing.B) {
+	tests := map[string]string{
+		"empty":             "",
+		"single_letter":     "a",
+		"single_digit":      "1",
+		"leading_digit":     "1a",
+		"letter_digit":      "a1",
+		"uppercase":         "A",
+		"hyphen":            "a-b",
+		"underscore":        "a_b",
+		"short_tag":         "id",
+		"multiword_tag":     "resource_name",
+		"tag_with_digits":   "ipv6_address",
+		"invalid_tag_start": "1resource_name",
+		"invalid_tag_end":   "resource_name-",
+	}
+
+	for name, input := range tests {
+		b.Run(name, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				isValidFieldName(input)
 			}
 		})
 	}

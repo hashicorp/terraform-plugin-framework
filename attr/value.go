@@ -57,8 +57,15 @@ type Value interface {
 	// IsNull returns true if the Value is not set, or is explicitly set to null.
 	IsNull() bool
 
-	// IsUnknown returns true if the value is not yet known.
+	// IsUnKnown returns true if the value is not yet known.
+	// If the value is an aggregate type, only the top level of the aggregate type
+	// is checked; elements and attributes are not checked.
 	IsUnknown() bool
+
+	// IsFullyNullableKnown returns true if the value is nullable known. If the value
+	// is an aggregate type, IsFullyNullableKnown only returns true if all elements
+	// and attributes are nullable known, as well.
+	IsFullyNullableKnown() bool
 
 	// String returns a summary representation of either the underlying Value,
 	// or UnknownValueString (`<unknown>`) when IsUnknown() returns true,

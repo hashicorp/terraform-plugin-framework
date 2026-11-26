@@ -119,3 +119,7 @@ func (n Number) IsNull() bool {
 func (n Number) IsUnknown() bool {
 	return n.Number.IsUnknown()
 }
+
+func (n Number) IsFullyNullableKnown() bool {
+	return n.Number.IsFullyNullableKnown()
+}

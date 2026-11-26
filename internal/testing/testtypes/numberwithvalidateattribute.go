@@ -75,6 +75,10 @@ func (v NumberValueWithValidateAttributeError) IsUnknown() bool {
 	return v.InternalNumber.IsUnknown()
 }
 
+func (v NumberValueWithValidateAttributeError) IsFullyNullableKnown() bool {
+	return v.InternalNumber.IsFullyNullableKnown()
+}
+
 func (v NumberValueWithValidateAttributeError) String() string {
 	return v.InternalNumber.String()
 }
@@ -143,6 +147,10 @@ func (v NumberValueWithValidateAttributeWarning) IsNull() bool {
 
 func (v NumberValueWithValidateAttributeWarning) IsUnknown() bool {
 	return v.InternalNumber.IsUnknown()
+}
+
+func (v NumberValueWithValidateAttributeWarning) IsFullyNullableKnown() bool {
+	return v.InternalNumber.IsFullyNullableKnown()
 }
 
 func (v NumberValueWithValidateAttributeWarning) String() string {

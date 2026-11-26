@@ -98,11 +98,9 @@ func (s *Server) ValidateActionConfig(ctx context.Context, req *ValidateActionCo
 	}
 
 	schemaCapabilities := validator.ValidateSchemaClientCapabilities{
-		// The SchemaValidate function is shared between provider, resource,
-		// data source, ephemeral resource, and action schemas; however, WriteOnlyAttributesAllowed
-		// capability is only valid for resource schemas, so this is explicitly set to false
-		// for all other schema types.
-		WriteOnlyAttributesAllowed: false,
+		// Actions were introduced after Terraform added support for write-only
+		// attributes. Their schemas can therefore accept write-only values.
+		WriteOnlyAttributesAllowed: true,
 	}
 
 	validateSchemaReq := ValidateSchemaRequest{

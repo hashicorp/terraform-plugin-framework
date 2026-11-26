@@ -69,7 +69,7 @@ func IsReservedProviderAttributeName(name string, attributePath path.Path) diag.
 
 	// Check that given path is root attribute name. This simplifies calling
 	// logic to not worry about conditionalizing this check.
-	if len(attributePath.Steps()) != 1 {
+	if attributePath.Len() != 1 {
 		return diags
 	}
 
@@ -102,7 +102,7 @@ func IsReservedResourceAttributeName(name string, attributePath path.Path) diag.
 
 	// Check that given path is root attribute name. This simplifies calling
 	// logic to not worry about conditionalizing this check.
-	if len(attributePath.Steps()) != 1 {
+	if attributePath.Len() != 1 {
 		return diags
 	}
 

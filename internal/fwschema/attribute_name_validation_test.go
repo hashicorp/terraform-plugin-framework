@@ -4,6 +4,7 @@
 package fwschema_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,6 +12,55 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
+
+var benchmarkDiagnostics diag.Diagnostics
+
+func BenchmarkReservedAttributeName(b *testing.B) {
+	checks := map[string]struct {
+		check        func(string, path.Path) diag.Diagnostics
+		reservedName string
+	}{
+		"provider": {check: fwschema.IsReservedProviderAttributeName, reservedName: "alias"},
+		"resource": {check: fwschema.IsReservedResourceAttributeName, reservedName: "count"},
+	}
+
+	for name, check := range checks {
+		b.Run(name, func(b *testing.B) {
+			cases := map[string]struct {
+				name string
+				path path.Path
+			}{
+				"unreserved-root":   {name: "attribute", path: path.Root("attribute")},
+				"unreserved-nested": {name: "attribute", path: path.Root("parent").AtName("attribute")},
+				"reserved-root":     {name: check.reservedName, path: path.Root(check.reservedName)},
+				"reserved-nested":   {name: check.reservedName, path: path.Root("parent").AtName(check.reservedName)},
+			}
+
+			for name, testCase := range cases {
+				b.Run(name, func(b *testing.B) {
+					for b.Loop() {
+						benchmarkDiagnostics = check.check(testCase.name, testCase.path)
+					}
+				})
+			}
+
+			// Providers can have deeply nested schemas. For example, the longest path in the AWS provider is 29 steps.
+			// As of Go 1.25, one and two element paths are optimized to avoid heap allocations.
+			for _, depth := range []int{1, 2, 3, 4, 8, 16, 32} {
+				attributePath := path.Root("parent")
+				for range depth - 1 {
+					attributePath = attributePath.AtName("nested")
+				}
+
+				b.Run(fmt.Sprintf("unreserved-depth-%d", depth), func(b *testing.B) {
+					for b.Loop() {
+						benchmarkDiagnostics = check.check("attribute", attributePath)
+					}
+				})
+			}
+		})
+	}
+}
 
 func TestIsReservedProviderAttributeName(t *testing.T) {
 	t.Parallel()

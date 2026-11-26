@@ -60,82 +60,61 @@ type Expression struct {
 // AtAnyListIndex returns a copied expression with a new list index step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnyListIndex() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyIntAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyIntAny{})
 }
 
 // AtAnyMapKey returns a copied expression with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnyMapKey() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyStringAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyStringAny{})
 }
 
 // AtAnySetValue returns a copied expression with a new set value step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtAnySetValue() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyValueAny{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyValueAny{})
 }
 
 // AtListIndex returns a copied expression with a new list index step at the
 // end. The returned path is safe to modify without affecting the original.
 func (e Expression) AtListIndex(index int) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyIntExact(index))
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyIntExact(index))
 }
 
 // AtMapKey returns a copied expression with a new map key step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtMapKey(key string) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepElementKeyStringExact(key))
-
-	return copiedPath
+	return e.atStep(ExpressionStepElementKeyStringExact(key))
 }
 
 // AtName returns a copied expression with a new attribute or block name step
 // at the end. The returned path is safe to modify without affecting the
 // original.
 func (e Expression) AtName(name string) Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepAttributeNameExact(name))
-
-	return copiedPath
+	return e.atStep(ExpressionStepAttributeNameExact(name))
 }
 
 // AtParent returns a copied expression with a new parent step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtParent() Expression {
-	copiedPath := e.Copy()
-
-	copiedPath.steps.Append(ExpressionStepParent{})
-
-	return copiedPath
+	return e.atStep(ExpressionStepParent{})
 }
 
 // AtSetValue returns a copied expression with a new set value step at the end.
 // The returned path is safe to modify without affecting the original.
 func (e Expression) AtSetValue(value attr.Value) Expression {
-	copiedPath := e.Copy()
+	return e.atStep(ExpressionStepElementKeyValueExact{Value: value})
+}
 
-	copiedPath.steps.Append(ExpressionStepElementKeyValueExact{Value: value})
+// atStep returns a copy of the expression with the given step added at the end.
+func (e Expression) atStep(step ExpressionStep) Expression {
+	steps := make(ExpressionSteps, len(e.steps), len(e.steps)+1)
+	copy(steps, e.steps)
 
-	return copiedPath
+	return Expression{
+		root:  e.root,
+		steps: append(steps, step),
+	}
 }
 
 // Copy returns a duplicate of the expression that is safe to modify without
@@ -143,7 +122,7 @@ func (e Expression) AtSetValue(value attr.Value) Expression {
 func (e Expression) Copy() Expression {
 	return Expression{
 		root:  e.root,
-		steps: e.Steps().Copy(),
+		steps: e.Steps(),
 	}
 }
 
@@ -198,11 +177,14 @@ func (e Expression) Merge(other Expression) Expression {
 		return other.Copy()
 	}
 
-	copiedExpression := e.Copy()
+	steps := make(ExpressionSteps, len(e.steps)+len(other.steps))
+	copy(steps, e.steps)
+	copy(steps[len(e.steps):], other.steps)
 
-	copiedExpression.steps.Append(other.steps...)
-
-	return copiedExpression
+	return Expression{
+		root:  e.root,
+		steps: steps,
+	}
 }
 
 // MergeExpressions returns collection of expressions that calls Merge() on
@@ -211,13 +193,11 @@ func (e Expression) Merge(other Expression) Expression {
 // If no Expression are given, then it will return a collection of expressions
 // containing only the current expression.
 func (e Expression) MergeExpressions(others ...Expression) Expressions {
-	var result Expressions
-
 	if len(others) == 0 {
-		result.Append(e)
-
-		return result
+		return Expressions{e}
 	}
+
+	var result Expressions
 
 	for _, other := range others {
 		result.Append(e.Merge(other))
@@ -234,11 +214,14 @@ func (e Expression) MergeExpressions(others ...Expression) Expressions {
 // Returns an empty expression if any ExpressionStepParent attempt to go
 // beyond the first element.
 func (e Expression) Resolve() Expression {
-	copiedExpression := e.Copy()
+	if len(e.steps) == 0 {
+		return Expression{root: e.root, steps: ExpressionSteps{}}
+	}
 
-	copiedExpression.steps = copiedExpression.steps.Resolve()
-
-	return copiedExpression
+	return Expression{
+		root:  e.root,
+		steps: e.steps.Resolve(),
+	}
 }
 
 // Steps returns a copy of the underlying expression steps. Returns an empty

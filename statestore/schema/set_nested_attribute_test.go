@@ -91,7 +91,6 @@ func TestSetNestedAttributeApplyTerraform5AttributePathStep(t *testing.T) {
 			t.Parallel()
 
 			got, err := testCase.attribute.ApplyTerraform5AttributePathStep(testCase.step)
-
 			if err != nil {
 				if testCase.expectedError == nil {
 					t.Fatalf("expected no error, got: %s", err)
@@ -512,6 +511,14 @@ func TestSetNestedAttributeIsSensitive(t *testing.T) {
 		expected  bool
 	}{
 		"not-sensitive": {
+			attribute: schema.SetNestedAttribute{},
+			expected:  false,
+		},
+		"sensitive": {
+			attribute: schema.SetNestedAttribute{Sensitive: true},
+			expected:  true,
+		},
+		"not-sensitive-with-nested-object": {
 			attribute: schema.SetNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

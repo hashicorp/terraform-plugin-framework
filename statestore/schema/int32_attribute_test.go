@@ -344,6 +344,10 @@ func TestInt32AttributeIsSensitive(t *testing.T) {
 			attribute: schema.Int32Attribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.Int32Attribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

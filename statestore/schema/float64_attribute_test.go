@@ -344,6 +344,10 @@ func TestFloat64AttributeIsSensitive(t *testing.T) {
 			attribute: schema.Float64Attribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.Float64Attribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -344,6 +344,10 @@ func TestInt64AttributeIsSensitive(t *testing.T) {
 			attribute: schema.Int64Attribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.Int64Attribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

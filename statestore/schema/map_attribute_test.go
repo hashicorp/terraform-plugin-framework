@@ -352,6 +352,10 @@ func TestMapAttributeIsSensitive(t *testing.T) {
 			attribute: schema.MapAttribute{ElementType: types.StringType},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.MapAttribute{ElementType: types.StringType, Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

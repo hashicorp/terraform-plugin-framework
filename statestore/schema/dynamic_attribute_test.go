@@ -344,6 +344,10 @@ func TestDynamicAttributeIsSensitive(t *testing.T) {
 			attribute: schema.DynamicAttribute{},
 			expected:  false,
 		},
+		"sensitive": {
+			attribute: schema.DynamicAttribute{Sensitive: true},
+			expected:  true,
+		},
 	}
 
 	for name, testCase := range testCases {

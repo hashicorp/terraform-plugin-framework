@@ -65,6 +65,14 @@ type ListAttribute struct {
 	// for this attribute or not. Optional and Required cannot both be true.
 	Optional bool
 
+	// Sensitive indicates whether the value of this attribute should be
+	// considered sensitive data. Setting it to true will obscure the value
+	// in CLI output.
+	//
+	// Note: Marking an attribute as sensitive does not prevent it from being
+	// stored in the backend state file, i.e. .terraform/terraform.tfstate.
+	Sensitive bool
+
 	// Description is used in various tooling, like the language server, to
 	// give practitioners more information about what this attribute is,
 	// what it's for, and how it should be used. It should be written as
@@ -167,9 +175,9 @@ func (a ListAttribute) IsRequired() bool {
 	return a.Required
 }
 
-// IsSensitive always returns false as state store schema attributes cannot be Sensitive.
+// IsSensitive returns the Sensitive field value.
 func (a ListAttribute) IsSensitive() bool {
-	return false
+	return a.Sensitive
 }
 
 // IsWriteOnly always returns false as state store schema attributes cannot be WriteOnly.

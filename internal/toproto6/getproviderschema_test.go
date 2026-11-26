@@ -5881,7 +5881,8 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_state_store_1": statestoreschema.Schema{
 						Attributes: map[string]statestoreschema.Attribute{
 							"test_attribute": statestoreschema.StringAttribute{
-								Required: true,
+								Required:  true,
+								Sensitive: true,
 							},
 						},
 					},
@@ -5902,9 +5903,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 						Block: &tfprotov6.SchemaBlock{
 							Attributes: []*tfprotov6.SchemaAttribute{
 								{
-									Name:     "test_attribute",
-									Type:     tftypes.String,
-									Required: true,
+									Name:      "test_attribute",
+									Type:      tftypes.String,
+									Required:  true,
+									Sensitive: true,
 								},
 							},
 						},
@@ -5940,10 +5942,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 							"test_attribute": statestoreschema.SingleNestedAttribute{
 								Attributes: map[string]statestoreschema.Attribute{
 									"test_nested_attribute": statestoreschema.StringAttribute{
-										Required: true,
+										Required:  true,
+										Sensitive: true,
 									},
 								},
-								Required: true,
+								Required:  true,
+								Sensitive: true,
 							},
 						},
 					},
@@ -5960,14 +5964,16 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 									NestedType: &tfprotov6.SchemaObject{
 										Attributes: []*tfprotov6.SchemaAttribute{
 											{
-												Name:     "test_nested_attribute",
-												Type:     tftypes.String,
-												Required: true,
+												Name:      "test_nested_attribute",
+												Type:      tftypes.String,
+												Required:  true,
+												Sensitive: true,
 											},
 										},
 										Nesting: tfprotov6.SchemaObjectNestingModeSingle,
 									},
-									Required: true,
+									Required:  true,
+									Sensitive: true,
 								},
 							},
 						},

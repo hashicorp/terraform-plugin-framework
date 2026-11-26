@@ -512,6 +512,14 @@ func TestMapNestedAttributeIsSensitive(t *testing.T) {
 		expected  bool
 	}{
 		"not-sensitive": {
+			attribute: schema.MapNestedAttribute{},
+			expected:  false,
+		},
+		"sensitive": {
+			attribute: schema.MapNestedAttribute{Sensitive: true},
+			expected:  true,
+		},
+		"not-sensitive-with-nested-object": {
 			attribute: schema.MapNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

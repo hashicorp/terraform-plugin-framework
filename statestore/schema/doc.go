@@ -5,6 +5,9 @@
 // State store schemas define the structure and value types for configuration data.
 // Schemas are implemented via the statestore.StateStore type Schema method.
 //
+// All attribute types support the Sensitive field to obscure configuration
+// values in CLI output. Attributes are not sensitive by default.
+//
 // NOTE: State store support is experimental and exposed without compatibility promises until
 // these notices are removed.
 package schema

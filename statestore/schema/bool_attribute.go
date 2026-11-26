@@ -49,6 +49,9 @@ type BoolAttribute struct {
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
 	// in CLI output.
+	//
+	// Note: Marking an attribute as sensitive does not prevent it from being
+	// stored in the backend state file, i.e. .terraform/terraform.tfstate.
 	Sensitive bool
 
 	// Description is used in various tooling, like the language server, to

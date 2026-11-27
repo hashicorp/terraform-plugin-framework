@@ -19,8 +19,6 @@ import (
 func (d *Data) ReifyNullCollectionBlocks(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	blockPathExpressions := fwschema.SchemaBlockPathExpressions(ctx, d.Schema)
-
 	// Errors are handled as richer diag.Diagnostics instead.
 	d.TerraformValue, _ = tftypes.Transform(d.TerraformValue, func(tfTypePath *tftypes.AttributePath, tfTypeValue tftypes.Value) (tftypes.Value, error) {
 		// Skip the root of the data
@@ -53,7 +51,7 @@ func (d *Data) ReifyNullCollectionBlocks(ctx context.Context) diag.Diagnostics {
 		}
 
 		// Do not transform if path is not a block.
-		if !blockPathExpressions.Matches(fwPath) {
+		if !fwschema.SchemaPathIsBlock(d.Schema, fwPath) {
 			return tfTypeValue, nil
 		}
 

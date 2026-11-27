@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: "internal/fwschemadata: Reduce CPU and allocation overhead when converting collection blocks in large nested schemas"
+time: 2026-11-08T04:23:40.141425+00:00
+custom:
+    Issue: "1336"

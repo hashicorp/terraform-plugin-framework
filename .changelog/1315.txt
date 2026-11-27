@@ -1,0 +1,3 @@
+```release-note:bug
+framework: Skipped the element semantic-equality reconciliation walk for collection attributes and blocks whose element type does not implement semantic equality, fixing O(n^2) plan/refresh time on large sets
+```

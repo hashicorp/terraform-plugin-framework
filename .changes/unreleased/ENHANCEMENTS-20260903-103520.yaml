@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'types/basetypes: Improved performance of set duplicate detection and set equality,
+    which compared every pair of elements'
+time: 2026-09-03T10:35:20+03:30
+custom:
+    Issue: "1322"

@@ -296,8 +296,34 @@ func (s SetValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	// Index the other set's elements by a hashable key derived from String() so
+	// each element can be matched without scanning the whole set. Equal values
+	// always render to the same string (ObjectValue.String() sorts attribute
+	// names for exactly this consistency), so an element that has a match will
+	// always find it inside its own bucket.
+	//
+	// Sets nested in the element type break that property, because set equality
+	// ignores element order while String() does not, so those compare against
+	// the whole set as before.
+	if !typeCanBeStringKeyed(s.elementType) {
+		for _, elem := range s.elements {
+			if !containsElement(other.elements, elem) {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	otherElementsByKey := make(map[string][]attr.Value, len(other.elements))
+
+	for _, elem := range other.elements {
+		key := elem.String()
+		otherElementsByKey[key] = append(otherElementsByKey[key], elem)
+	}
+
 	for _, elem := range s.elements {
-		if !other.contains(elem) {
+		if !containsElement(otherElementsByKey[elem.String()], elem) {
 			return false
 		}
 	}
@@ -305,8 +331,8 @@ func (s SetValue) Equal(o attr.Value) bool {
 	return true
 }
 
-func (s SetValue) contains(v attr.Value) bool {
-	for _, elem := range s.Elements() {
+func containsElement(elements []attr.Value, v attr.Value) bool {
+	for _, elem := range elements {
 		if elem.Equal(v) {
 			return true
 		}

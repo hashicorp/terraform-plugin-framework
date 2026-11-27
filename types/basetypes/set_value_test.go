@@ -66,8 +66,8 @@ var benchDiags diag.Diagnostics // Prevent compiler optimization
 func benchmarkSetTypeValidate(b *testing.B, elementCount int) {
 	elements := make([]tftypes.Value, 0, elementCount)
 
-	for idx := range elements {
-		elements[idx] = tftypes.NewValue(tftypes.String, strconv.Itoa(idx))
+	for idx := 0; idx < elementCount; idx++ {
+		elements = append(elements, tftypes.NewValue(tftypes.String, strconv.Itoa(idx)))
 	}
 
 	var diags diag.Diagnostics // Prevent compiler optimization
@@ -110,6 +110,46 @@ func BenchmarkSetTypeValidate100000(b *testing.B) {
 
 func BenchmarkSetTypeValidate1000000(b *testing.B) {
 	benchmarkSetTypeValidate(b, 1000000)
+}
+
+var benchEqual bool // Prevent compiler optimization
+
+func benchmarkSetValueEqual(b *testing.B, elementCount int) {
+	elements := make([]attr.Value, 0, elementCount)
+
+	for idx := 0; idx < elementCount; idx++ {
+		elements = append(elements, NewStringValue(strconv.Itoa(idx)))
+	}
+
+	var equal bool // Prevent compiler optimization
+	set := NewSetValueMust(StringType{}, elements)
+	other := NewSetValueMust(StringType{}, elements)
+
+	for n := 0; n < b.N; n++ {
+		equal = set.Equal(other)
+	}
+
+	benchEqual = equal
+}
+
+func BenchmarkSetValueEqual10(b *testing.B) {
+	benchmarkSetValueEqual(b, 10)
+}
+
+func BenchmarkSetValueEqual100(b *testing.B) {
+	benchmarkSetValueEqual(b, 100)
+}
+
+func BenchmarkSetValueEqual1000(b *testing.B) {
+	benchmarkSetValueEqual(b, 1000)
+}
+
+func BenchmarkSetValueEqual10000(b *testing.B) {
+	benchmarkSetValueEqual(b, 10000)
+}
+
+func BenchmarkSetValueEqual100000(b *testing.B) {
+	benchmarkSetValueEqual(b, 100000)
 }
 
 func TestSetTypeValidate(t *testing.T) {
